@@ -1,0 +1,6 @@
+{
+	"_meta": {"version": "1.0", "domain": "manifest"},
+	"domains": [
+		{"name": "damage_params", "path": "combat/damage_params.json", "preload": true}
+	]
+}

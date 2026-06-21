@@ -1,0 +1,13 @@
+{
+	"entries": {
+		"cat_claw": {
+			"required": ["weapon_base", "scaling_factor", "crit_perfect_multiplier", "crit_good_multiplier"],
+			"fields": {
+				"weapon_base": {"type": "int", "min": 0, "max": 999},
+				"scaling_factor": {"type": "float", "min": 0.0, "max": 10.0},
+				"crit_perfect_multiplier": {"type": "float", "min": 1.0, "max": 10.0},
+				"crit_good_multiplier": {"type": "float", "min": 1.0, "max": 10.0}
+			}
+		}
+	}
+}

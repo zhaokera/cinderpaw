@@ -1,0 +1,11 @@
+{
+	"_meta": {"version": "1.0", "domain": "damage_params", "description": "Damage formula parameters"},
+	"entries": {
+		"cat_claw": {
+			"weapon_base": 10,
+			"scaling_factor": 1.2,
+			"crit_perfect_multiplier": 2.5,
+			"crit_good_multiplier": 1.8
+		}
+	}
+}
