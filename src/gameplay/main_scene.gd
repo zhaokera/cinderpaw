@@ -7,11 +7,16 @@ extends Node2D
 @onready var _combat_presentation = $CombatPresentation
 @onready var _game_flow = $GameFlowController
 
+var _pause_menu_active: bool = false
+
 
 func _ready() -> void:
 	_game_flow.start_encounter(_player.global_position)
 	_game_flow.respawn_requested.connect(_on_respawn_requested)
 	_game_flow.victory_reached.connect(_on_victory_reached)
+	_hud.menu_pause_requested.connect(_on_menu_pause_requested)
+	_hud.menu_resume_requested.connect(_on_menu_resume_requested)
+	_hud.menu_retry_requested.connect(_on_menu_retry_requested)
 	_player.player_health_changed.connect(_on_player_health_changed)
 	_player.player_died.connect(_on_player_died)
 	_player.attack_landed.connect(_on_player_attack_landed)
@@ -60,3 +65,25 @@ func _on_victory_reached() -> void:
 	_hud.hide_boss_hp()
 	_hud.update_currency(25)
 	_hud.show_notification("Shadow beast defeated", 3.0)
+	_hud.show_retry_menu("Shadow beast defeated", "Retry the encounter or stay with your prize.")
+
+
+func _on_menu_pause_requested() -> void:
+	if _game_flow.get_flow_state() == &"victory":
+		return
+	_pause_menu_active = true
+	get_tree().paused = true
+	_hud.show_pause_menu()
+
+
+func _on_menu_resume_requested() -> void:
+	if _pause_menu_active:
+		get_tree().paused = false
+	_pause_menu_active = false
+	_hud.hide_menu()
+
+
+func _on_menu_retry_requested() -> void:
+	_pause_menu_active = false
+	get_tree().paused = false
+	get_tree().reload_current_scene()

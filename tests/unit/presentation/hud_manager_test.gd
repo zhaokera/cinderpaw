@@ -4,11 +4,17 @@ extends GdUnitTestSuite
 const HUD_MANAGER_SCRIPT: Script = preload("res://src/presentation/hud_manager.gd")
 
 var hud
+var _resume_requests: int = 0
+var _retry_requests: int = 0
 
 
 func before_test() -> void:
 	hud = HUD_MANAGER_SCRIPT.new()
 	add_child(hud)
+	_resume_requests = 0
+	_retry_requests = 0
+	hud.menu_resume_requested.connect(_on_menu_resume_requested)
+	hud.menu_retry_requested.connect(_on_menu_retry_requested)
 
 
 func after_test() -> void:
@@ -17,6 +23,8 @@ func after_test() -> void:
 			hud.get_parent().remove_child(hud)
 		hud.free()
 	hud = null
+	_resume_requests = 0
+	_retry_requests = 0
 
 
 func test_update_hp_sets_ratio_label_and_healthy_color() -> void:
@@ -48,3 +56,44 @@ func test_show_notification_expires_after_duration() -> void:
 	hud.advance_time(0.02)
 
 	assert_bool(hud.is_notification_visible()).is_false()
+
+
+func test_show_pause_menu_displays_focusable_resume_and_retry_buttons() -> void:
+	hud.show_pause_menu()
+
+	assert_bool(hud.is_menu_visible()).is_true()
+	assert_str(String(hud.get_menu_mode())).is_equal("pause")
+	assert_str(hud.get_menu_title()).is_equal("Paused")
+	assert_str(hud.get_focused_menu_button_text()).is_equal("Resume")
+	assert_bool(hud.are_menu_buttons_focusable()).is_true()
+
+
+func test_menu_buttons_emit_resume_and_retry_requests() -> void:
+	hud.show_pause_menu()
+
+	hud.get_node("HudRoot/MenuOverlay/MenuPanel/MenuContent/MenuButtons/ResumeButton").pressed.emit()
+	hud.get_node("HudRoot/MenuOverlay/MenuPanel/MenuContent/MenuButtons/RetryButton").pressed.emit()
+
+	assert_int(_resume_requests).is_equal(1)
+	assert_int(_retry_requests).is_equal(1)
+
+
+func test_hide_menu_clears_menu_mode_and_focus() -> void:
+	hud.show_retry_menu("Shadow beast defeated", "Try again with full health.")
+
+	assert_bool(hud.is_menu_visible()).is_true()
+	assert_str(String(hud.get_menu_mode())).is_equal("retry")
+
+	hud.hide_menu()
+
+	assert_bool(hud.is_menu_visible()).is_false()
+	assert_str(String(hud.get_menu_mode())).is_equal("none")
+	assert_str(hud.get_focused_menu_button_text()).is_equal("")
+
+
+func _on_menu_resume_requested() -> void:
+	_resume_requests += 1
+
+
+func _on_menu_retry_requested() -> void:
+	_retry_requests += 1

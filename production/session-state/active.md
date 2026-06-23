@@ -966,3 +966,27 @@
   returned to `flow=playing` with input unlocked.
 - Next recommended: formal pause/retry/menu route plus final death/victory
   animation and audio beats.
+
+## Session Extract — Pause/Retry Menu Vertical Slice 2026-06-24
+- Scope: Add the first formal pause and retry route around the current playable
+  scene, guided by `design/gdd/hud-ui.md`, `design/gdd/death-respawn.md`, and
+  ADR-0011. No formal HUD/UI or death-respawn epic exists yet, so this is
+  recorded as a vertical-slice implementation rather than a story close-out.
+- Files changed: `src/presentation/hud_manager.gd`,
+  `tests/unit/presentation/hud_manager_test.gd`, `src/gameplay/main_scene.gd`,
+  `production/qa/evidence/hud-vertical-slice-2026-06-23.md`, and
+  `production/qa/evidence/pause-retry-menu-vertical-slice-2026-06-24.md`.
+- Implementation: HUDManager now exposes pause/resume/retry menu signals,
+  builds a darkened focusable menu overlay, gives Resume/Continue keyboard focus,
+  and supports pause and victory retry modes. Main scene listens to HUD signals
+  to pause/resume `SceneTree` and reload the encounter on Retry.
+- TDD evidence: RED first failed on missing HUD menu APIs/signals; presentation
+  regression `reports/report_299/` 10/10 passing.
+- Runtime evidence: Godot startup parse check passed; Godot MCP session
+  `cinderpaw@c4d7` verified Esc pause (`paused=true`, menu mode `pause`,
+  focused `Resume`), Esc resume, victory retry menu, and Retry scene reload.
+- Visual evidence:
+  `reports/visual/cinderpaw-mcp-pause-menu-20260624.png` and
+  `reports/visual/cinderpaw-mcp-victory-retry-menu-20260624.png`.
+- Next recommended: generate formal HUD/UI or death-respawn epics/stories, then
+  add settings/save-load/main menu and final death-summary UI/audio.

@@ -26,10 +26,11 @@ current slice read as a playable game scene rather than a block prototype.
   visible spark and damage-number feedback.
 - Basic encounter flow now covers victory, death delay, half-HP respawn, and
   temporary post-respawn control lock.
+- Pause/retry menu route now supports Esc pause, focused Resume/Retry controls,
+  victory retry menu, and encounter reload.
 
 ## Remaining Presentation Work
 
 - Replace placeholder spark rectangles with final particle art and audio.
-- Add pause/menu UI and a formal retry/menu route around the existing respawn
-  loop.
+- Add settings, save/load, main menu, and final death-summary UI routes.
 - Replace placeholder text labels with final iconography after HUD UX spec.
