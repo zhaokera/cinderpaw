@@ -219,6 +219,16 @@
 - Tests: Story 003 7/7 passing; full `tests/unit/data` 43/43 passing; `godot --headless --path . --quit` passing; `git diff --check` passing.
 - Tech debt logged: None
 
+## Session Extract — Weapon Story 004 2026-06-24
+- Story: production/epics/weapon-styles/story-004-special-attack-cooldown-cat-energy-gate.md — Special Attack Cooldown + Cat Energy Gate
+- Status: Complete
+- Files changed: src/core/weapon_component.gd, tests/unit/weapon/story_004_special_attack_gates_test.gd, production/epics/weapon-styles/story-004-special-attack-cooldown-cat-energy-gate.md, production/epics/weapon-styles/EPIC.md, production/qa/evidence/special-attack-gates-2026-06-24.md, README.md
+- Implementation: WeaponComponent exposes special attack params, gates active-weapon specials through CombatComponent cat energy/cooldown, emits insufficient-energy/cooldown/start signals, and leaves combat resources owned by CombatComponent.
+- TDD evidence: Story 004 RED failed on missing special attack API/signals; GREEN Story 004 suite 4/4 passing; focused weapon/combat/gameplay regression 28/28 passing.
+- Runtime evidence: `godot --headless --path . --quit-after 1` passes; Godot MCP session `cinderpaw@c4d7` runs `res://scenes/main.tscn`, screenshots runtime, and verifies insufficient -> success -> cooldown special gate sequence for `gale_claw`.
+- Next recommended: Weapon Story 005 — production/epics/weapon-styles/story-005-cat-claw-dodge-counter-crit-bonus.md
+- Tech debt logged: None
+
 ## Session Extract — /dev-story 2026-06-24 (weapon story-003)
 - Story: production/epics/weapon-styles/story-003-weapon-swap-state-machine-combat-adapter.md — Weapon Swap State Machine + Combat Adapter
 - Status: Complete

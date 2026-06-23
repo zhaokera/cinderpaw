@@ -4,6 +4,9 @@ class_name WeaponComponent
 
 signal on_weapon_changed(weapon: Resource)
 signal on_weapon_upgraded(weapon_id: StringName, new_level: int)
+signal on_special_attack_started(attack_id: StringName)
+signal on_special_cooldown(remaining_sec: float)
+signal on_insufficient_energy(required_energy: int)
 
 const WEAPON_CONFIG_SCRIPT: Script = preload("res://src/core/weapon_config.gd")
 const WEAPON_CONFIG_DOMAIN: StringName = &"weapon_configs"
@@ -19,7 +22,14 @@ const WEAPON_SWAP_ORDER: Array[StringName] = [
 ]
 const WEAPON_SWAP_DURATION_SEC: float = 0.5
 const WEAPON_SWAP_TIMER_EPSILON: float = 0.0001
+const SPECIAL_COOLDOWN_TIMER_EPSILON: float = 0.0001
 const COMBAT_STATE_ATTACKING: int = 1
+const SPECIAL_CAT_ENERGY_COST_BY_ATTACK: Dictionary = {
+	&"gale_claw": 30,
+	&"whirlwind_slash": 40,
+	&"earth_splitter": 50,
+	&"em_pulse": 60,
+}
 
 enum SwapState {
 	READY,
@@ -179,6 +189,45 @@ func get_attack_parameters() -> Dictionary:
 	}
 
 
+## Returns special attack metadata for the active weapon or an explicit weapon id.
+func get_special_attack_parameters(weapon_id: StringName = &"") -> Dictionary:
+	var resolved_id: StringName = weapon_id
+	if String(resolved_id).is_empty():
+		var current_weapon: Resource = get_current_weapon()
+		if current_weapon == null:
+			return {}
+		resolved_id = current_weapon.weapon_id
+	var weapon: Resource = get_weapon_config(resolved_id)
+	if weapon == null:
+		return {}
+	return {
+		"weapon_id": weapon.weapon_id,
+		"attack_id": weapon.special_attack_id,
+		"cooldown_sec": weapon.special_cooldown_sec,
+		"required_energy": _get_special_energy_cost(weapon.special_attack_id),
+		"cooldown_remaining_sec": _get_special_cooldown_remaining(weapon.weapon_id),
+	}
+
+
+## Requests the active weapon special if cat energy and cooldown gates pass.
+func request_special_attack() -> bool:
+	var weapon: Resource = get_current_weapon()
+	if weapon == null:
+		return false
+	var cooldown_remaining: float = _get_special_cooldown_remaining(weapon.weapon_id)
+	if cooldown_remaining > SPECIAL_COOLDOWN_TIMER_EPSILON:
+		on_special_cooldown.emit(cooldown_remaining)
+		return false
+	var required_energy: int = _get_special_energy_cost(weapon.special_attack_id)
+	if _get_combat_cat_energy() < required_energy:
+		on_insufficient_energy.emit(required_energy)
+		return false
+	if not _try_start_combat_special(weapon.weapon_id):
+		return false
+	on_special_attack_started.emit(weapon.special_attack_id)
+	return true
+
+
 ## Serializes weapon state for the future SaveSystem caller.
 func serialize() -> Dictionary:
 	var serialized_levels: Dictionary = {}
@@ -258,6 +307,28 @@ func _is_combat_attacking() -> bool:
 	if _combat_adapter == null or not _combat_adapter.has_method("get_current_state"):
 		return false
 	return int(_combat_adapter.call("get_current_state")) == COMBAT_STATE_ATTACKING
+
+
+func _get_special_energy_cost(attack_id: StringName) -> int:
+	return int(SPECIAL_CAT_ENERGY_COST_BY_ATTACK.get(attack_id, 0))
+
+
+func _get_special_cooldown_remaining(weapon_id: StringName) -> float:
+	if _combat_adapter == null or not _combat_adapter.has_method("get_special_cooldown_remaining"):
+		return 0.0
+	return maxf(0.0, float(_combat_adapter.call("get_special_cooldown_remaining", weapon_id)))
+
+
+func _get_combat_cat_energy() -> int:
+	if _combat_adapter == null or not _combat_adapter.has_method("get_cat_energy"):
+		return 0
+	return maxi(0, int(_combat_adapter.call("get_cat_energy")))
+
+
+func _try_start_combat_special(weapon_id: StringName) -> bool:
+	if _combat_adapter == null or not _combat_adapter.has_method("try_use_special"):
+		return false
+	return bool(_combat_adapter.call("try_use_special", weapon_id))
 
 
 func _reset_combat_dodge_cooldown() -> void:

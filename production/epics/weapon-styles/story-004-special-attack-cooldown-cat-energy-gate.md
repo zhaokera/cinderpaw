@@ -1,12 +1,12 @@
 # Story 004: Special Attack Cooldown + Cat Energy Gate
 
 > **Epic**: Weapon Styles
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Integration
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-06-23
+> **Last Updated**: 2026-06-24
 
 ## Context
 
@@ -29,11 +29,11 @@ or public test helper.
 
 ## Acceptance Criteria
 
-- [ ] Each weapon exposes the GDD special id and cooldown.
-- [ ] Insufficient cat energy rejects the special and emits an insufficient signal.
-- [ ] Active cooldown rejects the special and emits remaining cooldown.
-- [ ] Passing gates consumes cat energy through the combat adapter.
-- [ ] Passing gates emits `on_special_attack_started(attack_id)`.
+- [x] Each weapon exposes the GDD special id and cooldown.
+- [x] Insufficient cat energy rejects the special and emits an insufficient signal.
+- [x] Active cooldown rejects the special and emits remaining cooldown.
+- [x] Passing gates consumes cat energy through the combat adapter.
+- [x] Passing gates emits `on_special_attack_started(attack_id)`.
 
 ## Implementation Notes
 
@@ -63,7 +63,11 @@ Electro Bell 60.
 **Required evidence**:
 - Integration: `tests/unit/weapon/story_004_special_attack_gates_test.gd`.
 
-**Status**: [ ] Not yet created
+**Created evidence**:
+- `tests/unit/weapon/story_004_special_attack_gates_test.gd`
+- `production/qa/evidence/special-attack-gates-2026-06-24.md`
+
+**Status**: [x] Complete
 
 ## Dependencies
 
