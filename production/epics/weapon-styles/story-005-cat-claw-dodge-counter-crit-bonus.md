@@ -1,12 +1,12 @@
 # Story 005: Cat Claw Dodge-Counter Crit Bonus
 
 > **Epic**: Weapon Styles
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Integration
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-06-23
+> **Last Updated**: 2026-06-24
 
 ## Context
 
@@ -24,10 +24,10 @@ adapter calls.
 
 ## Acceptance Criteria
 
-- [ ] Cat Claw dodge completion opens a 0.5 second counter window.
-- [ ] A qualifying hit during that window calls combat crit-window bonus +3.
-- [ ] The bonus is consumed by the next qualifying hit.
-- [ ] Non-Cat-Claw weapons do not open the bonus.
+- [x] Cat Claw dodge completion opens a 0.5 second counter window.
+- [x] A qualifying hit during that window calls combat crit-window bonus +3.
+- [x] The bonus is consumed by the next qualifying hit.
+- [x] Non-Cat-Claw weapons do not open the bonus.
 
 ## Implementation Notes
 
@@ -57,7 +57,11 @@ surface lacks the necessary injection point.
 **Required evidence**:
 - Integration: `tests/unit/weapon/story_005_cat_claw_counter_crit_test.gd`.
 
-**Status**: [ ] Not yet created
+**Created evidence**:
+- `tests/unit/weapon/story_005_cat_claw_counter_crit_test.gd`
+- `production/qa/evidence/cat-claw-counter-crit-2026-06-24.md`
+
+**Status**: [x] Complete
 
 ## Dependencies
 

@@ -229,6 +229,16 @@
 - Next recommended: Weapon Story 005 — production/epics/weapon-styles/story-005-cat-claw-dodge-counter-crit-bonus.md
 - Tech debt logged: None
 
+## Session Extract — Weapon Story 005 2026-06-24
+- Story: production/epics/weapon-styles/story-005-cat-claw-dodge-counter-crit-bonus.md — Cat Claw Dodge-Counter Crit Bonus
+- Status: Complete
+- Files changed: src/core/combat_component.gd, src/core/weapon_component.gd, src/foundation/damage_calculator.gd, tests/unit/weapon/story_005_cat_claw_counter_crit_test.gd, production/epics/weapon-styles/story-005-cat-claw-dodge-counter-crit-bonus.md, production/epics/weapon-styles/EPIC.md, production/qa/evidence/cat-claw-counter-crit-2026-06-24.md
+- Implementation: WeaponComponent syncs current weapon id into CombatComponent; CombatComponent opens and consumes the cat-claw dodge-counter window, injects one-shot +3 crit-window metadata, and DamageCalculator recognizes the claw counter modifier.
+- TDD evidence: Story 005 RED failed on missing +3 modifier/consumption; GREEN Story 005 suite 4/4 passing; focused weapon/combat/damage/gameplay regression 37/37 passing.
+- Runtime evidence: `godot --headless --path . --quit-after 1` passes; Godot MCP session `cinderpaw@c4d7` runs `res://scenes/main.tscn`, verifies Cat Claw +3 counter bonus and Long Tail no-bonus path, and saves runtime screenshot.
+- Note: main scene still uses prototype PlayerController direct attack damage; full Core Combat wiring for actual player attacks remains future gameplay integration.
+- Next recommended: Weapon Story 006 — production/epics/weapon-styles/story-006-long-tail-multi-target-range-contract.md
+
 ## Session Extract — /dev-story 2026-06-24 (weapon story-003)
 - Story: production/epics/weapon-styles/story-003-weapon-swap-state-machine-combat-adapter.md — Weapon Swap State Machine + Combat Adapter
 - Status: Complete

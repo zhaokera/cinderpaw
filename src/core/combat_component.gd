@@ -25,6 +25,7 @@ const DODGE_IFRAME_END: int = 10
 const DODGE_TOTAL_FRAMES: int = 12
 const DODGE_COOLDOWN_SEC: float = 0.5
 const DODGE_COUNTER_WINDOW_FRAMES: int = 30
+const DODGE_COUNTER_CRIT_BONUS_FRAMES: int = 3
 const PARRY_PERFECT_END_FRAME: int = 6
 const PARRY_GOOD_END_FRAME: int = 12
 const PARRY_LATE_END_FRAME: int = 18
@@ -94,6 +95,7 @@ var _out_of_combat_elapsed_sec: float = 0.0
 var _special_cooldowns_remaining: Dictionary = {}
 var _ultimate_cooldowns_remaining: Dictionary = {}
 var _current_weapon_id: StringName = WEAPON_CAT_CLAW
+var _pending_crit_window_bonus_frames: int = 0
 var _hurtbox_adapter: Object = null
 var _ultimate_provider: Object = null
 var _damage_calculator_adapter: Object = null
@@ -196,6 +198,18 @@ func on_action_triggered(action_id: StringName, metadata: Dictionary = {}) -> vo
 ## Returns the current combat FSM state.
 func get_current_state() -> int:
 	return _current_state
+
+
+## Updates the active weapon id used by combat-side hit metadata and weapon gates.
+func set_current_weapon_id(weapon_id: StringName) -> void:
+	if not SPECIAL_CAT_ENERGY_COST_BY_WEAPON.has(weapon_id):
+		return
+	_current_weapon_id = weapon_id
+
+
+## Returns the active weapon id currently known by CombatComponent.
+func get_current_weapon_id() -> StringName:
+	return _current_weapon_id
 
 
 ## Returns the active light combo stage.
@@ -459,6 +473,16 @@ func get_dodge_counter_window() -> int:
 	return _dodge_counter_window
 
 
+## Queues a one-shot crit-window bonus for the next confirmed qualifying hit.
+func set_crit_window_bonus(frames: int) -> void:
+	_pending_crit_window_bonus_frames = maxi(_pending_crit_window_bonus_frames, maxi(0, frames))
+
+
+## Returns the queued one-shot crit-window bonus for diagnostics.
+func get_pending_crit_window_bonus() -> int:
+	return _pending_crit_window_bonus_frames
+
+
 ## Resolves an incoming hit against the current parry timing.
 func resolve_parry_result() -> Dictionary:
 	var parry_type: StringName = classify_parry_timing(_parry_frame)
@@ -540,8 +564,14 @@ func _build_hit_metadata(event: Variant) -> Dictionary:
 	var hit_frame: int = int(_metadata_value(attack_metadata, event, "hit_frame", _attack_frame))
 	var parry_timing: int = int(_metadata_value(attack_metadata, event, "parry_timing", -1))
 	var skill_modifiers: Dictionary = _metadata_dictionary_value(attack_metadata, event, "skill_modifiers")
-	var crit_window_bonus: int = 1 if _focus_mode_active else 0
-	skill_modifiers["focus_crit_window_bonus_frames"] = crit_window_bonus
+	var focus_crit_bonus: int = 1 if _focus_mode_active else 0
+	var attack_type: StringName = StringName(_metadata_value(attack_metadata, event, "attack_type", &"light"))
+	var weapon_id: StringName = StringName(_metadata_value(attack_metadata, event, "weapon_id", _current_weapon_id))
+	var counter_crit_bonus: int = _consume_dodge_counter_bonus_for_hit(weapon_id, attack_type)
+	if counter_crit_bonus > 0:
+		set_crit_window_bonus(counter_crit_bonus)
+	skill_modifiers["focus_crit_window_bonus_frames"] = focus_crit_bonus
+	skill_modifiers["claw_counter_crit_window_bonus_frames"] = _take_crit_window_bonus()
 	return _compose_hit_metadata(
 		event,
 		attack_metadata,
@@ -573,7 +603,10 @@ func _compose_hit_metadata(
 		"combo_index": combo_index,
 		"parry_timing": parry_timing,
 		"parry_type": classify_parry_timing(parry_timing),
-		"crit_window_bonus": int(skill_modifiers["focus_crit_window_bonus_frames"]),
+		"crit_window_bonus": (
+			int(skill_modifiers["focus_crit_window_bonus_frames"])
+			+ int(skill_modifiers["claw_counter_crit_window_bonus_frames"])
+		),
 		"skill_modifiers": skill_modifiers,
 		"attack_power": int(_metadata_value(attack_metadata, event, "attack_power", 0)),
 		"enemy_defense": int(_metadata_value(attack_metadata, event, "enemy_defense", 0)),
@@ -915,6 +948,32 @@ func _advance_dodge_counter_frame() -> void:
 	_dodge_counter_window -= 1
 	if _dodge_counter_window == 0:
 		on_dodge_counter_active.emit(false)
+
+
+func _consume_dodge_counter_bonus_for_hit(weapon_id: StringName, attack_type: StringName) -> int:
+	if (
+		_dodge_counter_window <= 0
+		or weapon_id != WEAPON_CAT_CLAW
+		or not _is_qualifying_dodge_counter_hit(attack_type)
+	):
+		return 0
+	_dodge_counter_window = 0
+	on_dodge_counter_active.emit(false)
+	return DODGE_COUNTER_CRIT_BONUS_FRAMES
+
+
+func _is_qualifying_dodge_counter_hit(attack_type: StringName) -> bool:
+	match attack_type:
+		&"light", &"heavy", &"heavy_min", &"heavy_max", &"charged", &"aerial", &"aerial_dive", &"special":
+			return true
+		_:
+			return false
+
+
+func _take_crit_window_bonus() -> int:
+	var bonus: int = _pending_crit_window_bonus_frames
+	_pending_crit_window_bonus_frames = 0
+	return bonus
 
 
 func _set_hurtbox_state(state: StringName) -> void:

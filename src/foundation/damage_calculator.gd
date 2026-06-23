@@ -257,6 +257,7 @@ static func classify_crit_type_with_modifiers(
 ) -> StringName:
 	var perfect_width: int = 3 + int(_modifier_float(skill_modifiers, &"charm_crit_window_bonus_frames", 0.0))
 	perfect_width += int(_modifier_float(skill_modifiers, &"focus_crit_window_bonus_frames", 0.0))
+	perfect_width += int(_modifier_float(skill_modifiers, &"claw_counter_crit_window_bonus_frames", 0.0))
 	perfect_width = max(0, perfect_width)
 	if hit_frame >= window_start and hit_frame < window_start + perfect_width:
 		return &"perfect"

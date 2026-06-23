@@ -64,6 +64,7 @@ func set_data_manager(data_manager: Object) -> void:
 ## Injects a CombatComponent-compatible adapter for swap gates and reset hooks.
 func set_combat_adapter(combat_adapter: Object) -> void:
 	_combat_adapter = combat_adapter
+	_sync_combat_weapon_id()
 
 
 ## Returns canonical weapon ids in cyclic swap order.
@@ -262,6 +263,7 @@ func deserialize(data: Dictionary) -> void:
 		_weapon_levels[weapon_id] = clampi(raw_level, 0, config.upgrade_damage_table.size() - 1)
 	var current_weapon: Resource = get_current_weapon()
 	if current_weapon != null:
+		_sync_combat_weapon_id()
 		on_weapon_changed.emit(current_weapon)
 
 
@@ -300,6 +302,7 @@ func _complete_swap() -> void:
 	_swap_remaining_sec = 0.0
 	var current_weapon: Resource = get_current_weapon()
 	if current_weapon != null:
+		_sync_combat_weapon_id()
 		on_weapon_changed.emit(current_weapon)
 
 
@@ -329,6 +332,15 @@ func _try_start_combat_special(weapon_id: StringName) -> bool:
 	if _combat_adapter == null or not _combat_adapter.has_method("try_use_special"):
 		return false
 	return bool(_combat_adapter.call("try_use_special", weapon_id))
+
+
+func _sync_combat_weapon_id() -> void:
+	if _combat_adapter == null or not _combat_adapter.has_method("set_current_weapon_id"):
+		return
+	var current_weapon: Resource = get_current_weapon()
+	if current_weapon == null:
+		return
+	_combat_adapter.call("set_current_weapon_id", current_weapon.weapon_id)
 
 
 func _reset_combat_dodge_cooldown() -> void:

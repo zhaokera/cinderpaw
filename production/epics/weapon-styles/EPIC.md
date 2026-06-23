@@ -47,7 +47,7 @@ HUD, audio, save-file orchestration, or collision detection internals.
 | 002 | Weapon Upgrade State + Serialization Prep | Logic | Complete | ADR-0016 |
 | 003 | Weapon Swap State Machine + Combat Adapter | Integration | Complete | ADR-0002, ADR-0005, ADR-0016 |
 | 004 | Special Attack Cooldown + Cat Energy Gate | Integration | Complete | ADR-0005, ADR-0016 |
-| 005 | Cat Claw Dodge-Counter Crit Bonus | Integration | Ready | ADR-0005, ADR-0016 |
+| 005 | Cat Claw Dodge-Counter Crit Bonus | Integration | Complete | ADR-0005, ADR-0016 |
 | 006 | Long Tail Multi-Target Range Contract | Integration | Ready | ADR-0004, ADR-0016 |
 | 007 | Fish Bone Charged Shield Break | Integration | Ready | ADR-0016, ADR-0019 |
 | 008 | Electro Bell Slow Status Application | Integration | Ready | ADR-0016, ADR-0017 |
@@ -65,5 +65,5 @@ This epic is complete when:
 
 ## Next Step
 
-Stories 001-004 are complete. Continue with
-`production/epics/weapon-styles/story-005-cat-claw-dodge-counter-crit-bonus.md`.
+Stories 001-005 are complete. Continue with
+`production/epics/weapon-styles/story-006-long-tail-multi-target-range-contract.md`.
