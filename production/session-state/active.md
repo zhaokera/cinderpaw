@@ -1047,3 +1047,32 @@
 - Epic status: Death & Respawn now has Stories 001, 002, and 005 complete.
 - Next recommended: Death & Respawn Story 003 boss arena respawn reset, or
   HUD/UI Story 004 settings/accessibility controls.
+
+## Session Extract — Boss Arena Respawn Reset 2026-06-24
+- Scope: Implement Death & Respawn Story 003, covering `TR-respawn-002` boss
+  entrance priority and `TR-respawn-003` boss arena-entry snapshot reset.
+- Files changed: `src/gameplay/game_flow_controller.gd`,
+  `src/gameplay/main_scene.gd`, `src/gameplay/simple_enemy.gd`,
+  `tests/unit/gameplay/game_flow_controller_test.gd`,
+  `tests/unit/gameplay/simple_enemy_respawn_reset_test.gd`,
+  `production/epics/death-respawn/EPIC.md`,
+  `production/epics/death-respawn/story-003-boss-arena-respawn-reset.md`,
+  `README.md`, and QA evidence under `production/qa/evidence/`.
+- Implementation: GameFlowController now supports `start_boss_encounter()`,
+  captures an arena-entry adapter snapshot, and calls summon cleanup, arena lock
+  clearing, combat adapter clearing, and boss reset before respawn. The current
+  main scene treats Shadow Beast as the boss encounter and restores
+  SimpleEnemy HP/position/collision from its entry snapshot.
+- TDD evidence: RED first failed on missing GameFlow boss API
+  (`reports/report_307/`) and missing SimpleEnemy snapshot APIs
+  (`reports/report_309/`); GREEN focused gameplay suites passed 6/6
+  (`reports/report_311/`).
+- Runtime evidence: Godot MCP session `cinderpaw@c4d7` ran
+  `res://scenes/main.tscn`; runtime `game_eval` damaged Shadow Beast from 3 HP
+  to 1 HP, killed the player, advanced respawn, and returned restored boss HP
+  3/3, player HP 50/100, and GameFlow state `revived`.
+- Visual evidence:
+  `reports/visual/cinderpaw-mcp-boss-respawn-reset-20260624.png`.
+- Epic status: Death & Respawn now has Stories 001, 002, 003, and 005 complete.
+- Next recommended: Death & Respawn Story 006 no-loss respawn state contract, or
+  HUD/UI Story 004 settings/accessibility controls.

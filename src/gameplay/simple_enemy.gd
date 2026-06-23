@@ -141,8 +141,60 @@ func get_max_hp() -> int:
 	return MAX_HP
 
 
+func capture_respawn_snapshot() -> Dictionary:
+	return {
+		"global_position": global_position,
+		"hp": _hp,
+		"state": _state,
+		"patrol_dir": _patrol_dir,
+		"collision_layer": collision_layer,
+		"collision_mask": collision_mask,
+		"sprite_modulate": _sprite.modulate,
+	}
+
+
+func restore_respawn_snapshot(snapshot: Dictionary) -> void:
+	global_position = _read_vector2(snapshot.get("global_position", global_position), global_position)
+	_hp = clampi(_read_int(snapshot.get("hp", MAX_HP), MAX_HP), 0, MAX_HP)
+	_state = State.PATROL
+	_patrol_dir = _read_float(snapshot.get("patrol_dir", _patrol_dir), _patrol_dir)
+	_hit_timer = 0
+	_contact_damage_timer = 0
+	velocity = Vector2.ZERO
+	collision_layer = _read_int(snapshot.get("collision_layer", collision_layer), collision_layer)
+	collision_mask = _read_int(snapshot.get("collision_mask", collision_mask), collision_mask)
+	_sprite.modulate = _read_color(snapshot.get("sprite_modulate", NORMAL_MODULATE), NORMAL_MODULATE)
+	enemy_health_changed.emit(_hp, MAX_HP)
+
+
 func _apply_contact_damage(target: Node) -> void:
 	if _contact_damage_timer > 0:
 		return
 	target.call("take_damage")
 	_contact_damage_timer = CONTACT_DAMAGE_COOLDOWN_FRAMES
+
+
+func _read_vector2(value: Variant, fallback: Vector2) -> Vector2:
+	if value is Vector2:
+		return value
+	return fallback
+
+
+func _read_int(value: Variant, fallback: int) -> int:
+	if value is int:
+		return value
+	if value is float:
+		return int(value)
+	return fallback
+
+
+func _read_float(value: Variant, fallback: float) -> float:
+	if value is int or value is float:
+		return float(value)
+	return fallback
+
+
+func _read_color(value: Variant, fallback: Color) -> Color:
+	if value is Color:
+		return value
+	return fallback

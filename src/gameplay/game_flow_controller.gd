@@ -21,6 +21,9 @@ var _respawn_position: Vector2 = Vector2.ZERO
 var _death_remaining_sec: float = 0.0
 var _invincibility_remaining_sec: float = 0.0
 var _player_control_locked: bool = false
+var _is_boss_encounter_active: bool = false
+var _boss_arena_adapter: Object = null
+var _boss_arena_snapshot: Dictionary = {}
 
 
 func _process(delta: float) -> void:
@@ -33,6 +36,14 @@ func start_encounter(respawn_position: Vector2) -> void:
 	_death_remaining_sec = 0.0
 	_invincibility_remaining_sec = 0.0
 	_player_control_locked = false
+	_clear_boss_encounter()
+
+
+func start_boss_encounter(arena_entrance_position: Vector2, boss_arena_adapter: Object) -> void:
+	start_encounter(arena_entrance_position)
+	_is_boss_encounter_active = boss_arena_adapter != null
+	_boss_arena_adapter = boss_arena_adapter
+	_boss_arena_snapshot = _capture_boss_arena_snapshot()
 
 
 func handle_player_death() -> void:
@@ -88,6 +99,7 @@ func _advance_death_timer(delta_sec: float) -> void:
 	_state = FlowState.REVIVED
 	_invincibility_remaining_sec = RESPAWN_INVINCIBILITY_SEC
 	_player_control_locked = true
+	_reset_boss_arena_to_entry()
 	respawn_requested.emit(_respawn_position, REVIVE_HP_PERCENTAGE)
 
 
@@ -97,3 +109,35 @@ func _advance_revived_timer(delta_sec: float) -> void:
 		return
 	_state = FlowState.PLAYING
 	_player_control_locked = false
+
+
+func _capture_boss_arena_snapshot() -> Dictionary:
+	if not _is_boss_encounter_active:
+		return {}
+	if not _boss_arena_adapter.has_method("capture_boss_arena_snapshot"):
+		return {}
+	var snapshot: Variant = _boss_arena_adapter.call("capture_boss_arena_snapshot")
+	if not snapshot is Dictionary:
+		return {}
+	return (snapshot as Dictionary).duplicate(true)
+
+
+func _reset_boss_arena_to_entry() -> void:
+	if not _is_boss_encounter_active or _boss_arena_adapter == null:
+		return
+	_call_boss_arena_hook("cleanup_temporary_summons")
+	_call_boss_arena_hook("clear_arena_locks")
+	_call_boss_arena_hook("clear_combat_adapters")
+	if _boss_arena_adapter.has_method("reset_boss_arena_to_snapshot"):
+		_boss_arena_adapter.call("reset_boss_arena_to_snapshot", _boss_arena_snapshot.duplicate(true))
+
+
+func _call_boss_arena_hook(method_name: StringName) -> void:
+	if _boss_arena_adapter != null and _boss_arena_adapter.has_method(method_name):
+		_boss_arena_adapter.call(method_name)
+
+
+func _clear_boss_encounter() -> void:
+	_is_boss_encounter_active = false
+	_boss_arena_adapter = null
+	_boss_arena_snapshot.clear()

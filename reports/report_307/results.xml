@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-24" name="report_307" tests="5" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="game_flow_controller_test" package="tests/unit/gameplay" timestamp="2026-06-23T16:53:05" hostname="localhost" tests="5" failures="0" errors="2" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_enemy_defeat_enters_victory_once" classname="game_flow_controller_test" time="0.004">
+		</testcase>
+		<testcase name="test_player_death_delays_respawn_until_animation_time" classname="game_flow_controller_test" time="0.002">
+		</testcase>
+		<testcase name="test_revived_state_unlocks_after_invincibility_window" classname="game_flow_controller_test" time="0.001">
+		</testcase>
+		<testcase name="test_boss_death_respawns_at_arena_entrance_and_resets_entry_snapshot" classname="game_flow_controller_test" time="0.008">
+			<error message="ERROR: res://tests/unit/gameplay/game_flow_controller_test.gd:106" type="ABORT">
+<![CDATA[
+Godot Runtime Error !
+Error: 'Invalid call. Nonexistent function 'start_boss_encounter' in base 'Node (GameFlowController)'.'
+	at res://tests/unit/gameplay/game_flow_controller_test.gd:106
+]]>
+			</error>
+		</testcase>
+		<testcase name="test_boss_victory_does_not_reset_arena_or_emit_second_reward_path" classname="game_flow_controller_test" time="0.005">
+			<error message="ERROR: res://tests/unit/gameplay/game_flow_controller_test.gd:127" type="ABORT">
+<![CDATA[
+Godot Runtime Error !
+Error: 'Invalid call. Nonexistent function 'start_boss_encounter' in base 'Node (GameFlowController)'.'
+	at res://tests/unit/gameplay/game_flow_controller_test.gd:127
+]]>
+			</error>
+		</testcase>
+	</testsuite>
+</testsuites>

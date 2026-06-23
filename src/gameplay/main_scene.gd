@@ -13,7 +13,7 @@ var _pause_menu_active: bool = false
 
 
 func _ready() -> void:
-	_game_flow.start_encounter(_player.global_position)
+	_game_flow.start_boss_encounter(_player.global_position, self)
 	_game_flow.respawn_requested.connect(_on_respawn_requested)
 	_game_flow.victory_reached.connect(_on_victory_reached)
 	_hud.menu_pause_requested.connect(_on_menu_pause_requested)
@@ -98,3 +98,29 @@ func _battle_summary_from_death_metadata(death_metadata: Dictionary) -> Dictiona
 	if battle_stats.has("damage_received") and not battle_stats.has("damage_taken"):
 		battle_stats["damage_taken"] = battle_stats["damage_received"]
 	return battle_stats
+
+
+func capture_boss_arena_snapshot() -> Dictionary:
+	return {
+		"enemy": _enemy.capture_respawn_snapshot(),
+	}
+
+
+func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
+	if not is_instance_valid(_enemy):
+		return
+	var enemy_snapshot: Dictionary = Dictionary(snapshot.get("enemy", {}))
+	_enemy.restore_respawn_snapshot(enemy_snapshot)
+	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), 1, "Shadow Beast")
+
+
+func cleanup_temporary_summons() -> void:
+	pass
+
+
+func clear_arena_locks() -> void:
+	pass
+
+
+func clear_combat_adapters() -> void:
+	pass
