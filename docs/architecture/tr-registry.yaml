@@ -25,32 +25,1508 @@
 # STATUS VALUES: active | deprecated | superseded-by: TR-[system]-NNN
 
 version: 1
-last_updated: ""
+last_updated: "2026-06-21"
 
-requirements: []
+requirements:
 
-# --- EXAMPLE ENTRIES (remove when first real entries are added) ---
-#
-# - id: TR-combat-001
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Player takes damage from enemies based on attack power minus defence"
-#   created: 2026-03-10
-#   revised: ""
-#   status: active
-#
-# - id: TR-combat-002
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Combo window timing is 0.4 seconds between hits"
-#   created: 2026-03-10
-#   revised: "2026-04-01"
-#   status: active
-#
-# - id: TR-combat-003
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Old damage formula using raw stats"
-#   created: 2026-03-10
-#   revised: ""
-#   status: superseded-by: TR-combat-001
+# === AI Framework (ai-framework.md) ===
+- id: TR-ai-001
+  system: ai
+  gdd: design/gdd/ai-framework.md
+  requirement: "每个AI实体需要独立的行为状态机（IDLE/PATROL/CHASE/ATTACK/FLEE/STUN），支持帧级状态转换"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ai-002
+  system: ai
+  gdd: design/gdd/ai-framework.md
+  requirement: "感知系统需要射线投射（RayCast2D）实现视线检测，支持可配置的感知半径（100-500px）和感知角度（60-180°）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ai-003
+  system: ai
+  gdd: design/gdd/ai-framework.md
+  requirement: "攻击模式数据结构需要包含 startup_frames/active_frames/recovery_frames/hitbox_config/vulnerability_window，从数据基础设施加载"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ai-004
+  system: ai
+  gdd: design/gdd/ai-framework.md
+  requirement: "AI需要监听 on_boss_phase_change(boss_id, new_phase) 信号，在阶段转换后切换攻击模式集"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ai-005
+  system: ai
+  gdd: design/gdd/ai-framework.md
+  requirement: "AI需要监听 on_focus_mode_changed(active: bool) 信号，激活时对后续攻击追加 windup_extension_frames（默认6帧）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ai-006
+  system: ai
+  gdd: design/gdd/ai-framework.md
+  requirement: "需要提供 get_active_enemy_count() → int 查询接口，返回处于 CHASE 或 ATTACK 状态的敌人数量"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ai-007
+  system: ai
+  gdd: design/gdd/ai-framework.md
+  requirement: "攻击执行需要调用碰撞系统的 activate_hitbox() 接口"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ai-008
+  system: ai
+  gdd: design/gdd/ai-framework.md
+  requirement: "敌人攻击前摇结束到Hitbox激活需要帧级同步，startup_frames 精度为1帧（16.6ms@60fps）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ai-009
+  system: ai
+  gdd: design/gdd/ai-framework.md
+  requirement: "低HP行为适应需要查询自身HP百分比（FLEE阈值<20%，狂暴阈值<30%攻击速度+20%）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ai-010
+  system: ai
+  gdd: design/gdd/ai-framework.md
+  requirement: "攻击选择使用加权随机（base_weight × phase_modifier × hp_modifier），权重范围0.05-40.0"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Audio System (audio-system.md) ===
+- id: TR-audio-001
+  system: audio
+  gdd: design/gdd/audio-system.md
+  requirement: "需要5条独立音频总线（Master/Music/SFX/Ambient/UI），各自支持0-100%独立音量控制"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-audio-002
+  system: audio
+  gdd: design/gdd/audio-system.md
+  requirement: "最大同时音效数16个，优先级排序（弹反/暴击 > 普通命中 > 环境音效），超限丢弃最低优先级"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-audio-003
+  system: audio
+  gdd: design/gdd/audio-system.md
+  requirement: "2D空间音频：左右声道平衡基于声源水平位置，距离衰减从300px开始，600px外静音，最大衰减-40dB"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-audio-004
+  system: audio
+  gdd: design/gdd/audio-system.md
+  requirement: "音乐系统需要支持区域主题切换（3秒交叉淡入淡出）、Boss战硬切（1秒）、Boss阶段过渡（2秒）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-audio-005
+  system: audio
+  gdd: design/gdd/audio-system.md
+  requirement: "同一音效100ms内重复触发需合并播放，音量+20%"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-audio-006
+  system: audio
+  gdd: design/gdd/audio-system.md
+  requirement: "需要监听多个上游信号：on_hit/on_parry/on_dodge/on_hp_changed/on_focus_mode_changed/on_death/on_boss_phase_change"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-audio-007
+  system: audio
+  gdd: design/gdd/audio-system.md
+  requirement: "音频状态机（NORMAL/BOSS_FIGHT/LOW_HP/DEATH/MENU/CUTSCENE），BOSS_FIGHT状态提高战斗音效优先级"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-audio-008
+  system: audio
+  gdd: design/gdd/audio-system.md
+  requirement: "场景切换时未结束的音频需要2秒强制淡出"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-audio-009
+  system: audio
+  gdd: design/gdd/audio-system.md
+  requirement: "play_sfx 接口需要支持 pitch_offset 参数（供 health-death HD-F4 受伤音高公式使用）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Boss Configuration (boss-config.md) ===
+- id: TR-boss-001
+  system: boss
+  gdd: design/gdd/boss-config.md
+  requirement: "Boss配置数据结构需要包含 phases 数组（每阶段含 hp_threshold/attack_patterns/attack_speed_modifier/special_attacks/arena_changes）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-boss-002
+  system: boss
+  gdd: design/gdd/boss-config.md
+  requirement: "阶段转换流程需要：暂停当前攻击→播放转换动画（2-3秒无敌）→修改竞技场→加载新模式→恢复行动"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-boss-003
+  system: boss
+  gdd: design/gdd/boss-config.md
+  requirement: "Boss阶段2需要召唤小怪机制（每15秒1只，最多2只同时存在），Boss死亡时召唤物立即死亡"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-boss-004
+  system: boss
+  gdd: design/gdd/boss-config.md
+  requirement: "阶段转换时需要修改竞技场布局（生成障碍物/伤害区域），需要与场景管理系统协调"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-boss-005
+  system: boss
+  gdd: design/gdd/boss-config.md
+  requirement: "Boss被弹反时受到5.0×伤害但不进入STUN（Boss免疫眩晕），需要状态效果系统的免疫机制"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-boss-006
+  system: boss
+  gdd: design/gdd/boss-config.md
+  requirement: "Boss HP<10%时需要动态修改防御力（-30%），需要伤害计算系统支持运行时防御修改"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-boss-007
+  system: boss
+  gdd: design/gdd/boss-config.md
+  requirement: "Boss defeat_rewards 需要触发能力解锁（dash）+ 货币发放 + 技能点奖励（5 SP）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Charm/Equipment (charm-equipment.md) ===
+- id: TR-charm-001
+  system: charm
+  gdd: design/gdd/charm-equipment.md
+  requirement: "护符系统需要管理最大3个装备槽位，支持装备/卸下/查询，装备后立即生效"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-charm-002
+  system: charm
+  gdd: design/gdd/charm-equipment.md
+  requirement: "护符效果需要注入伤害计算流水线（charm_bonus → skill-tree F8 统一上限 → final_stat），同类效果不叠加"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-charm-003
+  system: charm
+  gdd: design/gdd/charm-equipment.md
+  requirement: "charm_crit 护符需要直接修改 DC-F5 的 PERFECT 子窗口宽度（3帧→4帧），不与技能树暴击窗口加成叠加"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-charm-004
+  system: charm
+  gdd: design/gdd/charm-equipment.md
+  requirement: "已拥有护符列表+装备槽位状态需要持久化到存档（实现 ISerializable 接口）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-charm-005
+  system: charm
+  gdd: design/gdd/charm-equipment.md
+  requirement: "护符操作仅在安全区域（据点/存档点）可用，需要查询当前场景类型"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-charm-006
+  system: charm
+  gdd: design/gdd/charm-equipment.md
+  requirement: "护符加成需要参与 skill-tree F8 统一上限公式 combined_bonus = min(0.75, 1-(1-skill_bonus)×(1-clamp(charm_bonus,0,0.50)))"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Collision Detection (collision-detection.md) ===
+- id: TR-collision-001
+  system: collision
+  gdd: design/gdd/collision-detection.md
+  requirement: "需要帧级Hitbox/Hurtbox碰撞检测引擎，在 _physics_process 中每帧执行所有活跃Hitbox与Hurtbox的重叠检测"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-collision-002
+  system: collision
+  gdd: design/gdd/collision-detection.md
+  requirement: "Hitbox需要帧级精度控制：activate_hitbox(entity_id, hitbox_id, duration_frames, offset, size) 激活后超时自动停用"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-collision-003
+  system: collision
+  gdd: design/gdd/collision-detection.md
+  requirement: "Hurtbox需要三种状态（normal/shrunk/gone），shrunk缩小50%（防御），gone完全消失（闪避i-frame）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-collision-004
+  system: collision
+  gdd: design/gdd/collision-detection.md
+  requirement: "需要5层碰撞分层（player_attack/enemy_attack/player_hurt/enemy_hurt/environment），位掩码匹配防止自伤和友军伤害"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-collision-005
+  system: collision
+  gdd: design/gdd/collision-detection.md
+  requirement: "on_hit_confirmed 信号需要携带 hit_data（hitbox_id/hit_position/hit_frame/attack_metadata），mark_hit() 防止同一攻击多次命中"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-collision-006
+  system: collision
+  gdd: design/gdd/collision-detection.md
+  requirement: "同一Hitbox同帧可重叠多个Hurtbox（范围攻击），每个独立触发 on_hit_confirmed"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-collision-007
+  system: collision
+  gdd: design/gdd/collision-detection.md
+  requirement: "实体死亡时需要自动停用所有活跃Hitbox，监听 on_death 信号"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-collision-008
+  system: collision
+  gdd: design/gdd/collision-detection.md
+  requirement: "Hitbox/Hurtbox 使用 Godot Area2D 节点实现，需要支持矩形碰撞形状（默认32×32px Hitbox, 24×48px Hurtbox）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-collision-009
+  system: collision
+  gdd: design/gdd/collision-detection.md
+  requirement: "调试可视化需要F4切换Hitbox（红色）/Hurtbox（绿色/蓝色/虚线）叠加层"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Combat Presentation (combat-presentation.md) ===
+- id: TR-combatfx-001
+  system: combatfx
+  gdd: design/gdd/combat-presentation.md
+  requirement: "帧停（Hitstop）系统需要暂停游戏逻辑，按命中类型停不同帧数（3/6/8/5/4/6帧），同帧多事件取最大值不叠加"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combatfx-002
+  system: combatfx
+  gdd: design/gdd/combat-presentation.md
+  requirement: "震屏（Screen Shake）系统需要按事件类型施加不同强度（2-10px）和持续（3-10帧）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combatfx-003
+  system: combatfx
+  gdd: design/gdd/combat-presentation.md
+  requirement: "粒子系统需要支持9种粒子类型，最大200个粒子同时存在"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combatfx-004
+  system: combatfx
+  gdd: design/gdd/combat-presentation.md
+  requirement: "残影系统需要3帧半透明残影（50%/30%/10%），闪避/冲刺/弹反各触发不同残影模式"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combatfx-005
+  system: combatfx
+  gdd: design/gdd/combat-presentation.md
+  requirement: "伤害数字需要6级视觉分级（1-5/6-15/16-30/31-60/61-150/151-999），从命中点弹出上浮30px后1.5秒淡出"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combatfx-006
+  system: combatfx
+  gdd: design/gdd/combat-presentation.md
+  requirement: "全屏闪白效果（PERFECT弹反80% alpha 8帧）+ 角色受击闪白3帧 + 敌人暴击闪白5帧"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combatfx-007
+  system: combatfx
+  gdd: design/gdd/combat-presentation.md
+  requirement: "性能预算：粒子系统 <2ms帧时间，震屏/帧停 <0.1ms，总战斗表现开销 <3ms帧时间"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combatfx-008
+  system: combatfx
+  gdd: design/gdd/combat-presentation.md
+  requirement: "色盲模式需要调整粒子颜色到色盲友好色板"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combatfx-009
+  system: combatfx
+  gdd: design/gdd/combat-presentation.md
+  requirement: "低HP专注模式下震屏强度降低30%"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Damage Calculation (damage-calculation.md) ===
+- id: TR-damage-001
+  system: damage
+  gdd: design/gdd/damage-calculation.md
+  requirement: "伤害流水线需要三步计算：base_damage → attack_damage → final_damage，纯函数无状态"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-damage-002
+  system: damage
+  gdd: design/gdd/damage-calculation.md
+  requirement: "暴击系统需要确定性时机窗口（非随机）：PERFECT(2.5×)窗口前3帧，GOOD(1.8×)窗口后3帧，NORMAL(1.0×)其他"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-damage-003
+  system: damage
+  gdd: design/gdd/damage-calculation.md
+  requirement: "连招倍率需要按武器类型查表（combo_table[weapon_type][combo_index]），4种武器×3段连招 = 12个倍率值"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-damage-004
+  system: damage
+  gdd: design/gdd/damage-calculation.md
+  requirement: "弹反倍率需要4档判定（PERFECT=5.0×/GOOD=2.5×/LATE=1.5×/NO=1.0×），基于 frame_diff 半开区间判定"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-damage-005
+  system: damage
+  gdd: design/gdd/damage-calculation.md
+  requirement: "防御减伤使用比率递减曲线 reduction_factor = 60/(defense+60)，defense范围0-50"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-damage-006
+  system: damage
+  gdd: design/gdd/damage-calculation.md
+  requirement: "final_damage = clamp(floor(attack_damage × reduction_factor × damage_multiplier), 1, 999)"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-damage-007
+  system: damage
+  gdd: design/gdd/damage-calculation.md
+  requirement: "特殊招式（DC-F9）使用独立倍率不与 combo_multiplier 叠加，多段招式每击独立走完整流水线"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-damage-008
+  system: damage
+  gdd: design/gdd/damage-calculation.md
+  requirement: "calculate_damage 接口需要输出 metadata（is_crit/crit_type/is_parry/parry_type/combo_stage/damage_category）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-damage-009
+  system: damage
+  gdd: design/gdd/damage-calculation.md
+  requirement: "需要支持 skill-tree F9 对 weapon_base 的覆盖（skill_weapon_base = weapon_base × (1 + skill_weapon_bonus)）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-damage-010
+  system: damage
+  gdd: design/gdd/damage-calculation.md
+  requirement: "DC-F5 暴击窗口需要支持 charm_crit 护符扩展 PERFECT 子窗口（3帧→4帧），以及专注模式 +1帧扩展"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-damage-011
+  system: damage
+  gdd: design/gdd/damage-calculation.md
+  requirement: "空中/蓄力攻击使用第三种 DC-F2 路径：attack_damage = base_damage × attack_type_multiplier × crit_multiplier"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Data/Balance Infrastructure (data-balance.md) ===
+- id: TR-data-001
+  system: data
+  gdd: design/gdd/data-balance.md
+  requirement: "DataManager Autoload 单例需要实现统一数据访问，4状态机（BOOTING/READY/RELOADING/ERROR）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-data-002
+  system: data
+  gdd: design/gdd/data-balance.md
+  requirement: "JSON为源数据格式，Resource为引擎桥接层，需要标准化目录结构"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-data-003
+  system: data
+  gdd: design/gdd/data-balance.md
+  requirement: "热重载系统需要文件时间戳轮询（1秒间隔，仅Debug构建），验证通过后原子替换缓存 + 信号传播"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-data-004
+  system: data
+  gdd: design/gdd/data-balance.md
+  requirement: "数据验证需要Schema驱动（必填字段/类型/范围/枚举/跨字段约束），三级失败处理"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-data-005
+  system: data
+  gdd: design/gdd/data-balance.md
+  requirement: "TuningKnobRegistry 集中管理所有可调参数，三级值来源优先级（调试面板 > JSON文件 > 注册默认值）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-data-006
+  system: data
+  gdd: design/gdd/data-balance.md
+  requirement: "数据版本控制需要 _meta.version 字段（MAJOR.MINOR），支持链式迁移（1.0→1.1→1.2）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-data-007
+  system: data
+  gdd: design/gdd/data-balance.md
+  requirement: "所有数据消费系统需要遵循标准接口契约：_ready()获取域 + 连接changed()信号 + get_entry()返回null时优雅降级"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-data-008
+  system: data
+  gdd: design/gdd/data-balance.md
+  requirement: "开发调试面板（F12）需要旋钮编辑器/域状态查看器/验证错误查看器"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Death & Respawn (death-respawn.md) ===
+- id: TR-respawn-001
+  system: respawn
+  gdd: design/gdd/death-respawn.md
+  requirement: "死亡流程需要10步顺序执行：on_death→DYING→死亡动画→RESPAWNING→确定重生点→场景加载→revive()→恢复→ALIVE"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-respawn-002
+  system: respawn
+  gdd: design/gdd/death-respawn.md
+  requirement: "重生点选择逻辑：最近存档点 > 猫族据点；Boss战中死亡重生在Boss战场入口"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-respawn-003
+  system: respawn
+  gdd: design/gdd/death-respawn.md
+  requirement: "Boss战中死亡需要重置Boss HP到进入时状态"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-respawn-004
+  system: respawn
+  gdd: design/gdd/death-respawn.md
+  requirement: "猎手学费反馈需要收集战斗统计，生成学习建议"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-respawn-005
+  system: respawn
+  gdd: design/gdd/death-respawn.md
+  requirement: "死亡无惩罚：不丢失货币/物品/进度，HP恢复到revive_hp_percentage（50%）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-respawn-006
+  system: respawn
+  gdd: design/gdd/death-respawn.md
+  requirement: "总死亡到可操作时间预算 <5.5秒（死亡动画1.5秒+场景加载<2秒+复活无敌2秒）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-respawn-007
+  system: respawn
+  gdd: design/gdd/death-respawn.md
+  requirement: "复活后2秒无敌（120帧i-frame），角色半透明闪烁"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Exploration & Ability Gating (exploration-ability-gating.md) ===
+- id: TR-explore-001
+  system: exploration
+  gdd: design/gdd/exploration-ability-gating.md
+  requirement: "能力门需要3状态（LOCKED→UNLOCKABLE→UNLOCKED），查询 has_ability(ability_id) 决定门状态"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-explore-002
+  system: exploration
+  gdd: design/gdd/exploration-ability-gating.md
+  requirement: "需要5种能力门类型（电栅栏→冲刺/高台→二段跳/窄缝→下劈/磁力墙→墙壁攀爬/激光网→弹反）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-explore-003
+  system: exploration
+  gdd: design/gdd/exploration-ability-gating.md
+  requirement: "区域完成度计算：(discovered_secrets + unlocked_shortcuts + defeated_enemies) / (total_*)"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-explore-004
+  system: exploration
+  gdd: design/gdd/exploration-ability-gating.md
+  requirement: "隐藏房间检测需要可破坏墙壁（3次攻击破坏）+ 隐藏通道 + 能力门后隐藏房"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-explore-005
+  system: exploration
+  gdd: design/gdd/exploration-ability-gating.md
+  requirement: "捷径解锁需要持久化到世界状态（单向平台/可破坏地板/传送管道），永久开放"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-explore-006
+  system: exploration
+  gdd: design/gdd/exploration-ability-gating.md
+  requirement: "能力获取时需要自动检查所有已发现的门是否满足解锁条件"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Feline Combat (feline-combat.md) ===
+- id: TR-combat-001
+  system: combat
+  gdd: design/gdd/feline-combat.md
+  requirement: "攻击状态机需要6状态（IDLE/ATTACKING/DODGING/PARRYING/HIT_STUN/CHARGING），支持帧级状态转换和动作取消规则"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combat-002
+  system: combat
+  gdd: design/gdd/feline-combat.md
+  requirement: "轻攻击3段连招需要不同帧参数（第1击4+8帧/第2击6+12帧/第3击10+20帧）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combat-003
+  system: combat
+  gdd: design/gdd/feline-combat.md
+  requirement: "闪避i-frame窗口：第3-10帧（共8帧≈133ms无敌），位移3个角色宽度，冷却0.5秒"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combat-004
+  system: combat
+  gdd: design/gdd/feline-combat.md
+  requirement: "弹反窗口：18帧总窗口（PERFECT=0-6帧/GOOD=7-12帧/LATE=13-18帧），弹反成功敌人眩晕1秒"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combat-005
+  system: combat
+  gdd: design/gdd/feline-combat.md
+  requirement: "动作取消规则表：轻攻击1/2击后摇可被闪避或下一击取消，第3击后摇仅可被闪避取消"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combat-006
+  system: combat
+  gdd: design/gdd/feline-combat.md
+  requirement: "需要与输入系统协调：消费 action_triggered 信号，notify_animation_lock/unlock"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combat-007
+  system: combat
+  gdd: design/gdd/feline-combat.md
+  requirement: "猫气系统（max 100/初始0/无衰减），12种行为获取猫气（+3到+20），脱战10秒清零"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combat-008
+  system: combat
+  gdd: design/gdd/feline-combat.md
+  requirement: "特殊招式同时受冷却+猫气双重约束，4种武器各有不同消耗和冷却"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combat-009
+  system: combat
+  gdd: design/gdd/feline-combat.md
+  requirement: "极意技需要技能树T5门控（has_unlocked_ultimate(weapon_id)），统一消耗80猫气"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combat-010
+  system: combat
+  gdd: design/gdd/feline-combat.md
+  requirement: "专注模式需要监听 on_focus_mode_changed(active)，active=true时PERFECT暴击窗口+1帧"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combat-011
+  system: combat
+  gdd: design/gdd/feline-combat.md
+  requirement: "受击硬直需要支持叠加（最多3次），空中攻击命中敌人可弹跳恢复跳跃"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-combat-012
+  system: combat
+  gdd: design/gdd/feline-combat.md
+  requirement: "蓄力攻击（heavy_attack）需要0.5-1.5秒蓄力，可被闪避取消或受击打断"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Health & Death Detection (health-death.md) ===
+- id: TR-health-001
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "HP状态管理需要 current_hp/max_hp/shield（休眠），每个实体独立管理"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-002
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "apply_damage 需要完整伪代码防护：state guard/is_invincible检查/零伤害防护"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-003
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "护盾优先吸收伤害（shield_absorbed = min(shield, incoming)），剩余扣HP"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-004
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "Boss阶段转换使用while循环确保跨跳场景触发所有经过的阈值"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-005
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "HP里程碑阈值（0.75/0.50/0.25/0.01）每次仅触发一次/阈值/生命周期，复活后重置"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-006
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "专注模式（规则8）：HP≤25%且active_enemies_count>0时激活，退出阈值>28%（3%迟滞）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-007
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "专注模式激活瞬间需要播放0.3秒猫眼金色画面边缘闪光+0.5秒低频猫科提示音"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-008
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "专注模式感知变化：敌人startup追加windup_extension/攻击预兆红面积增大25%/背景粒子降至30%/受伤低频混响"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-009
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "i-frame管理：grant_iframes(entity_id, frames) 使用 max(current, new) 不叠加取最长"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-010
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "on_death 信号需要携带扩展元数据（last_hit/battle_stats/context）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-011
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "apply_damage 信号发射顺序：on_hp_changed → on_hp_milestone → on_boss_phase_change → on_focus_mode_changed → on_death"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-012
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "max_hp 最终计算（HD-F0）：base_hp + skill_hp_flat + charm_hp_flat"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-013
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "revive() 需要重置 focus_mode_active 并发射 on_focus_mode_changed(false)"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-014
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "受伤音效音调偏移（HD-F4）：pitch_offset = (1.0 - hp_percentage) × injury_pitch_max_semitones"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-health-015
+  system: health
+  gdd: design/gdd/health-death.md
+  requirement: "探索与叙事接口钩子：on_hp_milestone（首次阈值触发）+ on_death_in_zone(entity_id, zone_id)"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === HUD/UI (hud-ui.md) ===
+- id: TR-hud-001
+  system: hud
+  gdd: design/gdd/hud-ui.md
+  requirement: "战斗HUD需要7个元素（玩家HP条/武器图标/特殊招式冷却/连招指示器/Boss HP条/齿轮币/小地图）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-hud-002
+  system: hud
+  gdd: design/gdd/hud-ui.md
+  requirement: "HUD需要6种可见性状态（COMBAT/EXPLORING/DIALOGUE/CUTSCENE/BOSS_FIGHT/MENU），脱离战斗5秒切换到EXPLORING"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-hud-003
+  system: hud
+  gdd: design/gdd/hud-ui.md
+  requirement: "菜单系统需要暂停菜单/设置菜单/主菜单，设置含音频/显示/控制/游戏"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-hud-004
+  system: hud
+  gdd: design/gdd/hud-ui.md
+  requirement: "HUD动画：HP变化0.3秒插值/连招数字弹出/伤害数字弹出上浮+1.5秒淡出"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-hud-005
+  system: hud
+  gdd: design/gdd/hud-ui.md
+  requirement: "色盲模式需要两种方案：红绿色盲→HP条蓝→黄；蓝黄色盲→HP条红→白"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-hud-006
+  system: hud
+  gdd: design/gdd/hud-ui.md
+  requirement: "HUD缩放支持50%-150%，150%时自动调整布局间距防重叠"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-hud-007
+  system: hud
+  gdd: design/gdd/hud-ui.md
+  requirement: "性能预算：HUD渲染 <1ms帧时间，菜单打开/关闭 <100ms"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-hud-008
+  system: hud
+  gdd: design/gdd/hud-ui.md
+  requirement: "需要11个屏幕（战斗HUD/暂停菜单/设置/主菜单/存档加载/快速传送/对话框/战斗总结/Boss阶段/加载/武器升级）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Input System (input.md) ===
+- id: TR-input-001
+  system: input
+  gdd: design/gdd/input.md
+  requirement: "需要统一输入抽象层，12个核心游戏动作归一化，分为Trigger（可缓冲）和Continuous（每帧读取）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-input-002
+  system: input
+  gdd: design/gdd/input.md
+  requirement: "输入缓冲系统需要150ms缓冲窗口/3深度队列/50ms预输入窗口（+20权重加成）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-input-003
+  system: input
+  gdd: design/gdd/input.md
+  requirement: "连招链管理：连续attack间隔<300ms则combo_counter递增，超时重置"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-input-004
+  system: input
+  gdd: design/gdd/input.md
+  requirement: "Coyote Time 5-8帧 + Jump Buffer 5-8帧"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-input-005
+  system: input
+  gdd: design/gdd/input.md
+  requirement: "平台检测与动态切换需要500ms防抖窗口，设备优先级gamepad>kbm>touch，战斗中不切换"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-input-006
+  system: input
+  gdd: design/gdd/input.md
+  requirement: "输入冲突解决：互斥动作对同帧只执行高优先级（dodge 90 > attack 60, parry 100 > dodge 90）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-input-007
+  system: input
+  gdd: design/gdd/input.md
+  requirement: "三状态FSM（DIRECT/BUFFERING/TRANSITIONING），战斗系统通过 notify_animation_lock/unlock 控制状态切换"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-input-008
+  system: input
+  gdd: design/gdd/input.md
+  requirement: "需要发射 action_triggered(action_id, metadata) 信号"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-input-009
+  system: input
+  gdd: design/gdd/input.md
+  requirement: "需要发射 device_changed(old, new) 信号供HUD更新按钮图标"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-input-010
+  system: input
+  gdd: design/gdd/input.md
+  requirement: "键位映射存储在 user://input_bindings.cfg，支持PC完全自定义"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-input-011
+  system: input
+  gdd: design/gdd/input.md
+  requirement: "8个旋钮需要注册到TuningKnobRegistry（buffer_window_ms/coyote_frames等）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-input-012
+  system: input
+  gdd: design/gdd/input.md
+  requirement: "需要提供查询接口：is_action_pressed/is_action_just_pressed/get_action_strength/get_action_duration/clear_buffer"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Map System (map-system.md) ===
+- id: TR-map-001
+  system: map
+  gdd: design/gdd/map-system.md
+  requirement: "需要两种地图类型：小地图（HUD常驻120×120px）和全地图（全屏）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-map-002
+  system: map
+  gdd: design/gdd/map-system.md
+  requirement: "迷雾探索机制：未探索区域灰色迷雾，已探索彩色，当前区域高亮边框发光"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-map-003
+  system: map
+  gdd: design/gdd/map-system.md
+  requirement: "需要7种地图标记（玩家位置/存档点/Boss/隐藏房间/捷径/NPC/商人）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-map-004
+  system: map
+  gdd: design/gdd/map-system.md
+  requirement: "区域完成度显示：100%金色边框+星标，0%灰色，1-99%彩色"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-map-005
+  system: map
+  gdd: design/gdd/map-system.md
+  requirement: "全地图打开时玩家死亡需要自动关闭，区域切换时全地图自动关闭"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === NPC Dialogue (npc-dialogue.md) ===
+- id: TR-npc-001
+  system: npc
+  gdd: design/gdd/npc-dialogue.md
+  requirement: "对话树数据结构需要 dialogue_node（node_id/speaker/text/choices/next_node_id/conditions/events）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-npc-002
+  system: npc
+  gdd: design/gdd/npc-dialogue.md
+  requirement: "对话状态追踪需要对话历史（不重复播放）+ 对话阶段（初次→熟悉→任务→完成）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-npc-003
+  system: npc
+  gdd: design/gdd/npc-dialogue.md
+  requirement: "对话事件触发需要支持：activate_quest/unlock_shop_item/set_world_flag/unlock_ability_hint/play_animation"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-npc-004
+  system: npc
+  gdd: design/gdd/npc-dialogue.md
+  requirement: "对话系统需要6状态（IDLE/PROMPT_VISIBLE/DIALOGUE_ACTIVE/CHOICE_PENDING/DIALOGUE_END）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-npc-005
+  system: npc
+  gdd: design/gdd/npc-dialogue.md
+  requirement: "对话框UI：屏幕下方80%宽×25%高，NPC头像48×48px左侧，文本逐字显示（30字/秒）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Player Abilities (player-abilities.md) ===
+- id: TR-ability-001
+  system: ability
+  gdd: design/gdd/player-abilities.md
+  requirement: "能力注册表需要8个核心能力，部分初始解锁，部分Boss击败解锁"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ability-002
+  system: ability
+  gdd: design/gdd/player-abilities.md
+  requirement: "能力查询接口：has_ability/get_unlocked_abilities/is_ability_on_cooldown/unlock_ability/reset_air_abilities"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ability-003
+  system: ability
+  gdd: design/gdd/player-abilities.md
+  requirement: "能力冷却管理：各能力不同冷却（dodge 0.5秒/dash 1.0秒/parry 0.3秒），double_jump 落地重置"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ability-004
+  system: ability
+  gdd: design/gdd/player-abilities.md
+  requirement: "能力激活流程需要6步检查：输入→has_ability→冷却→前置条件→激活+事件→冷却开始"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ability-005
+  system: ability
+  gdd: design/gdd/player-abilities.md
+  requirement: "能力解锁时需要触发：解锁动画 → ability_unlocked事件 → 探索门控更新 → HUD通知 → 存档记录"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-ability-006
+  system: ability
+  gdd: design/gdd/player-abilities.md
+  requirement: "需要支持技能树通过 modifier provider 修改能力参数（冲刺距离/弹反窗口等）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Save System (save-system.md) ===
+- id: TR-save-001
+  system: save
+  gdd: design/gdd/save-system.md
+  requirement: "ISerializable 接口模式：各系统自实现 serialize()/deserialize()，存档系统协调调用+文件写入"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-save-002
+  system: save
+  gdd: design/gdd/save-system.md
+  requirement: "存档数据结构需要 version/timestamp/play_time + player_state + world_state + settings"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-save-003
+  system: save
+  gdd: design/gdd/save-system.md
+  requirement: "3个存档槽位（slot_0为自动存档不可手动覆盖），JSON格式存储在 user://saves/"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-save-004
+  system: save
+  gdd: design/gdd/save-system.md
+  requirement: "备份机制：每次保存前将旧存档重命名为.bak，存档损坏时尝试加载备份"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-save-005
+  system: save
+  gdd: design/gdd/save-system.md
+  requirement: "存档版本不匹配时需要执行数据迁移"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-save-006
+  system: save
+  gdd: design/gdd/save-system.md
+  requirement: "存档触发条件：到达存档点自动/Boss击败后自动/关键事件后自动/暂停菜单手动"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-save-007
+  system: save
+  gdd: design/gdd/save-system.md
+  requirement: "存档操作不阻塞游戏（SAVING状态<100ms异步写入）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Scene Management (scene-management.md) ===
+- id: TR-scene-001
+  system: scene
+  gdd: design/gdd/scene-management.md
+  requirement: "场景注册表需要 scene_id→{path/type/preload} 映射，hub场景预加载常驻内存"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-scene-002
+  system: scene
+  gdd: design/gdd/scene-management.md
+  requirement: "异步场景加载：区域/Boss场景后台线程加载，过渡动画（1-2秒）掩盖加载时间"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-scene-003
+  system: scene
+  gdd: design/gdd/scene-management.md
+  requirement: "场景卸载策略：离开后延迟3秒卸载，同时驻留不超过2个场景"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-scene-004
+  system: scene
+  gdd: design/gdd/scene-management.md
+  requirement: "场景状态持久化：每个场景维护本地状态，卸载时序列化到世界状态，加载时恢复"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-scene-005
+  system: scene
+  gdd: design/gdd/scene-management.md
+  requirement: "Boss战场需要锁定场景切换，进入时保存HP，退出时恢复"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-scene-006
+  system: scene
+  gdd: design/gdd/scene-management.md
+  requirement: "快速传送需要预加载目标场景（利用2秒传送动画时间）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-scene-007
+  system: scene
+  gdd: design/gdd/scene-management.md
+  requirement: "性能预算：场景加载<2秒，内存峰值<1GB(移动端)/<2GB(PC)"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-scene-008
+  system: scene
+  gdd: design/gdd/scene-management.md
+  requirement: "场景加载超时10秒需要错误处理（重试1次→失败返回hub）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Skill Tree (skill-tree.md) ===
+- id: TR-skill-001
+  system: skill
+  gdd: design/gdd/skill-tree.md
+  requirement: "技能树结构需要中心辐射布局：4武器分支(各12节点/5档含T3互斥分叉) + 通用中心区(15节点) + 2探索独占节点 = 65总节点"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-skill-002
+  system: skill
+  gdd: design/gdd/skill-tree.md
+  requirement: "T3互斥分叉机制：每个武器分支T3层2条路径，选择一条后另一条自动锁定，洗点可重选"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-skill-003
+  system: skill
+  gdd: design/gdd/skill-tree.md
+  requirement: "技能点经济系统：65总点（Boss×4=20/精英×8=16/探索×7=21/任务×4=8），满解费132点"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-skill-004
+  system: skill
+  gdd: design/gdd/skill-tree.md
+  requirement: "洗点系统：首次免费，后续递增费用（30+10×(n-1)），100封顶，仅据点NPC处可用"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-skill-005
+  system: skill
+  gdd: design/gdd/skill-tree.md
+  requirement: "Modifier Provider接口：register_modifier/get_modifiers/get_stat_bonus，支持ADD/MULTIPLY/OVERRIDE三种操作"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-skill-006
+  system: skill
+  gdd: design/gdd/skill-tree.md
+  requirement: "F7技能加成聚合需要属性级cap（damage 0.25/HP +25/暴击窗口+4帧/连招倍率0.20/移速0.15/冷却缩减0.30/弹反窗口+4帧）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-skill-007
+  system: skill
+  gdd: design/gdd/skill-tree.md
+  requirement: "F8统一上限公式：combined_bonus = min(0.75, 1-(1-skill_bonus)×(1-clamp(charm_bonus,0,0.50)))"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-skill-008
+  system: skill
+  gdd: design/gdd/skill-tree.md
+  requirement: "F9武器基础修正：skill_weapon_base = weapon_base × (1 + skill_weapon_bonus)"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-skill-009
+  system: skill
+  gdd: design/gdd/skill-tree.md
+  requirement: "F10冷却修正：effective_cooldown = max(cooldown_floor, base_cooldown × (1 - min(skill_cd_reduction, 0.30)))"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-skill-010
+  system: skill
+  gdd: design/gdd/skill-tree.md
+  requirement: "猫魂觉醒（T5通用）3个互斥节点（猎之魂/影之魂/铁之魂），解锁1个后另外2个锁定"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-skill-011
+  system: skill
+  gdd: design/gdd/skill-tree.md
+  requirement: "极意技门控：T5节点购买后解锁该武器极意技（消耗80猫气）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-skill-012
+  system: skill
+  gdd: design/gdd/skill-tree.md
+  requirement: "探索独占节点（猫影步/废土直觉）发现磨爪石祭坛直接解锁，0技能点消耗"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Status Effects (status-effects.md) ===
+- id: TR-status-001
+  system: status
+  gdd: design/gdd/status-effects.md
+  requirement: "需要7种效果类型（poison/slow/stun/burn/speed_boost/damage_boost/invincible），每实体最多5个同时效果"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-status-002
+  system: status
+  gdd: design/gdd/status-effects.md
+  requirement: "效果施加规则：检查目标免疫（Boss免疫眩晕）→ 同类效果刷新持续时间不叠加 → 施加事件"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-status-003
+  system: status
+  gdd: design/gdd/status-effects.md
+  requirement: "DoT每1秒tick调用 apply_damage()，移速修改使用乘法叠加 final_speed = base × Π(modifiers)"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-status-004
+  system: status
+  gdd: design/gdd/status-effects.md
+  requirement: "i-frame期间免疫所有debuff，无敌状态效果提供i-frames给生命系统"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-status-005
+  system: status
+  gdd: design/gdd/status-effects.md
+  requirement: "效果优先级：stun > slow > poison > burn > speed_boost > damage_boost > invincible，5个已满时移除最早的"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-status-006
+  system: status
+  gdd: design/gdd/status-effects.md
+  requirement: "场景切换/死亡时清除所有效果"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+# === Weapon Styles (weapon-styles.md) ===
+- id: TR-weapon-001
+  system: weapon
+  gdd: design/gdd/weapon-styles.md
+  requirement: "4种武器定义（猫爪/长尾刃/鱼骨大剑/电磁铃铛），各有独立的 base_damage 范围、攻速、攻击范围和特殊机制"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-weapon-002
+  system: weapon
+  gdd: design/gdd/weapon-styles.md
+  requirement: "武器切换：战斗中0.5秒切换动画（不可取消），循环切换，切换时清空combo_index和重置闪避冷却"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-weapon-003
+  system: weapon
+  gdd: design/gdd/weapon-styles.md
+  requirement: "每种武器特殊招式需要独立定义（疾风连爪/旋风斩/地裂斩/电磁脉冲），冷却和猫气消耗由feline-combat定义"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-weapon-004
+  system: weapon
+  gdd: design/gdd/weapon-styles.md
+  requirement: "武器升级（最大5级），每级提升 base_damage"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-weapon-005
+  system: weapon
+  gdd: design/gdd/weapon-styles.md
+  requirement: "猫爪特殊机制：闪避后下一击暴击窗口+3帧"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-weapon-006
+  system: weapon
+  gdd: design/gdd/weapon-styles.md
+  requirement: "电磁铃铛命中需要调用状态效果系统施加减速（2秒，-30%）"
+  created: 2026-06-21
+  revised: ""
+  status: active
+
+- id: TR-weapon-007
+  system: weapon
+  gdd: design/gdd/weapon-styles.md
+  requirement: "鱼骨大剑满蓄力攻击需要破盾（调用状态效果/生命系统清除护盾）"
+  created: 2026-06-21
+  revised: ""
+  status: active

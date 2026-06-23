@@ -1,12 +1,155 @@
 {
 	"entries": {
-		"cat_claw": {
-			"required": ["weapon_base", "scaling_factor", "crit_perfect_multiplier", "crit_good_multiplier"],
+		"_global": {
+			"required": [
+				"damage_multiplier",
+				"defense_curve_constant",
+				"damage_floor",
+				"damage_cap",
+				"crit_multipliers",
+				"parry_multipliers",
+				"attack_type_multipliers",
+				"category_thresholds"
+			],
 			"fields": {
-				"weapon_base": {"type": "int", "min": 0, "max": 999},
-				"scaling_factor": {"type": "float", "min": 0.0, "max": 10.0},
-				"crit_perfect_multiplier": {"type": "float", "min": 1.0, "max": 10.0},
-				"crit_good_multiplier": {"type": "float", "min": 1.0, "max": 10.0}
+				"damage_multiplier": {"type": "float", "min": 0.5, "max": 2.0},
+				"defense_curve_constant": {"type": "float", "min": 30.0, "max": 100.0},
+				"damage_floor": {"type": "int", "min": 1, "max": 10},
+				"damage_cap": {"type": "int", "min": 100, "max": 9999},
+				"crit_multipliers": {
+					"type": "Dictionary",
+					"required": ["perfect", "good", "none"],
+					"fields": {
+						"perfect": {"type": "float", "min": 1.0, "max": 10.0},
+						"good": {"type": "float", "min": 1.0, "max": 10.0},
+						"none": {"type": "float", "min": 1.0, "max": 1.0}
+					}
+				},
+				"parry_multipliers": {
+					"type": "Dictionary",
+					"required": ["perfect", "good", "late", "none"],
+					"fields": {
+						"perfect": {"type": "float", "min": 1.0, "max": 10.0},
+						"good": {"type": "float", "min": 1.0, "max": 10.0},
+						"late": {"type": "float", "min": 1.0, "max": 10.0},
+						"none": {"type": "float", "min": 1.0, "max": 1.0}
+					}
+				},
+				"attack_type_multipliers": {
+					"type": "Dictionary",
+					"required": ["heavy", "aerial"],
+					"fields": {
+						"heavy": {"type": "float", "min": 1.0, "max": 5.0},
+						"heavy_min": {"type": "float", "min": 1.0, "max": 5.0},
+						"heavy_max": {"type": "float", "min": 1.0, "max": 5.0},
+						"charged": {"type": "float", "min": 1.0, "max": 5.0},
+						"aerial": {"type": "float", "min": 1.0, "max": 5.0},
+						"aerial_dive": {"type": "float", "min": 1.0, "max": 5.0}
+					}
+				},
+				"category_thresholds": {
+					"type": "Dictionary",
+					"required": ["scratch_max", "normal_max", "strong_max", "powerful_max", "extreme_max"],
+					"fields": {
+						"scratch_max": {"type": "int", "min": 1, "max": 999},
+						"normal_max": {"type": "int", "min": 1, "max": 999},
+						"strong_max": {"type": "int", "min": 1, "max": 999},
+						"powerful_max": {"type": "int", "min": 1, "max": 999},
+						"extreme_max": {"type": "int", "min": 1, "max": 999}
+					}
+				}
+			}
+		},
+		"cat_claw": {
+			"required": ["weapon_base", "combo_multipliers", "special_move"],
+			"fields": {
+				"weapon_base": {"type": "int", "min": 0, "max": 50},
+				"combo_multipliers": {
+					"type": "Dictionary",
+					"required": ["0", "1", "2"],
+					"fields": {
+						"0": {"type": "float", "min": 1.0, "max": 5.0},
+						"1": {"type": "float", "min": 1.0, "max": 5.0},
+						"2": {"type": "float", "min": 1.0, "max": 5.0}
+					}
+				},
+				"special_move": {
+					"type": "Dictionary",
+					"required": ["multiplier", "hits"],
+					"fields": {
+						"multiplier": {"type": "float", "min": 0.0, "max": 5.0},
+						"hits": {"type": "int", "min": 1, "max": 20}
+					}
+				}
+			}
+		},
+		"long_tail": {
+			"required": ["weapon_base", "combo_multipliers", "special_move"],
+			"fields": {
+				"weapon_base": {"type": "int", "min": 0, "max": 50},
+				"combo_multipliers": {
+					"type": "Dictionary",
+					"required": ["0", "1", "2"],
+					"fields": {
+						"0": {"type": "float", "min": 1.0, "max": 5.0},
+						"1": {"type": "float", "min": 1.0, "max": 5.0},
+						"2": {"type": "float", "min": 1.0, "max": 5.0}
+					}
+				},
+				"special_move": {
+					"type": "Dictionary",
+					"required": ["multiplier", "hits"],
+					"fields": {
+						"multiplier": {"type": "float", "min": 0.0, "max": 5.0},
+						"hits": {"type": "int", "min": 1, "max": 20}
+					}
+				}
+			}
+		},
+		"fish_bone": {
+			"required": ["weapon_base", "combo_multipliers", "special_move"],
+			"fields": {
+				"weapon_base": {"type": "int", "min": 0, "max": 50},
+				"combo_multipliers": {
+					"type": "Dictionary",
+					"required": ["0", "1", "2"],
+					"fields": {
+						"0": {"type": "float", "min": 1.0, "max": 5.0},
+						"1": {"type": "float", "min": 1.0, "max": 5.0},
+						"2": {"type": "float", "min": 1.0, "max": 5.0}
+					}
+				},
+				"special_move": {
+					"type": "Dictionary",
+					"required": ["multiplier", "hits"],
+					"fields": {
+						"multiplier": {"type": "float", "min": 0.0, "max": 5.0},
+						"hits": {"type": "int", "min": 1, "max": 20}
+					}
+				}
+			}
+		},
+		"electro_bell": {
+			"required": ["weapon_base", "combo_multipliers", "special_move"],
+			"fields": {
+				"weapon_base": {"type": "int", "min": 0, "max": 50},
+				"combo_multipliers": {
+					"type": "Dictionary",
+					"required": ["0", "1", "2"],
+					"fields": {
+						"0": {"type": "float", "min": 1.0, "max": 5.0},
+						"1": {"type": "float", "min": 1.0, "max": 5.0},
+						"2": {"type": "float", "min": 1.0, "max": 5.0}
+					}
+				},
+				"special_move": {
+					"type": "Dictionary",
+					"required": ["multiplier", "hits"],
+					"fields": {
+						"multiplier": {"type": "float", "min": 0.0, "max": 5.0},
+						"hits": {"type": "int", "min": 1, "max": 20}
+					}
+				}
 			}
 		}
 	}

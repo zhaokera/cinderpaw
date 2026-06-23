@@ -61,9 +61,13 @@ scene-management.md GDD 定义了场景管理的需求（异步加载、过渡�
 # data/scene_registry.json:
 # {
 #   "hub": {"path": "res://scenes/hub/hub.tscn", "type": "hub", "preload": true},
-#   "area_01_street": {"path": "res://scenes/areas/street.tscn", "type": "area"},
+#   "area_01_street": {"path": "res://scenes/areas/street.tscn", "type": "area", "requires_ability": "", "accessible": true},
+#   "area_02_sewer": {"path": "res://scenes/areas/sewer.tscn", "type": "area", "requires_ability": "dash", "accessible": false},
 #   "boss_01_arena": {"path": "res://scenes/bosses/rat_king.tscn", "type": "boss_arena"}
 # }
+# 扩展字段 (ADR-0018 集成):
+# - requires_ability: StringName — 解锁该场景所需的能力ID（空字符串=无需能力）
+# - accessible: bool — 当前是否可达（由 AbilityComponent 能力解锁事件更新）
 
 var _scene_registry: Dictionary = {}
 var _current_scene_id: StringName = &""

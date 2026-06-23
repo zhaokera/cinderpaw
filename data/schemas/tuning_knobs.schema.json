@@ -1,0 +1,142 @@
+{
+	"entries": {
+		"damage.multiplier": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "float", "min": 0.5, "max": 2.0}
+			}
+		},
+		"damage.defense_curve_constant": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "float", "min": 30.0, "max": 100.0}
+			}
+		},
+		"damage.floor": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 1, "max": 10}
+			}
+		},
+		"damage.cap": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 100, "max": 9999}
+			}
+		},
+		"input.buffer_window_ms": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 80, "max": 250}
+			}
+		},
+		"input.buffer_queue_size": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 1, "max": 5}
+			}
+		},
+		"input.pre_input_window_ms": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 30, "max": 80}
+			}
+		},
+		"input.combo_chain_window_ms": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 200, "max": 500}
+			}
+		},
+		"input.coyote_frames": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 4, "max": 10}
+			}
+		},
+		"input.jump_buffer_frames": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 4, "max": 10}
+			}
+		},
+		"input.device_switch_debounce_ms": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 200, "max": 1000}
+			}
+		},
+		"input.priority_pre_input_bonus": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 0, "max": 40}
+			}
+		},
+		"status.poison_duration_sec": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "float", "min": 2.0, "max": 10.0}
+			}
+		},
+		"status.poison_dps": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 1, "max": 10}
+			}
+		},
+		"status.slow_duration_sec": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "float", "min": 1.0, "max": 5.0}
+			}
+		},
+		"status.slow_percentage": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "float", "min": 0.1, "max": 0.5}
+			}
+		},
+		"status.stun_duration_sec": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "float", "min": 0.5, "max": 2.0}
+			}
+		},
+		"status.burn_duration_sec": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "float", "min": 1.0, "max": 5.0}
+			}
+		},
+		"status.burn_dps": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 2, "max": 10}
+			}
+		},
+		"status.max_effects_per_entity": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "int", "min": 3, "max": 8}
+			}
+		},
+		"status.speed_boost_percentage": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "float", "min": 0.1, "max": 0.5}
+			}
+		},
+		"status.damage_boost_percentage": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "float", "min": 0.1, "max": 0.5}
+			}
+		},
+		"status.invincible_duration_sec": {
+			"required": ["value"],
+			"fields": {
+				"value": {"type": "float", "min": 0.1, "max": 1.0}
+			}
+		}
+	}
+}

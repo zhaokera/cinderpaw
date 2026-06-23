@@ -3,8 +3,17 @@
 > **Layer**: Foundation
 > **GDD**: design/gdd/damage-calculation.md
 > **Architecture Module**: DamageCalculator
-> **Status**: Ready
-> **Stories**: Not yet created — run `/create-stories damage-calculator`
+> **Status**: Complete
+> **Stories**: 4 stories
+
+## Stories
+
+| # | Story | Type | Status | ADR |
+|---|-------|------|--------|-----|
+| 001 | FormulaPipeline + DamageResult 核心公式 | Logic | Complete | ADR-0001, ADR-0002 |
+| 002 | CritComboParry 倍率路径 | Logic | Complete | ADR-0001, ADR-0002 |
+| 003 | SpecialMoves + Skill/Window Modifiers | Logic | Complete | ADR-0001 |
+| 004 | DamageParams Data API Integration | Integration | Complete | ADR-0003, ADR-0001, ADR-0002 |
 
 ## Overview
 
@@ -48,4 +57,4 @@ This epic is complete when:
 
 ## Next Step
 
-Run `/create-stories damage-calculator` to break this epic into implementable stories.
+Damage Calculation epic complete. Next recommended implementation target: Health/Death or Feline Combat integration, because both can now consume the completed DamageCalculator API.

@@ -247,6 +247,28 @@ signal on_attack_hit(metadata: Dictionary)  # CombatComponent 自有信号，攻
 signal on_state_changed(old: CombatState, new: CombatState)  # 状态变更
 ```
 
+**DamageCalculator 接口扩展** (ADR-0016 扩展):
+
+```gdscript
+# ADR-0001 定义的基础接口
+static func calculate_damage(
+    attack_type: StringName, weapon_id: StringName,
+    hit_frame: int, combo_index: int, parry_timing: int,
+    attack_power: int, enemy_defense: int,
+    skill_modifiers: Dictionary
+) -> DamageResult
+
+# ADR-0016 扩展的新接口（向后兼容）
+static func calculate_damage(
+    attack_type: StringName, weapon_id: StringName,
+    hit_frame: int, combo_index: int, parry_timing: int,
+    attack_power: int, enemy_defense: int,
+    modifiers: Array[SkillModifier] = [],
+    weapon_base_override: int = -1,
+    crit_window_bonus: int = 0
+) -> DamageResult
+```
+
 ## Alternatives Considered
 
 ### Alternative A: AnimationTree 状态机

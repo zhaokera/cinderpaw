@@ -1,12 +1,12 @@
 # Story 003: DomainCache + 核心查询接口 + 懒加载
 
 > **Epic**: data-manager
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: 2-3 hours
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: —
+> **Last Updated**: 2026-06-23
 
 ## Context
 
@@ -27,11 +27,11 @@
 
 ## Acceptance Criteria
 
-- [ ] AC-01: get_entry() 返回已加载域中存在的条目 → 非 null Dictionary
-- [ ] AC-02: get_entry() 对不存在的条目返回 null，不抛出异常
-- [ ] AC-03: get_entry() 对不存在的域返回 null
-- [ ] AC-04: preload=false 域首次查询时自动懒加载 → 返回正确数据，后续调用命中缓存
-- [ ] AC-05: load_input_config(path) 返回完整配置 Dictionary
+- [x] AC-01: get_entry() 返回已加载域中存在的条目 → 非 null Dictionary
+- [x] AC-02: get_entry() 对不存在的条目返回 null，不抛出异常
+- [x] AC-03: get_entry() 对不存在的域返回 null
+- [x] AC-04: preload=false 域首次查询时自动懒加载 → 返回正确数据，后续调用命中缓存
+- [x] AC-05: load_input_config(path) 返回完整配置 Dictionary
 
 ---
 
@@ -84,7 +84,8 @@
 
 **Story Type**: Logic
 **Required evidence**: `tests/unit/data/story_003_domain_cache_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Status**: [x] Created (7 test functions covering all 5 AC + supplementary get_domain regression)
+**Note**: GdUnit4 available; data unit suite passes as of 2026-06-23.
 
 ---
 
@@ -92,3 +93,13 @@
 
 - Depends on: Story 001, Story 002
 - Unlocks: Story 004
+
+---
+
+## Completion Notes
+
+**Completed**: 2026-06-23
+**Criteria**: 5/5 passing
+**Deviations**: None
+**Test Evidence**: Logic — test file at `tests/unit/data/story_003_domain_cache_test.gd` (7 functions covering AC-01~AC-05 plus get_domain regression)
+**Code Review**: Complete — local review against ADR-0003, ADR-0001, control manifest, GDD TR-data-002/TR-data-007, and passing GdUnit evidence. Specialist subagent gates were not spawned because current tool policy requires an explicit user request for subagents.

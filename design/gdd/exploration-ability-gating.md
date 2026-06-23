@@ -112,7 +112,7 @@ get_total_completion() → float
 
 ## Dependencies
 
-**上游依赖**：玩家能力系统(provisional)、世界状态系统(provisional)、场景管理
+**上游依赖**：玩家能力系统(provisional)、世界状态系统(provisional)、场景管理、NPC对话系统(provisional，任务触发区域解锁)
 **下游被依赖**：HUD/UI系统、存档系统
 
 ## Tuning Knobs

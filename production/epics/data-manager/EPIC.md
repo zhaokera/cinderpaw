@@ -3,7 +3,7 @@
 > **Layer**: Foundation
 > **GDD**: design/gdd/data-balance.md
 > **Architecture Module**: DataManager
-> **Status**: Ready
+> **Status**: Complete
 > **Stories**: 6 stories created
 
 ## Stories
@@ -12,10 +12,10 @@
 |---|-------|------|--------|-----|
 | 001 | ManifestLoader + 4 状态机 + 重试 | Logic | Complete | ADR-0001, ADR-0003 |
 | 002 | SchemaValidator + 三级失败处理 | Logic | Complete | ADR-0003 |
-| 003 | DomainCache + 核心查询 + 懒加载 | Logic | Ready | ADR-0003, ADR-0001 |
-| 004 | HotReloader 热重载机制 | Logic | Ready | ADR-0003 |
-| 005 | TuningKnobRegistry 旋钮管理 | Logic | Ready | ADR-0003 |
-| 006 | VersionMigrator 版本迁移 | Logic | Ready | ADR-0003 |
+| 003 | DomainCache + 核心查询 + 懒加载 | Logic | Complete | ADR-0003, ADR-0001 |
+| 004 | HotReloader 热重载机制 | Logic | Complete | ADR-0003 |
+| 005 | TuningKnobRegistry 旋钮管理 | Logic | Complete | ADR-0003 |
+| 006 | VersionMigrator 版本迁移 | Logic | Complete | ADR-0003 |
 
 ## Overview
 
@@ -53,4 +53,4 @@ This epic is complete when:
 
 ## Next Step
 
-Run `/create-stories data-manager` to break this epic into implementable stories.
+Run `/smoke-check sprint` before promoting Data/Balance Infrastructure beyond local implementation evidence.

@@ -1,6 +1,11 @@
 {
 	"_meta": {"version": "1.0", "domain": "manifest"},
 	"domains": [
-		{"name": "damage_params", "path": "combat/damage_params.json", "preload": true}
+		{"name": "damage_params", "path": "combat/damage_params.json", "preload": true},
+		{"name": "enemy_stats", "path": "combat/enemy_stats.json", "preload": false},
+		{"name": "boss_configs", "path": "combat/boss_configs.json", "preload": false},
+		{"name": "weapon_configs", "path": "weapons/weapon_configs.json", "preload": true},
+		{"name": "input_config", "path": "input/input_config.json", "preload": false},
+		{"name": "tuning_knobs", "path": "tuning_knobs.json", "preload": true}
 	]
 }

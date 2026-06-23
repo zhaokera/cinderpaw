@@ -71,7 +71,48 @@ state_ownership: []
 #
 # pattern options: signal | direct_call | event_bus | shared_resource | rpc | none
 
-interfaces: []
+interfaces:
+  - contract: autoload_to_component
+    status: active
+    pattern: signal
+    producer: any-autoload
+    consumers:
+      - any-component
+    adr: docs/architecture/adr-0001-autoload-architecture.md
+    signal_signature: "Autoload emits signal → Component connects in _ready()"
+    notes: "Autoload 不知道具体 Component 存在，仅通过信号通知"
+    referenced_by:
+      - docs/architecture/adr-0001-autoload-architecture.md
+    added: 2026-06-21
+    revised: ""
+
+  - contract: component_to_autoload
+    status: active
+    pattern: direct_call
+    producer: any-component
+    consumers:
+      - any-autoload
+    adr: docs/architecture/adr-0001-autoload-architecture.md
+    signal_signature: "Component calls Autoload.method() directly"
+    notes: "Autoload 是全局可访问的，Component 可直接调用其公开方法"
+    referenced_by:
+      - docs/architecture/adr-0001-autoload-architecture.md
+    added: 2026-06-21
+    revised: ""
+
+  - contract: signal_naming_convention
+    status: active
+    pattern: signal
+    producer: any-system
+    consumers:
+      - any-system
+    adr: docs/architecture/adr-0002-signal-communication.md
+    signal_signature: "on_[noun]_[past_participle](payload) — ≤3参数直接传, >3参数用class_name数据类"
+    notes: "回调使用 _handle_[signal] 而非 _on_[signal] 避免冗余"
+    referenced_by:
+      - docs/architecture/adr-0002-signal-communication.md
+    added: 2026-06-21
+    revised: ""
 
 # Example:
 #
@@ -131,7 +172,17 @@ performance_budgets: []
 # Register an API decision when the choice is non-obvious and other ADRs might
 # make a different choice for the same purpose without knowing this was decided.
 
-api_decisions: []
+api_decisions:
+  - purpose: pure_function_systems
+    status: active
+    api: "class_name + static func (not Autoload)"
+    not: Autoload singleton
+    adr: docs/architecture/adr-0001-autoload-architecture.md
+    reason: "无状态纯函数不需要全局生命周期，class_name静态工具类零节点开销"
+    referenced_by:
+      - docs/architecture/adr-0001-autoload-architecture.md
+    added: 2026-06-21
+    revised: ""
 
 # Example:
 #
@@ -157,7 +208,27 @@ api_decisions: []
 # Register a pattern when an ADR explicitly bans it AND other ADRs might
 # unknowingly use it (i.e., it's a tempting but wrong approach for this project).
 
-forbidden_patterns: []
+forbidden_patterns:
+  - pattern: foundation_references_core
+    status: active
+    description: "Foundation层Autoload（DataManager, InputManager）禁止引用Core/Feature/Presentation层系统。Foundation是被动提供方。"
+    why: "Foundation引用Core会导致初始化循环依赖，破坏层级架构的单向依赖原则。"
+    adr: docs/architecture/adr-0001-autoload-architecture.md
+    added: 2026-06-21
+
+  - pattern: event_bus_autoload
+    status: active
+    description: "禁止创建集中事件总线Autoload。所有信号由状态变更的拥有者直接发射。"
+    why: "增加不必要的间接层和全局状态。Godot原生信号已提供足够解耦。违反ADR-0001的5 Autoload上限。"
+    adr: docs/architecture/adr-0002-signal-communication.md
+    added: 2026-06-21
+
+  - pattern: raw_dictionary_high_frequency_payload
+    status: active
+    description: "高频信号(>10次/秒)禁止使用裸Dictionary作为payload。使用class_name数据类或直接参数。"
+    why: "Dictionary缺乏编译期类型检查，key拼写错误不报错。"
+    adr: docs/architecture/adr-0002-signal-communication.md
+    added: 2026-06-21
 
 # Example:
 #

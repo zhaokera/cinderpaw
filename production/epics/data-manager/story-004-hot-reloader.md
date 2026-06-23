@@ -1,12 +1,12 @@
 # Story 004: HotReloader 热重载机制
 
 > **Epic**: data-manager
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: 4-5 hours
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: —
+> **Last Updated**: 2026-06-23
 
 ## Context
 
@@ -26,12 +26,12 @@
 
 ## Acceptance Criteria
 
-- [ ] AC-01: Debug 构建文件变更 → 重载 + on_domain_changed 信号发射 + get_entry() 返回新数据
-- [ ] AC-02: 热重载验证失败 → 信号不发射，保留旧缓存 + ERROR 日志
-- [ ] AC-03: Debug 构建 Timer 间隔 1.0 秒且正在运行
-- [ ] AC-04: Release 构建 Timer 未创建/未启动，零开销
-- [ ] AC-05: 同一轮询周期多文件变更 → 合并重载，每个域各发射一次信号但在同帧完成
-- [ ] AC-06: 域文件被删除 → 该域进入 FALLBACK 状态（默认值），其他域不受影响
+- [x] AC-01: Debug 构建文件变更 → 重载 + on_domain_changed 信号发射 + get_entry() 返回新数据
+- [x] AC-02: 热重载验证失败 → 信号不发射，保留旧缓存 + ERROR 日志
+- [x] AC-03: Debug 构建 Timer 间隔 1.0 秒且正在运行
+- [x] AC-04: Release 构建 Timer 未创建/未启动，零开销
+- [x] AC-05: 同一轮询周期多文件变更 → 合并重载，每个域各发射一次信号但在同帧完成
+- [x] AC-06: 域文件被删除 → 该域进入 FALLBACK 状态（默认值），其他域不受影响
 
 ---
 
@@ -91,7 +91,7 @@
 
 **Story Type**: Logic
 **Required evidence**: `tests/unit/data/story_004_hot_reloader_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Status**: [x] Created (6 test functions covering AC-01~AC-06)
 
 ---
 
@@ -99,3 +99,13 @@
 
 - Depends on: Story 001, Story 002, Story 003
 - Unlocks: None
+
+---
+
+## Completion Notes
+
+**Completed**: 2026-06-23
+**Criteria**: 6/6 passing
+**Deviations**: None
+**Test Evidence**: Logic — test file at `tests/unit/data/story_004_hot_reloader_test.gd` (6 functions covering AC-01~AC-06)
+**Code Review**: Complete — local review against ADR-0003, control manifest, GDD TR-data-003, and passing GdUnit evidence. Specialist subagent gates were not spawned because current tool policy requires explicit user request for subagents.

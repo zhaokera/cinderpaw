@@ -1,0 +1,45 @@
+{
+	"_meta": {"version": "1.0", "domain": "enemy_stats"},
+	"entries": {
+		"mechanical_rat": {
+			"max_hp": 3,
+			"patrol_speed": 80,
+			"attack_patterns": [
+				{
+					"pattern_id": "quick_bite",
+					"startup_frames": 18,
+					"active_frames": 4,
+					"recovery_frames": 20,
+					"damage_type": "physical",
+					"hitbox_config": {
+						"hitbox_id": "bite",
+						"offset": {"x": 18, "y": -14},
+						"size": {"x": 30, "y": 18}
+					},
+					"vulnerability_window": {
+						"start_frame": 12,
+						"size_frames": 5
+					},
+					"base_weight": 1.25
+				},
+				{
+					"pattern_id": "spark_lunge",
+					"startup_frames": 30,
+					"active_frames": 6,
+					"recovery_frames": 28,
+					"damage_type": "electric",
+					"hitbox_config": {
+						"hitbox_id": "spark",
+						"offset": {"x": 24, "y": -12},
+						"size": {"x": 42, "y": 20}
+					},
+					"vulnerability_window": {
+						"start_frame": 18,
+						"size_frames": 6
+					},
+					"base_weight": 0.75
+				}
+			]
+		}
+	}
+}

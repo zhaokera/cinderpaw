@@ -1,0 +1,68 @@
+{
+	"_meta": {"version": "1.0", "domain": "boss_configs"},
+	"entries": {
+		"boss_01_rat_king": {
+			"boss_id": "boss_01_rat_king",
+			"display_name": "垃圾桶鼠王",
+			"max_hp": 300,
+			"phases": [
+				{
+					"phase_id": 1,
+					"hp_threshold": 1.0,
+					"attack_patterns": ["charge", "claw_swipe"],
+					"attack_speed_modifier": 1.0,
+					"special_attacks": [],
+					"transition_animation": "phase_1_intro",
+					"arena_changes": []
+				},
+				{
+					"phase_id": 2,
+					"hp_threshold": 0.66,
+					"attack_patterns": ["charge", "claw_swipe", "slam"],
+					"attack_speed_modifier": 1.2,
+					"special_attacks": ["summon_minion", "slam"],
+					"transition_animation": "phase_2_rebuild",
+					"arena_changes": [
+						{"type": "obstacle", "id": "garbage_pile"}
+					]
+				},
+				{
+					"phase_id": 3,
+					"hp_threshold": 0.33,
+					"attack_patterns": ["berserk_combo"],
+					"attack_speed_modifier": 1.5,
+					"special_attacks": ["berserk_combo"],
+					"transition_animation": "phase_3_overload",
+					"arena_changes": [
+						{"type": "obstacle", "id": "overturned_trash_can"},
+						{"type": "damage_zone", "id": "electric_leak"}
+					]
+				}
+			],
+			"summon_rules": {
+				"phase_id": 2,
+				"summon_id": "summon_minion",
+				"summon_interval_sec": 15.0,
+				"summon_max_count": 2
+			},
+			"desperation_rules": {
+				"phase_id": 3,
+				"hp_threshold": 0.1,
+				"defense_modifier": 0.7
+			},
+			"parry_rules": {
+				"damage_multiplier": 5.0,
+				"enter_stun": false
+			},
+			"defeat_rewards": {
+				"ability_unlock": "dash",
+				"currency": 50,
+				"skill_points": 5
+			},
+			"arena_bounds": {
+				"position": {"x": 0, "y": 0},
+				"size": {"x": 960, "y": 540}
+			}
+		}
+	}
+}

@@ -1,27 +1,3 @@
-## Schema 验证结果数据类。
-##
-## 包含验证是否通过和所有错误信息。
-## ADR-0003: 数据管理架构
-class_name ValidationResult
-
-## 验证是否通过（无错误）
-var is_valid: bool = true
-
-## 验证错误列表，格式: "domain_name.entry_id.field_name: 错误描述"
-var errors: Array[String] = []
-
-
-func _init() -> void:
-	pass
-
-
-## 添加一条验证错误，同时将 is_valid 设为 false。
-func add_error(message: String) -> void:
-	errors.append(message)
-	is_valid = false
-
----
-
 ## JSON 数据 Schema 验证器（静态工具类）。
 ##
 ## 检查必填字段、类型匹配、数值范围、枚举值约束。
@@ -120,16 +96,64 @@ static func _validate_entry(
 					path, expected_type, type_string(typeof(value)), _format_value(value)])
 				continue
 
-		# 3. 数值范围
-		if field_schema.has("min") or field_schema.has("max"):
-			_validate_range(value, field_schema, path, result)
+			# 3. 数值范围
+			if field_schema.has("min") or field_schema.has("max"):
+				_validate_range(value, field_schema, path, result)
 
-		# 4. 枚举值
-		if field_schema.has("enum"):
-			var allowed: Array = field_schema["enum"]
-			if value not in allowed:
-				result.add_error("%s: value %s not in enum %s" % [
-					path, _format_value(value), str(allowed)])
+			# 4. 枚举值
+			if field_schema.has("enum"):
+				var allowed: Array = field_schema["enum"]
+				if value not in allowed:
+					result.add_error("%s: value %s not in enum %s" % [
+						path, _format_value(value), str(allowed)])
+
+			# 5. 嵌套 Dictionary 字段约束
+			if field_schema.has("fields") and value is Dictionary:
+				_validate_nested_fields(value as Dictionary, field_schema, path, result)
+
+
+static func _validate_nested_fields(
+	entry_data: Dictionary,
+	entry_schema: Dictionary,
+	path: String,
+	result: ValidationResult
+) -> void:
+	var required_fields: Array = entry_schema.get("required", [])
+	for field_name: String in required_fields:
+		if not entry_data.has(field_name):
+			result.add_error("%s.%s: required field missing" % [path, field_name])
+
+	var field_schemas: Dictionary = entry_schema.get("fields", {})
+	for field_name: String in field_schemas:
+		if not entry_data.has(field_name):
+			continue
+		var field_schema: Dictionary = field_schemas[field_name]
+		var value: Variant = entry_data[field_name]
+		var field_path: String = "%s.%s" % [path, field_name]
+		_validate_field(value, field_schema, field_path, result)
+
+
+static func _validate_field(
+	value: Variant,
+	field_schema: Dictionary,
+	path: String,
+	result: ValidationResult
+) -> void:
+	if field_schema.has("type"):
+		var expected_type: String = field_schema["type"]
+		if not _check_type(value, expected_type):
+			result.add_error("%s: expected %s, got %s (%s)" % [
+				path, expected_type, type_string(typeof(value)), _format_value(value)])
+			return
+	if field_schema.has("min") or field_schema.has("max"):
+		_validate_range(value, field_schema, path, result)
+	if field_schema.has("enum"):
+		var allowed: Array = field_schema["enum"]
+		if value not in allowed:
+			result.add_error("%s: value %s not in enum %s" % [
+				path, _format_value(value), str(allowed)])
+	if field_schema.has("fields") and value is Dictionary:
+		_validate_nested_fields(value as Dictionary, field_schema, path, result)
 
 
 ## 检查值是否匹配指定类型名称。
@@ -138,6 +162,8 @@ static func _check_type(value: Variant, expected_type: String) -> bool:
 		return true
 	var expected: int = TYPE_MAP[expected_type]
 	var actual: int = typeof(value)
+	if expected == TYPE_INT and actual == TYPE_FLOAT:
+		return value == floor(value)
 	if expected == TYPE_FLOAT and actual == TYPE_INT:
 		return true
 	return actual == expected

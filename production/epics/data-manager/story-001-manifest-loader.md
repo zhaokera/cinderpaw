@@ -91,7 +91,7 @@
 
 **Story Type**: Logic
 **Required evidence**: `tests/unit/data/story_001_manifest_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Status**: [x] Created (6 test functions covering AC-01~AC-05 + retry noop regression)
 
 ---
 

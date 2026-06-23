@@ -118,7 +118,7 @@ show_notification(text: String, duration: float) → void
 ## Dependencies
 
 **上游依赖**：生命、猫科战斗、武器流派、Boss配置、存档、场景管理
-**下游被依赖**：无
+**下游被依赖**：音效系统（菜单交互音效）、地图系统（小地图显示）、NPC对话系统（对话UI）
 
 ## Tuning Knobs
 

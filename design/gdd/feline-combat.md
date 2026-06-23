@@ -69,6 +69,43 @@
 - 冷却：0.5秒（防止无限闪避）
 - 可取消：攻击后摇、重攻击蓄力
 
+**闪避设计意图说明**：闪避提供低风险防御选项，i-frame覆盖率约19%（8帧/42帧循环）。设计允许"无限闪避"策略作为新手友好路径，但技巧差距在以下方面体现：
+1. **DPS差距**：闪避流DPS低于弹反流约30%（弹反5.0×倍率 vs 闪避后攻击1.8×暴击）
+2. **进攻机会成本**：闪避时无法攻击，弹反后获得1秒眩晕窗口可打完整连招
+3. **Boss战压力**：多阶段Boss攻击模式密集时，闪避冷却0.5秒成为限制，需要弹反填补
+4. **猫气管理**：闪避不消耗猫气但也不获取，弹反成功获取+15猫气，长期战斗中弹反流猫气更充裕
+
+如playtest显示闪避使用率过高（>70%防御动作），优先调整：(1)降低i-frame帧数至6帧，(2)增加闪避冷却至0.7秒，(3)提高弹反倍率至6.0×。
+
+**闪避后反击窗口（猫爪专属）**：
+闪避结束后，猫爪武器进入**反击窗口**状态，持续30帧（0.5秒）。此窗口内：
+- 攻击的PERFECT暴击窗口+3帧（从3帧扩展为6帧）
+- 与charm_crit（+1帧）和focus_mode（+1帧）叠加，最大可达8帧
+- 窗口状态变量：`dodge_counter_window: int`（闪避结束时设为30，每帧递减）
+
+**实现接口**：
+```
+on_dodge_end() → void:
+    if current_weapon == "cat_claw":
+        dodge_counter_window = 30
+        emit_signal("on_dodge_counter_active", true)
+
+_physics_process(delta):
+    if dodge_counter_window > 0:
+        dodge_counter_window -= 1
+        if dodge_counter_window == 0:
+            emit_signal("on_dodge_counter_active", false)
+```
+
+**伤害计算集成**（damage-calculation.md DC-F5）：
+```
+perfect_window_base = 3
+if dodge_counter_active: perfect_window_base += 3  # 猫爪闪避后反击
+if charm_crit_equipped: perfect_window_base += 1
+if focus_mode_active: perfect_window_base += 1
+# 最大: 3+3+1+1 = 8帧
+```
+
 **弹反（Parry）**：
 - 触发：按下parry键（优先级100，最高）
 - 弹反窗口：第1-18帧（PERFECT=0-6帧，GOOD=7-12帧，LATE=13-18帧）
@@ -262,6 +299,11 @@ on_attack_hit(metadata: Dictionary) → void  # 视觉反馈系统监听
 - 生命系统 — 接收apply_damage调用
 - 视觉反馈系统 — 监听on_attack_hit信号
 - 武器流派系统 — 查询武器类型
+- 音效系统 — 监听on_hit, on_parry, on_dodge事件触发音效
+- 战斗表现系统 — 监听on_hit_confirmed信号触发帧停/震屏
+- 玩家能力系统 — 查询能力状态（如闪避增强）
+- 状态效果系统 — 监听攻击命中应用效果
+- HUD/UI系统 — 监听战斗事件更新UI
 
 ## Tuning Knobs
 

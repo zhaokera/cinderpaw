@@ -93,7 +93,7 @@
 
 **Story Type**: Logic
 **Required evidence**: `tests/unit/data/story_002_schema_validator_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Status**: [x] Created (12 test functions covering AC-01~AC-06 + numeric compatibility regression)
 
 ---
 
@@ -109,5 +109,5 @@
 **Completed**: 2026-06-21
 **Criteria**: 6/6 passing
 **Deviations**: None
-**Test Evidence**: Logic — test file at `tests/unit/data/story_002_schema_validator_test.gd` (10 functions)
+**Test Evidence**: Logic — test file at `tests/unit/data/story_002_schema_validator_test.gd` (12 functions)
 **Code Review**: APPROVED (LP-CODE-REVIEW + QL-TEST-COVERAGE)

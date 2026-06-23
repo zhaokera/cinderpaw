@@ -1,12 +1,12 @@
 # Story 006: VersionMigrator 版本迁移
 
 > **Epic**: data-manager
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: 2-3 hours
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: —
+> **Last Updated**: 2026-06-23
 
 ## Context
 
@@ -25,12 +25,12 @@
 
 ## Acceptance Criteria
 
-- [ ] AC-01: 版本完全兼容 → 数据原样返回，无迁移执行
-- [ ] AC-02: MINOR 版本低 → 自动执行迁移链（1.0→1.1→1.2），返回目标版本数据
-- [ ] AC-03: MAJOR 版本不同 → 拒绝加载，返回 null + ERROR 日志，原始数据不修改
-- [ ] AC-04: 文件 MINOR 高于期望（向后兼容）→ 数据原样返回
-- [ ] AC-05: 迁移链中间步骤失败 → 回滚到迁移前原始数据 + ERROR 日志
-- [ ] AC-06: 版本兼容性公式 4 象限边界值测试全部通过
+- [x] AC-01: 版本完全兼容 → 数据原样返回，无迁移执行
+- [x] AC-02: MINOR 版本低 → 自动执行迁移链（1.0→1.1→1.2），返回目标版本数据
+- [x] AC-03: MAJOR 版本不同 → 拒绝加载，返回 null + ERROR 日志，原始数据不修改
+- [x] AC-04: 文件 MINOR 高于期望（向后兼容）→ 数据原样返回
+- [x] AC-05: 迁移链中间步骤失败 → 回滚到迁移前原始数据 + ERROR 日志
+- [x] AC-06: 版本兼容性公式 4 象限边界值测试全部通过
 
 ---
 
@@ -88,7 +88,8 @@
 
 **Story Type**: Logic
 **Required evidence**: `tests/unit/data/story_006_version_migrator_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Status**: [x] Created (6 test functions covering AC-01~AC-06)
+**Note**: GdUnit4 available; Story 006 test passes 6/6 and full data unit suite passes 43/43 as of 2026-06-23.
 
 ---
 
@@ -96,3 +97,13 @@
 
 - Depends on: Story 001, Story 002
 - Unlocks: None (可与 003, 004, 005 并行)
+
+---
+
+## Completion Notes
+
+**Completed**: 2026-06-23
+**Criteria**: 6/6 passing
+**Deviations**: None
+**Test Evidence**: Logic — test file at `tests/unit/data/story_006_version_migrator_test.gd` (6 functions covering AC-01~AC-06)
+**Code Review**: Complete — local review against ADR-0003, control manifest, GDD TR-data-006, and passing GdUnit evidence. Specialist subagent gates were not spawned because current tool policy requires an explicit user request for subagents.

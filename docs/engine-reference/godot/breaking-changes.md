@@ -1,6 +1,6 @@
 # Godot — Breaking Changes
 
-Last verified: 2026-02-12
+Last verified: 2026-06-18
 
 Changes between Godot versions, focused on post-LLM-cutoff changes (4.4+).
 
@@ -8,6 +8,7 @@ Changes between Godot versions, focused on post-LLM-cutoff changes (4.4+).
 
 | Subsystem | Change | Details |
 |-----------|--------|---------|
+| **Core** | **Required parameters/return values** | API parameters and return values can now be declared as **required** — nullable values are no longer implicitly allowed. Code passing null to typed params will error. Review all API calls. |
 | Physics | Jolt is now the DEFAULT 3D physics engine | New projects use Jolt automatically. Existing projects keep their setting. Some HingeJoint3D properties (like `damp`) only work with GodotPhysics. |
 | Rendering | Glow processes BEFORE tonemapping | Was after tonemapping. Scenes with glow will look different. Adjust intensity/blend in WorldEnvironment. |
 | Rendering | D3D12 default on Windows | Was Vulkan. For better driver compatibility. |
@@ -21,6 +22,18 @@ Changes between Godot versions, focused on post-LLM-cutoff changes (4.4+).
 | Localization | CSV plural form support | No longer requires Gettext for plurals. Context columns added. |
 | C# | Automatic string extraction | Translation strings auto-extracted from C# code. |
 | Plugins | New EditorDock class | Specialized container for plugin docks with layout control. |
+
+### 4.6 Known Issues (Community Reported)
+- **GLSL shader breaking changes**: Official migration guide initially missed some shader breaking changes. Custom shaders may need updates. See: https://github.com/godotengine/godot-docs/issues/11744
+- **Color/rendering shifts**: Some users report visual differences after upgrading. Test visual output on target hardware.
+
+### 4.6 Maintenance Releases
+- **4.6.1** (Feb 2026): Bug fixes and usability improvements
+- **4.6.2** (Mar 2026): Stability fixes
+- **4.6.3** (May 2026): 86 fixes from 41 contributors — recommended for all projects. No breaking changes.
+
+### 4.6 Scene Compatibility
+- Scenes saved in 4.5 **can still be loaded** in 4.6 and vice-versa. Safe to upgrade incrementally.
 
 ## 4.4 → 4.5 (Late 2025 — POST-CUTOFF, HIGH RISK)
 

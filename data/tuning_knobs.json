@@ -1,0 +1,32 @@
+{
+	"_meta": {
+		"version": "1.0",
+		"domain": "tuning_knobs",
+		"description": "Global runtime tuning knob overrides"
+	},
+	"entries": {
+		"damage.multiplier": {"value": 1.0},
+		"damage.defense_curve_constant": {"value": 60.0},
+		"damage.floor": {"value": 1},
+		"damage.cap": {"value": 999},
+		"input.buffer_window_ms": {"value": 150},
+		"input.buffer_queue_size": {"value": 3},
+		"input.pre_input_window_ms": {"value": 50},
+		"input.combo_chain_window_ms": {"value": 300},
+		"input.coyote_frames": {"value": 6},
+		"input.jump_buffer_frames": {"value": 6},
+		"input.device_switch_debounce_ms": {"value": 500},
+		"input.priority_pre_input_bonus": {"value": 20},
+		"status.poison_duration_sec": {"value": 5.0},
+		"status.poison_dps": {"value": 3},
+		"status.slow_duration_sec": {"value": 2.0},
+		"status.slow_percentage": {"value": 0.3},
+		"status.stun_duration_sec": {"value": 1.0},
+		"status.burn_duration_sec": {"value": 3.0},
+		"status.burn_dps": {"value": 5},
+		"status.max_effects_per_entity": {"value": 5},
+		"status.speed_boost_percentage": {"value": 0.3},
+		"status.damage_boost_percentage": {"value": 0.25},
+		"status.invincible_duration_sec": {"value": 0.5}
+	}
+}

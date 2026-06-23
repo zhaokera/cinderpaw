@@ -186,10 +186,16 @@ static func calculate_damage(
 ) -> DamageResult
 
 # ISerializable 接口（所有需要存档的系统必须实现）
+# 参考 ADR-0008 获取完整接口定义
 @abstract
 class_name ISerializable
-func serialize() -> Dictionary
-func deserialize(data: Dictionary) -> void
+extends RefCounted
+
+func serialize() -> Dictionary:
+    return {}
+
+func deserialize(data: Dictionary, version: int) -> void:
+    pass
 ```
 
 > ⚠️ **Variant 返回值注意**: `DataManager.get_entry()` 返回 `Variant`，在 Godot 4.6 required types 下需实现时验证 `Variant` 返回 null 是否仍被允许。如不允许，改为返回 `Dictionary` + `has_entry()` 前置检查。

@@ -379,6 +379,9 @@ while next_phase < phase_thresholds.size() and phase_percentage <= phase_thresho
 - 状态效果系统 — 查询HP触发条件效果
 - 输入系统 — `on_death`时清空缓冲
 - 探索与能力门控 — 监听`on_hp_milestone`（"首次低血量存活"成就等）
+- 音效系统 — 监听`on_focus_mode_changed`切换低HP音效
+- 护符/装备系统 — 查询HP百分比触发护符效果
+- 战斗表现系统 — 监听`on_hp_milestone`触发低HP视觉特效
 
 ## Tuning Knobs
 

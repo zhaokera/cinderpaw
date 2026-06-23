@@ -95,6 +95,8 @@ Saved/
 *.tmp
 *.temp
 *.cache
+.gdignore_cache
+*.pid
 *.log
 __pycache__/
 *.pyc

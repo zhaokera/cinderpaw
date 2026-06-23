@@ -102,7 +102,7 @@ set_scene_state(scene_id: String, state: Dictionary) → void
 ## Dependencies
 
 **上游依赖**：无
-**下游被依赖**：存档系统、Boss配置层、探索与能力门控、世界状态系统
+**下游被依赖**：存档系统、Boss配置层、探索与能力门控、世界状态系统、音效系统（场景切换音乐淡入淡出）、HUD/UI系统（加载/过渡界面）、地图系统（区域解锁可视化）
 
 ## Tuning Knobs
 

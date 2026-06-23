@@ -1,12 +1,12 @@
 # Story 005: TuningKnobRegistry 旋钮管理
 
 > **Epic**: data-manager
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: 2-3 hours
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: —
+> **Last Updated**: 2026-06-23
 
 ## Context
 
@@ -26,12 +26,12 @@
 
 ## Acceptance Criteria
 
-- [ ] AC-01: 注册旋钮后 get_value() 返回注册的默认值
-- [ ] AC-02: set_value() 在范围内 → 新值生效 + on_knob_changed 信号发射
-- [ ] AC-03: set_value() 超过 max → 自动 clamp 到 max，不报错
-- [ ] AC-04: set_value() 低于 min → 自动 clamp 到 min
-- [ ] AC-05: 查询未注册旋钮 → 返回传入的 default 参数 + WARNING 日志
-- [ ] AC-06: JSON 热重载更新旋钮值 → get_value() 返回新值 + on_knob_changed 信号
+- [x] AC-01: 注册旋钮后 get_value() 返回注册的默认值
+- [x] AC-02: set_value() 在范围内 → 新值生效 + on_knob_changed 信号发射
+- [x] AC-03: set_value() 超过 max → 自动 clamp 到 max，不报错
+- [x] AC-04: set_value() 低于 min → 自动 clamp 到 min
+- [x] AC-05: 查询未注册旋钮 → 返回传入的 default 参数 + WARNING 日志
+- [x] AC-06: JSON 热重载更新旋钮值 → get_value() 返回新值 + on_knob_changed 信号
 
 ---
 
@@ -89,7 +89,8 @@
 
 **Story Type**: Logic
 **Required evidence**: `tests/unit/data/story_005_tuning_knob_test.gd` — must exist and pass
-**Status**: [ ] Not yet created
+**Status**: [x] Created (6 test functions covering AC-01~AC-06)
+**Note**: GdUnit4 available; Story 005 test passes 6/6 and full data unit suite passes 37/37 as of 2026-06-23.
 
 ---
 
@@ -97,3 +98,13 @@
 
 - Depends on: Story 001
 - Unlocks: None (可与 003, 004, 006 并行)
+
+---
+
+## Completion Notes
+
+**Completed**: 2026-06-23
+**Criteria**: 6/6 passing
+**Deviations**: None
+**Test Evidence**: Logic — test file at `tests/unit/data/story_005_tuning_knob_test.gd` (6 functions covering AC-01~AC-06)
+**Code Review**: Complete — local review against ADR-0003, control manifest, GDD TR-data-005, and passing GdUnit evidence. Specialist subagent gates were not spawned because current tool policy requires an explicit user request for subagents.

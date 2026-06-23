@@ -3,8 +3,20 @@
 > **Layer**: Foundation
 > **GDD**: design/gdd/input.md
 > **Architecture Module**: InputManager
-> **Status**: Ready
-> **Stories**: Not yet created — run `/create-stories input-manager`
+> **Status**: Complete
+> **Stories**: 7 stories
+
+## Stories
+
+| # | Story | Type | Status | ADR |
+|---|-------|------|--------|-----|
+| 001 | InputManager Action Abstraction + Query API | Integration | Complete | ADR-0001, ADR-0003 |
+| 002 | Direct Dispatch + FSM Signals | Logic | Complete | ADR-0001, ADR-0002 |
+| 003 | Buffer Queue + Pre-input | Logic | Complete | ADR-0001, ADR-0003 |
+| 004 | Combo Chain + Conflict Resolution | Logic | Complete | ADR-0001, ADR-0002 |
+| 005 | Coyote Time + Jump Buffer | Logic | Complete | ADR-0001, ADR-0003 |
+| 006 | Device Detection + Debounced Switching | Integration | Complete | ADR-0001, ADR-0002 |
+| 007 | Key Rebinding Persistence | Config/Data | Deferred | N/A — Polish |
 
 ## Overview
 
@@ -25,11 +37,11 @@
 | TR-ID | Requirement | ADR Coverage |
 |-------|-------------|--------------|
 | TR-input-001 | 统一输入抽象层，12 核心动作 | ADR-0001 ✅ |
-| TR-input-002 | 输入缓冲 150ms/3 深度/50ms 预输入 | ADR-0001 ⚠️ |
-| TR-input-003 | 连招链管理 combo_counter | ADR-0001 ⚠️ |
-| TR-input-004 | Coyote Time 5-8 帧 + Jump Buffer | — ⚠️ 实现细节 |
-| TR-input-005 | 平台检测 500ms 防抖 | ADR-0001 ⚠️ |
-| TR-input-006 | 输入冲突解决（优先级互斥） | ADR-0001 ⚠️ |
+| TR-input-002 | 输入缓冲 150ms/3 深度/50ms 预输入 | ADR-0001 ✅ |
+| TR-input-003 | 连招链管理 combo_counter | ADR-0001 ✅ |
+| TR-input-004 | Coyote Time 5-8 帧 + Jump Buffer | ADR-0001, ADR-0003 ✅ |
+| TR-input-005 | 平台检测 500ms 防抖 | ADR-0001, ADR-0002 ✅ |
+| TR-input-006 | 输入冲突解决（优先级互斥） | ADR-0001 ✅ |
 | TR-input-007 | 三状态 FSM (DIRECT/BUFFERING/TRANSITIONING) | — ⚠️ 实现细节 |
 | TR-input-008 | action_triggered 信号 + metadata | ADR-0001, ADR-0002 ✅ |
 | TR-input-009 | device_changed 信号 | ADR-0001, ADR-0002 ✅ |
@@ -49,4 +61,4 @@ This epic is complete when:
 
 ## Next Step
 
-Run `/create-stories input-manager` to break this epic into implementable stories.
+Input System Foundation scope complete. Story 007 key rebinding remains deferred to Feature/Polish; next recommended implementation target is Health/Death or Feline Combat integration.

@@ -37,7 +37,7 @@
 #   Each entry: name, status, source, referenced_by[], attributes{}, added, revised
 
 version: 1
-last_updated: ""
+last_updated: "2026-06-21"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -106,7 +106,57 @@ items: []
 #   output_range[min, max], added
 # Optional: expression (the actual formula), notes
 
-formulas: []
+formulas:
+  - name: HD-F1_hp_percentage
+    status: active
+    source: design/gdd/health-death.md
+    referenced_by:
+      - design/gdd/health-death.md
+      - design/gdd/ai-framework.md
+      - design/gdd/hud-ui.md
+      - design/gdd/status-effects.md
+    variables:
+      - current_hp
+      - max_hp
+    output_range: [0.0, 1.0]
+    expression: "current_hp / max(1, max_hp)"
+    notes: "HP百分比查询，供AI行为决策、UI显示、状态效果条件触发使用。max(1,max_hp)内联保护防除零。"
+    added: 2026-06-20
+    revised: 2026-06-21
+
+  - name: F8_combined_bonus
+    status: active
+    source: design/gdd/skill-tree.md
+    referenced_by:
+      - design/gdd/skill-tree.md
+      - design/gdd/charm-equipment.md
+      - design/gdd/damage-calculation.md
+    variables:
+      - skill_bonus_total
+      - charm_bonus
+    output_range: [0.0, 0.75]
+    expression: "min(0.75, 1 - (1 - skill_bonus_total[stat]) × (1 - charm_bonus[stat]))"
+    notes: "技能加成+护符加成乘法递减叠加，软上限0.75。设计cap范围内(skill≤0.25, charm≤0.50)不触发clamp。charm_bonus须先clamp到[0, charm_cap]再进入公式。由技能树负责执行cap，护符系统只传入charm_bonus。"
+    added: 2026-06-19
+    revised: 2026-06-19
+
+  - name: F6_ultimate_damage
+    status: active
+    source: design/gdd/skill-tree.md
+    referenced_by:
+      - design/gdd/skill-tree.md
+      - design/gdd/damage-calculation.md
+    variables:
+      - ultimate_multiplier
+      - effective_weapon_base  # was: weapon_base before 2026-06-19 review #4. Renamed to reflect F9 interaction.
+      - attack_power
+      - skill_modifier
+      - reduction_factor
+    output_range: [1, 999]
+    expression: "clamp(floor(ultimate_multiplier × (effective_weapon_base + attack_power × 0.3) × skill_modifier × reduction_factor), 1, 999)"
+    notes: "极意技最终伤害。multiplier范围3.0-5.0，按武器不同。effective_weapon_base为F9修正后的值。reduction_factor须clamp到[0,1.0]。"
+    added: 2026-06-19
+    revised: 2026-06-19
 
 # Example:
 #
@@ -139,7 +189,99 @@ formulas: []
 #
 # Required fields: name, status, source, referenced_by, value, unit, added
 
-constants: []
+constants:
+  - name: dodge_total_frames
+    status: active
+    source: design/gdd/health-death.md
+    referenced_by:
+      - design/gdd/health-death.md
+      - design/gdd/feline-combat.md
+    value: 12  # 闪避总时长。i-frame活跃窗口为帧3-10（8帧），由feline-combat.md定义。was: 7帧 before 2026-06-21 (Rev.2 corrected to 8)
+    unit: frames
+    added: 2026-06-20
+    revised: 2026-06-21
+
+  - name: parry_iframe_frames
+    status: active
+    source: design/gdd/health-death.md
+    referenced_by:
+      - design/gdd/health-death.md
+      - design/gdd/feline-combat.md
+    value: 8
+    unit: frames
+    added: 2026-06-20
+    revised: ""
+
+  - name: total_sp_fullgame
+    status: active
+    source: design/gdd/skill-tree.md
+    referenced_by:
+      - design/gdd/skill-tree.md
+      - design/gdd/data-balance.md
+      - design/gdd/save-system.md
+    value: 65  # was: 52 before 2026-06-19 (review #1), was: 36 before review #1. Aligned with skill-tree.md Rule 3 (Boss=20+Elite=16+Explore=21+Quest=8)
+    unit: skill_points
+    added: 2026-06-19
+    revised: 2026-06-19
+
+  - name: feline_energy_max
+    status: active
+    source: design/gdd/skill-tree.md
+    referenced_by:
+      - design/gdd/skill-tree.md
+      - design/gdd/weapon-styles.md
+      - design/gdd/feline-combat.md
+      - design/gdd/hud-ui.md
+    value: 100
+    unit: energy
+    added: 2026-06-19
+    revised: ""
+
+  - name: unified_bonus_cap
+    status: active
+    source: design/gdd/skill-tree.md
+    referenced_by:
+      - design/gdd/skill-tree.md
+      - design/gdd/charm-equipment.md
+      - design/gdd/damage-calculation.md
+    value: 0.75  # was: 0.50 before 2026-06-19 review #3. Soft cap ensures design-range values (skill≤0.25, charm≤0.50) don't trigger clamp. Aligned with skill-tree.md F8.
+    unit: ratio
+    added: 2026-06-19
+    revised: 2026-06-19
+
+  - name: skill_damage_cap
+    status: active
+    source: design/gdd/skill-tree.md
+    referenced_by:
+      - design/gdd/skill-tree.md
+      - design/gdd/damage-calculation.md
+    value: 0.25
+    unit: ratio
+    added: 2026-06-19
+    revised: ""
+
+  - name: respec_base_cost
+    status: active
+    source: design/gdd/skill-tree.md
+    referenced_by:
+      - design/gdd/skill-tree.md
+      - design/gdd/npc-dialogue.md
+    value: 30
+    unit: gear_coins
+    added: 2026-06-19
+    revised: ""
+
+  - name: total_skill_tree_nodes
+    status: active
+    source: design/gdd/skill-tree.md
+    referenced_by:
+      - design/gdd/skill-tree.md
+      - design/gdd/save-system.md
+      - design/gdd/hud-ui.md
+    value: 65  # was: 61 before 2026-06-19 review #4. Aligned with skill-tree.md: 4×12 weapon + 15 general + 2 exploration = 65
+    unit: nodes
+    added: 2026-06-19
+    revised: 2026-06-19
 
 # Example:
 #

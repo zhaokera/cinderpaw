@@ -1,11 +1,88 @@
 {
-	"_meta": {"version": "1.0", "domain": "damage_params", "description": "Damage formula parameters"},
+	"_meta": {
+		"version": "1.0",
+		"domain": "damage_params"
+	},
 	"entries": {
+		"_global": {
+			"damage_multiplier": 1.0,
+			"defense_curve_constant": 60.0,
+			"damage_floor": 1,
+			"damage_cap": 999,
+			"crit_multipliers": {
+				"perfect": 2.5,
+				"good": 1.8,
+				"none": 1.0
+			},
+			"parry_multipliers": {
+				"perfect": 5.0,
+				"good": 2.5,
+				"late": 1.5,
+				"none": 1.0
+			},
+			"attack_type_multipliers": {
+				"heavy": 2.0,
+				"heavy_min": 1.2,
+				"heavy_max": 2.0,
+				"charged": 2.0,
+				"aerial": 1.5,
+				"aerial_dive": 1.5
+			},
+			"category_thresholds": {
+				"scratch_max": 5,
+				"normal_max": 15,
+				"strong_max": 30,
+				"powerful_max": 60,
+				"extreme_max": 150
+			}
+		},
 		"cat_claw": {
 			"weapon_base": 10,
-			"scaling_factor": 1.2,
-			"crit_perfect_multiplier": 2.5,
-			"crit_good_multiplier": 1.8
+			"combo_multipliers": {
+				"0": 1.0,
+				"1": 1.2,
+				"2": 1.8
+			},
+			"special_move": {
+				"multiplier": 0.8,
+				"hits": 5
+			}
+		},
+		"long_tail": {
+			"weapon_base": 15,
+			"combo_multipliers": {
+				"0": 1.0,
+				"1": 1.15,
+				"2": 1.7
+			},
+			"special_move": {
+				"multiplier": 1.5,
+				"hits": 1
+			}
+		},
+		"fish_bone": {
+			"weapon_base": 40,
+			"combo_multipliers": {
+				"0": 1.0,
+				"1": 1.3,
+				"2": 2.2
+			},
+			"special_move": {
+				"multiplier": 2.0,
+				"hits": 1
+			}
+		},
+		"electro_bell": {
+			"weapon_base": 12,
+			"combo_multipliers": {
+				"0": 1.0,
+				"1": 1.1,
+				"2": 1.5
+			},
+			"special_move": {
+				"multiplier": 1.0,
+				"hits": 1
+			}
 		}
 	}
 }

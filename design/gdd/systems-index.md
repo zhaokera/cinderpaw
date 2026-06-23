@@ -23,25 +23,25 @@
 |---|-------------|----------|----------|-------|--------|------------|
 | 1 | 输入系统 | Core | MVP核心 | Foundation | Needs Revision | design/gdd/input.md | — |
 | 2 | 数据/平衡基础设施 | Core | MVP核心 | Foundation | Designed | design/gdd/data-balance.md | — |
-| 3 | 伤害计算系统 | Core | MVP核心 | Foundation | Needs Revision | design/gdd/damage-calculation.md | — |
-| 4 | 生命与死亡检测系统 | Core | MVP核心 | Core | Needs Revision | design/gdd/health-death.md | 伤害计算 |
-| 5 | 猫科战斗系统 | Gameplay | MVP核心 | Core | Needs Revision | design/gdd/feline-combat.md | 输入, 碰撞判定, 伤害计算 |
+| 3 | 伤害计算系统 | Core | MVP核心 | Foundation | **Approved** | design/gdd/damage-calculation.md | — |
+| 4 | 生命与死亡检测系统 | Core | MVP核心 | Core | **Approved** | design/gdd/health-death.md | 伤害计算 |
+| 5 | 猫科战斗系统 | Gameplay | MVP核心 | Core | **Approved** | design/gdd/feline-combat.md | 输入, 碰撞判定, 伤害计算 |
 | 6 | 碰撞与判定系统 | Core | MVP核心 | Core | Designed | design/gdd/collision-detection.md | 输入 |
 | 7 | AI框架 | Gameplay | MVP核心 | Core | Designed | design/gdd/ai-framework.md | 伤害计算, 生命检测, 碰撞 |
-| 8 | 武器流派系统 | Gameplay | MVP核心 | Core | Needs Revision | design/gdd/weapon-styles.md | 猫科战斗, 伤害计算 |
-| 9 | Boss配置层 | Gameplay | MVP核心 | Core | Needs Revision | design/gdd/boss-config.md | AI框架, 生命检测 |
+| 8 | 武器流派系统 | Gameplay | MVP核心 | Core | **Approved** | design/gdd/weapon-styles.md | 猫科战斗, 伤害计算 |
+| 9 | Boss配置层 | Gameplay | MVP核心 | Core | **Approved** | design/gdd/boss-config.md | AI框架, 生命检测 |
 | 10 | 存档系统 | Persistence | MVP核心 | Feature | Designed | design/gdd/save-system.md | ISerializable接口 |
 | 11 | 场景管理系统 | Core | MVP核心 | Feature | Designed | design/gdd/scene-management.md | — |
 | 12 | 死亡与重生系统 | Gameplay | MVP核心 | Feature | Designed | design/gdd/death-respawn.md | 生命检测(on_death信号) |
-| 13 | HUD/UI系统 | UI | MVP核心 | Presentation | Needs Revision | design/gdd/hud-ui.md | 生命, 战斗, 技能 |
+| 13 | HUD/UI系统 | UI | MVP核心 | Presentation | **Approved** | design/gdd/hud-ui.md | 生命, 战斗, 技能 |
 | 14 | 战斗表现系统 | UI | MVP核心 | Presentation | Designed | design/gdd/combat-presentation.md | 猫科战斗(on_hit信号) |
 | 15 | 音效系统 | Audio | MVP核心 | Presentation | Designed | design/gdd/audio-system.md | 战斗, 场景 |
-| 16 | 探索与能力门控系统 | Gameplay | MVP核心 | Feature | Needs Revision | design/gdd/exploration-ability-gating.md | 玩家能力, 世界状态 |
+| 16 | 探索与能力门控系统 | Gameplay | MVP核心 | Feature | **Approved** | design/gdd/exploration-ability-gating.md | 玩家能力, 世界状态 |
 | 17 | 状态效果系统 | Gameplay | MVP扩展 | Core | Designed | design/gdd/status-effects.md | 生命检测, 伤害计算 |
-| 18 | 玩家能力系统 | Core | **MVP核心** | Core | Needs Revision | design/gdd/player-abilities.md | — |
-| 19 | 护符/装备系统 | Progression | MVP扩展 | Feature | Needs Revision | design/gdd/charm-equipment.md | 状态效果, 数值平衡 |
+| 18 | 玩家能力系统 | Core | **MVP核心** | Core | **Approved** | design/gdd/player-abilities.md | — |
+| 19 | 护符/装备系统 | Progression | MVP扩展 | Feature | **Approved** | design/gdd/charm-equipment.md | 状态效果, 数值平衡 |
 | 20 | NPC对话系统 | Narrative | MVP扩展 | Feature | Designed | design/gdd/npc-dialogue.md | 世界状态 |
-| 21 | 地图系统 | UI | MVP扩展 | Feature | Needs Revision | design/gdd/map-system.md | 场景管理, 世界状态 |
+| 21 | 地图系统 | UI | MVP扩展 | Feature | **Approved** | design/gdd/map-system.md | 场景管理, 世界状态 |
 | 22 | 技能树系统 | Progression | 垂直切片 | Feature | **Approved** | design/gdd/skill-tree.md | 武器流派, 数值平衡 |
 | 23 | 商店系统 | Economy | 垂直切片 | Feature | Not Started | 数值平衡 |
 | 24 | 快速旅行系统 | Core | 垂直切片 | Feature | Not Started | 场景管理, 世界状态 |

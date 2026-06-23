@@ -1,0 +1,31 @@
+[gd_scene load_steps=6 format=3 uid="uid://enemy001"]
+
+[ext_resource type="Script" path="res://src/gameplay/simple_enemy.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/generated/shadow_beast_enemy.png" id="2_sprite"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(24, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
+size = Vector2(24, 40)
+
+[node name="SimpleEnemy" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 17
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_body")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(0, -30)
+scale = Vector2(0.085, 0.085)
+texture = ExtResource("2_sprite")
+
+[node name="HurtboxArea" type="Area2D" parent="."]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtboxArea"]
+shape = SubResource("RectangleShape2D_hurtbox")

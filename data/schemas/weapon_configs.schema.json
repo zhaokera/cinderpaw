@@ -1,0 +1,239 @@
+{
+	"entries": {
+		"cat_claw": {
+			"required": [
+				"weapon_id",
+				"display_name",
+				"style",
+				"base_damage_range",
+				"attack_speed",
+				"attack_range",
+				"combo_multipliers",
+				"upgrade_damage_table",
+				"special_attack_id",
+				"special_cooldown_sec",
+				"special_damage_multiplier",
+				"special_mechanism",
+				"hitbox_offset",
+				"hitbox_size"
+			],
+			"fields": {
+				"weapon_id": {"type": "String", "enum": ["cat_claw"]},
+				"display_name": {"type": "String"},
+				"style": {"type": "String", "enum": ["counter"]},
+				"base_damage_range": {
+					"type": "Dictionary",
+					"required": ["x", "y"],
+					"fields": {
+						"x": {"type": "int", "min": 0, "max": 50},
+						"y": {"type": "int", "min": 0, "max": 50}
+					}
+				},
+				"attack_speed": {"type": "float", "min": 0.1, "max": 5.0},
+				"attack_range": {"type": "float", "min": 0.1, "max": 5.0},
+				"combo_multipliers": {"type": "Array"},
+				"upgrade_damage_table": {"type": "Array"},
+				"special_attack_id": {"type": "String", "enum": ["gale_claw"]},
+				"special_cooldown_sec": {"type": "float", "min": 0.0, "max": 30.0},
+				"special_damage_multiplier": {"type": "float", "min": 0.0, "max": 5.0},
+				"special_mechanism": {
+					"type": "Dictionary",
+					"required": ["type", "crit_window_bonus_frames", "window_duration_sec"],
+					"fields": {
+						"type": {"type": "String", "enum": ["counter_crit_extension"]},
+						"crit_window_bonus_frames": {"type": "int", "min": 0, "max": 30},
+						"window_duration_sec": {"type": "float", "min": 0.0, "max": 5.0}
+					}
+				},
+				"hitbox_offset": {
+					"type": "Dictionary",
+					"required": ["x", "y"],
+					"fields": {"x": {"type": "float"}, "y": {"type": "float"}}
+				},
+				"hitbox_size": {
+					"type": "Dictionary",
+					"required": ["x", "y"],
+					"fields": {"x": {"type": "float"}, "y": {"type": "float"}}
+				}
+			}
+		},
+		"long_tail": {
+			"required": [
+				"weapon_id",
+				"display_name",
+				"style",
+				"base_damage_range",
+				"attack_speed",
+				"attack_range",
+				"combo_multipliers",
+				"upgrade_damage_table",
+				"special_attack_id",
+				"special_cooldown_sec",
+				"special_damage_multiplier",
+				"special_mechanism",
+				"hitbox_offset",
+				"hitbox_size"
+			],
+			"fields": {
+				"weapon_id": {"type": "String", "enum": ["long_tail"]},
+				"display_name": {"type": "String"},
+				"style": {"type": "String", "enum": ["aoe"]},
+				"base_damage_range": {
+					"type": "Dictionary",
+					"required": ["x", "y"],
+					"fields": {
+						"x": {"type": "int", "min": 0, "max": 50},
+						"y": {"type": "int", "min": 0, "max": 50}
+					}
+				},
+				"attack_speed": {"type": "float", "min": 0.1, "max": 5.0},
+				"attack_range": {"type": "float", "min": 0.1, "max": 5.0},
+				"combo_multipliers": {"type": "Array"},
+				"upgrade_damage_table": {"type": "Array"},
+				"special_attack_id": {"type": "String", "enum": ["whirlwind_slash"]},
+				"special_cooldown_sec": {"type": "float", "min": 0.0, "max": 30.0},
+				"special_damage_multiplier": {"type": "float", "min": 0.0, "max": 5.0},
+				"special_mechanism": {
+					"type": "Dictionary",
+					"required": ["type", "aoe_range", "max_targets"],
+					"fields": {
+						"type": {"type": "String", "enum": ["multi_target"]},
+						"aoe_range": {"type": "float", "min": 0.0, "max": 10.0},
+						"max_targets": {"type": "int", "min": 1, "max": 20}
+					}
+				},
+				"hitbox_offset": {
+					"type": "Dictionary",
+					"required": ["x", "y"],
+					"fields": {"x": {"type": "float"}, "y": {"type": "float"}}
+				},
+				"hitbox_size": {
+					"type": "Dictionary",
+					"required": ["x", "y"],
+					"fields": {"x": {"type": "float"}, "y": {"type": "float"}}
+				}
+			}
+		},
+		"fish_bone": {
+			"required": [
+				"weapon_id",
+				"display_name",
+				"style",
+				"base_damage_range",
+				"attack_speed",
+				"attack_range",
+				"combo_multipliers",
+				"upgrade_damage_table",
+				"special_attack_id",
+				"special_cooldown_sec",
+				"special_damage_multiplier",
+				"special_mechanism",
+				"hitbox_offset",
+				"hitbox_size"
+			],
+			"fields": {
+				"weapon_id": {"type": "String", "enum": ["fish_bone"]},
+				"display_name": {"type": "String"},
+				"style": {"type": "String", "enum": ["burst"]},
+				"base_damage_range": {
+					"type": "Dictionary",
+					"required": ["x", "y"],
+					"fields": {
+						"x": {"type": "int", "min": 0, "max": 50},
+						"y": {"type": "int", "min": 0, "max": 50}
+					}
+				},
+				"attack_speed": {"type": "float", "min": 0.1, "max": 5.0},
+				"attack_range": {"type": "float", "min": 0.1, "max": 5.0},
+				"combo_multipliers": {"type": "Array"},
+				"upgrade_damage_table": {"type": "Array"},
+				"special_attack_id": {"type": "String", "enum": ["earth_splitter"]},
+				"special_cooldown_sec": {"type": "float", "min": 0.0, "max": 30.0},
+				"special_damage_multiplier": {"type": "float", "min": 0.0, "max": 5.0},
+				"special_mechanism": {
+					"type": "Dictionary",
+					"required": [
+						"type",
+						"charge_time_sec",
+						"shield_break_damage_multiplier",
+						"knockback_force"
+					],
+					"fields": {
+						"type": {"type": "String", "enum": ["shield_break"]},
+						"charge_time_sec": {"type": "float", "min": 0.0, "max": 5.0},
+						"shield_break_damage_multiplier": {"type": "float", "min": 0.0, "max": 5.0},
+						"knockback_force": {"type": "float", "min": 0.0, "max": 1000.0}
+					}
+				},
+				"hitbox_offset": {
+					"type": "Dictionary",
+					"required": ["x", "y"],
+					"fields": {"x": {"type": "float"}, "y": {"type": "float"}}
+				},
+				"hitbox_size": {
+					"type": "Dictionary",
+					"required": ["x", "y"],
+					"fields": {"x": {"type": "float"}, "y": {"type": "float"}}
+				}
+			}
+		},
+		"electro_bell": {
+			"required": [
+				"weapon_id",
+				"display_name",
+				"style",
+				"base_damage_range",
+				"attack_speed",
+				"attack_range",
+				"combo_multipliers",
+				"upgrade_damage_table",
+				"special_attack_id",
+				"special_cooldown_sec",
+				"special_damage_multiplier",
+				"special_mechanism",
+				"hitbox_offset",
+				"hitbox_size"
+			],
+			"fields": {
+				"weapon_id": {"type": "String", "enum": ["electro_bell"]},
+				"display_name": {"type": "String"},
+				"style": {"type": "String", "enum": ["control"]},
+				"base_damage_range": {
+					"type": "Dictionary",
+					"required": ["x", "y"],
+					"fields": {
+						"x": {"type": "int", "min": 0, "max": 50},
+						"y": {"type": "int", "min": 0, "max": 50}
+					}
+				},
+				"attack_speed": {"type": "float", "min": 0.1, "max": 5.0},
+				"attack_range": {"type": "float", "min": 0.1, "max": 5.0},
+				"combo_multipliers": {"type": "Array"},
+				"upgrade_damage_table": {"type": "Array"},
+				"special_attack_id": {"type": "String", "enum": ["em_pulse"]},
+				"special_cooldown_sec": {"type": "float", "min": 0.0, "max": 30.0},
+				"special_damage_multiplier": {"type": "float", "min": 0.0, "max": 5.0},
+				"special_mechanism": {
+					"type": "Dictionary",
+					"required": ["type", "slow_duration_sec", "slow_percentage", "status_effect_id"],
+					"fields": {
+						"type": {"type": "String", "enum": ["slow_on_hit"]},
+						"slow_duration_sec": {"type": "float", "min": 0.0, "max": 5.0},
+						"slow_percentage": {"type": "float", "min": 0.0, "max": 1.0},
+						"status_effect_id": {"type": "String", "enum": ["slow"]}
+					}
+				},
+				"hitbox_offset": {
+					"type": "Dictionary",
+					"required": ["x", "y"],
+					"fields": {"x": {"type": "float"}, "y": {"type": "float"}}
+				},
+				"hitbox_size": {
+					"type": "Dictionary",
+					"required": ["x", "y"],
+					"fields": {"x": {"type": "float"}, "y": {"type": "float"}}
+				}
+			}
+		}
+	}
+}

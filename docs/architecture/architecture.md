@@ -5,7 +5,7 @@
 - Last Updated: 2026-06-21
 - Engine: Godot 4.6.3 (GDScript)
 - GDDs Covered: 22 system GDDs (input, data-balance, damage-calculation, health-death, feline-combat, collision-detection, ai-framework, weapon-styles, boss-config, save-system, scene-management, death-respawn, hud-ui, combat-presentation, audio-system, exploration-ability-gating, status-effects, player-abilities, charm-equipment, npc-dialogue, map-system, skill-tree)
-- ADRs Referenced: None yet (15 required, see Required ADRs section)
+- ADRs Referenced: 15/15 完成 (adr-0001 至 adr-0015，详见 Required ADRs section)
 - Review Mode: full
 - Technical Director Sign-Off: 2026-06-21 — APPROVED WITH CONCERNS (15 ADRs需逐个生成；无障碍延迟到P3)
 - Lead Programmer Feasibility: CONCERNS ACCEPTED (11项concerns, 0 blockers; HIGH: C5状态机→ADR#5引用GDD; MEDIUM: C1所有权→ADR#1, C3帧停→ADR#5, C6结构→ADR#3)
@@ -187,7 +187,7 @@ F8: `get_combined_bonus(stat_key, charm_bonus)→float` — 乘法递减, cap 0.
 
 ## ADR Audit
 
-**现有 ADR**: 无 | **TR覆盖率**: 0/55 → 全部需新建
+**现有 ADR**: 15/15 完成 (2026-06-22) | **TR覆盖率**: 待更新
 
 ## Required ADRs
 

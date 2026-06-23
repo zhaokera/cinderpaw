@@ -44,7 +44,7 @@ boss_config = {
 
 #### 规则2：阶段转换流程
 1. 生命系统检测到HP≤阈值 → 发射`on_boss_phase_change(boss_id, new_phase)`
-2. Boss配置层接收信号 → 暂停Boss当前攻击
+2. Boss配置层接收信号 → 等待Boss当前攻击完成（不中断，公平战斗设计）
 3. 播放阶段转换动画（2-3秒，Boss无敌）
 4. 应用竞技场变化（如：地面漏电区域出现）
 5. 加载新阶段攻击模式 → 恢复Boss行动
@@ -126,6 +126,8 @@ on_boss_defeated(boss_id: String) → void
 **下游被依赖**：
 - 战斗表现系统 — 阶段转换视觉
 - 场景管理系统 — 竞技场变化
+- 音效系统 — 监听`on_boss_phase_change`切换Boss音乐/音效
+- HUD/UI系统 — 监听`on_boss_phase_change`更新Boss血条和阶段指示器
 
 ## Tuning Knobs
 
