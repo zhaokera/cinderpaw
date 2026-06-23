@@ -24,9 +24,12 @@ current slice read as a playable game scene rather than a block prototype.
 - Main scene uses generated wasteland, platform, player, and enemy artwork.
 - Player can run into the enemy, attack, reduce the target HP bar, and trigger
   visible spark and damage-number feedback.
+- Basic encounter flow now covers victory, death delay, half-HP respawn, and
+  temporary post-respawn control lock.
 
 ## Remaining Presentation Work
 
 - Replace placeholder spark rectangles with final particle art and audio.
-- Add pause/menu UI and defeat/retry flow.
+- Add pause/menu UI and a formal retry/menu route around the existing respawn
+  loop.
 - Replace placeholder text labels with final iconography after HUD UX spec.

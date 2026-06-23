@@ -52,6 +52,7 @@ var _jump_buffer_timer: int = 0
 var _attack_timer: int = 0
 var _dodge_timer: int = 0
 var _dodge_cooldown_timer: int = 0
+var _control_locked: bool = false
 
 # ---------------------------------------------------------------------------
 # Node References
@@ -114,6 +115,10 @@ func _physics_process(delta: float) -> void:
 # ---------------------------------------------------------------------------
 
 func _handle_input() -> void:
+	if _control_locked:
+		velocity.x = move_toward(velocity.x, 0.0, FRICTION * get_physics_process_delta_time())
+		return
+
 	var input_dir: float = Input.get_axis("move_left", "move_right")
 
 	# Horizontal movement (disabled during attack/dodge)
@@ -156,7 +161,7 @@ func _apply_gravity(delta: float) -> void:
 		velocity.y += GRAVITY * delta
 
 
-func _apply_dodge_velocity(delta: float) -> void:
+func _apply_dodge_velocity(_delta: float) -> void:
 	if _state == State.DODGING:
 		velocity.x = _facing * DODGE_SPEED
 
@@ -218,6 +223,8 @@ func _update_facing() -> void:
 # ---------------------------------------------------------------------------
 
 func take_damage() -> void:
+	if _control_locked:
+		return
 	if _state == State.DODGING:
 		return  # Invincible during dodge
 	_sprite.modulate = DAMAGE_MODULATE
@@ -233,6 +240,28 @@ func get_current_hp() -> int:
 
 func get_max_hp() -> int:
 	return _health.get_max_hp()
+
+
+func set_control_locked(locked: bool) -> void:
+	_control_locked = locked
+	if locked:
+		velocity = Vector2.ZERO
+		_hitbox_shape.disabled = true
+
+
+func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
+	global_position = respawn_position
+	velocity = Vector2.ZERO
+	_state = State.IDLE
+	_attack_timer = 0
+	_dodge_timer = 0
+	_dodge_cooldown_timer = 0
+	_jump_buffer_timer = 0
+	_coyote_timer = 0
+	_hitbox_shape.disabled = true
+	_sprite.modulate = NORMAL_MODULATE
+	_health.revive(revive_hp_percentage)
+	_health.grant_iframes(120)
 
 
 func _on_health_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:

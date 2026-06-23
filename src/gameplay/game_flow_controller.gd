@@ -1,0 +1,99 @@
+## Runtime encounter flow for victory, death delay, and quick respawn.
+extends Node
+class_name GameFlowController
+
+signal respawn_requested(position: Vector2, revive_hp_percentage: float)
+signal victory_reached
+
+const DEATH_ANIMATION_DURATION_SEC: float = 1.5
+const RESPAWN_INVINCIBILITY_SEC: float = 2.0
+const REVIVE_HP_PERCENTAGE: float = 0.5
+
+enum FlowState {
+	PLAYING,
+	DYING,
+	REVIVED,
+	VICTORY,
+}
+
+var _state: FlowState = FlowState.PLAYING
+var _respawn_position: Vector2 = Vector2.ZERO
+var _death_remaining_sec: float = 0.0
+var _invincibility_remaining_sec: float = 0.0
+var _player_control_locked: bool = false
+
+
+func _process(delta: float) -> void:
+	advance_time(delta)
+
+
+func start_encounter(respawn_position: Vector2) -> void:
+	_respawn_position = respawn_position
+	_state = FlowState.PLAYING
+	_death_remaining_sec = 0.0
+	_invincibility_remaining_sec = 0.0
+	_player_control_locked = false
+
+
+func handle_player_death() -> void:
+	if _state != FlowState.PLAYING:
+		return
+	_state = FlowState.DYING
+	_death_remaining_sec = DEATH_ANIMATION_DURATION_SEC
+	_invincibility_remaining_sec = 0.0
+	_player_control_locked = true
+
+
+func handle_enemy_defeated() -> void:
+	if _state == FlowState.VICTORY:
+		return
+	_state = FlowState.VICTORY
+	_player_control_locked = true
+	victory_reached.emit()
+
+
+func advance_time(delta_sec: float) -> void:
+	var safe_delta: float = maxf(0.0, delta_sec)
+	match _state:
+		FlowState.DYING:
+			_advance_death_timer(safe_delta)
+		FlowState.REVIVED:
+			_advance_revived_timer(safe_delta)
+
+
+func get_flow_state() -> StringName:
+	match _state:
+		FlowState.DYING:
+			return &"dying"
+		FlowState.REVIVED:
+			return &"revived"
+		FlowState.VICTORY:
+			return &"victory"
+		_:
+			return &"playing"
+
+
+func is_player_control_locked() -> bool:
+	return _player_control_locked
+
+
+func get_invincibility_remaining() -> float:
+	return _invincibility_remaining_sec
+
+
+func _advance_death_timer(delta_sec: float) -> void:
+	_death_remaining_sec = maxf(0.0, _death_remaining_sec - delta_sec)
+	if _death_remaining_sec > 0.0:
+		return
+	_state = FlowState.REVIVED
+	_invincibility_remaining_sec = RESPAWN_INVINCIBILITY_SEC
+	_player_control_locked = true
+	respawn_requested.emit(_respawn_position, REVIVE_HP_PERCENTAGE)
+
+
+func _advance_revived_timer(delta_sec: float) -> void:
+	_invincibility_remaining_sec = maxf(0.0, _invincibility_remaining_sec - delta_sec)
+	if _invincibility_remaining_sec > 0.0:
+		return
+	_state = FlowState.PLAYING
+	_player_control_locked = false

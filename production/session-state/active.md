@@ -941,3 +941,28 @@
   `reports/visual/cinderpaw-mcp-combat-feedback-20260623.png`.
 - Upload intent: User requested code upload and README cleanup; prepare commit
   and push to `origin/master` after validation.
+
+## Session Extract — Game Flow Vertical Slice 2026-06-23
+- Scope: Add the first runtime encounter loop on top of the visual/combat slice.
+- Files changed: `src/gameplay/game_flow_controller.gd`,
+  `tests/unit/gameplay/game_flow_controller_test.gd`,
+  `src/gameplay/main_scene.gd`, `src/gameplay/player_controller.gd`,
+  `scenes/main.tscn`, and QA evidence under `production/qa/evidence/`.
+- Implementation: Added `GameFlowController` for `playing`, `dying`,
+  `revived`, and `victory` states; death waits 1.5 seconds before half-HP
+  respawn; revived state locks player control for 2 seconds; victory hides boss
+  HP, grants 25 gears, and locks player input.
+- Evidence: RED first failed on missing `GameFlowController`; GREEN focused
+  game-flow suite `reports/report_295/` 3/3 passing; Godot startup parse check
+  passed with `godot --headless --path . --quit`; Godot MCP runtime session
+  `cinderpaw@c4d7` drove victory via keyboard input and verified death/respawn
+  via runtime node calls.
+- Visual evidence:
+  `reports/visual/cinderpaw-mcp-game-flow-initial-20260623.png`,
+  `reports/visual/cinderpaw-mcp-game-flow-victory-20260623.png`, and
+  `reports/visual/cinderpaw-mcp-game-flow-respawn-20260623.png`.
+- Runtime state evidence: victory reached `flow=victory`, enemy removed, boss HP
+  hidden, gears `25`; respawn reached `flow=revived`, HP `50/100`, then
+  returned to `flow=playing` with input unlocked.
+- Next recommended: formal pause/retry/menu route plus final death/victory
+  animation and audio beats.
