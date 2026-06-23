@@ -24,6 +24,9 @@ var _player_control_locked: bool = false
 var _is_boss_encounter_active: bool = false
 var _boss_arena_adapter: Object = null
 var _boss_arena_snapshot: Dictionary = {}
+var _no_loss_state_adapter: Object = null
+var _no_loss_state_snapshot: Dictionary = {}
+var _has_no_loss_state_snapshot: bool = false
 
 
 func _process(delta: float) -> void:
@@ -37,6 +40,7 @@ func start_encounter(respawn_position: Vector2) -> void:
 	_invincibility_remaining_sec = 0.0
 	_player_control_locked = false
 	_clear_boss_encounter()
+	_clear_no_loss_state_snapshot()
 
 
 func start_boss_encounter(arena_entrance_position: Vector2, boss_arena_adapter: Object) -> void:
@@ -46,9 +50,15 @@ func start_boss_encounter(arena_entrance_position: Vector2, boss_arena_adapter: 
 	_boss_arena_snapshot = _capture_boss_arena_snapshot()
 
 
+func set_no_loss_state_adapter(no_loss_state_adapter: Object) -> void:
+	_no_loss_state_adapter = no_loss_state_adapter
+	_clear_no_loss_state_snapshot()
+
+
 func handle_player_death() -> void:
 	if _state != FlowState.PLAYING:
 		return
+	_capture_no_loss_state_before_death()
 	_state = FlowState.DYING
 	_death_remaining_sec = DEATH_ANIMATION_DURATION_SEC
 	_invincibility_remaining_sec = 0.0
@@ -100,6 +110,7 @@ func _advance_death_timer(delta_sec: float) -> void:
 	_invincibility_remaining_sec = RESPAWN_INVINCIBILITY_SEC
 	_player_control_locked = true
 	_reset_boss_arena_to_entry()
+	_restore_no_loss_state_after_death()
 	respawn_requested.emit(_respawn_position, REVIVE_HP_PERCENTAGE)
 
 
@@ -141,3 +152,28 @@ func _clear_boss_encounter() -> void:
 	_is_boss_encounter_active = false
 	_boss_arena_adapter = null
 	_boss_arena_snapshot.clear()
+
+
+func _capture_no_loss_state_before_death() -> void:
+	_clear_no_loss_state_snapshot()
+	if _no_loss_state_adapter == null:
+		return
+	if not _no_loss_state_adapter.has_method("capture_no_loss_state"):
+		return
+	var snapshot: Variant = _no_loss_state_adapter.call("capture_no_loss_state")
+	if not snapshot is Dictionary:
+		return
+	_no_loss_state_snapshot = (snapshot as Dictionary).duplicate(true)
+	_has_no_loss_state_snapshot = true
+
+
+func _restore_no_loss_state_after_death() -> void:
+	if not _has_no_loss_state_snapshot or _no_loss_state_adapter == null:
+		return
+	if _no_loss_state_adapter.has_method("restore_no_loss_state"):
+		_no_loss_state_adapter.call("restore_no_loss_state", _no_loss_state_snapshot.duplicate(true))
+
+
+func _clear_no_loss_state_snapshot() -> void:
+	_no_loss_state_snapshot.clear()
+	_has_no_loss_state_snapshot = false

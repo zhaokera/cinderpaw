@@ -1076,3 +1076,37 @@
 - Epic status: Death & Respawn now has Stories 001, 002, 003, and 005 complete.
 - Next recommended: Death & Respawn Story 006 no-loss respawn state contract, or
   HUD/UI Story 004 settings/accessibility controls.
+
+## Session Extract — No-Loss Respawn State Contract 2026-06-24
+- Scope: Implement Death & Respawn Story 006, covering `TR-respawn-005` no
+  currency, inventory, acquired weapon, or world progress loss after death and
+  respawn.
+- Files changed: `src/gameplay/game_flow_controller.gd`,
+  `src/gameplay/main_scene.gd`,
+  `tests/unit/gameplay/no_loss_respawn_state_contract_test.gd`,
+  `production/epics/death-respawn/EPIC.md`,
+  `production/epics/death-respawn/story-006-no-loss-respawn-state-contract.md`,
+  and QA evidence under `production/qa/evidence/`.
+- Implementation: GameFlowController now accepts a no-loss state adapter,
+  captures protected progression state when death begins, and restores it before
+  respawn. MainScene now owns runtime currency, inventory, acquired/current
+  weapon, and world flag state behind the same adapter boundary; victory rewards
+  update stored currency rather than only the HUD.
+- TDD evidence: RED first failed on missing GameFlow no-loss adapter API
+  (`reports/report_312/`); GREEN no-loss story suite passed 2/2
+  (`reports/report_313/`).
+- Regression evidence: GameFlow/no-loss/boss respawn suites passed 8/8
+  (`reports/report_314/`); `godot --headless --path . --quit-after 1` passed.
+- Runtime evidence: Godot MCP session `cinderpaw@c4d7` ran
+  `res://scenes/main.tscn`; runtime `game_eval` captured `currency=42`,
+  inventory items, Long Tail weapon state, and world flags, corrupted them
+  during `dying`, then advanced respawn and returned the original protected
+  state restored with player HP 50/100 and GameFlow state `revived`.
+- Visual evidence:
+  `reports/visual/cinderpaw-mcp-no-loss-respawn-state-20260624.png`.
+- Dependency note: full SaveSystem is still pending; this story completed the
+  runtime adapter contract and SaveSystem-compatible snapshot shape.
+- Epic status: Death & Respawn now has Stories 001, 002, 003, 005, and 006
+  complete.
+- Next recommended: HUD/UI Story 004 settings/accessibility controls, or Death
+  & Respawn Story 004 after SaveSystem/SceneManagement are ready.

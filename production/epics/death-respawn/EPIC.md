@@ -30,7 +30,7 @@ surface a learning-focused battle summary.
 | TR-respawn-002 | Respawn point priority: savepoint, clan base fallback, boss entrance. | ADR-0007 ✅ boss entrance |
 | TR-respawn-003 | Boss death resets arena state and boss HP. | ADR-0007 ✅ |
 | TR-respawn-004 | Optional hunter lesson battle summary. | ADR-0002 ✅ partial |
-| TR-respawn-005 | No currency/item/progress loss. | ADR-0007 ⚠️ |
+| TR-respawn-005 | No currency/item/progress loss. | ADR-0007 ✅ runtime adapter |
 | TR-respawn-006 | Total death-to-control budget remains under 5.5 seconds. | ADR-0001 ✅ partial |
 | TR-respawn-007 | 2 seconds invincibility plus visual feedback after revive. | ADR-0019 ⚠️ partial |
 
@@ -43,7 +43,7 @@ surface a learning-focused battle summary.
 | 003 | Boss Arena Respawn Reset | Integration | Complete | ADR-0007 |
 | 004 | Savepoint Respawn Selection | Integration | Blocked by SaveSystem/SceneManagement | ADR-0007 |
 | 005 | Battle Summary Handoff | Integration | Complete | ADR-0002, ADR-0019 |
-| 006 | No-Loss Respawn State Contract | Integration | Ready | ADR-0007 |
+| 006 | No-Loss Respawn State Contract | Integration | Complete | ADR-0007 |
 
 ## Definition of Done
 
@@ -57,5 +57,6 @@ This epic is complete when:
 
 ## Next Step
 
-Continue with Story 006 to lock down no-loss respawn state contracts, or Story
-004 once SaveSystem and SceneManagement are ready for savepoint priority.
+Continue with HUD/UI Story 004 settings/accessibility controls, or Death &
+Respawn Story 004 once SaveSystem and SceneManagement are ready for savepoint
+priority.
