@@ -1,12 +1,12 @@
 # Story 006: Long Tail Multi-Target Range Contract
 
 > **Epic**: Weapon Styles
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Integration
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-06-23
+> **Last Updated**: 2026-06-24
 
 ## Context
 
@@ -23,9 +23,9 @@ CollisionComponent instead of owning hit detection itself.
 
 ## Acceptance Criteria
 
-- [ ] Long Tail attack parameters expose 2.0 tile range and multi-target type.
-- [ ] Hitbox metadata marks the attack as multi-target with a bounded max target count.
-- [ ] WeaponComponent does not bypass CollisionComponent duplicate-hit tracking.
+- [x] Long Tail attack parameters expose 2.0 tile range and multi-target type.
+- [x] Hitbox metadata marks the attack as multi-target with a bounded max target count.
+- [x] WeaponComponent does not bypass CollisionComponent duplicate-hit tracking.
 
 ## Implementation Notes
 
@@ -54,7 +54,17 @@ This story should prepare the collision contract, not reimplement hit detection.
 **Required evidence**:
 - Integration: `tests/unit/weapon/story_006_long_tail_multi_target_test.gd`.
 
-**Status**: [ ] Not yet created
+**Created evidence**:
+- `tests/unit/weapon/story_006_long_tail_multi_target_test.gd`
+- `production/qa/evidence/long-tail-multi-target-2026-06-24.md`
+- RED: `reports/report_328/`
+- GREEN: `reports/report_329/`
+- Focused regression: `reports/report_330/`
+- Final verification: `reports/report_331/`
+- MCP screenshot:
+  `reports/visual/cinderpaw-mcp-long-tail-multi-target-runtime-20260624.png`
+
+**Status**: [x] Complete
 
 ## Dependencies
 

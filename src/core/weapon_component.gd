@@ -38,6 +38,7 @@ enum SwapState {
 
 var _data_manager: Object = null
 var _combat_adapter: Object = null
+var _collision_adapter: Object = null
 var _weapon_configs: Dictionary = {}
 var _weapon_levels: Dictionary = {}
 var _current_weapon_index: int = 0
@@ -65,6 +66,11 @@ func set_data_manager(data_manager: Object) -> void:
 func set_combat_adapter(combat_adapter: Object) -> void:
 	_combat_adapter = combat_adapter
 	_sync_combat_weapon_id()
+
+
+## Injects a CollisionComponent-compatible adapter for weapon hitbox activation.
+func set_collision_adapter(collision_adapter: Object) -> void:
+	_collision_adapter = collision_adapter
 
 
 ## Returns canonical weapon ids in cyclic swap order.
@@ -188,6 +194,29 @@ func get_attack_parameters() -> Dictionary:
 		"hitbox_offset": weapon.hitbox_offset,
 		"hitbox_size": weapon.hitbox_size,
 	}
+
+
+## Activates the current weapon's attack hitbox through CollisionComponent.
+func activate_current_attack_hitbox(
+	attack_type: StringName = &"light",
+	duration_frames: int = 3,
+	combo_index: int = 0
+) -> bool:
+	if _collision_adapter == null or not _collision_adapter.has_method("activate_hitbox"):
+		return false
+	var weapon: Resource = get_current_weapon()
+	if weapon == null:
+		return false
+	var hitbox_id: StringName = StringName("%s_%s" % [String(weapon.weapon_id), String(attack_type)])
+	_collision_adapter.call(
+		"activate_hitbox",
+		hitbox_id,
+		maxi(1, duration_frames),
+		weapon.hitbox_offset,
+		weapon.hitbox_size,
+		_build_attack_hitbox_metadata(weapon, attack_type, combo_index)
+	)
+	return true
 
 
 ## Returns special attack metadata for the active weapon or an explicit weapon id.
@@ -332,6 +361,27 @@ func _try_start_combat_special(weapon_id: StringName) -> bool:
 	if _combat_adapter == null or not _combat_adapter.has_method("try_use_special"):
 		return false
 	return bool(_combat_adapter.call("try_use_special", weapon_id))
+
+
+func _build_attack_hitbox_metadata(weapon: Resource, attack_type: StringName, combo_index: int) -> Dictionary:
+	var mechanism: Dictionary = weapon.special_mechanism.duplicate(true)
+	var mechanism_type: StringName = StringName(mechanism.get("type", &""))
+	var is_multi_target: bool = mechanism_type == &"multi_target"
+	var max_targets: int = 1
+	if is_multi_target:
+		max_targets = maxi(1, int(mechanism.get("max_targets", 1)))
+	return {
+		"weapon_id": weapon.weapon_id,
+		"attack_type": attack_type,
+		"combo_index": clampi(combo_index, 0, 2),
+		"base_damage": get_effective_base_damage(weapon.weapon_id),
+		"attack_range": weapon.attack_range,
+		"multi_target": is_multi_target,
+		"targeting_type": &"multi_target" if is_multi_target else &"single_target",
+		"max_targets": max_targets,
+		"mechanism_type": mechanism_type,
+		"special_mechanism": mechanism,
+	}
 
 
 func _sync_combat_weapon_id() -> void:

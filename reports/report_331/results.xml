@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-24" name="report_331" tests="33" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="story_001_weapon_config_catalog_test" package="tests/unit/weapon" timestamp="2026-06-23T23:37:17" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.032">
+		<testcase name="test_weapon_component_and_config_scripts_exist" classname="story_001_weapon_config_catalog_test" time="0.007">
+		</testcase>
+		<testcase name="test_weapon_config_data_validates_and_manifest_registers_domain" classname="story_001_weapon_config_catalog_test" time="0.004">
+		</testcase>
+		<testcase name="test_catalog_defines_four_weapons_in_swap_order" classname="story_001_weapon_config_catalog_test" time="0.003">
+		</testcase>
+		<testcase name="test_weapon_configs_expose_gdd_metadata" classname="story_001_weapon_config_catalog_test" time="0.002">
+		</testcase>
+		<testcase name="test_default_weapon_and_cat_claw_level_three_damage_query" classname="story_001_weapon_config_catalog_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="story_002_weapon_upgrade_serialization_test" package="tests/unit/weapon" timestamp="2026-06-23T23:37:17" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_all_weapons_start_at_level_one_with_next_damage_preview" classname="story_002_weapon_upgrade_serialization_test" time="0.003">
+		</testcase>
+		<testcase name="test_upgrade_weapon_increments_until_level_five_and_emits_signal" classname="story_002_weapon_upgrade_serialization_test" time="0.004">
+		</testcase>
+		<testcase name="test_invalid_upgrade_requests_are_rejected_without_state_change" classname="story_002_weapon_upgrade_serialization_test" time="0.007">
+		</testcase>
+		<testcase name="test_serialize_and_deserialize_restore_current_weapon_and_levels" classname="story_002_weapon_upgrade_serialization_test" time="0.005">
+		</testcase>
+		<testcase name="test_deserialize_clamps_invalid_indices_and_ignores_unknown_weapons" classname="story_002_weapon_upgrade_serialization_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="story_003_weapon_swap_state_machine_test" package="tests/unit/weapon" timestamp="2026-06-23T23:37:17" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.041">
+		<testcase name="test_request_swap_starts_uncancellable_half_second_swap" classname="story_003_weapon_swap_state_machine_test" time="0.003">
+		</testcase>
+		<testcase name="test_request_swap_is_rejected_while_combat_is_attacking" classname="story_003_weapon_swap_state_machine_test" time="0.003">
+		</testcase>
+		<testcase name="test_completed_swaps_cycle_through_all_weapon_styles" classname="story_003_weapon_swap_state_machine_test" time="0.007">
+		</testcase>
+		<testcase name="test_completed_swap_emits_changed_weapon_signal" classname="story_003_weapon_swap_state_machine_test" time="0.006">
+		</testcase>
+		<testcase name="test_missing_optional_combat_hooks_still_completes_swap" classname="story_003_weapon_swap_state_machine_test" time="0.006">
+		</testcase>
+		<testcase name="test_completed_swap_resets_real_combat_dodge_cooldown_hook" classname="story_003_weapon_swap_state_machine_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="story_004_special_attack_gates_test" package="tests/unit/weapon" timestamp="2026-06-23T23:37:17" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_each_weapon_exposes_special_id_cooldown_and_energy_cost" classname="story_004_special_attack_gates_test" time="0.003">
+		</testcase>
+		<testcase name="test_insufficient_cat_energy_rejects_special_and_emits_required_energy" classname="story_004_special_attack_gates_test" time="0.004">
+		</testcase>
+		<testcase name="test_active_cooldown_rejects_special_and_emits_remaining_cooldown" classname="story_004_special_attack_gates_test" time="0.006">
+		</testcase>
+		<testcase name="test_passing_gates_consumes_cat_energy_starts_cooldown_and_emits_start_signal" classname="story_004_special_attack_gates_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="story_005_cat_claw_counter_crit_test" package="tests/unit/weapon" timestamp="2026-06-23T23:37:17" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_cat_claw_dodge_completion_opens_half_second_counter_window" classname="story_005_cat_claw_counter_crit_test" time="0.003">
+		</testcase>
+		<testcase name="test_qualifying_cat_claw_hit_injects_bonus_and_consumes_counter_window" classname="story_005_cat_claw_counter_crit_test" time="0.006">
+		</testcase>
+		<testcase name="test_non_cat_claw_weapon_does_not_open_counter_bonus" classname="story_005_cat_claw_counter_crit_test" time="0.006">
+		</testcase>
+		<testcase name="test_damage_calculator_treats_claw_counter_bonus_as_perfect_window_extension" classname="story_005_cat_claw_counter_crit_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="story_006_long_tail_multi_target_test" package="tests/unit/weapon" timestamp="2026-06-23T23:37:17" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.022">
+		<testcase name="test_long_tail_attack_parameters_expose_two_tile_multi_target_contract" classname="story_006_long_tail_multi_target_test" time="0.005">
+		</testcase>
+		<testcase name="test_long_tail_hitbox_metadata_marks_multi_target_and_keeps_collision_duplicate_tracking" classname="story_006_long_tail_multi_target_test" time="0.005">
+		</testcase>
+		<testcase name="test_cat_claw_hitbox_metadata_remains_single_target" classname="story_006_long_tail_multi_target_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="6" name="story_004_multi_target_hits_duplicate_suppression_test" package="tests/unit/collision" timestamp="2026-06-23T23:37:17" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_one_hitbox_overlapping_three_hurtboxes_emits_three_events" classname="story_004_multi_target_hits_duplicate_suppression_test" time="0.003">
+		</testcase>
+		<testcase name="test_same_target_overlapping_for_two_frames_emits_only_first_hit" classname="story_004_multi_target_hits_duplicate_suppression_test" time="0.006">
+		</testcase>
+		<testcase name="test_reactivating_hitbox_clears_previous_target_marks" classname="story_004_multi_target_hits_duplicate_suppression_test" time="0.006">
+		</testcase>
+		<testcase name="test_simultaneous_opposing_attacks_emit_independent_events" classname="story_004_multi_target_hits_duplicate_suppression_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="7" name="main_scene_weapon_swap_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-23T23:37:17" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.057">
+		<testcase name="test_weapon_swap_action_is_registered_for_runtime_input" classname="main_scene_weapon_swap_runtime_test" time="0.048">
+		</testcase>
+		<testcase name="test_runtime_weapon_swap_updates_progress_state_and_hud_after_half_second" classname="main_scene_weapon_swap_runtime_test" time="0.004">
+		</testcase>
+	</testsuite>
+</testsuites>

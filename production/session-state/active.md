@@ -1139,3 +1139,34 @@
   complete.
 - Next recommended: HUD/UI Story 004 settings/accessibility controls, or Death
   & Respawn Story 004 after SaveSystem/SceneManagement are ready.
+
+## Session Extract — Long Tail Multi-Target Range Contract 2026-06-24
+- Scope: Implement Weapon Styles Story 006, covering `TR-weapon-001` Long Tail
+  range and multi-target collision contract.
+- Files changed: `src/core/weapon_component.gd`,
+  `tests/unit/weapon/story_006_long_tail_multi_target_test.gd`,
+  `production/epics/weapon-styles/EPIC.md`,
+  `production/epics/weapon-styles/story-006-long-tail-multi-target-range-contract.md`,
+  `README.md`, and QA evidence under `production/qa/evidence/`.
+- Implementation: WeaponComponent now accepts a CollisionComponent-compatible
+  adapter and activates the current weapon hitbox through it. Long Tail attack
+  metadata exposes `multi_target`, `targeting_type=multi_target`,
+  `max_targets=5`, and `attack_range=2.0`; non-multi-target weapons remain
+  single-target metadata.
+- TDD evidence: RED first failed on missing collision adapter/current-hitbox API
+  (`reports/report_328/`); GREEN story suite passed 3/3
+  (`reports/report_329/`).
+- Regression evidence: weapon stories 001-006 plus collision duplicate
+  suppression and main-scene weapon swap suites passed 33/33
+  (`reports/report_330/`); final verification passed 33/33
+  (`reports/report_331/`); `godot --headless --path . --quit-after 1` passed.
+- Runtime evidence: Godot MCP session `cinderpaw@c4d7` ran
+  `res://scenes/main.tscn`; runtime `game_eval` activated `long_tail_light`,
+  returned multi-target metadata with range 2.0 and max targets 5, emitted hits
+  for target IDs 201/202/203, and suppressed the duplicate second-frame hit.
+- Visual evidence:
+  `reports/visual/cinderpaw-mcp-long-tail-multi-target-runtime-20260624.png`.
+- Epic status: Weapon Styles now has Stories 001-006 complete.
+- Next recommended: Weapon Styles Story 007 Fish Bone charged shield break, or
+  a dedicated player attack integration story to wire the playable attack chain
+  into Core Combat/Collision.
