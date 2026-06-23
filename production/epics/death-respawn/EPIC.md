@@ -39,7 +39,7 @@ surface a learning-focused battle summary.
 | # | Story | Type | Status | ADR |
 |---|-------|------|--------|-----|
 | 001 | Runtime Death + Quick Respawn Loop | Integration | Complete | ADR-0001, ADR-0002, ADR-0019 |
-| 002 | Respawn Invincibility Visual Feedback | Visual/Feel | Ready | ADR-0019 |
+| 002 | Respawn Invincibility Visual Feedback | Visual/Feel | Complete | ADR-0019 |
 | 003 | Boss Arena Respawn Reset | Integration | Ready | ADR-0007 |
 | 004 | Savepoint Respawn Selection | Integration | Blocked by SaveSystem/SceneManagement | ADR-0007 |
 | 005 | Battle Summary Handoff | Integration | Complete | ADR-0002, ADR-0019 |

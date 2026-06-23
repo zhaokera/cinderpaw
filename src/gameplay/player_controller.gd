@@ -38,6 +38,10 @@ const PLAYER_ENTITY_ID: int = 1
 const PLAYER_MAX_HP: int = 100
 const CONTACT_DAMAGE: int = 20
 const ATTACK_DISPLAY_DAMAGE: int = 12
+const RESPAWN_INVINCIBILITY_FRAMES: int = 120
+const RESPAWN_FLASH_INTERVAL_FRAMES: int = 8
+const RESPAWN_FLASH_DIM_ALPHA: float = 0.42
+const RESPAWN_FLASH_BRIGHT_ALPHA: float = 0.72
 
 # ---------------------------------------------------------------------------
 # State
@@ -53,6 +57,8 @@ var _attack_timer: int = 0
 var _dodge_timer: int = 0
 var _dodge_cooldown_timer: int = 0
 var _control_locked: bool = false
+var _respawn_visual_remaining_frames: int = 0
+var _respawn_visual_elapsed_frames: int = 0
 
 # ---------------------------------------------------------------------------
 # Node References
@@ -109,6 +115,7 @@ func _physics_process(delta: float) -> void:
 		_coyote_timer = COYOTE_FRAMES
 	else:
 		_coyote_timer = maxi(_coyote_timer - 1, 0)
+	_advance_respawn_visual()
 
 # ---------------------------------------------------------------------------
 # Input Handling
@@ -261,7 +268,18 @@ func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
 	_hitbox_shape.disabled = true
 	_sprite.modulate = NORMAL_MODULATE
 	_health.revive(revive_hp_percentage)
-	_health.grant_iframes(120)
+	_health.grant_iframes(RESPAWN_INVINCIBILITY_FRAMES)
+	_start_respawn_visual_feedback()
+
+
+## Returns true while the respawn invincibility visual feedback is active.
+func is_respawn_visual_active() -> bool:
+	return _respawn_visual_remaining_frames > 0
+
+
+## Returns remaining respawn feedback frames for flow-alignment tests.
+func get_respawn_visual_remaining_frames() -> int:
+	return _respawn_visual_remaining_frames
 
 
 func _on_health_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:
@@ -270,3 +288,34 @@ func _on_health_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:
 
 func _on_death(_entity_id: int, metadata: Dictionary) -> void:
 	player_died.emit(metadata.duplicate(true))
+
+
+func _start_respawn_visual_feedback() -> void:
+	_respawn_visual_remaining_frames = RESPAWN_INVINCIBILITY_FRAMES
+	_respawn_visual_elapsed_frames = 0
+	_apply_respawn_visual_alpha()
+
+
+func _advance_respawn_visual() -> void:
+	if _respawn_visual_remaining_frames <= 0:
+		return
+	_respawn_visual_remaining_frames -= 1
+	_respawn_visual_elapsed_frames += 1
+	if _respawn_visual_remaining_frames <= 0:
+		_set_sprite_alpha(1.0)
+		return
+	_apply_respawn_visual_alpha()
+
+
+func _apply_respawn_visual_alpha() -> void:
+	var flash_step: int = _respawn_visual_elapsed_frames / RESPAWN_FLASH_INTERVAL_FRAMES
+	var alpha: float = RESPAWN_FLASH_DIM_ALPHA
+	if flash_step % 2 == 1:
+		alpha = RESPAWN_FLASH_BRIGHT_ALPHA
+	_set_sprite_alpha(alpha)
+
+
+func _set_sprite_alpha(alpha: float) -> void:
+	var current_modulate: Color = _sprite.modulate
+	current_modulate.a = clampf(alpha, 0.0, 1.0)
+	_sprite.modulate = current_modulate

@@ -1020,3 +1020,30 @@
 - Next recommended: Death & Respawn Story 002 respawn invincibility visual
   feedback, or HUD/UI Story 004 settings/accessibility controls to enable the
   battle-summary toggle from UI.
+
+## Session Extract — Respawn Invincibility Visual Feedback 2026-06-24
+- Scope: Implement Death & Respawn Story 002, covering `TR-respawn-007`
+  revive invincibility visual feedback.
+- Files changed: `src/gameplay/player_controller.gd`,
+  `tests/unit/gameplay/player_respawn_visual_feedback_test.gd`,
+  `production/epics/death-respawn/EPIC.md`,
+  `production/epics/death-respawn/story-002-respawn-invincibility-visual-feedback.md`,
+  and QA evidence under `production/qa/evidence/`.
+- Implementation: Player respawn now starts a 120-frame visual feedback window
+  aligned with the existing 120 i-frame grant. The sprite alpha alternates
+  between dim and bright semi-transparent states, then restores alpha only so
+  later attack/dodge/damage colors are not overwritten.
+- TDD evidence: RED first failed on missing PlayerController respawn visual APIs
+  (`reports/report_303/`); GREEN story suite 3/3 passing
+  (`reports/report_306/`).
+- Regression evidence: gameplay suites 6/6 passing (`reports/report_305/`);
+  `godot --headless --path . --quit`, `git diff --check`, and changed-code
+  long-line checks passing.
+- Runtime evidence: Godot MCP ran `res://scenes/main.tscn`, triggered
+  `player.respawn_at(...)` via `game_eval`, and returned `visual_active=true`,
+  `frames=120`, `alpha=0.42`, `hp=50/100`; game logs showed no runtime errors.
+- Visual evidence:
+  `reports/visual/cinderpaw-mcp-respawn-flash-20260624.png`.
+- Epic status: Death & Respawn now has Stories 001, 002, and 005 complete.
+- Next recommended: Death & Respawn Story 003 boss arena respawn reset, or
+  HUD/UI Story 004 settings/accessibility controls.
