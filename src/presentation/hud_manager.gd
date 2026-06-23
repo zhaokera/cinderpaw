@@ -17,6 +17,7 @@ const MENU_OVERLAY_COLOR: Color = Color(0.03, 0.03, 0.06, 0.72)
 const MENU_NONE: StringName = &"none"
 const MENU_PAUSE: StringName = &"pause"
 const MENU_RETRY: StringName = &"retry"
+const MENU_BATTLE_SUMMARY: StringName = &"battle_summary"
 
 var _hp_ratio: float = 1.0
 var _hp_color: Color = HP_HEALTHY_COLOR
@@ -135,6 +136,17 @@ func show_retry_menu(title: String, subtitle: String) -> void:
 	_show_menu(MENU_RETRY, title, subtitle, "Continue")
 
 
+## Displays the optional death lesson panel from battle summary metadata.
+func show_battle_summary(battle_summary: Dictionary) -> void:
+	_show_menu(
+		MENU_BATTLE_SUMMARY,
+		"Hunter's Lesson",
+		_format_battle_summary(battle_summary),
+		"Skip Lesson",
+		"Retry Encounter"
+	)
+
+
 ## Hides the active menu overlay and releases menu button focus.
 func hide_menu() -> void:
 	_menu_mode = MENU_NONE
@@ -197,6 +209,27 @@ func get_menu_title() -> String:
 	if _menu_title_label == null:
 		return ""
 	return _menu_title_label.text
+
+
+## Returns the current menu body text.
+func get_menu_subtitle() -> String:
+	if _menu_subtitle_label == null:
+		return ""
+	return _menu_subtitle_label.text
+
+
+## Returns the first menu button text.
+func get_resume_button_text() -> String:
+	if _resume_button == null:
+		return ""
+	return _resume_button.text
+
+
+## Returns the second menu button text.
+func get_retry_button_text() -> String:
+	if _retry_button == null:
+		return ""
+	return _retry_button.text
 
 
 ## Returns the focused menu button text, or the default first button fallback.
@@ -333,7 +366,7 @@ func _build_menu_overlay() -> void:
 
 	_menu_panel = _new_panel("MenuPanel")
 	_menu_panel.position = Vector2(424, 188)
-	_menu_panel.size = Vector2(432, 280)
+	_menu_panel.size = Vector2(432, 340)
 	_menu_overlay.add_child(_menu_panel)
 
 	var content := VBoxContainer.new()
@@ -352,7 +385,7 @@ func _build_menu_overlay() -> void:
 
 	_menu_subtitle_label = Label.new()
 	_menu_subtitle_label.name = "MenuSubtitle"
-	_menu_subtitle_label.custom_minimum_size = Vector2(392, 52)
+	_menu_subtitle_label.custom_minimum_size = Vector2(392, 118)
 	_menu_subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_menu_subtitle_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_menu_subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -424,16 +457,49 @@ func _hp_color_for_ratio(ratio: float) -> Color:
 	return HP_HEALTHY_COLOR
 
 
-func _show_menu(mode: StringName, title: String, subtitle: String, resume_text: String) -> void:
+func _show_menu(
+	mode: StringName,
+	title: String,
+	subtitle: String,
+	resume_text: String,
+	retry_text: String = "Retry Encounter"
+) -> void:
 	_menu_mode = mode
 	if _menu_overlay == null:
 		return
 	_menu_title_label.text = title
 	_menu_subtitle_label.text = subtitle
 	_resume_button.text = resume_text
-	_retry_button.text = "Retry Encounter"
+	_retry_button.text = retry_text
 	_menu_overlay.visible = true
 	_resume_button.grab_focus()
+
+
+func _format_battle_summary(battle_summary: Dictionary) -> String:
+	var duration_sec: float = maxf(0.0, float(battle_summary.get("duration_sec", 0.0)))
+	var damage_dealt: int = maxi(0, int(battle_summary.get("damage_dealt", 0)))
+	var damage_received: int = maxi(0, int(battle_summary.get("damage_received", 0)))
+	var dodge_rate: float = clampf(float(battle_summary.get("dodge_success_rate", 0.0)), 0.0, 1.0)
+	var parry_rate: float = clampf(float(battle_summary.get("parry_success_rate", 0.0)), 0.0, 1.0)
+	var tip: String = String(battle_summary.get("tip", "")).strip_edges()
+	if tip == "":
+		tip = _generate_battle_tip(dodge_rate, parry_rate)
+	return "Duration: %.1fs\nDamage Dealt: %d\nDamage Taken: %d\nDodge: %.0f%%  Parry: %.0f%%\n%s" % [
+		duration_sec,
+		damage_dealt,
+		damage_received,
+		dodge_rate * 100.0,
+		parry_rate * 100.0,
+		tip,
+	]
+
+
+func _generate_battle_tip(dodge_rate: float, parry_rate: float) -> String:
+	if dodge_rate < 0.5:
+		return "Dodge a little earlier when the enemy winds up."
+	if parry_rate < 0.3:
+		return "Parry just before impact to turn pressure into a counter."
+	return "Keep the rhythm: punish after the enemy's final swing."
 
 
 func _on_resume_button_pressed() -> void:

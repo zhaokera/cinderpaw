@@ -990,3 +990,33 @@
   `reports/visual/cinderpaw-mcp-victory-retry-menu-20260624.png`.
 - Next recommended: generate formal HUD/UI or death-respawn epics/stories, then
   add settings/save-load/main menu and final death-summary UI/audio.
+
+## Session Extract — HUD/Death Formalization + Battle Summary 2026-06-24
+- Scope: Convert the HUD/UI and Death & Respawn vertical slices into formal
+  Epic/Story tracking, then close the first battle-summary lesson panel story.
+- Files changed: `production/epics/index.md`,
+  `production/epics/hud-ui/`, `production/epics/death-respawn/`,
+  `src/presentation/hud_manager.gd`, `tests/unit/presentation/hud_manager_test.gd`,
+  `src/gameplay/player_controller.gd`, `src/gameplay/main_scene.gd`, and
+  QA evidence under `production/qa/evidence/`.
+- Implementation: HUDManager now supports `show_battle_summary(summary)` with
+  formatted duration/damage/dodge/parry data, default tip generation, and
+  `Skip Lesson`/`Retry Encounter` actions. PlayerController forwards
+  HealthComponent death metadata to MainScene; MainScene keeps battle summary
+  default-off until settings controls are implemented.
+- Epic status: Added HUD/UI Epic (6 stories, 3 complete) and Death & Respawn
+  Epic (6 stories, 2 complete). Both are now indexed as In Progress.
+- TDD evidence: RED first failed on missing battle-summary HUD APIs
+  (`reports/report_300/`); GREEN HUD focused suite 8/8 passing
+  (`reports/report_301/`).
+- Regression evidence: presentation + gameplay focused suites 15/15 passing
+  (`reports/report_302/`); `godot --headless --path . --quit` passing;
+  `git diff --check` passing.
+- Runtime evidence: Godot MCP session `cinderpaw@c4d7` ran
+  `res://scenes/main.tscn`, reported a 54-node runtime tree, opened
+  `battle_summary` via `game_eval`, and logged no game runtime errors.
+- Visual evidence:
+  `reports/visual/cinderpaw-mcp-battle-summary-20260624.png`.
+- Next recommended: Death & Respawn Story 002 respawn invincibility visual
+  feedback, or HUD/UI Story 004 settings/accessibility controls to enable the
+  battle-summary toggle from UI.

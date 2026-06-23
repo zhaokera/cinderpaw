@@ -64,6 +64,8 @@ func test_show_pause_menu_displays_focusable_resume_and_retry_buttons() -> void:
 	assert_bool(hud.is_menu_visible()).is_true()
 	assert_str(String(hud.get_menu_mode())).is_equal("pause")
 	assert_str(hud.get_menu_title()).is_equal("Paused")
+	assert_str(hud.get_resume_button_text()).is_equal("Resume")
+	assert_str(hud.get_retry_button_text()).is_equal("Retry Encounter")
 	assert_str(hud.get_focused_menu_button_text()).is_equal("Resume")
 	assert_bool(hud.are_menu_buttons_focusable()).is_true()
 
@@ -89,6 +91,40 @@ func test_hide_menu_clears_menu_mode_and_focus() -> void:
 	assert_bool(hud.is_menu_visible()).is_false()
 	assert_str(String(hud.get_menu_mode())).is_equal("none")
 	assert_str(hud.get_focused_menu_button_text()).is_equal("")
+
+
+func test_show_battle_summary_formats_stats_tip_and_retry_actions() -> void:
+	hud.show_battle_summary({
+		"duration_sec": 18.4,
+		"damage_dealt": 36,
+		"damage_received": 80,
+		"dodge_success_rate": 0.25,
+		"parry_success_rate": 0.0,
+		"tip": "Dodge earlier when the beast crouches.",
+	})
+
+	assert_bool(hud.is_menu_visible()).is_true()
+	assert_str(String(hud.get_menu_mode())).is_equal("battle_summary")
+	assert_str(hud.get_menu_title()).is_equal("Hunter's Lesson")
+	assert_str(hud.get_resume_button_text()).is_equal("Skip Lesson")
+	assert_str(hud.get_retry_button_text()).is_equal("Retry Encounter")
+	assert_str(hud.get_menu_subtitle()).contains("Duration: 18.4s")
+	assert_str(hud.get_menu_subtitle()).contains("Damage Dealt: 36")
+	assert_str(hud.get_menu_subtitle()).contains("Damage Taken: 80")
+	assert_str(hud.get_menu_subtitle()).contains("Dodge: 25%  Parry: 0%")
+	assert_str(hud.get_menu_subtitle()).contains("Dodge earlier when the beast crouches.")
+
+
+func test_show_battle_summary_generates_learning_tip_when_missing() -> void:
+	hud.show_battle_summary({
+		"duration_sec": 9.0,
+		"damage_dealt": 12,
+		"damage_received": 40,
+		"dodge_success_rate": 0.1,
+		"parry_success_rate": 0.2,
+	})
+
+	assert_str(hud.get_menu_subtitle()).contains("Dodge a little earlier")
 
 
 func _on_menu_resume_requested() -> void:

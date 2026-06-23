@@ -6,7 +6,7 @@ class_name PlayerController
 extends CharacterBody2D
 
 signal player_health_changed(current_hp: int, max_hp: int)
-signal player_died
+signal player_died(death_metadata: Dictionary)
 signal attack_landed(hit_data: Dictionary)
 
 # ---------------------------------------------------------------------------
@@ -268,5 +268,5 @@ func _on_health_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:
 	player_health_changed.emit(current_hp, max_hp)
 
 
-func _on_death(_entity_id: int, _metadata: Dictionary) -> void:
-	player_died.emit()
+func _on_death(_entity_id: int, metadata: Dictionary) -> void:
+	player_died.emit(metadata.duplicate(true))

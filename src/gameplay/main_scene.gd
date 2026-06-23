@@ -7,6 +7,8 @@ extends Node2D
 @onready var _combat_presentation = $CombatPresentation
 @onready var _game_flow = $GameFlowController
 
+const BATTLE_SUMMARY_ENABLED: bool = false
+
 var _pause_menu_active: bool = false
 
 
@@ -37,8 +39,10 @@ func _on_player_health_changed(current_hp: int, max_hp: int) -> void:
 	_hud.update_hp(current_hp, max_hp)
 
 
-func _on_player_died() -> void:
+func _on_player_died(death_metadata: Dictionary) -> void:
 	_game_flow.handle_player_death()
+	if BATTLE_SUMMARY_ENABLED:
+		_hud.show_battle_summary(_battle_summary_from_death_metadata(death_metadata))
 	_hud.show_notification("Cinderpaw falls - reviving", 1.5)
 
 
@@ -87,3 +91,10 @@ func _on_menu_retry_requested() -> void:
 	_pause_menu_active = false
 	get_tree().paused = false
 	get_tree().reload_current_scene()
+
+
+func _battle_summary_from_death_metadata(death_metadata: Dictionary) -> Dictionary:
+	var battle_stats: Dictionary = Dictionary(death_metadata.get("battle_stats", {})).duplicate(true)
+	if battle_stats.has("damage_received") and not battle_stats.has("damage_taken"):
+		battle_stats["damage_taken"] = battle_stats["damage_received"]
+	return battle_stats

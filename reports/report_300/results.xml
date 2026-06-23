@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-24" name="report_300" tests="8" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="hud_manager_test" package="tests/unit/presentation" timestamp="2026-06-23T16:30:15" hostname="localhost" tests="8" failures="0" errors="3" skipped="0" flaky="0" time="0.060">
+		<testcase name="test_update_hp_sets_ratio_label_and_healthy_color" classname="hud_manager_test" time="0.017">
+		</testcase>
+		<testcase name="test_low_hp_uses_stable_warning_red_without_pulsing" classname="hud_manager_test" time="0.002">
+		</testcase>
+		<testcase name="test_show_notification_expires_after_duration" classname="hud_manager_test" time="0.002">
+		</testcase>
+		<testcase name="test_show_pause_menu_displays_focusable_resume_and_retry_buttons" classname="hud_manager_test" time="0.005">
+			<error message="ERROR: res://tests/unit/presentation/hud_manager_test.gd:67" type="ABORT">
+<![CDATA[
+Godot Runtime Error !
+Error: 'Invalid call. Nonexistent function 'get_resume_button_text' in base 'CanvasLayer (HUDManager)'.'
+	at res://tests/unit/presentation/hud_manager_test.gd:67
+]]>
+			</error>
+		</testcase>
+		<testcase name="test_menu_buttons_emit_resume_and_retry_requests" classname="hud_manager_test" time="0.007">
+		</testcase>
+		<testcase name="test_hide_menu_clears_menu_mode_and_focus" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_show_battle_summary_formats_stats_tip_and_retry_actions" classname="hud_manager_test" time="0.007">
+			<error message="ERROR: res://tests/unit/presentation/hud_manager_test.gd:97" type="ABORT">
+<![CDATA[
+Godot Runtime Error !
+Error: 'Invalid call. Nonexistent function 'show_battle_summary' in base 'CanvasLayer (HUDManager)'.'
+	at res://tests/unit/presentation/hud_manager_test.gd:97
+]]>
+			</error>
+		</testcase>
+		<testcase name="test_show_battle_summary_generates_learning_tip_when_missing" classname="hud_manager_test" time="0.005">
+			<error message="ERROR: res://tests/unit/presentation/hud_manager_test.gd:119" type="ABORT">
+<![CDATA[
+Godot Runtime Error !
+Error: 'Invalid call. Nonexistent function 'show_battle_summary' in base 'CanvasLayer (HUDManager)'.'
+	at res://tests/unit/presentation/hud_manager_test.gd:119
+]]>
+			</error>
+		</testcase>
+	</testsuite>
+</testsuites>
