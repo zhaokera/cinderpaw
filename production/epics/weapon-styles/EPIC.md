@@ -45,7 +45,7 @@ HUD, audio, save-file orchestration, or collision detection internals.
 |---|-------|------|--------|-----|
 | 001 | Weapon Config Catalog + Base Damage Query | Logic | Complete | ADR-0003, ADR-0016 |
 | 002 | Weapon Upgrade State + Serialization Prep | Logic | Complete | ADR-0016 |
-| 003 | Weapon Swap State Machine + Combat Adapter | Integration | Ready | ADR-0002, ADR-0005, ADR-0016 |
+| 003 | Weapon Swap State Machine + Combat Adapter | Integration | Complete | ADR-0002, ADR-0005, ADR-0016 |
 | 004 | Special Attack Cooldown + Cat Energy Gate | Integration | Ready | ADR-0005, ADR-0016 |
 | 005 | Cat Claw Dodge-Counter Crit Bonus | Integration | Ready | ADR-0005, ADR-0016 |
 | 006 | Long Tail Multi-Target Range Contract | Integration | Ready | ADR-0004, ADR-0016 |
@@ -65,5 +65,5 @@ This epic is complete when:
 
 ## Next Step
 
-Stories 001-002 are complete. Continue with
-`production/epics/weapon-styles/story-003-weapon-swap-state-machine-combat-adapter.md`.
+Stories 001-003 are complete. Continue with
+`production/epics/weapon-styles/story-004-special-attack-cooldown-cat-energy-gate.md`.

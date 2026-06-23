@@ -8,6 +8,7 @@ extends Node2D
 @onready var _game_flow = $GameFlowController
 
 const BATTLE_SUMMARY_ENABLED: bool = false
+const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
 var _pause_menu_active: bool = false
 var _currency_amount: int = 0
@@ -16,9 +17,11 @@ var _acquired_weapons: Array[StringName] = [&"cat_claw"]
 var _current_weapon_id: StringName = &"cat_claw"
 var _weapon_levels: Dictionary = {"cat_claw": 0}
 var _world_progress_flags: Dictionary = {}
+var _weapon_component: WeaponComponent = null
 
 
 func _ready() -> void:
+	_setup_weapon_component()
 	_game_flow.set_no_loss_state_adapter(self)
 	_game_flow.start_boss_encounter(_player.global_position, self)
 	_game_flow.respawn_requested.connect(_on_respawn_requested)
@@ -36,11 +39,18 @@ func _ready() -> void:
 	_hud.update_hp(_player.get_current_hp(), _player.get_max_hp())
 	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), 1, "Shadow Beast")
 	_hud.update_currency(_currency_amount)
+	_update_weapon_hud()
 	_hud.show_notification("Hunt the shadow beast", 2.0)
 
 
 func _process(_delta: float) -> void:
 	_player.set_control_locked(_game_flow.is_player_control_locked())
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("weapon_swap") and not _hud.is_menu_visible():
+		request_weapon_swap()
+		get_viewport().set_input_as_handled()
 
 
 func _on_player_health_changed(current_hp: int, max_hp: int) -> void:
@@ -155,8 +165,9 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_acquired_weapons = _read_string_name_array(weapon_state.get("acquired", _acquired_weapons))
 	_weapon_levels = Dictionary(weapon_state.get("levels", _weapon_levels)).duplicate(true)
 	_world_progress_flags = Dictionary(snapshot.get("world_flags", _world_progress_flags)).duplicate(true)
+	_sync_weapon_component_from_runtime_state()
 	_hud.update_currency(_currency_amount)
-	_hud.update_weapon(_display_name_for_weapon(_current_weapon_id), 0.0)
+	_update_weapon_hud()
 
 
 func grant_currency(amount: int) -> void:
@@ -182,7 +193,8 @@ func acquire_weapon(weapon_id: StringName) -> void:
 func set_current_weapon_id(weapon_id: StringName) -> void:
 	if _acquired_weapons.has(weapon_id):
 		_current_weapon_id = weapon_id
-		_hud.update_weapon(_display_name_for_weapon(_current_weapon_id), 0.0)
+		_sync_weapon_component_from_runtime_state()
+		_update_weapon_hud()
 
 
 func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
@@ -193,6 +205,76 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 
 func get_runtime_progress_state() -> Dictionary:
 	return capture_no_loss_state()
+
+
+func request_weapon_swap() -> bool:
+	if _weapon_component == null:
+		return false
+	return _weapon_component.request_swap()
+
+
+func advance_weapon_swap_time(delta_sec: float) -> void:
+	if _weapon_component == null:
+		return
+	_weapon_component.advance_time(delta_sec)
+
+
+func get_weapon_hud_text() -> String:
+	if _hud == null or not _hud.has_method("get_weapon_label_text"):
+		return ""
+	return _hud.get_weapon_label_text()
+
+
+func _setup_weapon_component() -> void:
+	_weapon_component = WEAPON_COMPONENT_SCRIPT.new() as WeaponComponent
+	_weapon_component.name = "WeaponComponent"
+	add_child(_weapon_component)
+	var root_data_manager: Node = get_node_or_null("/root/DataManager")
+	if root_data_manager != null:
+		_weapon_component.set_data_manager(root_data_manager)
+	_weapon_component.on_weapon_changed.connect(_on_weapon_changed)
+	_acquired_weapons = _weapon_component.get_weapon_ids()
+	_sync_weapon_component_from_runtime_state()
+
+
+func _on_weapon_changed(weapon: Resource) -> void:
+	if weapon == null:
+		return
+	_current_weapon_id = weapon.weapon_id
+	acquire_weapon(_current_weapon_id)
+	_weapon_levels[String(_current_weapon_id)] = _weapon_component.get_weapon_level(_current_weapon_id)
+	_update_weapon_hud_with_resource(weapon)
+
+
+func _sync_weapon_component_from_runtime_state() -> void:
+	if _weapon_component == null:
+		return
+	var weapon_ids: Array[StringName] = _weapon_component.get_weapon_ids()
+	var current_index: int = weapon_ids.find(_current_weapon_id)
+	if current_index < 0:
+		current_index = 0
+		_current_weapon_id = weapon_ids[current_index]
+	_weapon_component.deserialize({
+		"version": 1,
+		"current_weapon_index": current_index,
+		"weapon_levels": _weapon_levels.duplicate(true),
+	})
+
+
+func _update_weapon_hud() -> void:
+	if _weapon_component != null:
+		var current_weapon: Resource = _weapon_component.get_current_weapon()
+		if current_weapon != null:
+			_update_weapon_hud_with_resource(current_weapon)
+			return
+	_hud.update_weapon(_display_name_for_weapon(_current_weapon_id), 0.0)
+
+
+func _update_weapon_hud_with_resource(weapon: Resource) -> void:
+	var display_name: StringName = _display_name_for_weapon(weapon.weapon_id)
+	if String(weapon.display_name).strip_edges() != "":
+		display_name = StringName(weapon.display_name)
+	_hud.update_weapon(display_name, 0.0)
 
 
 func _string_names_to_strings(values: Array[StringName]) -> Array[String]:

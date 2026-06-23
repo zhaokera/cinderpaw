@@ -194,6 +194,12 @@ func get_notification_text() -> String:
 	return _notification_label.text
 
 
+func get_weapon_label_text() -> String:
+	if _weapon_label == null:
+		return ""
+	return _weapon_label.text
+
+
 ## Returns whether a pause/retry menu overlay is currently visible.
 func is_menu_visible() -> bool:
 	return _menu_overlay != null and _menu_overlay.visible

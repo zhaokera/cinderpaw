@@ -218,6 +218,15 @@
 - Review: Local code review passed against ADR-0003, ADR-0001, control manifest, GDD TR-data-002/TR-data-007, and data-unit test evidence. No blocking deviations found. Full specialist subagent gates were not spawned because the active tool policy requires an explicit user request for subagents.
 - Tests: Story 003 7/7 passing; full `tests/unit/data` 43/43 passing; `godot --headless --path . --quit` passing; `git diff --check` passing.
 - Tech debt logged: None
+
+## Session Extract — /dev-story 2026-06-24 (weapon story-003)
+- Story: production/epics/weapon-styles/story-003-weapon-swap-state-machine-combat-adapter.md — Weapon Swap State Machine + Combat Adapter
+- Status: Complete
+- Files changed: project.godot, src/gameplay/main_scene.gd, src/presentation/hud_manager.gd, tests/unit/gameplay/main_scene_weapon_swap_runtime_test.gd, production/epics/weapon-styles/story-003-weapon-swap-state-machine-combat-adapter.md, production/epics/weapon-styles/EPIC.md, production/qa/evidence/weapon-swap-runtime-2026-06-24.md, README.md
+- Implementation: MainScene creates WeaponComponent, registers runtime `weapon_swap` input, exposes deterministic swap hooks, and syncs weapon changes to HUD plus no-loss progress state.
+- Tests: runtime RED report_315; GREEN report_317; focused regression report_319 passed 10/10; `godot --headless --path . --quit-after 1` passed.
+- MCP evidence: session `cinderpaw@c4d7` launched main scene; `game_eval` changed `cat_claw/猫爪` to `long_tail/长尾刃` after 0.5s; runtime screenshot saved under reports/visual.
+- Next recommended: Weapon Story 004 — production/epics/weapon-styles/story-004-special-attack-cooldown-cat-energy-gate.md
 - Next recommended: Data/Balance smoke-check — /smoke-check sprint
 
 ## Session Extract — /smoke-check 2026-06-23 (Data/Balance)

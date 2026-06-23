@@ -1,12 +1,12 @@
 # Story 003: Weapon Swap State Machine + Combat Adapter
 
 > **Epic**: Weapon Styles
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Integration
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-06-23
+> **Last Updated**: 2026-06-24
 
 ## Context
 
@@ -30,12 +30,12 @@ depending on real AnimationPlayer playback.
 
 ## Acceptance Criteria
 
-- [ ] In combat, `request_swap()` enters SWAPPING only when the combat adapter is
+- [x] In combat, `request_swap()` enters SWAPPING only when the combat adapter is
   not attacking.
-- [ ] Swap remains active for 0.5 seconds and cannot be cancelled.
-- [ ] Completion cycles Cat Claw -> Long Tail -> Fish Bone -> Electro Bell -> Cat Claw.
-- [ ] Completion calls combat adapter combo reset and dodge reset hooks.
-- [ ] Completion emits `on_weapon_changed(weapon)`.
+- [x] Swap remains active for 0.5 seconds and cannot be cancelled.
+- [x] Completion cycles Cat Claw -> Long Tail -> Fish Bone -> Electro Bell -> Cat Claw.
+- [x] Completion calls combat adapter combo reset and dodge reset hooks.
+- [x] Completion emits `on_weapon_changed(weapon)`.
 
 ## Implementation Notes
 
@@ -64,8 +64,10 @@ not exist, degrade gracefully.
 **Story Type**: Integration
 **Required evidence**:
 - Integration: `tests/unit/weapon/story_003_weapon_swap_state_machine_test.gd`.
+- Runtime integration: `tests/unit/gameplay/main_scene_weapon_swap_runtime_test.gd`.
 
-**Status**: [ ] Not yet created
+**Status**: [x] Complete — see
+`production/qa/evidence/weapon-swap-runtime-2026-06-24.md`.
 
 ## Dependencies
 
