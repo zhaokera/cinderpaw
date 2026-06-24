@@ -1,14 +1,26 @@
 # Active Session State
 
 ## Current Task
-- Save System、Death & Respawn、SceneManagement Story002
-  title/continue/load handoff 已完成；下一步按 GDD/架构/Epic 状态推进
-  SceneManager async request lifecycle、transition timing、timeout fallback、
-  deferred unload/cache、fast travel、以及玩家可见角色/敌人帧动画持续审计。
+- Save System、Death & Respawn、SceneManagement Story002 title/continue/load
+  handoff、SceneManagement Story003 async load request lifecycle + timeout
+  fallback 已完成；下一步按 GDD/架构/Epic 状态推进 SceneManager real
+  scene-tree swap、deferred unload/cache、fast travel、transition visuals/loading
+  UI/audio、memory-budget verification，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，玩家可见动作角色必须遵守
   `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Scene Management Story 003: Async Load Request Lifecycle + Timeout Fallback —
+  `SceneManager` 新增 `request_scene_change()` async request API、loader
+  adapter seam、`advance_loading()` 确定性推进、1.5 秒 transition gate、真实
+  `ResourceLoader.load_threaded_request/get_status/get` 调用、10 秒 timeout
+  retry once、`on_scene_load_failed(scene_id, reason)` 和 hub registry
+  `default_spawn` fallback；保留 Story001/Story002 同步 `change_scene()` bool
+  契约。通过 RED `report_414`、RED `report_418`、GREEN focused
+  `report_419` `4/4`、相关回归 `report_420` `49/49`、headless smoke
+  `reports/scene_story003_async_load_main_scene_smoke.log`、Godot MCP runtime
+  success/timeout probe、clean logs 与非空 screenshot 验证。QA evidence:
+  `production/qa/evidence/async-load-timeout-fallback-2026-06-25.md`。
 - Scene Management Story 002: Title/Continue/Load Runtime Handoff —
   `MainScene` 的 New Game、Continue、Load Slot 现在先通过 root
   `SceneManager` 完成 logical scene/spawn handoff，再应用 SaveSystem
@@ -173,6 +185,16 @@
 - Feline Combat Story 009: Runtime Enemy Attack + Shadow Beast Frame Animation — `SimpleEnemy` 已接入 `AnimatedSprite2D + SpriteFrames`、Core enemy hitbox/Combat/Health 伤害链、MainScene 命中表现转发，并通过 GdUnit 与 Godot MCP 运行时验证
 - /architecture-review: 提取185条TR，构建可追溯性矩阵，生成3个文件（审查报告+traceability index+TR registry）
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
+
+## Session Extract — /dev-story 2026-06-25
+
+- Story: `production/epics/scene-management/story-003-async-load-timeout-fallback.md` — Async Load Request Lifecycle + Timeout Fallback
+- Files changed: `src/feature/scene_manager.gd`, `tests/unit/scene/story_003_async_load_timeout_fallback_test.gd`, `production/epics/scene-management/story-003-async-load-timeout-fallback.md`, `production/epics/scene-management/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/async-load-timeout-fallback-2026-06-25.md`, `production/session-state/active.md`
+- Test written: `tests/unit/scene/story_003_async_load_timeout_fallback_test.gd`
+- Verification: RED `reports/report_414/`, RED `reports/report_418/`, GREEN `reports/report_419/` `4/4`, related regression `reports/report_420/` `49/49`, headless smoke `reports/scene_story003_async_load_main_scene_smoke.log`, Godot MCP runtime success/timeout probe, clean logs, non-empty `640x360` screenshot.
+- Asset note: no image-generated visual asset was required for this logic/integration slice.
+- Blockers: None
+- Next: implement real scene-tree swap ownership, deferred unload/cache, fast travel, transition visuals/loading UI/audio, memory-budget verification, or continue player/enemy frame animation audit.
 
 ## Files Modified This Session
 - `src/feature/save_system.gd` — Story005 async save write path：默认异步、

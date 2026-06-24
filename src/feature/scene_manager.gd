@@ -1,16 +1,27 @@
 ## Feature-layer SceneManager baseline.
 ##
 ## Story001 intentionally provides logical scene IDs, spawn tracking, scene-state
-## caching, and boss-lock semantics without swapping the live scene tree yet.
+## caching, and boss-lock semantics. Story003 adds a threaded load request
+## lifecycle with transition timing and timeout fallback while still keeping
+## real scene-tree swapping for a later slice.
 extends Node
 
 signal on_scene_loaded(scene_id: StringName)
 signal on_scene_changed(old_scene: StringName, new_scene: StringName)
+signal on_scene_load_failed(scene_id: StringName, reason: StringName)
 
 const SCENE_REGISTRY_DOMAIN: StringName = &"scene_registry"
 const DEFAULT_SCENE_ID: StringName = &"hub"
 const DEFAULT_SPAWN_POINT: StringName = &"default"
 const SCENE_SAVE_KEY: StringName = &"scene"
+const PACKED_SCENE_TYPE_HINT: String = "PackedScene"
+const MIN_TRANSITION_SECONDS: float = 1.5
+const LOAD_TIMEOUT_SECONDS: float = 10.0
+const MAX_LOAD_RETRIES: int = 1
+const THREAD_LOAD_INVALID_RESOURCE: int = 0
+const THREAD_LOAD_IN_PROGRESS: int = 1
+const THREAD_LOAD_FAILED: int = 2
+const THREAD_LOAD_LOADED: int = 3
 
 var _scene_registry: Dictionary = {}
 var _loaded_scenes: Dictionary = {}
@@ -19,11 +30,23 @@ var _current_scene_id: StringName = &""
 var _current_spawn_point: StringName = DEFAULT_SPAWN_POINT
 var _scene_locked: bool = false
 var _loading: bool = false
+var _pending_scene_id: StringName = &""
+var _pending_spawn_point: StringName = DEFAULT_SPAWN_POINT
+var _pending_scene_path: String = ""
+var _loading_elapsed_seconds: float = 0.0
+var _transition_elapsed_seconds: float = 0.0
+var _load_retry_count: int = 0
+var _last_load_error: StringName = &""
+var _loader_adapter: Object = null
 
 
 func _ready() -> void:
 	load_scene_registry_from_data_manager()
 	_register_with_root_save_system()
+
+
+func _process(delta: float) -> void:
+	advance_loading(delta)
 
 
 ## Loads the project scene registry through DataManager or an injected adapter.
@@ -75,6 +98,7 @@ func configure_scene_registry(registry_data: Dictionary) -> bool:
 	_scene_registry = normalized
 	_loaded_scenes.clear()
 	_scene_states.clear()
+	_reset_pending_load()
 	for scene_id: StringName in _scene_registry.keys():
 		if bool(_scene_registry[scene_id].get("preload", false)):
 			_loaded_scenes[scene_id] = true
@@ -87,7 +111,8 @@ func configure_scene_registry(registry_data: Dictionary) -> bool:
 	return true
 
 
-## Marks a scene as logically loaded. Real threaded loading is a later story.
+## Marks a scene as logically loaded. Async request ownership lives in
+## request_scene_change().
 func preload_scene(scene_id: StringName) -> bool:
 	if not _scene_registry.has(scene_id):
 		return false
@@ -104,19 +129,104 @@ func change_scene(scene_id: StringName, spawn_point: StringName = DEFAULT_SPAWN_
 	if _scene_locked or _loading or not _scene_registry.has(scene_id):
 		return false
 
+	return _commit_logical_scene(scene_id, spawn_point)
+
+
+## Injects a deterministic loader seam for tests. Passing null restores
+## ResourceLoader-backed production behavior.
+func set_loader_adapter(adapter: Object = null) -> void:
+	_loader_adapter = adapter
+
+
+## Starts an asynchronous scene load request without immediately committing the
+## logical scene. The request is completed by advance_loading().
+func request_scene_change(
+	scene_id: StringName,
+	spawn_point: StringName = DEFAULT_SPAWN_POINT
+) -> bool:
+	if _scene_locked or _loading or not _scene_registry.has(scene_id):
+		return false
+
+	var config: Dictionary = Dictionary(_scene_registry[scene_id])
+	var path: String = String(config.get("path", "")).strip_edges()
+	if path.is_empty():
+		return false
+
+	_pending_scene_id = scene_id
+	_pending_spawn_point = _resolve_spawn_point(scene_id, spawn_point)
+	_pending_scene_path = path
+	_loading_elapsed_seconds = 0.0
+	_transition_elapsed_seconds = 0.0
+	_load_retry_count = 0
+	_last_load_error = &""
+	_loading = true
+
+	var error: int = _issue_load_request(_pending_scene_path)
+	if error != OK:
+		_fail_pending_load(&"request_failed")
+		return false
+	return true
+
+
+## Advances the async loading state machine. Runtime calls this from _process();
+## tests can drive it directly with deterministic deltas.
+func advance_loading(delta_seconds: float) -> void:
+	if not _loading:
+		return
+
+	var delta: float = maxf(delta_seconds, 0.0)
+	_loading_elapsed_seconds += delta
+	_transition_elapsed_seconds += delta
+
+	var status: int = _get_load_status(_pending_scene_path)
+	if status == THREAD_LOAD_LOADED:
+		if _transition_elapsed_seconds >= MIN_TRANSITION_SECONDS:
+			_finish_pending_load()
+		return
+
+	if status == THREAD_LOAD_FAILED or status == THREAD_LOAD_INVALID_RESOURCE:
+		_fail_pending_load(&"load_failed")
+		return
+
+	if _loading_elapsed_seconds >= LOAD_TIMEOUT_SECONDS:
+		_handle_load_timeout()
+
+
+func get_pending_scene() -> StringName:
+	return _pending_scene_id
+
+
+func get_pending_spawn_point() -> StringName:
+	return _pending_spawn_point
+
+
+func get_load_retry_count() -> int:
+	return _load_retry_count
+
+
+func get_last_load_error() -> StringName:
+	return _last_load_error
+
+
+func get_transition_elapsed_seconds() -> float:
+	return _transition_elapsed_seconds
+
+
+func get_loading_elapsed_seconds() -> float:
+	return _loading_elapsed_seconds
+
+
+func _commit_logical_scene(
+	scene_id: StringName,
+	spawn_point: StringName = DEFAULT_SPAWN_POINT
+) -> bool:
 	var old_scene: StringName = _current_scene_id
 	if not preload_scene(scene_id):
 		return false
 
 	on_scene_loaded.emit(scene_id)
 	_current_scene_id = scene_id
-	if spawn_point == &"":
-		_current_spawn_point = StringName(Dictionary(_scene_registry[scene_id]).get(
-			"default_spawn",
-			String(DEFAULT_SPAWN_POINT)
-		))
-	else:
-		_current_spawn_point = spawn_point
+	_current_spawn_point = _resolve_spawn_point(scene_id, spawn_point)
 	on_scene_changed.emit(old_scene, scene_id)
 	return true
 
@@ -206,6 +316,102 @@ func _select_initial_scene_id() -> StringName:
 	for scene_id: StringName in _scene_registry.keys():
 		return scene_id
 	return &""
+
+
+func _finish_pending_load() -> void:
+	var scene_id: StringName = _pending_scene_id
+	var spawn_point: StringName = _pending_spawn_point
+	_get_loaded_resource(_pending_scene_path)
+	_reset_pending_load()
+	_commit_logical_scene(scene_id, spawn_point)
+
+
+func _handle_load_timeout() -> void:
+	if _load_retry_count < MAX_LOAD_RETRIES:
+		_load_retry_count += 1
+		_loading_elapsed_seconds = 0.0
+		var error: int = _issue_load_request(_pending_scene_path)
+		if error != OK:
+			_fail_pending_load(&"request_failed")
+		return
+	_fail_pending_load(&"timeout")
+
+
+func _fail_pending_load(reason: StringName) -> void:
+	var failed_scene_id: StringName = _pending_scene_id
+	_last_load_error = reason
+	_reset_pending_load(false)
+	on_scene_load_failed.emit(failed_scene_id, reason)
+	_fallback_to_default_scene()
+
+
+func _fallback_to_default_scene() -> void:
+	if not _scene_registry.has(DEFAULT_SCENE_ID):
+		return
+	var fallback_spawn: StringName = _get_default_spawn(DEFAULT_SCENE_ID)
+	if _current_scene_id == DEFAULT_SCENE_ID and _current_spawn_point == fallback_spawn:
+		return
+	_commit_logical_scene(DEFAULT_SCENE_ID, fallback_spawn)
+
+
+func _reset_pending_load(clear_last_error: bool = true) -> void:
+	_loading = false
+	_pending_scene_id = &""
+	_pending_spawn_point = DEFAULT_SPAWN_POINT
+	_pending_scene_path = ""
+	_loading_elapsed_seconds = 0.0
+	_transition_elapsed_seconds = 0.0
+	_load_retry_count = 0
+	if clear_last_error:
+		_last_load_error = &""
+
+
+func _issue_load_request(path: String) -> int:
+	if _loader_adapter != null and _loader_adapter.has_method("load_threaded_request"):
+		return int(_loader_adapter.call(
+			"load_threaded_request",
+			path,
+			PACKED_SCENE_TYPE_HINT,
+			false,
+			ResourceLoader.CACHE_MODE_REUSE
+		))
+	return ResourceLoader.load_threaded_request(
+		path,
+		PACKED_SCENE_TYPE_HINT,
+		false,
+		ResourceLoader.CACHE_MODE_REUSE
+	)
+
+
+func _get_load_status(path: String) -> int:
+	var progress: Array = []
+	if _loader_adapter != null and _loader_adapter.has_method("load_threaded_get_status"):
+		return int(_loader_adapter.call("load_threaded_get_status", path, progress))
+	return ResourceLoader.load_threaded_get_status(path, progress)
+
+
+func _get_loaded_resource(path: String) -> Resource:
+	if _loader_adapter != null and _loader_adapter.has_method("load_threaded_get"):
+		var loaded_variant: Variant = _loader_adapter.call("load_threaded_get", path)
+		if loaded_variant is Resource:
+			return loaded_variant as Resource
+		return null
+	return ResourceLoader.load_threaded_get(path)
+
+
+func _resolve_spawn_point(scene_id: StringName, spawn_point: StringName) -> StringName:
+	if spawn_point != &"":
+		return spawn_point
+	return _get_default_spawn(scene_id)
+
+
+func _get_default_spawn(scene_id: StringName) -> StringName:
+	if not _scene_registry.has(scene_id):
+		return DEFAULT_SPAWN_POINT
+	return StringName(Dictionary(_scene_registry[scene_id]).get(
+		"default_spawn",
+		String(DEFAULT_SPAWN_POINT)
+	))
 
 
 func _register_with_root_save_system() -> void:
