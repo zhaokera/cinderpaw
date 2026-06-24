@@ -1,10 +1,16 @@
 # Active Session State
 
 ## Current Task
-- 持续实现 Cinderpaw 垂直切片；最近完成 HUD/UI Story 006
-  HUD Scale + Colorblind Mode
+- 持续实现 Cinderpaw 垂直切片；最近完成 Save System Story 001
+  Save Slots + Backup JSON Pipeline
 
 ## Last Completed Task
+- Save System Story 001: Save Slots + Backup JSON Pipeline —
+  新增 `SaveSystem` Autoload，支持可配置存档目录、0 号自动存档槽、
+  手动槽位保护、JSON `_meta/player_state/world_state/settings/systems`
+  结构、注册系统确定性序列化/反序列化、覆盖写入 `.bak` 备份，以及
+  主存档损坏时从备份恢复；通过 GdUnit RED/GREEN、最终 9/9 聚焦回归、
+  Godot headless main-scene smoke 与 Godot MCP `/root/SaveSystem` 运行态验证
 - HUD/UI Story 006: HUD Scale + Colorblind Mode — `HUDManager` 完成 HUD
   50%-150% 运行时缩放、菜单文本防重叠检查、红绿色盲蓝到黄 HP 映射、
   蓝黄色盲红到白 HP 映射、Boss Phase 罗马数字文本标记，以及
@@ -30,6 +36,19 @@
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `src/feature/save_system.gd` — SaveSystem Autoload/testable Node，提供
+  autosave/manual save/load、slot validation、registered system order、
+  JSON read/write、backup fallback 和 runtime state inspection API
+- `tests/unit/save/story_001_save_slots_backup_json_pipeline_test.gd` —
+  SaveSystem Story 001 TDD 覆盖 autosave/manual slots、payload shape、
+  deterministic system order、duplicate key rejection 和 corrupt-main backup
+  fallback
+- `project.godot` — 注册 `SaveSystem` Autoload
+- `production/epics/save-system/EPIC.md`,
+  `production/epics/save-system/story-001-save-slots-backup-json-pipeline.md`,
+  `production/epics/index.md`,
+  `production/qa/evidence/save-slots-backup-json-pipeline-2026-06-24.md` —
+  新增 Save System Epic、Story 状态和 QA 证据
 - `AGENTS.md` — 并行 Codex subagent 分工边界，以及 Godot 2D frame animation
   与 MCP runtime validation 验收规则
 - `src/presentation/hud_manager.gd` — Story 006 HUD scale runtime relayout、
@@ -88,10 +107,10 @@
 - Consistency check: found 1 conflict + 1 stale reference, both fixed
 
 ## Next Steps
-1. `/design-review design/gdd/health-death.md` — 在新会话中验证修复后的 GDD
-2. `/design-review design/gdd/collision-detection.md` — 在新会话中验证碰撞检测 GDD
-3. `/design-review design/gdd/skill-tree.md` — skill-tree 仍在 "In Review (Rev.5)"
-4. `/review-all-gdds` — 全系统设计理论审查（25+ GDD 已设计）
+1. Save System Story 002 — Version Migration + SaveInfo Metadata
+2. HUD/UI Story 005 — Main Save/Load Menu Shell（已被 SaveSystem Story 001 解锁）
+3. Death & Respawn Story 004 — Savepoint Respawn Selection（仍需 SceneManager/SaveSystem 后续接线）
+4. `/design-review design/gdd/health-death.md` — 在新会话中验证修复后的 GDD
 
 ## Key Decisions Made (this session)
 - HP恢复：存档点回满+道具回复，无被动回复（维持紧张感）
