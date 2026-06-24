@@ -6,6 +6,13 @@ signal menu_pause_requested
 signal menu_resume_requested
 signal menu_retry_requested
 signal menu_settings_requested
+signal menu_new_game_requested
+signal menu_continue_requested
+signal menu_load_menu_requested
+signal menu_main_menu_requested
+signal menu_exit_requested
+signal menu_save_slot_requested(slot: int)
+signal menu_load_slot_requested(slot: int)
 
 const HP_HEALTHY_COLOR: Color = Color("#ECC94B")
 const HP_MID_COLOR: Color = Color("#D9B84A")
@@ -28,6 +35,8 @@ const MENU_PAUSE: StringName = &"pause"
 const MENU_RETRY: StringName = &"retry"
 const MENU_BATTLE_SUMMARY: StringName = &"battle_summary"
 const MENU_SETTINGS: StringName = &"settings"
+const MENU_MAIN: StringName = &"main_menu"
+const MENU_SAVE_LOAD: StringName = &"save_load"
 const COLORBLIND_NONE: StringName = &"none"
 const COLORBLIND_RED_GREEN: StringName = &"red_green"
 const COLORBLIND_BLUE_YELLOW: StringName = &"blue_yellow"
@@ -49,6 +58,8 @@ var _hp_color: Color = HP_HEALTHY_COLOR
 var _notification_remaining_sec: float = 0.0
 var _menu_mode: StringName = MENU_NONE
 var _settings_return_menu: StringName = MENU_NONE
+var _save_slot_labels: Array[String] = []
+var _main_menu_slot_infos: Array = []
 var _battle_summary_enabled: bool = false
 var _damage_numbers_enabled: bool = true
 var _hud_scale: float = 1.0
@@ -74,8 +85,14 @@ var _settings_box: VBoxContainer
 var _menu_title_label: Label
 var _menu_subtitle_label: Label
 var _resume_button: Button
+var _new_game_button: Button
+var _continue_button: Button
+var _load_game_button: Button
+var _save_game_button: Button
 var _settings_button: Button
+var _main_menu_button: Button
 var _retry_button: Button
+var _exit_button: Button
 var _master_volume_slider: HSlider
 var _hud_scale_slider: HSlider
 var _colorblind_option: OptionButton
@@ -191,21 +208,83 @@ func show_battle_summary(battle_summary: Dictionary) -> void:
 	)
 
 
+## Displays the title-screen shell without owning save-file lookup rules.
+func show_main_menu(slot_infos: Array = []) -> void:
+	_menu_mode = MENU_MAIN
+	if _menu_overlay == null:
+		return
+	_settings_return_menu = MENU_NONE
+	_main_menu_slot_infos = _duplicate_slot_infos(slot_infos)
+	_save_slot_labels = _format_save_slot_labels(slot_infos)
+	var has_save: bool = _has_any_existing_save(slot_infos)
+	if _settings_box != null:
+		_settings_box.visible = false
+	_menu_title_label.text = "Cinderpaw"
+	_menu_subtitle_label.text = "Begin the hunt." if has_save else "No save file available"
+	_hide_menu_buttons()
+	_set_button_state(_new_game_button, true, "New Game")
+	_set_button_state(_continue_button, true, "Continue", not has_save, "No save file available")
+	_set_button_state(_load_game_button, true, "Load Game", not has_save, "No save file available")
+	_set_button_state(_settings_button, true, "Settings")
+	_set_button_state(_exit_button, true, "Exit")
+	_resize_menu_panel(false)
+	_menu_overlay.visible = true
+	_new_game_button.grab_focus()
+
+
+## Displays save/load slots from caller-provided metadata only.
+func show_save_load_menu(slot_infos: Array, can_save: bool, save_unavailable_reason: String = "") -> void:
+	_menu_mode = MENU_SAVE_LOAD
+	if _menu_overlay == null:
+		return
+	_settings_return_menu = MENU_NONE
+	_save_slot_labels = _format_save_slot_labels(slot_infos)
+	if _settings_box != null:
+		_settings_box.visible = false
+	_menu_title_label.text = "Save / Load"
+	_menu_subtitle_label.text = _join_save_slot_labels()
+	_hide_menu_buttons()
+	_set_button_state(_resume_button, true, "Back")
+	_set_button_state(
+		_save_game_button,
+		true,
+		"Save Slot 1",
+		not can_save,
+		save_unavailable_reason if save_unavailable_reason.strip_edges() != "" else "Saving unavailable"
+	)
+	_set_button_state(
+		_continue_button,
+		true,
+		"Load Autosave",
+		not _slot_exists(slot_infos, 0),
+		"No autosave available"
+	)
+	_set_button_state(
+		_load_game_button,
+		true,
+		"Load Slot 1",
+		not _slot_exists(slot_infos, 1),
+		"No manual save available"
+	)
+	_resize_menu_panel(false)
+	_menu_overlay.visible = true
+	_resume_button.grab_focus()
+
+
 ## Displays settings controls grouped by audio, display, controls, and gameplay.
 func show_settings_menu(invoking_menu: StringName = MENU_PAUSE) -> void:
 	_settings_return_menu = invoking_menu
 	_menu_mode = MENU_SETTINGS
 	if _menu_overlay == null:
 		return
-	_resize_menu_panel(true)
+	_hide_menu_buttons()
 	_settings_box.visible = true
 	_menu_title_label.text = "Settings"
 	_menu_subtitle_label.text = "Tune audio, display, controls, and gameplay."
 	_resume_button.text = "Back"
 	_resume_button.visible = true
-	_settings_button.visible = false
-	_retry_button.visible = false
 	_sync_settings_controls()
+	_resize_menu_panel(true)
 	_menu_overlay.visible = true
 	_resume_button.grab_focus()
 
@@ -218,6 +297,11 @@ func close_settings_menu() -> void:
 		if _settings_button != null:
 			_settings_button.grab_focus()
 		return
+	if return_menu == MENU_MAIN:
+		show_main_menu(_main_menu_slot_infos)
+		if _settings_button != null:
+			_settings_button.grab_focus()
+		return
 	hide_menu()
 
 
@@ -225,16 +309,14 @@ func close_settings_menu() -> void:
 func hide_menu() -> void:
 	_menu_mode = MENU_NONE
 	_settings_return_menu = MENU_NONE
+	_save_slot_labels.clear()
+	_main_menu_slot_infos.clear()
 	if _menu_overlay != null:
 		_menu_overlay.visible = false
 	if _settings_box != null:
 		_settings_box.visible = false
-	if _resume_button != null:
-		_resume_button.release_focus()
-	if _settings_button != null:
-		_settings_button.release_focus()
-	if _retry_button != null:
-		_retry_button.release_focus()
+	for button: Button in _ordered_menu_buttons():
+		button.release_focus()
 
 
 func advance_time(delta_sec: float) -> void:
@@ -334,6 +416,29 @@ func get_settings_button_text() -> String:
 	return _settings_button.text
 
 
+## Returns visible menu button texts in traversal order.
+func get_menu_button_texts() -> Array[String]:
+	var texts: Array[String] = []
+	for button: Button in _ordered_menu_buttons():
+		if button.visible:
+			texts.append(button.text)
+	return texts
+
+
+## Returns disabled visible menu actions mapped to their user-facing reason.
+func get_disabled_menu_button_reasons() -> Dictionary:
+	var reasons: Dictionary = {}
+	for button: Button in _ordered_menu_buttons():
+		if button.visible and button.disabled:
+			reasons[button.text] = button.tooltip_text
+	return reasons
+
+
+## Returns the caller-provided save slot labels currently shown by the shell.
+func get_save_slot_labels() -> Array[String]:
+	return _save_slot_labels.duplicate()
+
+
 ## Returns the focused menu button text, or the default first button fallback.
 func get_focused_menu_button_text() -> String:
 	if not is_menu_visible():
@@ -341,21 +446,18 @@ func get_focused_menu_button_text() -> String:
 	var focus_owner: Control = get_viewport().gui_get_focus_owner()
 	if focus_owner is Button:
 		return (focus_owner as Button).text
-	if _resume_button != null:
-		return _resume_button.text
+	for button: Button in _ordered_menu_buttons():
+		if button.visible and not button.disabled:
+			return button.text
 	return ""
 
 
 ## Returns true when menu controls support keyboard/gamepad focus.
 func are_menu_buttons_focusable() -> bool:
-	return (
-		_resume_button != null
-		and _settings_button != null
-		and _retry_button != null
-		and _resume_button.focus_mode == Control.FOCUS_ALL
-		and _settings_button.focus_mode == Control.FOCUS_ALL
-		and _retry_button.focus_mode == Control.FOCUS_ALL
-	)
+	for button: Button in _ordered_menu_buttons():
+		if button.focus_mode != Control.FOCUS_ALL:
+			return false
+	return not _ordered_menu_buttons().is_empty()
 
 
 func get_settings_group_names() -> Array[String]:
@@ -476,22 +578,8 @@ func get_core_hud_rects() -> Array[Rect2]:
 func has_menu_text_overlap() -> bool:
 	if _menu_panel == null or not is_menu_visible():
 		return false
-	var required_height: float = 0.0
-	var visible_blocks: int = 0
-	for block: Control in [_menu_title_label, _menu_subtitle_label, _settings_box]:
-		if block != null and block.visible:
-			required_height += block.custom_minimum_size.y
-			visible_blocks += 1
-	var buttons_height: float = _visible_menu_buttons_height()
-	if buttons_height > 0.0:
-		required_height += buttons_height
-		visible_blocks += 1
-	var separation: float = 0.0
-	if _menu_content != null:
-		separation = float(_menu_content.get_theme_constant("separation"))
-	required_height += maxf(0.0, float(visible_blocks - 1)) * separation
 	var usable_height: float = maxf(0.0, _menu_panel.size.y - 32.0)
-	return required_height > usable_height
+	return _required_menu_content_height() > usable_height
 
 
 func get_menu_title_font_size() -> int:
@@ -662,13 +750,38 @@ func _build_menu_overlay() -> void:
 	_resume_button.pressed.connect(_on_resume_button_pressed)
 	button_box.add_child(_resume_button)
 
+	_new_game_button = _new_menu_button("NewGameButton", "New Game")
+	_new_game_button.pressed.connect(_on_new_game_button_pressed)
+	button_box.add_child(_new_game_button)
+
+	_continue_button = _new_menu_button("ContinueButton", "Continue")
+	_continue_button.pressed.connect(_on_continue_button_pressed)
+	button_box.add_child(_continue_button)
+
+	_load_game_button = _new_menu_button("LoadSlot1Button", "Load Game")
+	_load_game_button.pressed.connect(_on_load_game_button_pressed)
+	button_box.add_child(_load_game_button)
+
+	_save_game_button = _new_menu_button("SaveSlot1Button", "Save Slot 1")
+	_save_game_button.pressed.connect(_on_save_game_button_pressed)
+	button_box.add_child(_save_game_button)
+
 	_settings_button = _new_menu_button("SettingsButton", "Settings")
 	_settings_button.pressed.connect(_on_settings_button_pressed)
 	button_box.add_child(_settings_button)
 
+	_main_menu_button = _new_menu_button("MainMenuButton", "Main Menu")
+	_main_menu_button.pressed.connect(_on_main_menu_button_pressed)
+	button_box.add_child(_main_menu_button)
+
 	_retry_button = _new_menu_button("RetryButton", "Retry Encounter")
 	_retry_button.pressed.connect(_on_retry_button_pressed)
 	button_box.add_child(_retry_button)
+
+	_exit_button = _new_menu_button("ExitButton", "Exit")
+	_exit_button.pressed.connect(_on_exit_button_pressed)
+	button_box.add_child(_exit_button)
+	_hide_menu_buttons()
 
 
 func _new_menu_button(node_name: String, button_text: String) -> Button:
@@ -820,19 +933,126 @@ func _show_menu(
 	_menu_mode = mode
 	if _menu_overlay == null:
 		return
-	_resize_menu_panel(false)
 	if _settings_box != null:
 		_settings_box.visible = false
+	_save_slot_labels.clear()
 	_menu_title_label.text = title
 	_menu_subtitle_label.text = subtitle
-	_resume_button.text = resume_text
-	_resume_button.visible = true
-	_settings_button.text = "Settings"
-	_settings_button.visible = mode == MENU_PAUSE
-	_retry_button.text = retry_text
-	_retry_button.visible = true
+	_hide_menu_buttons()
+	_set_button_state(_resume_button, true, resume_text)
+	if mode == MENU_PAUSE:
+		_set_button_state(_save_game_button, true, "Save / Load")
+		_set_button_state(_settings_button, true, "Settings")
+		_set_button_state(_main_menu_button, true, "Main Menu")
+	_set_button_state(_retry_button, true, retry_text)
+	_resize_menu_panel(false)
 	_menu_overlay.visible = true
 	_resume_button.grab_focus()
+
+
+func _ordered_menu_buttons() -> Array[Button]:
+	var buttons: Array[Button] = []
+	for value: Variant in [
+		_resume_button,
+		_new_game_button,
+		_continue_button,
+		_load_game_button,
+		_save_game_button,
+		_settings_button,
+		_main_menu_button,
+		_retry_button,
+		_exit_button,
+	]:
+		if value is Button:
+			buttons.append(value as Button)
+	return buttons
+
+
+func _hide_menu_buttons() -> void:
+	for button: Button in _ordered_menu_buttons():
+		button.visible = false
+		button.disabled = false
+		button.tooltip_text = ""
+		button.release_focus()
+
+
+func _set_button_state(
+	button: Button,
+	should_show: bool,
+	text: String,
+	disabled: bool = false,
+	disabled_reason: String = ""
+) -> void:
+	if button == null:
+		return
+	button.text = text
+	button.visible = should_show
+	button.disabled = disabled
+	button.tooltip_text = disabled_reason if disabled else ""
+
+
+func _has_any_existing_save(slot_infos: Array) -> bool:
+	for slot_info: Variant in slot_infos:
+		if slot_info is Dictionary and bool((slot_info as Dictionary).get("exists", false)):
+			return true
+	return false
+
+
+func _slot_exists(slot_infos: Array, slot: int) -> bool:
+	for slot_info: Variant in slot_infos:
+		if not slot_info is Dictionary:
+			continue
+		var info: Dictionary = slot_info as Dictionary
+		if int(info.get("slot", -1)) == slot:
+			return bool(info.get("exists", false))
+	return false
+
+
+func _format_save_slot_labels(slot_infos: Array) -> Array[String]:
+	var labels: Array[String] = []
+	for slot_info: Variant in slot_infos:
+		if slot_info is Dictionary:
+			labels.append(_format_save_slot_label(slot_info as Dictionary))
+	return labels
+
+
+func _duplicate_slot_infos(slot_infos: Array) -> Array:
+	var duplicated: Array = []
+	for slot_info: Variant in slot_infos:
+		if slot_info is Dictionary:
+			duplicated.append((slot_info as Dictionary).duplicate(true))
+	return duplicated
+
+
+func _format_save_slot_label(slot_info: Dictionary) -> String:
+	var slot: int = maxi(0, int(slot_info.get("slot", 0)))
+	var is_auto: bool = bool(slot_info.get("is_auto", slot == 0))
+	var prefix: String = "Autosave" if is_auto else "Slot %d" % slot
+	if not bool(slot_info.get("exists", false)):
+		return "%s: Empty" % prefix
+	var save_point_name: String = String(slot_info.get("save_point_name", "")).strip_edges()
+	if save_point_name == "":
+		save_point_name = "Manual Save"
+	var summary: Dictionary = Dictionary(slot_info.get("summary", {}))
+	var hp: int = maxi(0, int(summary.get("current_hp", summary.get("hp", 0))))
+	var weapon: String = String(summary.get("current_weapon", "unknown")).strip_edges()
+	if weapon == "":
+		weapon = "unknown"
+	var currency: int = maxi(0, int(summary.get("currency", 0)))
+	return "%s: %s | HP %d | %s | Gears %d" % [
+		prefix,
+		save_point_name,
+		hp,
+		weapon,
+		currency,
+	]
+
+
+func _join_save_slot_labels() -> String:
+	var packed_labels := PackedStringArray()
+	for label: String in _save_slot_labels:
+		packed_labels.append(label)
+	return "\n".join(packed_labels)
 
 
 func _format_battle_summary(battle_summary: Dictionary) -> String:
@@ -880,33 +1100,38 @@ func _resize_menu_panel(is_settings: bool) -> void:
 		return
 	var menu_scale: float = _menu_text_scale()
 	if is_settings:
-		_menu_panel.size = Vector2(
-			496.0 + 72.0 * (menu_scale - 1.0),
-			516.0 + 64.0 * (menu_scale - 1.0)
-		)
-		_menu_panel.position = Vector2(
-			(HUD_VIEWPORT_SIZE.x - _menu_panel.size.x) * 0.5,
-			maxf(48.0, (HUD_VIEWPORT_SIZE.y - _menu_panel.size.y) * 0.5)
-		)
+		var settings_width: float = 496.0 + 72.0 * (menu_scale - 1.0)
 		if _menu_title_label != null:
 			_menu_title_label.custom_minimum_size = Vector2(456, 42) * menu_scale
 		if _menu_subtitle_label != null:
 			_menu_subtitle_label.custom_minimum_size = Vector2(456, 46) * menu_scale
 		_apply_menu_scale_layout()
+		var settings_minimum_height: float = 516.0 + 64.0 * (menu_scale - 1.0)
+		var settings_content_height: float = _required_menu_content_height() + 32.0
+		var settings_height: float = minf(
+			HUD_VIEWPORT_SIZE.y - 72.0,
+			maxf(settings_minimum_height, settings_content_height)
+		)
+		_menu_panel.size = Vector2(settings_width, settings_height)
+		_menu_panel.position = Vector2(
+			(HUD_VIEWPORT_SIZE.x - _menu_panel.size.x) * 0.5,
+			maxf(48.0, (HUD_VIEWPORT_SIZE.y - _menu_panel.size.y) * 0.5)
+		)
 		return
-	_menu_panel.size = Vector2(
-		432.0 + 88.0 * (menu_scale - 1.0),
-		340.0 + 250.0 * (menu_scale - 1.0)
-	)
-	_menu_panel.position = Vector2(
-		(HUD_VIEWPORT_SIZE.x - _menu_panel.size.x) * 0.5,
-		(HUD_VIEWPORT_SIZE.y - _menu_panel.size.y) * 0.5
-	)
+	var menu_width: float = 432.0 + 88.0 * (menu_scale - 1.0)
 	if _menu_title_label != null:
 		_menu_title_label.custom_minimum_size = Vector2(392, 44) * menu_scale
 	if _menu_subtitle_label != null:
 		_menu_subtitle_label.custom_minimum_size = Vector2(392, 118) * menu_scale
 	_apply_menu_scale_layout()
+	var minimum_height: float = 340.0 + 250.0 * (menu_scale - 1.0)
+	var content_height: float = _required_menu_content_height() + 32.0
+	var menu_height: float = minf(HUD_VIEWPORT_SIZE.y - 72.0, maxf(minimum_height, content_height))
+	_menu_panel.size = Vector2(menu_width, menu_height)
+	_menu_panel.position = Vector2(
+		(HUD_VIEWPORT_SIZE.x - _menu_panel.size.x) * 0.5,
+		maxf(36.0, (HUD_VIEWPORT_SIZE.y - _menu_panel.size.y) * 0.5)
+	)
 
 
 func _apply_hud_scale_layout() -> void:
@@ -950,7 +1175,10 @@ func _apply_menu_scale_layout() -> void:
 			"font_size",
 			int(roundf(MENU_BODY_BASE_FONT_SIZE * menu_scale))
 		)
-	for button: Button in [_resume_button, _settings_button, _retry_button, _controls_remap_button]:
+	var menu_buttons: Array[Button] = _ordered_menu_buttons()
+	if _controls_remap_button != null:
+		menu_buttons.append(_controls_remap_button)
+	for button: Button in menu_buttons:
 		if button != null:
 			button.add_theme_font_size_override(
 				"font_size",
@@ -976,13 +1204,30 @@ func _menu_text_scale() -> float:
 func _visible_menu_buttons_height() -> float:
 	var height: float = 0.0
 	var visible_count: int = 0
-	for button: Button in [_resume_button, _settings_button, _retry_button]:
+	for button: Button in _ordered_menu_buttons():
 		if button != null and button.visible:
 			height += button.custom_minimum_size.y
 			visible_count += 1
 	if visible_count <= 1:
 		return height
 	return height + float(visible_count - 1) * 14.0
+
+
+func _required_menu_content_height() -> float:
+	var required_height: float = 0.0
+	var visible_blocks: int = 0
+	for block: Control in [_menu_title_label, _menu_subtitle_label, _settings_box]:
+		if block != null and block.visible:
+			required_height += block.custom_minimum_size.y
+			visible_blocks += 1
+	var buttons_height: float = _visible_menu_buttons_height()
+	if buttons_height > 0.0:
+		required_height += buttons_height
+		visible_blocks += 1
+	var separation: float = 0.0
+	if _menu_content != null:
+		separation = float(_menu_content.get_theme_constant("separation"))
+	return required_height + maxf(0.0, float(visible_blocks - 1)) * separation
 
 
 func _get_settings_row_labels() -> Array[Label]:
@@ -1049,3 +1294,36 @@ func _on_settings_button_pressed() -> void:
 
 func _on_retry_button_pressed() -> void:
 	menu_retry_requested.emit()
+
+
+func _on_new_game_button_pressed() -> void:
+	menu_new_game_requested.emit()
+
+
+func _on_continue_button_pressed() -> void:
+	if _menu_mode == MENU_SAVE_LOAD:
+		menu_load_slot_requested.emit(0)
+		return
+	menu_continue_requested.emit()
+
+
+func _on_load_game_button_pressed() -> void:
+	if _menu_mode == MENU_SAVE_LOAD:
+		menu_load_slot_requested.emit(1)
+		return
+	menu_load_menu_requested.emit()
+
+
+func _on_save_game_button_pressed() -> void:
+	if _menu_mode == MENU_PAUSE:
+		menu_load_menu_requested.emit()
+		return
+	menu_save_slot_requested.emit(1)
+
+
+func _on_main_menu_button_pressed() -> void:
+	menu_main_menu_requested.emit()
+
+
+func _on_exit_button_pressed() -> void:
+	menu_exit_requested.emit()

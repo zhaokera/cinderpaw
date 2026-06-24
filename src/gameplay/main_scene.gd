@@ -41,6 +41,13 @@ func _ready() -> void:
 	_hud.menu_resume_requested.connect(_on_menu_resume_requested)
 	_hud.menu_retry_requested.connect(_on_menu_retry_requested)
 	_hud.menu_settings_requested.connect(_on_menu_settings_requested)
+	_hud.menu_new_game_requested.connect(_on_menu_new_game_requested)
+	_hud.menu_continue_requested.connect(_on_menu_continue_requested)
+	_hud.menu_load_menu_requested.connect(_on_menu_load_menu_requested)
+	_hud.menu_main_menu_requested.connect(_on_menu_main_menu_requested)
+	_hud.menu_exit_requested.connect(_on_menu_exit_requested)
+	_hud.menu_save_slot_requested.connect(_on_menu_save_slot_requested)
+	_hud.menu_load_slot_requested.connect(_on_menu_load_slot_requested)
 	_player.player_health_changed.connect(_on_player_health_changed)
 	_player.player_died.connect(_on_player_died)
 	_player.attack_landed.connect(_on_player_attack_landed)
@@ -149,6 +156,62 @@ func _on_menu_retry_requested() -> void:
 
 func _on_menu_settings_requested() -> void:
 	_hud.show_settings_menu(_hud.get_menu_mode())
+
+
+func _on_menu_new_game_requested() -> void:
+	_pause_menu_active = false
+	get_tree().paused = false
+	_hud.hide_menu()
+
+
+func _on_menu_continue_requested() -> void:
+	if _try_load_first_available_slot():
+		_pause_menu_active = false
+		get_tree().paused = false
+		_hud.hide_menu()
+		return
+	_hud.show_main_menu(_collect_save_slot_infos())
+
+
+func _on_menu_load_menu_requested() -> void:
+	_hud.show_save_load_menu(
+		_collect_save_slot_infos(),
+		false,
+		"Saving requires a save point"
+	)
+
+
+func _on_menu_main_menu_requested() -> void:
+	_pause_menu_active = false
+	get_tree().paused = false
+	_hud.show_main_menu(_collect_save_slot_infos())
+
+
+func _on_menu_exit_requested() -> void:
+	_hud.show_notification("Exit is unavailable in this build", 2.0)
+
+
+func _on_menu_save_slot_requested(slot: int) -> void:
+	if save_runtime_to_slot(slot):
+		_hud.show_notification("Game saved", 1.5)
+	_hud.show_save_load_menu(
+		_collect_save_slot_infos(),
+		false,
+		"Saving requires a save point"
+	)
+
+
+func _on_menu_load_slot_requested(slot: int) -> void:
+	if load_runtime_from_slot(slot):
+		_pause_menu_active = false
+		get_tree().paused = false
+		_hud.hide_menu()
+		return
+	_hud.show_save_load_menu(
+		_collect_save_slot_infos(),
+		false,
+		"Saving requires a save point"
+	)
 
 
 func _battle_summary_from_death_metadata(death_metadata: Dictionary) -> Dictionary:
@@ -453,6 +516,63 @@ func _trigger_runtime_autosave(reason: StringName, context: Dictionary) -> bool:
 	if _save_trigger_adapter == null:
 		return false
 	return _save_trigger_adapter.trigger_auto_save(reason, context)
+
+
+func _collect_save_slot_infos() -> Array[Dictionary]:
+	var infos: Array[Dictionary] = []
+	var save_system: Object = _resolve_save_system_for_menu()
+	for slot: int in range(4):
+		infos.append(_get_save_slot_info_dictionary(save_system, slot))
+	return infos
+
+
+func _try_load_first_available_slot() -> bool:
+	for slot_info: Dictionary in _collect_save_slot_infos():
+		if bool(slot_info.get("exists", false)):
+			return load_runtime_from_slot(int(slot_info.get("slot", 0)))
+	return false
+
+
+func _resolve_save_system_for_menu() -> Object:
+	if _is_valid_save_system(_save_system):
+		return _save_system
+	var root_save_system: Object = get_node_or_null("/root/SaveSystem")
+	if configure_save_system_runtime(root_save_system):
+		return _save_system
+	return null
+
+
+func _get_save_slot_info_dictionary(save_system: Object, slot: int) -> Dictionary:
+	var info: Dictionary = _empty_save_slot_info(slot)
+	if save_system == null or not is_instance_valid(save_system):
+		return info
+	if save_system.has_method("get_save_info"):
+		var raw_info: Variant = save_system.call("get_save_info", slot)
+		if raw_info is Dictionary:
+			info = Dictionary(raw_info).duplicate(true)
+		elif raw_info != null and raw_info.has_method("to_dictionary"):
+			info = Dictionary(raw_info.call("to_dictionary")).duplicate(true)
+	elif save_system.has_method("has_save"):
+		info["exists"] = bool(save_system.call("has_save", slot))
+	info["slot"] = slot
+	info["is_auto"] = slot == 0
+	if not info.has("summary"):
+		info["summary"] = {}
+	return info
+
+
+func _empty_save_slot_info(slot: int) -> Dictionary:
+	return {
+		"slot": slot,
+		"is_auto": slot == 0,
+		"exists": false,
+		"timestamp": "",
+		"play_time_sec": 0.0,
+		"save_point_name": "",
+		"version": 0,
+		"summary": {},
+		"file_size_bytes": 0,
+	}
 
 
 func _ensure_save_trigger_adapter() -> bool:

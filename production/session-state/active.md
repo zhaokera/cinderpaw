@@ -1,10 +1,18 @@
 # Active Session State
 
 ## Current Task
-- 持续实现 Cinderpaw 垂直切片；最近完成 Save System Story 004
-  MainScene SaveSystem Runtime Handoff
+- 持续实现 Cinderpaw 垂直切片；最近完成 HUD/UI Story 005
+  Main Menu + Save/Load Shell
 
 ## Last Completed Task
+- HUD/UI Story 005: Main Menu + Save/Load Shell — `HUDManager` 现在提供
+  main menu 与 save/load shell，按钮只发 typed signals；`MainScene` 作为薄
+  adapter 收集 `SaveInfo` 风格槽位快照、调用既有 runtime save/load API，
+  并在从 gameplay 回主菜单时释放 pause state 与焦点。SaveSystem
+  Story001-004 已解除槽位/元数据阻塞；SceneManagement 真实切场景仍保持
+  后续边界，不在本 Story 虚报完成。通过 RED/GREEN、HUD/MainScene/Save
+  focused regression 37/37、Godot headless smoke 与 Godot MCP runtime
+  eval/log/screenshot 验证。
 - Save System Story 004: MainScene SaveSystem Runtime Handoff —
   `MainScene` 现在可配置 SaveSystem-like runtime service，注册 `main_scene`
   serializable payload，提供 JSON-safe `player_state/world_state/settings`
@@ -61,6 +69,22 @@
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `src/presentation/hud_manager.gd` — Story005 main menu/save-load shell、
+  typed menu signals、slot label formatting、disabled reasons、focus fallback
+  与内容驱动 menu sizing
+- `src/gameplay/main_scene.gd` — Story005 HUD signal adapter，收集
+  SaveSystem `SaveInfo` 风格槽位元数据，接入 runtime save/load，并在回主菜单
+  时释放 pause state
+- `tests/unit/presentation/hud_manager_test.gd`,
+  `tests/unit/gameplay/main_scene_save_load_menu_runtime_test.gd` — Story005
+  TDD 覆盖主菜单入口、save/load shell、禁用原因、slot signal 与 pause
+  release/focus
+- `production/epics/hud-ui/story-005-main-save-load-menu-shell.md`,
+  `production/epics/hud-ui/EPIC.md`, `production/epics/index.md`,
+  `production/qa/evidence/main-save-load-menu-shell-2026-06-24.md` —
+  Story/Epic 状态、索引和 QA/MCP 证据
+- `reports/hud_story005_main_scene_smoke.log` — Story005 headless main-scene
+  smoke 日志
 - `src/gameplay/main_scene.gd` — Story004 MainScene SaveSystem runtime
   handoff，新增 SaveSystem 注入、`main_scene` serializable 注册、
   JSON-safe save snapshot、manual save/load runtime APIs、player/world/settings
@@ -166,12 +190,13 @@
 - Consistency check: found 1 conflict + 1 stale reference, both fixed
 
 ## Next Steps
-1. HUD/UI Story 005 — Main Save/Load Menu Shell（SaveInfo、manual runtime
-   save/load 与 autosave trigger 已解锁槽位展示）
-2. Save System performance follow-up — TR-save-007 Thread/async write hardening
+1. Save System performance follow-up — TR-save-007 Thread/async write hardening
    与 100ms budget evidence
-3. Death & Respawn Story 004 — Savepoint Respawn Selection（仍需
+2. Death & Respawn Story 004 — Savepoint Respawn Selection（仍需
    SceneManagement/SaveSystem 后续接线）
+3. Visual/animation polish — 按 AGENTS Godot 2D 帧动画规则审计玩家可见
+   方块/单帧占位，优先用 image generation 生成透明帧并接入
+   `AnimatedSprite2D + SpriteFrames`
 4. Gameplay runtime gap — advanced combat input wiring and Rat King runtime boss encounter
 
 ## Key Decisions Made (this session)

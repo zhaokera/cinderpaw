@@ -3,7 +3,7 @@
 > **Layer**: Presentation
 > **GDD**: design/gdd/hud-ui.md
 > **Architecture Module**: HUDManager
-> **Status**: In Progress
+> **Status**: Complete
 > **Stories**: 6 stories
 
 ## Overview
@@ -43,7 +43,7 @@ systems without owning combat, save, scene, or economy rules.
 | 002 | Pause + Retry Menu Focus Loop | UI | Complete | ADR-0002, ADR-0011 |
 | 003 | Battle Summary Lesson Panel | UI | Complete | ADR-0002, ADR-0011 |
 | 004 | Settings + Accessibility Controls | UI | Complete | ADR-0011 |
-| 005 | Main Menu + Save/Load Shell | Integration | Blocked by SaveSystem Epic | ADR-0011 |
+| 005 | Main Menu + Save/Load Shell | Integration | Complete | ADR-0011 |
 | 006 | HUD Scale + Colorblind Mode | UI | Complete | ADR-0011 |
 
 ## Definition of Done
@@ -55,8 +55,15 @@ This epic is complete when:
   SaveSystem. Story 006 now provides the explicit runtime state handoff.
 - Runtime smoke is captured through Godot MCP when available.
 
-## Next Step
+## Completion Evidence
 
-HUD Scale + Colorblind Mode is complete. Story 005 remains blocked until the
-SaveSystem Epic provides the required save/load contract for the main menu
-shell.
+All six HUD/UI stories are complete for the MVP interface shell. Story 005 used
+SaveSystem Story001-004 metadata/runtime handoff and keeps SceneManager work
+out of scope by emitting HUD signals to MainScene adapters.
+
+- Final focused regression: `reports/report_349/` — HUD/MainScene/SaveSystem
+  37/37 passing.
+- Runtime smoke: `reports/hud_story005_main_scene_smoke.log` — clean
+  `res://scenes/main.tscn` headless boot.
+- Godot MCP: `cinderpaw@c1b2` — main menu, save/load shell, focus, disabled
+  reasons, game logs, editor logs, and screenshot verified.

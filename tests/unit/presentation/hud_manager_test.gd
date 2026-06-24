@@ -7,6 +7,12 @@ var hud
 var _resume_requests: int = 0
 var _retry_requests: int = 0
 var _settings_requests: int = 0
+var _new_game_requests: int = 0
+var _continue_requests: int = 0
+var _load_menu_requests: int = 0
+var _exit_requests: int = 0
+var _save_slot_requests: Array[int] = []
+var _load_slot_requests: Array[int] = []
 
 
 func before_test() -> void:
@@ -15,6 +21,12 @@ func before_test() -> void:
 	_resume_requests = 0
 	_retry_requests = 0
 	_settings_requests = 0
+	_new_game_requests = 0
+	_continue_requests = 0
+	_load_menu_requests = 0
+	_exit_requests = 0
+	_save_slot_requests.clear()
+	_load_slot_requests.clear()
 	hud.menu_resume_requested.connect(_on_menu_resume_requested)
 	hud.menu_retry_requested.connect(_on_menu_retry_requested)
 	hud.menu_settings_requested.connect(_on_menu_settings_requested)
@@ -29,6 +41,12 @@ func after_test() -> void:
 	_resume_requests = 0
 	_retry_requests = 0
 	_settings_requests = 0
+	_new_game_requests = 0
+	_continue_requests = 0
+	_load_menu_requests = 0
+	_exit_requests = 0
+	_save_slot_requests.clear()
+	_load_slot_requests.clear()
 
 
 func test_update_hp_sets_ratio_label_and_healthy_color() -> void:
@@ -306,6 +324,134 @@ func test_close_settings_returns_to_invoking_pause_menu_focus() -> void:
 	assert_str(hud.get_focused_menu_button_text()).is_equal("Settings")
 
 
+func test_close_settings_returns_to_invoking_main_menu_focus() -> void:
+	hud.call("show_main_menu", [])
+	hud.get_node("HudRoot/MenuOverlay/MenuPanel/MenuContent/MenuButtons/SettingsButton").grab_focus()
+
+	hud.show_settings_menu(StringName(String(hud.get_menu_mode())))
+	hud.close_settings_menu()
+
+	assert_bool(hud.is_menu_visible()).is_true()
+	assert_str(String(hud.get_menu_mode())).is_equal("main_menu")
+	assert_array(Array(hud.call("get_menu_button_texts"))).is_equal([
+		"New Game",
+		"Continue",
+		"Load Game",
+		"Settings",
+		"Exit",
+	])
+	assert_str(hud.get_focused_menu_button_text()).is_equal("Settings")
+
+
+func test_main_menu_shows_entry_points_and_disabled_save_actions_explain_availability() -> void:
+	assert_bool(hud.has_method("show_main_menu")).is_true()
+	assert_bool(hud.has_method("get_menu_button_texts")).is_true()
+	assert_bool(hud.has_method("get_disabled_menu_button_reasons")).is_true()
+	if (
+		not hud.has_method("show_main_menu")
+		or not hud.has_method("get_menu_button_texts")
+		or not hud.has_method("get_disabled_menu_button_reasons")
+	):
+		return
+	assert_bool(hud.has_signal("menu_new_game_requested")).is_true()
+	assert_bool(hud.has_signal("menu_continue_requested")).is_true()
+	assert_bool(hud.has_signal("menu_load_menu_requested")).is_true()
+	assert_bool(hud.has_signal("menu_exit_requested")).is_true()
+	if not (
+		hud.has_signal("menu_new_game_requested")
+		and hud.has_signal("menu_continue_requested")
+		and hud.has_signal("menu_load_menu_requested")
+		and hud.has_signal("menu_exit_requested")
+	):
+		return
+	hud.connect("menu_new_game_requested", _on_menu_new_game_requested)
+	hud.connect("menu_continue_requested", _on_menu_continue_requested)
+	hud.connect("menu_load_menu_requested", _on_menu_load_menu_requested)
+	hud.connect("menu_exit_requested", _on_menu_exit_requested)
+
+	hud.call("show_main_menu", [])
+
+	assert_bool(hud.is_menu_visible()).is_true()
+	assert_str(String(hud.get_menu_mode())).is_equal("main_menu")
+	assert_str(hud.get_menu_title()).is_equal("Cinderpaw")
+	assert_array(Array(hud.call("get_menu_button_texts"))).is_equal([
+		"New Game",
+		"Continue",
+		"Load Game",
+		"Settings",
+		"Exit",
+	])
+	assert_str(hud.get_focused_menu_button_text()).is_equal("New Game")
+	var disabled_reasons: Dictionary = Dictionary(hud.call("get_disabled_menu_button_reasons"))
+	assert_str(String(disabled_reasons.get("Continue", ""))).is_equal("No save file available")
+	assert_str(String(disabled_reasons.get("Load Game", ""))).is_equal("No save file available")
+
+	hud.get_node("HudRoot/MenuOverlay/MenuPanel/MenuContent/MenuButtons/NewGameButton").pressed.emit()
+	hud.get_node("HudRoot/MenuOverlay/MenuPanel/MenuContent/MenuButtons/SettingsButton").pressed.emit()
+	hud.get_node("HudRoot/MenuOverlay/MenuPanel/MenuContent/MenuButtons/ExitButton").pressed.emit()
+
+	assert_int(_new_game_requests).is_equal(1)
+	assert_int(_settings_requests).is_equal(1)
+	assert_int(_exit_requests).is_equal(1)
+
+
+func test_save_load_shell_lists_slot_info_without_owning_save_file_rules() -> void:
+	assert_bool(hud.has_method("show_save_load_menu")).is_true()
+	assert_bool(hud.has_method("get_save_slot_labels")).is_true()
+	assert_bool(hud.has_method("get_disabled_menu_button_reasons")).is_true()
+	if (
+		not hud.has_method("show_save_load_menu")
+		or not hud.has_method("get_save_slot_labels")
+		or not hud.has_method("get_disabled_menu_button_reasons")
+	):
+		return
+	assert_bool(hud.has_signal("menu_save_slot_requested")).is_true()
+	assert_bool(hud.has_signal("menu_load_slot_requested")).is_true()
+	if not hud.has_signal("menu_save_slot_requested") or not hud.has_signal("menu_load_slot_requested"):
+		return
+	hud.connect("menu_save_slot_requested", _on_menu_save_slot_requested)
+	hud.connect("menu_load_slot_requested", _on_menu_load_slot_requested)
+
+	hud.call("show_save_load_menu", [
+		{
+			"slot": 0,
+			"is_auto": true,
+			"exists": false,
+			"save_point_name": "",
+			"summary": {},
+			"timestamp": "",
+		},
+		{
+			"slot": 1,
+			"is_auto": false,
+			"exists": true,
+			"save_point_name": "Manual Save",
+			"summary": {
+				"current_hp": 78,
+				"current_weapon": "long_tail",
+				"currency": 11,
+			},
+			"timestamp": "2026-06-24T09:00:00Z",
+		},
+	], false, "Saving requires a save point")
+
+	assert_bool(hud.is_menu_visible()).is_true()
+	assert_str(String(hud.get_menu_mode())).is_equal("save_load")
+	assert_str(hud.get_menu_title()).is_equal("Save / Load")
+	assert_array(Array(hud.call("get_save_slot_labels"))).is_equal([
+		"Autosave: Empty",
+		"Slot 1: Manual Save | HP 78 | long_tail | Gears 11",
+	])
+	var disabled_reasons: Dictionary = Dictionary(hud.call("get_disabled_menu_button_reasons"))
+	assert_str(String(disabled_reasons.get("Save Slot 1", ""))).is_equal("Saving requires a save point")
+	assert_str(String(disabled_reasons.get("Load Autosave", ""))).is_equal("No autosave available")
+
+	hud.get_node("HudRoot/MenuOverlay/MenuPanel/MenuContent/MenuButtons/LoadSlot1Button").pressed.emit()
+
+	assert_array(_load_slot_requests).is_equal([1])
+	assert_array(_save_slot_requests).is_empty()
+
+
 func _on_menu_resume_requested() -> void:
 	_resume_requests += 1
 
@@ -316,3 +462,27 @@ func _on_menu_retry_requested() -> void:
 
 func _on_menu_settings_requested() -> void:
 	_settings_requests += 1
+
+
+func _on_menu_new_game_requested() -> void:
+	_new_game_requests += 1
+
+
+func _on_menu_continue_requested() -> void:
+	_continue_requests += 1
+
+
+func _on_menu_load_menu_requested() -> void:
+	_load_menu_requests += 1
+
+
+func _on_menu_exit_requested() -> void:
+	_exit_requests += 1
+
+
+func _on_menu_save_slot_requested(slot: int) -> void:
+	_save_slot_requests.append(slot)
+
+
+func _on_menu_load_slot_requested(slot: int) -> void:
+	_load_slot_requests.append(slot)
