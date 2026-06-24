@@ -4,16 +4,17 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 1 story ready; future stories planned
+> **Stories**: 2 stories tracked; future stories planned
 
 ## Overview
 
 Implement the Feature-layer scene lifecycle boundary that downstream systems use
 for deterministic scene IDs, spawn points, scene-local state, boss scene locks,
-and later async loading. The first production slice establishes the Autoload,
-registry, and public API contract needed by Death & Respawn without pretending
-the full transition animation, deferred unload, timeout, fast travel, or
-cross-scene tree swap is complete.
+and later async loading. The first production slice established the Autoload,
+registry, and public API contract needed by Death & Respawn. Story002 closes the
+player-facing title/continue/load save handoff against that logical
+SceneManager baseline before the project attempts full transition animation,
+deferred unload, timeout, fast travel, or cross-scene tree swapping.
 
 ## Governing ADRs
 
@@ -40,6 +41,7 @@ cross-scene tree swap is complete.
 | # | Story | Type | Status | ADR |
 |---|-------|------|--------|-----|
 | 001 | SceneManager Registry + Public API Baseline | Integration | Complete | ADR-0001, ADR-0007 |
+| 002 | Title/Continue/Load Runtime Handoff | Integration | Complete | ADR-0007, ADR-0021 |
 
 ## Definition of Done
 
@@ -50,6 +52,9 @@ This epic is complete when:
   playable scene IDs and spawn points.
 - Scene changes, boss locks, and scene-state serialization are deterministic
   and covered by GdUnit.
+- Title, Continue, and Load Slot paths route through SceneManager before
+  MainScene save snapshots are applied, and failure paths do not partially
+  restore player/world/settings state.
 - Later stories replace the logical baseline with real async ResourceLoader
   scene swaps, transition presentation, deferred unload/cache enforcement,
   timeout/retry handling, and fast travel.
@@ -58,6 +63,6 @@ This epic is complete when:
 
 ## Next Step
 
-Death & Respawn Story 004 can now consume the logical SceneManager interface for
-savepoint respawn selection. Full async scene-tree replacement remains a later
-SceneManagement story.
+Continue with the async request lifecycle, transition timing gate, timeout
+retry, hub fallback, deferred unload/cache eviction, fast travel, and transition
+visuals as later SceneManagement stories.

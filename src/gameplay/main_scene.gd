@@ -11,7 +11,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 const RUNTIME_DAMAGE_CALCULATOR_ADAPTER_SCRIPT: Script = preload("res://src/gameplay/runtime_damage_calculator_adapter.gd")
 const SAVE_TRIGGER_ADAPTER_SCRIPT: Script = preload("res://src/feature/save_trigger_adapter.gd")
 const MAIN_SCENE_SAVE_KEY: StringName = &"main_scene"
+const SCENE_MANAGER_SAVE_KEY: StringName = &"scene"
 const MAIN_SCENE_ID: String = "main"
+const DEFAULT_NEW_GAME_SPAWN_POINT: StringName = &"default"
 const SHADOW_BEAST_ID: String = "shadow_beast"
 
 var _pause_menu_active: bool = false
@@ -175,6 +177,10 @@ func _on_menu_settings_requested() -> void:
 
 
 func _on_menu_new_game_requested() -> void:
+	if not _request_scene_manager_transition(StringName(MAIN_SCENE_ID), DEFAULT_NEW_GAME_SPAWN_POINT):
+		_hud.show_notification("Load failed", 2.0)
+		_hud.show_main_menu(_collect_save_slot_infos())
+		return
 	_pause_menu_active = false
 	get_tree().paused = false
 	_hud.hide_menu()
@@ -186,6 +192,7 @@ func _on_menu_continue_requested() -> void:
 		get_tree().paused = false
 		_hud.hide_menu()
 		return
+	_hud.show_notification("Load failed", 2.0)
 	_hud.show_main_menu(_collect_save_slot_infos())
 
 
@@ -238,6 +245,7 @@ func _on_menu_load_slot_requested(slot: int) -> void:
 		get_tree().paused = false
 		_hud.hide_menu()
 		return
+	_hud.show_notification("Load failed", 2.0)
 	_hud.show_save_load_menu(
 		_collect_save_slot_infos(),
 		false,
@@ -353,6 +361,70 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 	return _scene_manager != null and _scene_manager.has_method("change_scene")
 
 
+func _request_scene_manager_transition(scene_id: StringName, spawn_point: StringName) -> bool:
+	if scene_id == &"" or spawn_point == &"":
+		return false
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if scene_manager == null:
+		return true
+	if scene_manager.has_method("has_scene") and not bool(scene_manager.call("has_scene", scene_id)):
+		return false
+	if scene_manager.has_method("is_scene_locked") and bool(scene_manager.call("is_scene_locked")):
+		return false
+	return bool(scene_manager.call("change_scene", scene_id, spawn_point))
+
+
+func _handoff_loaded_scene_to_scene_manager(snapshot: Dictionary) -> bool:
+	var target: Dictionary = _resolve_scene_target_from_snapshot(snapshot)
+	return _request_scene_manager_transition(
+		StringName(target.get("scene_id", "")),
+		StringName(target.get("spawn_point", ""))
+	)
+
+
+func _resolve_scene_target_from_snapshot(snapshot: Dictionary) -> Dictionary:
+	var player_state: Dictionary = Dictionary(snapshot.get("player_state", {}))
+	var world_state: Dictionary = Dictionary(snapshot.get("world_state", {}))
+	var last_savepoint: Dictionary = Dictionary(world_state.get("last_savepoint", {}))
+	var scene_id: String = String(last_savepoint.get("scene_id", "")).strip_edges()
+	var spawn_point: String = String(last_savepoint.get("spawn_point", "")).strip_edges()
+	if scene_id.is_empty():
+		scene_id = String(world_state.get("scene_id", "")).strip_edges()
+	if scene_id.is_empty():
+		scene_id = String(player_state.get("scene_id", "")).strip_edges()
+	if scene_id.is_empty():
+		scene_id = MAIN_SCENE_ID
+	if spawn_point.is_empty():
+		spawn_point = _get_default_spawn_for_scene(StringName(scene_id))
+	return {
+		"scene_id": scene_id,
+		"spawn_point": spawn_point,
+	}
+
+
+func _get_default_spawn_for_scene(scene_id: StringName) -> String:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if scene_manager != null and scene_manager.has_method("get_scene_config"):
+		var config: Variant = scene_manager.call("get_scene_config", scene_id)
+		if config is Dictionary:
+			var configured_spawn: String = String(Dictionary(config).get("default_spawn", "")).strip_edges()
+			if not configured_spawn.is_empty():
+				return configured_spawn
+	return String(DEFAULT_NEW_GAME_SPAWN_POINT)
+
+
+func _resolve_scene_manager_for_runtime() -> Object:
+	if _is_valid_scene_manager(_scene_manager):
+		return _scene_manager
+	if is_inside_tree() and configure_scene_manager_runtime(get_node_or_null("/root/SceneManager")):
+		return _scene_manager
+	return null
+
+
+func _is_valid_scene_manager(scene_manager: Object) -> bool:
+	return scene_manager != null and is_instance_valid(scene_manager) and scene_manager.has_method("change_scene")
+
+
 func discover_savepoint(
 	savepoint_id: StringName,
 	scene_id: StringName,
@@ -387,18 +459,61 @@ func configure_save_system_runtime(save_system: Object) -> bool:
 		return false
 	if not _ensure_save_trigger_adapter():
 		return false
-	if _save_system.has_method("register_serializable"):
-		var registered: bool = bool(_save_system.call(
-			"register_serializable",
-			self,
-			MAIN_SCENE_SAVE_KEY
-		))
-		if not registered:
-			return false
-		_registered_save_system = _save_system
+	if not _register_main_scene_with_save_system():
+		return false
 	_connect_save_system_signals(_save_system)
 	_save_trigger_adapter.configure(_save_system, capture_save_snapshot)
 	return true
+
+
+func _register_main_scene_with_save_system() -> bool:
+	if not _is_valid_save_system(_save_system):
+		return false
+	if not _save_system.has_method("register_serializable"):
+		return true
+	var registered: bool = bool(_save_system.call(
+		"register_serializable",
+		self,
+		MAIN_SCENE_SAVE_KEY
+	))
+	if not registered:
+		return false
+	_registered_save_system = _save_system
+	return true
+
+
+func _temporarily_unregister_main_scene_from_save_system() -> bool:
+	if _registered_save_system == null or not is_instance_valid(_registered_save_system):
+		return false
+	if _registered_save_system != _save_system:
+		return false
+	if not _save_system.has_method("unregister_serializable"):
+		return false
+	_save_system.call("unregister_serializable", MAIN_SCENE_SAVE_KEY)
+	_registered_save_system = null
+	return true
+
+
+func _temporarily_unregister_scene_manager_from_save_system() -> bool:
+	if not _is_valid_save_system(_save_system):
+		return false
+	if not _save_system.has_method("unregister_serializable"):
+		return false
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if not _is_valid_scene_manager(scene_manager):
+		return false
+	return bool(_save_system.call("unregister_serializable", SCENE_MANAGER_SAVE_KEY))
+
+
+func _register_scene_manager_with_save_system() -> bool:
+	if not _is_valid_save_system(_save_system):
+		return false
+	if not _save_system.has_method("register_serializable"):
+		return true
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if not _is_valid_scene_manager(scene_manager):
+		return false
+	return bool(_save_system.call("register_serializable", scene_manager, SCENE_MANAGER_SAVE_KEY))
 
 
 ## Captures JSON-safe player, world, and settings state for SaveSystem.
@@ -447,9 +562,21 @@ func load_runtime_from_slot(slot: int) -> bool:
 		return false
 	if not _save_system.has_method("load_game") or not _save_system.has_method("get_last_loaded_data"):
 		return false
+	var temporarily_unregistered_main_scene: bool = _temporarily_unregister_main_scene_from_save_system()
+	var temporarily_unregistered_scene_manager: bool = _temporarily_unregister_scene_manager_from_save_system()
 	if not bool(_save_system.call("load_game", slot)):
+		if temporarily_unregistered_main_scene:
+			_register_main_scene_with_save_system()
+		if temporarily_unregistered_scene_manager:
+			_register_scene_manager_with_save_system()
 		return false
 	var loaded: Dictionary = Dictionary(_save_system.call("get_last_loaded_data"))
+	if temporarily_unregistered_main_scene and not _register_main_scene_with_save_system():
+		return false
+	if temporarily_unregistered_scene_manager and not _register_scene_manager_with_save_system():
+		return false
+	if not _handoff_loaded_scene_to_scene_manager(loaded):
+		return false
 	restore_save_snapshot(loaded)
 	return true
 

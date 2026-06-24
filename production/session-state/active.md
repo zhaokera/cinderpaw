@@ -1,12 +1,28 @@
 # Active Session State
 
 ## Current Task
-- Save System 与 Death & Respawn Epic 已完成；下一步按 GDD/架构/Epic 状态推进
-  SceneManager 后续接线、title/continue/load handoff、以及玩家可见角色/敌人帧动画审计。
+- Save System、Death & Respawn、SceneManagement Story002
+  title/continue/load handoff 已完成；下一步按 GDD/架构/Epic 状态推进
+  SceneManager async request lifecycle、transition timing、timeout fallback、
+  deferred unload/cache、fast travel、以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，玩家可见动作角色必须遵守
   `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Scene Management Story 002: Title/Continue/Load Runtime Handoff —
+  `MainScene` 的 New Game、Continue、Load Slot 现在先通过 root
+  `SceneManager` 完成 logical scene/spawn handoff，再应用 SaveSystem
+  runtime snapshot；Continue 使用确定性 slot 顺序 `0` then `1-3`，Load Slot
+  使用所选 slot，目标 scene/spawn 解析顺序为 last savepoint、
+  `world_state.scene_id`、`player_state.scene_id`、`main/default`。加载期间
+  `main_scene` 与 `scene` registered systems 会临时从 SaveSystem
+  反序列化列表移除，避免 SceneManager 拒绝时半恢复 HP/货币/settings。通过
+  RED `report_408`、GREEN focused `report_412` `7/7`、相关回归
+  `report_413` `47/47`、headless smoke
+  `reports/scene_story002_title_load_handoff_main_scene_smoke.log`、Godot MCP
+  New Game/Continue/Load Slot/failure-path runtime probe、clean logs 与非空
+  screenshot 验证。QA evidence:
+  `production/qa/evidence/title-continue-load-runtime-handoff-2026-06-25.md`。
 - Death & Respawn Story 004: Savepoint Respawn Selection —
   `GameFlowController` 现在通过可注入 savepoint/SceneManager adapter 选择复活点：
   有效 last discovered savepoint 优先，无效/缺失 savepoint 回退 `hub/clan_base`，
