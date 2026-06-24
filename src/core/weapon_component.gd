@@ -219,6 +219,25 @@ func activate_current_attack_hitbox(
 	return true
 
 
+## Applies current-weapon effects after a confirmed hit.
+func apply_confirmed_hit_effects(target_adapter: Object, hit_metadata: Dictionary = {}) -> Dictionary:
+	var metadata: Dictionary = hit_metadata.duplicate(true)
+	metadata["shield_break_attempted"] = false
+	metadata["shield_broken"] = false
+	var weapon: Resource = get_current_weapon()
+	if weapon == null:
+		metadata["shield_break_skipped_reason"] = &"missing_weapon"
+		return metadata
+	var mechanism: Dictionary = weapon.special_mechanism.duplicate(true)
+	var mechanism_type: StringName = StringName(mechanism.get("type", &""))
+	metadata["weapon_id"] = weapon.weapon_id
+	metadata["mechanism_type"] = mechanism_type
+	if mechanism_type != &"shield_break":
+		metadata["shield_break_skipped_reason"] = &"not_shield_break_weapon"
+		return metadata
+	return _apply_shield_break_hit_effect(target_adapter, metadata)
+
+
 ## Returns special attack metadata for the active weapon or an explicit weapon id.
 func get_special_attack_parameters(weapon_id: StringName = &"") -> Dictionary:
 	var resolved_id: StringName = weapon_id
@@ -382,6 +401,40 @@ func _build_attack_hitbox_metadata(weapon: Resource, attack_type: StringName, co
 		"mechanism_type": mechanism_type,
 		"special_mechanism": mechanism,
 	}
+
+
+func _apply_shield_break_hit_effect(target_adapter: Object, metadata: Dictionary) -> Dictionary:
+	var attack_type: StringName = StringName(metadata.get("attack_type", &""))
+	var charge_ratio: float = _get_combat_charge_ratio()
+	metadata["charge_ratio"] = charge_ratio
+	if not _is_charge_attack_type(attack_type):
+		metadata["shield_break_skipped_reason"] = &"not_charge_attack"
+		return metadata
+	if charge_ratio < 1.0:
+		metadata["shield_break_skipped_reason"] = &"partial_charge"
+		return metadata
+	metadata["shield_break_attempted"] = true
+	if target_adapter == null or not target_adapter.has_method("break_shield"):
+		metadata["shield_break_skipped_reason"] = &"missing_break_shield"
+		return metadata
+	var break_result: Variant = target_adapter.call("break_shield")
+	metadata["shield_broken"] = true if break_result == null else bool(break_result)
+	metadata["shield_break_skipped_reason"] = &"" if bool(metadata["shield_broken"]) else &"no_active_shield"
+	return metadata
+
+
+func _get_combat_charge_ratio() -> float:
+	if _combat_adapter == null or not _combat_adapter.has_method("get_charge_ratio"):
+		return 0.0
+	return clampf(float(_combat_adapter.call("get_charge_ratio")), 0.0, 1.0)
+
+
+func _is_charge_attack_type(attack_type: StringName) -> bool:
+	match attack_type:
+		&"heavy", &"heavy_min", &"heavy_max", &"charged":
+			return true
+		_:
+			return false
 
 
 func _sync_combat_weapon_id() -> void:

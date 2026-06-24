@@ -1,12 +1,12 @@
 # Story 007: Fish Bone Charged Shield Break
 
 > **Epic**: Weapon Styles
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Integration
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-06-23
+> **Last Updated**: 2026-06-24
 
 ## Context
 
@@ -24,9 +24,9 @@ method.
 
 ## Acceptance Criteria
 
-- [ ] Fish Bone full-charge hits call target `break_shield()`.
-- [ ] Partial-charge hits do not break shields.
-- [ ] Missing shield APIs degrade to normal hit metadata without errors.
+- [x] Fish Bone full-charge hits call target `break_shield()`.
+- [x] Partial-charge hits do not break shields.
+- [x] Missing shield APIs degrade to normal hit metadata without errors.
 
 ## Implementation Notes
 
@@ -56,7 +56,16 @@ WeaponComponent.
 **Required evidence**:
 - Integration: `tests/unit/weapon/story_007_fish_bone_shield_break_test.gd`.
 
-**Status**: [ ] Not yet created
+**Created evidence**:
+- `tests/unit/weapon/story_007_fish_bone_shield_break_test.gd`
+- `production/qa/evidence/fish-bone-shield-break-2026-06-24.md`
+- RED: `reports/report_332/`
+- GREEN: `reports/report_333/`
+- Focused regression: `reports/report_334/`
+- MCP screenshot:
+  `reports/visual/cinderpaw-mcp-fish-bone-shield-break-runtime-20260624.png`
+
+**Status**: [x] Complete
 
 ## Dependencies
 

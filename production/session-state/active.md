@@ -1170,3 +1170,34 @@
 - Next recommended: Weapon Styles Story 007 Fish Bone charged shield break, or
   a dedicated player attack integration story to wire the playable attack chain
   into Core Combat/Collision.
+
+## Session Extract — Fish Bone Charged Shield Break 2026-06-24
+- Scope: Implement Weapon Styles Story 007, covering `TR-weapon-007` Fish Bone
+  full-charge shield break through HealthComponent-compatible adapters.
+- Files changed: `src/core/weapon_component.gd`, `src/core/health_component.gd`,
+  `tests/unit/weapon/story_007_fish_bone_shield_break_test.gd`,
+  `production/epics/weapon-styles/EPIC.md`,
+  `production/epics/weapon-styles/story-007-fish-bone-charged-shield-break.md`,
+  and QA evidence under `production/qa/evidence/`.
+- Implementation: HealthComponent now exposes `break_shield()`. WeaponComponent
+  now exposes `apply_confirmed_hit_effects(target_adapter, hit_metadata)`, reads
+  charge ratio from its CombatComponent-compatible adapter, and only calls
+  target `break_shield()` for Fish Bone heavy/charged hits at full charge.
+  Partial charge and missing shield APIs return metadata without errors.
+- TDD evidence: RED first failed on missing shield-break contract APIs
+  (`reports/report_332/`); GREEN story suite passed 3/3
+  (`reports/report_333/`).
+- Regression evidence: weapon stories 001-007 plus health shield pipeline,
+  combat heavy charge, collision duplicate suppression, and main-scene weapon
+  swap suites passed 50/50 (`reports/report_334/`);
+  `godot --headless --path . --quit-after 1` passed.
+- Runtime evidence: Godot MCP session `cinderpaw@c4d7` ran
+  `res://scenes/main.tscn`; runtime `game_eval` switched to Fish Bone, cleared a
+  target shield from 35 to 0 at full charge, preserved shield at partial charge,
+  and degraded safely for a target without `break_shield()`.
+- Visual evidence:
+  `reports/visual/cinderpaw-mcp-fish-bone-shield-break-runtime-20260624.png`.
+- Epic status: Weapon Styles now has Stories 001-007 complete.
+- Next recommended: Weapon Styles Story 008 Electro Bell slow status
+  application, then a dedicated player attack integration story to wire the
+  playable attack chain into Core Combat/Collision/Health.

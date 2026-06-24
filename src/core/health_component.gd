@@ -289,6 +289,14 @@ func get_shield() -> int:
 	return _shield
 
 
+## Clears active shield for shield-break weapon effects.
+func break_shield() -> bool:
+	if _shield <= 0:
+		return false
+	_shield = 0
+	return true
+
+
 ## Returns maximum shield value.
 func get_max_shield() -> int:
 	return _max_shield

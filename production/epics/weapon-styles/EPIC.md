@@ -49,7 +49,7 @@ HUD, audio, save-file orchestration, or collision detection internals.
 | 004 | Special Attack Cooldown + Cat Energy Gate | Integration | Complete | ADR-0005, ADR-0016 |
 | 005 | Cat Claw Dodge-Counter Crit Bonus | Integration | Complete | ADR-0005, ADR-0016 |
 | 006 | Long Tail Multi-Target Range Contract | Integration | Complete | ADR-0004, ADR-0016 |
-| 007 | Fish Bone Charged Shield Break | Integration | Ready | ADR-0016, ADR-0019 |
+| 007 | Fish Bone Charged Shield Break | Integration | Complete | ADR-0016, ADR-0019 |
 | 008 | Electro Bell Slow Status Application | Integration | Ready | ADR-0016, ADR-0017 |
 
 ## Definition of Done
@@ -65,5 +65,5 @@ This epic is complete when:
 
 ## Next Step
 
-Stories 001-006 are complete. Continue with
-`production/epics/weapon-styles/story-007-fish-bone-charged-shield-break.md`.
+Stories 001-007 are complete. Continue with
+`production/epics/weapon-styles/story-008-electro-bell-slow-status-application.md`.
