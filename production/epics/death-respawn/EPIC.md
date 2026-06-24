@@ -3,7 +3,7 @@
 > **Layer**: Feature
 > **GDD**: design/gdd/death-respawn.md
 > **Architecture Module**: GameFlowController + HealthComponent adapters
-> **Status**: In Progress
+> **Status**: Complete
 > **Stories**: 6 stories
 
 ## Overview
@@ -27,7 +27,7 @@ surface a learning-focused battle summary.
 | TR-ID | Requirement | ADR Coverage |
 |-------|-------------|--------------|
 | TR-respawn-001 | Death flow progresses through death delay, respawn, revive, and control return. | ADR-0001, ADR-0002 ✅ partial |
-| TR-respawn-002 | Respawn point priority: savepoint, clan base fallback, boss entrance. | ADR-0007 ✅ boss entrance |
+| TR-respawn-002 | Respawn point priority: savepoint, clan base fallback, boss entrance. | ADR-0007 ✅ |
 | TR-respawn-003 | Boss death resets arena state and boss HP. | ADR-0007 ✅ |
 | TR-respawn-004 | Optional hunter lesson battle summary. | ADR-0002 ✅ partial |
 | TR-respawn-005 | No currency/item/progress loss. | ADR-0007 ✅ runtime adapter |
@@ -41,7 +41,7 @@ surface a learning-focused battle summary.
 | 001 | Runtime Death + Quick Respawn Loop | Integration | Complete | ADR-0001, ADR-0002, ADR-0019 |
 | 002 | Respawn Invincibility Visual Feedback | Visual/Feel | Complete | ADR-0019 |
 | 003 | Boss Arena Respawn Reset | Integration | Complete | ADR-0007 |
-| 004 | Savepoint Respawn Selection | Integration | Ready | ADR-0007 |
+| 004 | Savepoint Respawn Selection | Integration | Complete | ADR-0007 |
 | 005 | Battle Summary Handoff | Integration | Complete | ADR-0002, ADR-0019 |
 | 006 | No-Loss Respawn State Contract | Integration | Complete | ADR-0007 |
 
@@ -55,7 +55,8 @@ This epic is complete when:
 - Optional battle-summary UI is settings-controlled.
 - No-loss rules are covered by save/economy integration tests.
 
-## Next Step
+## Completion Evidence
 
-Continue with Death & Respawn Story 004 now that SaveSystem and the logical
-SceneManager baseline are available for savepoint priority.
+Death & Respawn Story 004 completed the remaining savepoint priority and
+SceneManager handoff. The epic is complete with QA evidence in
+`production/qa/evidence/savepoint-respawn-selection-2026-06-25.md`.

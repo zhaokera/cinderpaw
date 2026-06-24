@@ -17,6 +17,6 @@ Engine: Godot 4.6.3
 | weapon-styles | Core | Weapon Styles | weapon-styles.md | 8 stories | Complete |
 | save-system | Feature | Save System | save-system.md | 5 stories | Complete |
 | scene-management | Feature | Scene Management | scene-management.md | 1 story complete | In Progress |
-| death-respawn | Feature | Death & Respawn | death-respawn.md | 6 stories | In Progress |
+| death-respawn | Feature | Death & Respawn | death-respawn.md | 6 stories | Complete |
 | hud-ui | Presentation | HUD/UI | hud-ui.md | 6 stories | Complete |
 | combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 13 stories tracked | Complete |

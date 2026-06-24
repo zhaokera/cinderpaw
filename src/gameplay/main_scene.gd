@@ -29,6 +29,8 @@ var _registered_save_system: Object = null
 var _save_trigger_adapter: SaveTriggerAdapter = null
 var _boss_phase_transition_source: Object = null
 var _pending_manual_save_slot: int = -1
+var _scene_manager: Object = null
+var _last_discovered_savepoint: Dictionary = {}
 
 
 func _ready() -> void:
@@ -36,6 +38,13 @@ func _ready() -> void:
 	_setup_player_attack_core_chain()
 	_setup_enemy_attack_core_chain()
 	_game_flow.set_no_loss_state_adapter(self)
+	_game_flow.set_savepoint_adapter(self)
+	_game_flow.configure_clan_base_respawn(&"hub", &"clan_base", _player.global_position)
+	_game_flow.configure_boss_entrance_respawn(
+		StringName(MAIN_SCENE_ID),
+		&"boss_entrance",
+		_player.global_position
+	)
 	_game_flow.start_boss_encounter(_player.global_position, self)
 	_game_flow.respawn_requested.connect(_on_respawn_requested)
 	_game_flow.victory_reached.connect(_on_victory_reached)
@@ -67,6 +76,7 @@ func _ready() -> void:
 	_hud.update_currency(_currency_amount)
 	_update_weapon_hud()
 	configure_save_system_runtime(get_node_or_null("/root/SaveSystem"))
+	configure_scene_manager_runtime(get_node_or_null("/root/SceneManager"))
 	_hud.show_notification("Hunt the shadow beast", 2.0)
 
 
@@ -279,6 +289,7 @@ func capture_no_loss_state() -> Dictionary:
 		},
 		"settings": _hud.capture_settings_state(),
 		"world_flags": _world_progress_flags.duplicate(true),
+		"last_savepoint": _last_discovered_savepoint.duplicate(true),
 	}
 
 
@@ -290,6 +301,7 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_acquired_weapons = _read_string_name_array(weapon_state.get("acquired", _acquired_weapons))
 	_weapon_levels = Dictionary(weapon_state.get("levels", _weapon_levels)).duplicate(true)
 	_world_progress_flags = Dictionary(snapshot.get("world_flags", _world_progress_flags)).duplicate(true)
+	_restore_last_savepoint_from_dictionary(Dictionary(snapshot.get("last_savepoint", {})))
 	_sync_weapon_component_from_runtime_state()
 	_hud.update_currency(_currency_amount)
 	_update_weapon_hud()
@@ -333,6 +345,38 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 
 func get_runtime_progress_state() -> Dictionary:
 	return capture_no_loss_state()
+
+
+func configure_scene_manager_runtime(scene_manager: Object) -> bool:
+	_scene_manager = scene_manager
+	_game_flow.set_scene_transition_adapter(_scene_manager)
+	return _scene_manager != null and _scene_manager.has_method("change_scene")
+
+
+func discover_savepoint(
+	savepoint_id: StringName,
+	scene_id: StringName,
+	spawn_point: StringName,
+	world_position: Vector2
+) -> bool:
+	if savepoint_id == &"" or scene_id == &"" or spawn_point == &"":
+		return false
+	_last_discovered_savepoint = {
+		"id": String(savepoint_id),
+		"scene_id": String(scene_id),
+		"spawn_point": String(spawn_point),
+		"position": _vector2_to_dictionary(world_position),
+	}
+	return true
+
+
+func get_last_discovered_savepoint() -> Dictionary:
+	return _last_discovered_savepoint.duplicate(true)
+
+
+func clear_last_discovered_savepoint() -> bool:
+	_last_discovered_savepoint.clear()
+	return true
 
 
 ## Configures the SaveSystem handoff used by runtime save/load and autosave triggers.
@@ -528,6 +572,7 @@ func _capture_world_state() -> Dictionary:
 		"scene_id": MAIN_SCENE_ID,
 		"defeated_bosses": _get_defeated_bosses(),
 		"world_flags": _world_progress_flags.duplicate(true),
+		"last_savepoint": _last_discovered_savepoint.duplicate(true),
 	}
 
 
@@ -575,6 +620,7 @@ func _restore_runtime_progress_state(player_state: Dictionary, world_state: Dict
 		},
 		"settings": settings.duplicate(true),
 		"world_flags": Dictionary(world_state.get("world_flags", _world_progress_flags)).duplicate(true),
+		"last_savepoint": Dictionary(world_state.get("last_savepoint", {})).duplicate(true),
 	})
 	var defeated_bosses: Variant = world_state.get("defeated_bosses", [])
 	if defeated_bosses is Array:
@@ -771,6 +817,21 @@ func _read_vector2_dictionary(value: Variant, fallback: Vector2) -> Vector2:
 		float(data.get("x", fallback.x)),
 		float(data.get("y", fallback.y))
 	)
+
+
+func _restore_last_savepoint_from_dictionary(savepoint: Dictionary) -> void:
+	if savepoint.is_empty():
+		_last_discovered_savepoint.clear()
+		return
+	var savepoint_id: StringName = StringName(savepoint.get("id", ""))
+	var scene_id: StringName = StringName(savepoint.get("scene_id", ""))
+	var spawn_point: StringName = StringName(savepoint.get("spawn_point", ""))
+	var savepoint_position: Vector2 = _read_vector2_dictionary(
+		savepoint.get("position", {}),
+		_player.global_position
+	)
+	if not discover_savepoint(savepoint_id, scene_id, spawn_point, savepoint_position):
+		_last_discovered_savepoint.clear()
 
 
 func _setup_weapon_component() -> void:

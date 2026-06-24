@@ -1,12 +1,21 @@
 # Active Session State
 
 ## Current Task
-- Save System Epic 已完成；下一步按 GDD/架构/Epic 状态推进仍未完成的
-  `death-respawn`、SceneManager 接线、以及玩家可见角色/敌人帧动画审计。
+- Save System 与 Death & Respawn Epic 已完成；下一步按 GDD/架构/Epic 状态推进
+  SceneManager 后续接线、title/continue/load handoff、以及玩家可见角色/敌人帧动画审计。
   继续执行 TDD + Godot MCP 运行态验证，玩家可见动作角色必须遵守
   `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Death & Respawn Story 004: Savepoint Respawn Selection —
+  `GameFlowController` 现在通过可注入 savepoint/SceneManager adapter 选择复活点：
+  有效 last discovered savepoint 优先，无效/缺失 savepoint 回退 `hub/clan_base`，
+  boss encounter 覆盖到独立 `main/boss_entrance`；`MainScene` 记录并随 SaveSystem
+  runtime snapshot 保存/恢复最后发现的 savepoint，并把 root `SceneManager` 注入
+  GameFlow。通过 RED `report_399`/`report_404`、GREEN `report_405` `4/4`、
+  相关回归 `report_406` `24/24`、Godot headless smoke、Godot MCP runtime
+  savepoint/fallback/boss probe、clean logs 与截图验证。截图：
+  `reports/visual/cinderpaw-mcp-savepoint-respawn-selection-20260625.png`。
 - Save System Story 005: Async Write Performance Budget —
   `SaveSystem` 默认启用异步 slot 写入，新增 pending/dispatch 诊断、
   `on_save_write_failed(slot, reason)`、单写入锁、主线程完成轮询、
@@ -365,14 +374,12 @@
 - Consistency check: found 1 conflict + 1 stale reference, both fixed
 
 ## Next Steps
-1. Death & Respawn Story 004 — Savepoint Respawn Selection（使用已完成的
-   SaveSystem API，仍需 SceneManagement/respawn 接线决策）
+1. SceneManager integration — 标准化 title/continue/load scene handoff 与
+   runtime state restore 边界。
 2. Visual/animation polish — 按 AGENTS Godot 2D 帧动画规则审计玩家可见
    方块/单帧占位，优先用 image generation 生成透明帧并接入
-   `AnimatedSprite2D + SpriteFrames`
-3. SceneManager integration — 标准化 title/continue/load scene handoff 与
-   runtime state restore 边界
-4. Gameplay runtime gap — advanced combat input wiring and Rat King runtime boss encounter
+   `AnimatedSprite2D + SpriteFrames`。
+3. Gameplay runtime gap — advanced combat input wiring and Rat King runtime boss encounter。
 
 ## Key Decisions Made (this session)
 - HP恢复：存档点回满+道具回复，无被动回复（维持紧张感）
