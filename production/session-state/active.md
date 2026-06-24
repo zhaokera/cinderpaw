@@ -217,6 +217,15 @@
 - Story: production/epics/data-manager/story-003-domain-cache.md — DomainCache + 核心查询接口 + 懒加载
 - Review: Local code review passed against ADR-0003, ADR-0001, control manifest, GDD TR-data-002/TR-data-007, and data-unit test evidence. No blocking deviations found. Full specialist subagent gates were not spawned because the active tool policy requires an explicit user request for subagents.
 - Tests: Story 003 7/7 passing; full `tests/unit/data` 43/43 passing; `godot --headless --path . --quit` passing; `git diff --check` passing.
+
+## Session Extract — Combat Presentation Textured VFX 2026-06-24
+- Story: production/epics/combat-presentation/story-001-textured-hit-spark-enemy-debris.md — Textured Hit Spark + Enemy Debris Slice
+- Status: Complete (implementation + tests + Godot MCP runtime evidence)
+- Files changed: src/presentation/combat_presentation.gd, tests/unit/presentation/combat_presentation_test.gd, assets/generated/combat_hit_spark.png, assets/generated/combat_enemy_debris.png, design/assets/asset-manifest.md, combat-presentation epic/story/evidence docs
+- Implementation: image-generated hit spark and enemy debris transparent PNGs imported through Godot; CombatPresentation now spawns textured Sprite2D VFX for hit sparks and kill debris instead of ColorRect blocks.
+- TDD evidence: RED failed on missing textured Sprite2D VFX and existing ColorRect spark blocks; GREEN focused presentation suite 6/6 passing.
+- Runtime evidence: Godot MCP `cinderpaw@c4d7` launched main.tscn, game_eval reported 30 textured Sprite2D VFX and 0 ColorRect VFX; screenshot saved at reports/visual/cinderpaw-mcp-textured-combat-vfx-20260624.png.
+- Next: implement parry flash and claw slash trail VFX from combat-presentation GDD.
 - Tech debt logged: None
 
 ## Session Extract — Weapon Story 004 2026-06-24

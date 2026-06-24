@@ -46,7 +46,7 @@ All new visual assets in this inventory should be produced from image2 / image g
 | # | Name | Description | Source | Status |
 |---|------|-------------|--------|--------|
 | 1 | Claw Slash Trail | Cat-eye gold/white slash arc for default attacks, clear direction and timing. | design/gdd/feline-combat.md; design/art/art-bible.md | Needed |
-| 2 | Hit Spark | White flash and red threat spark for confirmed hits. | design/gdd/combat-presentation.md; design/gdd/health-death.md | Needed |
+| 2 | Hit Spark | White flash and red threat spark for confirmed hits. | design/gdd/combat-presentation.md; design/gdd/health-death.md | Implemented |
 | 3 | Perfect Crit Spark | Cat-eye gold burst for perfect timing and rare reward feedback. | design/gdd/damage-calculation.md; design/art/art-bible.md | Needed |
 | 4 | Parry Flash | Brief white/gold defensive flash with safe-color readability. | design/gdd/feline-combat.md; design/gdd/health-death.md | Needed |
 | 5 | Dodge Afterimage | 2-3 frame translucent player afterimage, gold variant for perfect dodge. | design/art/art-bible.md; design/gdd/feline-combat.md | Needed |
@@ -57,6 +57,7 @@ All new visual assets in this inventory should be produced from image2 / image g
 | 10 | Revive Ring | Cat-eye gold ring expanding from respawn location. | design/gdd/death-respawn.md | Needed |
 | 11 | Status Effect Particles | Poison, stun, slow, speed boost, damage boost, and invincible visual overlays. | design/gdd/status-effects.md | Needed |
 | 12 | Damage Numbers | Pixel numeric popups with crit and normal variants. | design/gdd/damage-calculation.md; design/gdd/combat-presentation.md | Needed |
+| 13 | Enemy Death Debris | Enemy-color fragment burst for kill feedback. | design/gdd/combat-presentation.md; design/art/art-bible.md | Implemented |
 
 ## UI Screens
 
