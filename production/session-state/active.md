@@ -1,10 +1,22 @@
 # Active Session State
 
 ## Current Task
-- 持续实现 Cinderpaw 垂直切片；最近完成 Save System Story 003
-  Autosave Trigger Adapters
+- 持续实现 Cinderpaw 垂直切片；最近完成 Save System Story 004
+  MainScene SaveSystem Runtime Handoff
 
 ## Last Completed Task
+- Save System Story 004: MainScene SaveSystem Runtime Handoff —
+  `MainScene` 现在可配置 SaveSystem-like runtime service，注册 `main_scene`
+  serializable payload，提供 JSON-safe `player_state/world_state/settings`
+  快照，手动 slot 1-3 保存通过 `SaveSystem.manual_save()`，加载通过
+  `SaveSystem.load_game()` + `get_last_loaded_data()` 回灌玩家 HP/位置、货币、
+  武器、world flags 与 HUD settings；Boss 击败路径通过既有
+  `SaveTriggerAdapter` 写 slot 0 autosave 并记录
+  `autosave_reason="boss_defeat"` / `boss_id="shadow_beast"`；通过 Story004
+  RED/GREEN、Save Story001-004 聚焦回归、MainScene gameplay 聚焦回归、
+  Godot headless smoke 与 Godot MCP runtime game_eval 验证。`TR-save-007`
+  的 Thread 异步写入仍作为后续 SaveSystem performance follow-up，不在本
+  Story 虚报完成
 - Save System Story 003: Autosave Trigger Adapters —
   新增 `SaveTriggerAdapter` Feature 节点，将存档点、Boss 击败、关键事件、
   场景切换信号接到 `SaveSystem.auto_save()`；支持 snapshot provider、
@@ -49,6 +61,17 @@
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `src/gameplay/main_scene.gd` — Story004 MainScene SaveSystem runtime
+  handoff，新增 SaveSystem 注入、`main_scene` serializable 注册、
+  JSON-safe save snapshot、manual save/load runtime APIs、player/world/settings
+  restore，以及 boss defeat autosave adapter 接线
+- `tests/unit/save/story_004_main_scene_save_system_runtime_handoff_test.gd` —
+  TDD 覆盖手动 slot 1 save、MainScene snapshot、load runtime restore、
+  boss defeat slot 0 autosave 与 `autosave_reason`/context metadata
+- `production/epics/save-system/story-004-main-scene-save-system-runtime-handoff.md`,
+  `production/epics/save-system/EPIC.md`,
+  `production/qa/evidence/main-scene-save-system-runtime-handoff-2026-06-24.md` —
+  Story004 状态、Epic 下一步与 QA/Godot MCP 证据
 - `src/feature/save_trigger_adapter.gd` — Story003 autosave trigger adapter，
   支持 savepoint/boss/key-event/scene-change 信号绑定、直接 autosave trigger、
   snapshot provider、reason/context metadata 和成功/失败信号
@@ -143,9 +166,12 @@
 - Consistency check: found 1 conflict + 1 stale reference, both fixed
 
 ## Next Steps
-1. Save System Story 004 — MainScene SaveSystem Runtime Handoff
-2. HUD/UI Story 005 — Main Save/Load Menu Shell（SaveInfo 与 autosave trigger 已解锁槽位展示）
-3. Death & Respawn Story 004 — Savepoint Respawn Selection（仍需 SceneManagement/SaveSystem 后续接线）
+1. HUD/UI Story 005 — Main Save/Load Menu Shell（SaveInfo、manual runtime
+   save/load 与 autosave trigger 已解锁槽位展示）
+2. Save System performance follow-up — TR-save-007 Thread/async write hardening
+   与 100ms budget evidence
+3. Death & Respawn Story 004 — Savepoint Respawn Selection（仍需
+   SceneManagement/SaveSystem 后续接线）
 4. Gameplay runtime gap — advanced combat input wiring and Rat King runtime boss encounter
 
 ## Key Decisions Made (this session)

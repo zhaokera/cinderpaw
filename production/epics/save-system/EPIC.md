@@ -41,7 +41,7 @@ on SaveSystem directly.
 | 001 | Save Slots + Backup JSON Pipeline | Integration | Complete | ADR-0008, ADR-0021 |
 | 002 | Version Migration + SaveInfo Metadata | Logic | Complete | ADR-0021 |
 | 003 | Autosave Trigger Adapters | Integration | Complete | ADR-0021 |
-| 004 | MainScene SaveSystem Runtime Handoff | Integration | Planned | ADR-0001, ADR-0021 |
+| 004 | MainScene SaveSystem Runtime Handoff | Integration | Complete | ADR-0001, ADR-0021 |
 
 ## Definition of Done
 
@@ -57,5 +57,5 @@ This epic is complete when:
 
 ## Next Step
 
-Implement Story 004 MainScene SaveSystem Runtime Handoff, then connect
-save/load presentation through HUD/UI Story 005.
+Connect save/load presentation through HUD/UI Story 005. Keep threaded async
+write hardening as a later SaveSystem performance follow-up for TR-save-007.

@@ -9,6 +9,10 @@ extends Node2D
 
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 const RUNTIME_DAMAGE_CALCULATOR_ADAPTER_SCRIPT: Script = preload("res://src/gameplay/runtime_damage_calculator_adapter.gd")
+const SAVE_TRIGGER_ADAPTER_SCRIPT: Script = preload("res://src/feature/save_trigger_adapter.gd")
+const MAIN_SCENE_SAVE_KEY: StringName = &"main_scene"
+const MAIN_SCENE_ID: String = "main"
+const SHADOW_BEAST_ID: String = "shadow_beast"
 
 var _pause_menu_active: bool = false
 var _currency_amount: int = 0
@@ -20,6 +24,9 @@ var _world_progress_flags: Dictionary = {}
 var _weapon_component: WeaponComponent = null
 var _damage_calculator_adapter: Object = null
 var _last_player_hit_metadata: Dictionary = {}
+var _save_system: Object = null
+var _registered_save_system: Object = null
+var _save_trigger_adapter: SaveTriggerAdapter = null
 
 
 func _ready() -> void:
@@ -47,7 +54,12 @@ func _ready() -> void:
 	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), 1, "Shadow Beast")
 	_hud.update_currency(_currency_amount)
 	_update_weapon_hud()
+	configure_save_system_runtime(get_node_or_null("/root/SaveSystem"))
 	_hud.show_notification("Hunt the shadow beast", 2.0)
+
+
+func _exit_tree() -> void:
+	_unregister_main_scene_from_save_system()
 
 
 func _process(_delta: float) -> void:
@@ -95,6 +107,10 @@ func _on_enemy_health_changed(current_hp: int, max_hp: int) -> void:
 func _on_enemy_defeated() -> void:
 	_combat_presentation.on_kill_event(2, _enemy.global_position + Vector2(0, -24))
 	_game_flow.handle_enemy_defeated()
+	set_world_progress_flag(&"boss_shadow_beast_defeated", true)
+	_trigger_runtime_autosave(&"boss_defeat", {
+		"boss_id": SHADOW_BEAST_ID,
+	})
 
 
 func _on_respawn_requested(respawn_position: Vector2, revive_hp_percentage: float) -> void:
@@ -234,6 +250,90 @@ func get_runtime_progress_state() -> Dictionary:
 	return capture_no_loss_state()
 
 
+## Configures the SaveSystem handoff used by runtime save/load and autosave triggers.
+func configure_save_system_runtime(save_system: Object) -> bool:
+	_unregister_main_scene_from_save_system()
+	_save_system = save_system
+	if not _is_valid_save_system(_save_system):
+		return false
+	if not _ensure_save_trigger_adapter():
+		return false
+	if _save_system.has_method("register_serializable"):
+		var registered: bool = bool(_save_system.call(
+			"register_serializable",
+			self,
+			MAIN_SCENE_SAVE_KEY
+		))
+		if not registered:
+			return false
+		_registered_save_system = _save_system
+	_save_trigger_adapter.configure(_save_system, capture_save_snapshot)
+	return true
+
+
+## Captures JSON-safe player, world, and settings state for SaveSystem.
+func capture_save_snapshot() -> Dictionary:
+	return {
+		"player_state": _capture_player_state(),
+		"world_state": _capture_world_state(),
+		"settings": _hud.capture_settings_state(),
+	}
+
+
+## Restores MainScene from a SaveSystem-compatible runtime snapshot.
+func restore_save_snapshot(snapshot: Dictionary) -> void:
+	var player_state: Dictionary = Dictionary(snapshot.get("player_state", {}))
+	var world_state: Dictionary = Dictionary(snapshot.get("world_state", {}))
+	var settings: Dictionary = Dictionary(snapshot.get("settings", {}))
+	_restore_player_state(player_state)
+	_restore_runtime_progress_state(player_state, world_state, settings)
+
+
+## Writes a manual runtime save through SaveSystem slots 1-3.
+func save_runtime_to_slot(slot: int) -> bool:
+	if (
+		not _is_valid_save_system(_save_system)
+		and not configure_save_system_runtime(get_node_or_null("/root/SaveSystem"))
+	):
+		return false
+	if not _save_system.has_method("manual_save"):
+		return false
+	var snapshot: Dictionary = capture_save_snapshot()
+	return bool(_save_system.call(
+		"manual_save",
+		slot,
+		Dictionary(snapshot.get("player_state", {})),
+		Dictionary(snapshot.get("world_state", {})),
+		Dictionary(snapshot.get("settings", {}))
+	))
+
+
+## Loads a runtime save and applies the loaded MainScene state.
+func load_runtime_from_slot(slot: int) -> bool:
+	if (
+		not _is_valid_save_system(_save_system)
+		and not configure_save_system_runtime(get_node_or_null("/root/SaveSystem"))
+	):
+		return false
+	if not _save_system.has_method("load_game") or not _save_system.has_method("get_last_loaded_data"):
+		return false
+	if not bool(_save_system.call("load_game", slot)):
+		return false
+	var loaded: Dictionary = Dictionary(_save_system.call("get_last_loaded_data"))
+	restore_save_snapshot(loaded)
+	return true
+
+
+## Serializes MainScene as a registered SaveSystem payload.
+func serialize() -> Dictionary:
+	return capture_save_snapshot()
+
+
+## Deserializes MainScene when SaveSystem loads registered systems.
+func deserialize(data: Dictionary, _version: int = 1) -> void:
+	restore_save_snapshot(data)
+
+
 func set_battle_summary_enabled(enabled: bool) -> void:
 	_hud.set_battle_summary_enabled(enabled)
 
@@ -270,6 +370,141 @@ func get_weapon_hud_text() -> String:
 
 func get_last_player_hit_metadata() -> Dictionary:
 	return _last_player_hit_metadata.duplicate(true)
+
+
+func _capture_player_state() -> Dictionary:
+	var progress: Dictionary = capture_no_loss_state()
+	var weapon_state: Dictionary = Dictionary(progress.get("weapons", {}))
+	return {
+		"scene_id": MAIN_SCENE_ID,
+		"position": _vector2_to_dictionary(_player.global_position),
+		"current_hp": _player.get_current_hp(),
+		"max_hp": _player.get_max_hp(),
+		"current_weapon": String(weapon_state.get("current_weapon", String(_current_weapon_id))),
+		"acquired_weapons": Array(
+			weapon_state.get("acquired", _string_names_to_strings(_acquired_weapons))
+		).duplicate(true),
+		"weapon_levels": Dictionary(weapon_state.get("levels", _weapon_levels)).duplicate(true),
+		"currency": int(progress.get("currency", _currency_amount)),
+		"inventory": Array(progress.get("inventory", _string_names_to_strings(_inventory_items))).duplicate(true),
+	}
+
+
+func _capture_world_state() -> Dictionary:
+	return {
+		"scene_id": MAIN_SCENE_ID,
+		"defeated_bosses": _get_defeated_bosses(),
+		"world_flags": _world_progress_flags.duplicate(true),
+	}
+
+
+func _restore_player_state(player_state: Dictionary) -> void:
+	_player.global_position = _read_vector2_dictionary(
+		player_state.get("position", _vector2_to_dictionary(_player.global_position)),
+		_player.global_position
+	)
+	_player.velocity = Vector2.ZERO
+	var max_hp: int = maxi(1, _read_int(player_state.get("max_hp", _player.get_max_hp()), _player.get_max_hp()))
+	var current_hp: int = clampi(
+		_read_int(player_state.get("current_hp", _player.get_current_hp()), _player.get_current_hp()),
+		0,
+		max_hp
+	)
+	var health: HealthComponent = _player.get_node_or_null("HealthComponent") as HealthComponent
+	if health != null:
+		health.deserialize({
+			"version": 1,
+			"entity_id": 1,
+			"base_hp": max_hp,
+			"skill_hp_flat": 0,
+			"charm_hp_flat": 0,
+			"current_hp": current_hp,
+			"max_hp": max_hp,
+			"shield": 0,
+			"max_shield": 0,
+			"state": "alive" if current_hp > 0 else "dead",
+			"focus_mode_enabled": true,
+			"focus_mode_active": false,
+		}, 1)
+	_hud.update_hp(_player.get_current_hp(), _player.get_max_hp())
+
+
+func _restore_runtime_progress_state(player_state: Dictionary, world_state: Dictionary, settings: Dictionary) -> void:
+	restore_no_loss_state({
+		"currency": _read_int(player_state.get("currency", _currency_amount), _currency_amount),
+		"inventory": Array(player_state.get("inventory", _string_names_to_strings(_inventory_items))).duplicate(true),
+		"weapons": {
+			"current_weapon": String(player_state.get("current_weapon", String(_current_weapon_id))),
+			"acquired": Array(
+				player_state.get("acquired_weapons", _string_names_to_strings(_acquired_weapons))
+			).duplicate(true),
+			"levels": Dictionary(player_state.get("weapon_levels", _weapon_levels)).duplicate(true),
+		},
+		"settings": settings.duplicate(true),
+		"world_flags": Dictionary(world_state.get("world_flags", _world_progress_flags)).duplicate(true),
+	})
+	var defeated_bosses: Variant = world_state.get("defeated_bosses", [])
+	if defeated_bosses is Array:
+		for boss_id: Variant in defeated_bosses:
+			set_world_progress_flag(StringName("boss_%s_defeated" % String(boss_id)), true)
+
+
+func _trigger_runtime_autosave(reason: StringName, context: Dictionary) -> bool:
+	if _save_trigger_adapter == null:
+		return false
+	return _save_trigger_adapter.trigger_auto_save(reason, context)
+
+
+func _ensure_save_trigger_adapter() -> bool:
+	var existing: Node = get_node_or_null("SaveTriggerAdapter")
+	if existing is SaveTriggerAdapter:
+		_save_trigger_adapter = existing as SaveTriggerAdapter
+		return true
+	if _save_trigger_adapter != null and is_instance_valid(_save_trigger_adapter):
+		return true
+	_save_trigger_adapter = SAVE_TRIGGER_ADAPTER_SCRIPT.new() as SaveTriggerAdapter
+	if _save_trigger_adapter == null:
+		return false
+	_save_trigger_adapter.name = "SaveTriggerAdapter"
+	add_child(_save_trigger_adapter)
+	return true
+
+
+func _is_valid_save_system(save_system: Object) -> bool:
+	return save_system != null and is_instance_valid(save_system) and save_system.has_method("manual_save")
+
+
+func _unregister_main_scene_from_save_system() -> void:
+	if _registered_save_system == null or not is_instance_valid(_registered_save_system):
+		_registered_save_system = null
+		return
+	if _registered_save_system.has_method("unregister_serializable"):
+		_registered_save_system.call("unregister_serializable", MAIN_SCENE_SAVE_KEY)
+	_registered_save_system = null
+
+
+func _get_defeated_bosses() -> Array[String]:
+	var defeated: Array[String] = []
+	if bool(_world_progress_flags.get("boss_shadow_beast_defeated", false)):
+		defeated.append(SHADOW_BEAST_ID)
+	return defeated
+
+
+func _vector2_to_dictionary(value: Vector2) -> Dictionary:
+	return {
+		"x": value.x,
+		"y": value.y,
+	}
+
+
+func _read_vector2_dictionary(value: Variant, fallback: Vector2) -> Vector2:
+	if not value is Dictionary:
+		return fallback
+	var data: Dictionary = Dictionary(value)
+	return Vector2(
+		float(data.get("x", fallback.x)),
+		float(data.get("y", fallback.y))
+	)
 
 
 func _setup_weapon_component() -> void:
