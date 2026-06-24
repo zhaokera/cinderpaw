@@ -3,13 +3,27 @@
 ## Current Task
 - Save System、Death & Respawn、SceneManagement Story002 title/continue/load
   handoff、SceneManagement Story003 async load request lifecycle + timeout
-  fallback、SceneManagement Story004 transition loading UI shell 已完成；下一步按
-  GDD/架构/Epic 状态推进 SceneManager real scene-tree swap、deferred
-  unload/cache、fast travel、loading audio fades、memory-budget verification，
-  以及玩家可见角色/敌人帧动画持续审计。继续执行 TDD + Godot MCP 运行态验证，
+  fallback、SceneManagement Story004 transition loading UI shell、
+  SceneManagement Story005 runtime scene-tree swap ownership 已完成；下一步按
+  GDD/架构/Epic 状态推进 SceneManager deferred unload/cache、fast travel、
+  loading audio fades、memory-budget verification，以及玩家可见角色/敌人帧动画持续审计。
+  继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Scene Management Story 005: Runtime Scene-Tree Swap Ownership —
+  `SceneManager` 现在可配置 runtime scene root，async load 完成且 1.5 秒
+  transition gate 满足后会实例化 loaded `PackedScene` 并挂到该 root，先完成
+  runtime tree swap 再发 `on_scene_loaded` / `on_scene_changed`；旧 runtime scene
+  会从 root detach 并作为 previous reference 保留给后续 deferred-unload/cache
+  Story；切换前通过 `get_local_state()` 保存当前 scene-local state，切换后通过
+  `set_local_state()` 恢复目标缓存状态。invalid loaded resource 现在走
+  `invalid_packed_scene` failure，不再逻辑回 hub，避免 runtime tree 与 logical
+  scene/spawn 不一致。通过 RED `report_424`、行为 RED `report_425`、诊断 RED
+  `report_429`、GREEN focused `report_430` `4/4`、相关回归 `report_431`
+  `60/60`、headless smoke、Godot MCP success/failure runtime probes、clean logs
+  与截图验证。QA evidence:
+  `production/qa/evidence/runtime-scene-tree-swap-2026-06-25.md`。
 - Scene Management Story 004: Transition Loading UI Shell — `SceneManager`
   现在在 async request accepted 后 emits
   `on_scene_load_started(scene_id, spawn_point, metadata)`；`HUDManager`

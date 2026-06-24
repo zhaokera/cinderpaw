@@ -2,8 +2,9 @@
 ##
 ## Story001 intentionally provides logical scene IDs, spawn tracking, scene-state
 ## caching, and boss-lock semantics. Story003 adds a threaded load request
-## lifecycle with transition timing and timeout fallback while still keeping
-## real scene-tree swapping for a later slice.
+## lifecycle with transition timing and timeout fallback. Story005 adds the
+## optional runtime scene-root ownership seam that turns loaded PackedScenes into
+## real scene-tree swaps when a scene root is configured.
 extends Node
 
 signal on_scene_loaded(scene_id: StringName)
@@ -39,6 +40,9 @@ var _transition_elapsed_seconds: float = 0.0
 var _load_retry_count: int = 0
 var _last_load_error: StringName = &""
 var _loader_adapter: Object = null
+var _runtime_scene_root: Node = null
+var _current_runtime_scene: Node = null
+var _previous_runtime_scene: Node = null
 
 
 func _ready() -> void:
@@ -137,6 +141,43 @@ func change_scene(scene_id: StringName, spawn_point: StringName = DEFAULT_SPAWN_
 ## ResourceLoader-backed production behavior.
 func set_loader_adapter(adapter: Object = null) -> void:
 	_loader_adapter = adapter
+
+
+## Configures the root that owns runtime scene instances. Passing the current
+## scene node lets SceneManager save/detach it on the next async swap.
+func configure_runtime_scene_root(root: Node, current_scene_node: Node = null) -> bool:
+	if root == null or not is_instance_valid(root):
+		return false
+	if current_scene_node != null:
+		if not is_instance_valid(current_scene_node):
+			return false
+		if current_scene_node.get_parent() != root:
+			return false
+
+	_runtime_scene_root = root
+	_current_runtime_scene = current_scene_node
+	if _current_runtime_scene == null and root.get_child_count() > 0:
+		_current_runtime_scene = root.get_child(0)
+	_previous_runtime_scene = null
+	return true
+
+
+func is_runtime_scene_swap_enabled() -> bool:
+	return _is_runtime_scene_swap_enabled()
+
+
+func get_runtime_scene_root_node() -> Node:
+	if _is_runtime_scene_swap_enabled():
+		return _runtime_scene_root
+	return null
+
+
+func get_current_runtime_scene_node() -> Node:
+	return _get_valid_current_runtime_scene()
+
+
+func get_previous_runtime_scene_node() -> Node:
+	return _get_valid_previous_runtime_scene()
 
 
 ## Starts an asynchronous scene load request without immediately committing the
@@ -327,7 +368,20 @@ func _select_initial_scene_id() -> StringName:
 func _finish_pending_load() -> void:
 	var scene_id: StringName = _pending_scene_id
 	var spawn_point: StringName = _pending_spawn_point
-	_get_loaded_resource(_pending_scene_path)
+	var loaded_resource: Resource = _get_loaded_resource(_pending_scene_path)
+	if _is_runtime_scene_swap_enabled():
+		if not loaded_resource is PackedScene:
+			_fail_pending_load(&"invalid_packed_scene", false)
+			return
+		var packed_scene: PackedScene = loaded_resource as PackedScene
+		var new_runtime_scene: Node = packed_scene.instantiate()
+		if new_runtime_scene == null:
+			_fail_pending_load(&"instantiate_failed", false)
+			return
+		if not _swap_runtime_scene(scene_id, new_runtime_scene):
+			new_runtime_scene.queue_free()
+			_fail_pending_load(&"scene_swap_failed", false)
+			return
 	_reset_pending_load()
 	_commit_logical_scene(scene_id, spawn_point)
 
@@ -343,12 +397,13 @@ func _handle_load_timeout() -> void:
 	_fail_pending_load(&"timeout")
 
 
-func _fail_pending_load(reason: StringName) -> void:
+func _fail_pending_load(reason: StringName, fallback_to_default: bool = true) -> void:
 	var failed_scene_id: StringName = _pending_scene_id
 	_last_load_error = reason
 	_reset_pending_load(false)
 	on_scene_load_failed.emit(failed_scene_id, reason)
-	_fallback_to_default_scene()
+	if fallback_to_default:
+		_fallback_to_default_scene()
 
 
 func _fallback_to_default_scene() -> void:
@@ -403,6 +458,63 @@ func _get_loaded_resource(path: String) -> Resource:
 			return loaded_variant as Resource
 		return null
 	return ResourceLoader.load_threaded_get(path)
+
+
+func _swap_runtime_scene(scene_id: StringName, new_runtime_scene: Node) -> bool:
+	if not _is_runtime_scene_swap_enabled():
+		return true
+	if new_runtime_scene == null or not is_instance_valid(new_runtime_scene):
+		return false
+
+	_save_current_runtime_scene_state()
+	var old_runtime_scene: Node = _get_valid_current_runtime_scene()
+	if old_runtime_scene != null and old_runtime_scene.get_parent() == _runtime_scene_root:
+		_runtime_scene_root.remove_child(old_runtime_scene)
+		_previous_runtime_scene = old_runtime_scene
+	else:
+		_previous_runtime_scene = null
+
+	_runtime_scene_root.add_child(new_runtime_scene)
+	_current_runtime_scene = new_runtime_scene
+	_restore_runtime_scene_state(scene_id, new_runtime_scene)
+	return true
+
+
+func _save_current_runtime_scene_state() -> void:
+	var current_scene: Node = _get_valid_current_runtime_scene()
+	if current_scene == null or _current_scene_id == &"":
+		return
+	if not current_scene.has_method("get_local_state"):
+		return
+	var state_variant: Variant = current_scene.call("get_local_state")
+	if state_variant is Dictionary:
+		_scene_states[_current_scene_id] = Dictionary(state_variant).duplicate(true)
+
+
+func _restore_runtime_scene_state(scene_id: StringName, runtime_scene: Node) -> void:
+	if runtime_scene == null or not is_instance_valid(runtime_scene):
+		return
+	if not runtime_scene.has_method("set_local_state"):
+		return
+	if not _scene_states.has(scene_id):
+		return
+	runtime_scene.call("set_local_state", Dictionary(_scene_states[scene_id]).duplicate(true))
+
+
+func _is_runtime_scene_swap_enabled() -> bool:
+	return _runtime_scene_root != null and is_instance_valid(_runtime_scene_root)
+
+
+func _get_valid_current_runtime_scene() -> Node:
+	if _current_runtime_scene != null and is_instance_valid(_current_runtime_scene):
+		return _current_runtime_scene
+	return null
+
+
+func _get_valid_previous_runtime_scene() -> Node:
+	if _previous_runtime_scene != null and is_instance_valid(_previous_runtime_scene):
+		return _previous_runtime_scene
+	return null
 
 
 func _resolve_spawn_point(scene_id: StringName, spawn_point: StringName) -> StringName:
