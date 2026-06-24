@@ -1,10 +1,24 @@
 # Active Session State
 
 ## Current Task
-- 持续实现 Cinderpaw 垂直切片；最近完成 Combat Presentation Story 012
-  Particle Budget + Performance Guardrails
+- Combat Presentation Epic 已完成；下一步按 GDD/架构/Epic 状态选择剩余未完成
+  系统继续推进，优先从 `weapon-styles`、`save-system`、`death-respawn` 等仍为
+  In Progress 的 Epic 中选取下一条实现故事，并继续执行 TDD + Godot MCP
+  运行态验证。
 
 ## Last Completed Task
+- Combat Presentation Story 013: Weapon Style VFX Variants —
+  `CombatPresentation` 现在对普通 weapon attack-start 的 long-tail
+  `trail_blade`、fish-bone `wave_bone`、electro-bell `arc_bell` 生成
+  image-generated textured Sprite2D VFX；长尾为 1 个银色弧光、0.5s 生命周期，
+  鱼骨为 1 个白色波纹、0.3s 生命周期，电铃为 6 个蓝色电弧、0.4s 生命周期，
+  并全部进入 Story012 的 200 粒子 cap/FIFO eviction/性能诊断路径。
+  通过 RED `report_377`、GREEN focused `report_381` `35/35`、相关回归
+  `report_383` `47/47`、Godot headless smoke、Godot MCP 运行态三武器 probe、
+  clean logs 与截图验证。截图：
+  `reports/visual/cinderpaw-mcp-long-tail-vfx-20260624.png`,
+  `reports/visual/cinderpaw-mcp-fish-bone-vfx-20260624.png`,
+  `reports/visual/cinderpaw-mcp-electro-bell-vfx-20260624.png`。
 - Combat Presentation Story 012: Particle Budget + Performance Guardrails —
   `CombatPresentation` 现在对 hit sparks、kill debris、perfect parry sparks、
   猫爪 trails、dodge afterimages、Boss phase debris 使用统一 FIFO 粒子注册表，
@@ -128,12 +142,31 @@
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
-- `src/presentation/combat_presentation.gd` — Story012 particle budget cap、
-  FIFO eviction registry、active particle diagnostics 和 diagnostic performance
-  sample API。
-- `tests/unit/presentation/combat_presentation_test.gd` — Story012 TDD 覆盖
-  cap API、membership、oldest-first eviction、under-cap event counts、sample
-  frame clamp 和 sample no-mutation。
+- `production/epics/combat-presentation/story-013-weapon-style-vfx-variants.md`,
+  `production/qa/evidence/weapon-style-vfx-variants-2026-06-24.md`,
+  `design/assets/asset-manifest.md`, `production/epics/combat-presentation/EPIC.md`,
+  `production/epics/index.md`, `production/session-state/active.md` — Story013
+  生产文档、最终 QA/MCP 证据、image generation 素材来源/导入位置、Epic 完成状态和
+  下一步状态追踪。
+- `src/presentation/combat_presentation.gd` — Story013 weapon-style textured VFX：
+  long-tail `trail_blade`、fish-bone `wave_bone`、electro-bell `arc_bell`，
+  `get_weapon_vfx_snapshot()` 调试接口，以及 Story012 粒子 cap 集成。
+- `tests/unit/presentation/combat_presentation_test.gd`,
+  `tests/unit/gameplay/main_scene_player_attack_core_chain_test.gd` — Story013
+  TDD 覆盖三武器 VFX 数量、颜色、贴图、生命周期、粒子 cap 参与和 MainScene
+  attack-start 转发。
+- `assets/generated/combat_long_tail_arc_runtime.png`,
+  `assets/generated/combat_fish_bone_wave_runtime.png`,
+  `assets/generated/combat_electro_bell_arc_runtime.png`,
+  `assets/generated/source/combat_long_tail_arc_imagegen_20260624.png`,
+  `assets/generated/source/combat_fish_bone_wave_imagegen_20260624.png`,
+  `assets/generated/source/combat_electro_bell_arc_imagegen_20260624.png` —
+  Story013 image-generated 源图与 Godot runtime PNG。
+- `reports/combat_weapon_vfx_main_scene_smoke.log`,
+  `reports/visual/cinderpaw-mcp-long-tail-vfx-20260624.png`,
+  `reports/visual/cinderpaw-mcp-fish-bone-vfx-20260624.png`,
+  `reports/visual/cinderpaw-mcp-electro-bell-vfx-20260624.png` — Story013
+  headless smoke 与 MCP runtime screenshot evidence。
 - `production/epics/combat-presentation/story-012-particle-budget-performance-guardrails.md`,
   `production/epics/combat-presentation/EPIC.md`,
   `production/qa/evidence/particle-budget-performance-guardrails-2026-06-24.md` —

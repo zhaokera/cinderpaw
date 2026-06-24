@@ -3,8 +3,8 @@
 > **Layer**: Presentation
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
-> **Status**: In Progress
-> **Stories**: 12 stories tracked
+> **Status**: Complete
+> **Stories**: 13 stories tracked
 
 ## Overview
 
@@ -27,7 +27,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 |-------|-------------|--------------|
 | TR-combatfx-001 | Hitstop durations are selected by event type, and same-frame events take the maximum duration. | ADR-0002 partial |
 | TR-combatfx-002 | Screen shake intensity and duration are selected by event type, and same-frame events take the maximum intensity. | ADR-0002 partial |
-| TR-combatfx-003 | Particle system supports GDD particle types with a 200-particle performance cap. | ADR-0002 partial, Story012 cap; remaining particle families gap |
+| TR-combatfx-003 | Particle system supports GDD particle types with a 200-particle performance cap. | ADR-0002, Story012 cap, Story013 weapon family variants |
 | TR-combatfx-004 | Dodge, dash, and perfect parry support afterimage feedback modes. | ADR-0002 partial |
 | TR-combatfx-005 | Damage number size, color, and animation communicate damage tier. | ADR-0002 partial |
 | TR-combatfx-006 | Perfect parry, character hit, and enemy crit flash effects use authored durations and alpha. | ADR-0002 partial |
@@ -52,6 +52,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 010 | Boss Phase Visual Feedback | Visual/Feel | Complete | ADR-0002 |
 | 011 | Colorblind Combat VFX + Focus Shake Accessibility | Accessibility/Integration | Complete | ADR-0002 |
 | 012 | Particle Budget + Performance Guardrails | Logic/Performance | Complete | ADR-0002 |
+| 013 | Weapon Style VFX Variants | Visual/Feel | Complete | ADR-0002, ADR-0016 |
 
 ## Definition of Done
 
@@ -63,9 +64,10 @@ This epic is complete when:
 - Runtime evidence is captured through Godot MCP when available.
 - Particle counts and lifetimes stay within the GDD performance budget.
 
-## Next Step
+## Completion Evidence
 
-Continue with boss phase audio/HUD follow-up and remaining weapon presentation
-variants, including long-tail, fish-bone, and electro-bell VFX families.
-The epic stays In Progress until all feedback modes satisfy
-`design/gdd/combat-presentation.md`.
+Combat Presentation has all 13 tracked stories complete. Story013 closes the
+remaining weapon presentation variants for long-tail `trail_blade`, fish-bone
+`wave_bone`, and electro-bell `arc_bell`; final GdUnit, headless smoke, Godot
+MCP runtime probe, clean-log, and screenshot evidence is recorded in
+`production/qa/evidence/weapon-style-vfx-variants-2026-06-24.md`.

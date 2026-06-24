@@ -15,6 +15,9 @@ const DEBRIS_LIFETIME_SEC: float = 1.0
 const PARRY_SPARK_LIFETIME_SEC: float = 0.8
 const PARRY_FLASH_LIFETIME_SEC: float = 8.0 / 60.0
 const CLAW_TRAIL_LIFETIME_SEC: float = 0.4
+const LONG_TAIL_ARC_LIFETIME_SEC: float = 0.5
+const FISH_BONE_WAVE_LIFETIME_SEC: float = 0.3
+const ELECTRO_BELL_ARC_LIFETIME_SEC: float = 0.4
 const DODGE_AFTERIMAGE_LIFETIME_SEC: float = 0.35
 const BOSS_PHASE_HITSTOP_FRAMES: int = 4
 const BOSS_PHASE_SHAKE_INTENSITY: float = 6.0
@@ -27,6 +30,9 @@ const CRIT_SPARK_COUNT: int = 12
 const KILL_DEBRIS_COUNT: int = 18
 const PERFECT_PARRY_SPARK_COUNT: int = 22
 const CLAW_TRAIL_COUNT: int = 3
+const LONG_TAIL_ARC_COUNT: int = 1
+const FISH_BONE_WAVE_COUNT: int = 1
+const ELECTRO_BELL_ARC_COUNT: int = 6
 const BOSS_PHASE_DEBRIS_COUNT: int = 32
 const MAX_ACTIVE_PARTICLES: int = 200
 const PARTICLE_FRAME_BUDGET_MS: float = 2.0
@@ -46,6 +52,9 @@ const SPARK_COLOR: Color = Color(1.0, 0.94, 0.76, 1.0)
 const DEBRIS_COLOR: Color = Color(0.78, 0.18, 0.16, 1.0)
 const PARRY_SPARK_COLOR: Color = Color(1.0, 0.96, 0.72, 1.0)
 const CLAW_TRAIL_COLOR: Color = Color(1.0, 0.9, 0.48, 1.0)
+const LONG_TAIL_ARC_COLOR: Color = Color("#DDE8F2")
+const FISH_BONE_WAVE_COLOR: Color = Color("#F8F4E8")
+const ELECTRO_BELL_ARC_COLOR: Color = Color("#38BDF8")
 const DODGE_AFTERIMAGE_COLOR: Color = Color.WHITE
 const BOSS_PHASE_DEBRIS_COLOR: Color = Color("#6B8A9E")
 const BOSS_PHASE_OVERLOAD_DEBRIS_COLOR: Color = Color("#E53E3E")
@@ -66,13 +75,23 @@ const HIT_SPARK_TEXTURE: Texture2D = preload("res://assets/generated/combat_hit_
 const ENEMY_DEBRIS_TEXTURE: Texture2D = preload("res://assets/generated/combat_enemy_debris.png")
 const PARRY_SPARK_TEXTURE: Texture2D = preload("res://assets/generated/combat_parry_spark.png")
 const PARRY_FLASH_TEXTURE: Texture2D = preload("res://assets/generated/combat_parry_flash_overlay.png")
+const CLAW_TRAIL_TEXTURE_PATH: String = "res://assets/generated/combat_claw_trail.png"
 const CLAW_TRAIL_TEXTURE: Texture2D = preload("res://assets/generated/combat_claw_trail.png")
+const LONG_TAIL_ARC_TEXTURE_PATH: String = "res://assets/generated/combat_long_tail_arc_runtime.png"
+const LONG_TAIL_ARC_TEXTURE: Texture2D = preload("res://assets/generated/combat_long_tail_arc_runtime.png")
+const FISH_BONE_WAVE_TEXTURE_PATH: String = "res://assets/generated/combat_fish_bone_wave_runtime.png"
+const FISH_BONE_WAVE_TEXTURE: Texture2D = preload("res://assets/generated/combat_fish_bone_wave_runtime.png")
+const ELECTRO_BELL_ARC_TEXTURE_PATH: String = "res://assets/generated/combat_electro_bell_arc_runtime.png"
+const ELECTRO_BELL_ARC_TEXTURE: Texture2D = preload("res://assets/generated/combat_electro_bell_arc_runtime.png")
 const BOSS_PHASE_OVERLAY_TEXTURE_PATH: String = "res://assets/generated/combat_boss_phase_overlay.png"
 const BOSS_PHASE_OVERLAY_TEXTURE: Texture2D = preload("res://assets/generated/combat_boss_phase_overlay.png")
 const SPARK_SPRITE_SCALE: Vector2 = Vector2(0.16, 0.16)
 const DEBRIS_SPRITE_SCALE: Vector2 = Vector2(0.12, 0.12)
 const PARRY_SPARK_SPRITE_SCALE: Vector2 = Vector2(0.18, 0.18)
 const CLAW_TRAIL_SPRITE_SCALE: Vector2 = Vector2(0.34, 0.34)
+const LONG_TAIL_ARC_SPRITE_SCALE: Vector2 = Vector2(0.44, 0.44)
+const FISH_BONE_WAVE_SPRITE_SCALE: Vector2 = Vector2(0.40, 0.40)
+const ELECTRO_BELL_ARC_SPRITE_SCALE: Vector2 = Vector2(0.24, 0.24)
 const BOSS_PHASE_DEBRIS_SPRITE_SCALE: Vector2 = Vector2(0.14, 0.14)
 const DODGE_AFTERIMAGE_OFFSET_PX: float = 14.0
 
@@ -112,6 +131,9 @@ var _last_debris_color: Color = DEBRIS_COLOR
 var _last_parry_spark_color: Color = PARRY_SPARK_COLOR
 var _last_claw_trail_color: Color = CLAW_TRAIL_COLOR
 var _last_boss_phase_debris_color: Color = BOSS_PHASE_DEBRIS_COLOR
+var _last_weapon_vfx_color_by_weapon: Dictionary = {}
+var _last_weapon_vfx_lifetime_by_weapon: Dictionary = {}
+var _last_weapon_vfx_texture_path_by_weapon: Dictionary = {}
 
 
 func _process(delta: float) -> void:
@@ -199,11 +221,17 @@ func on_parry_event(parry_data: Dictionary) -> void:
 
 func on_weapon_attack_event(attack_data: Dictionary) -> void:
 	var weapon_id: StringName = StringName(String(attack_data.get("weapon_id", &"")))
-	if weapon_id != &"cat_claw":
-		return
 	var attack_position: Vector2 = _read_vector2(attack_data.get("attack_position", attack_data.get("position", Vector2.ZERO)))
 	var facing: float = _read_float(attack_data.get("facing", 1.0), 1.0)
-	_spawn_claw_trails(attack_position, facing)
+	match weapon_id:
+		&"cat_claw":
+			_spawn_claw_trails(attack_position, facing)
+		&"long_tail":
+			_spawn_long_tail_arc(attack_position, facing)
+		&"fish_bone":
+			_spawn_fish_bone_wave(attack_position)
+		&"electro_bell":
+			_spawn_electro_bell_arcs(attack_position, facing)
 
 
 func on_dodge_event(texture: Texture2D, world_position: Vector2, facing: float) -> void:
@@ -412,6 +440,17 @@ func get_last_claw_trail_color() -> Color:
 	return _last_claw_trail_color
 
 
+func get_weapon_vfx_snapshot(weapon_id: StringName) -> Dictionary:
+	var normalized_weapon_id: StringName = StringName(String(weapon_id))
+	return {
+		"weapon_id": normalized_weapon_id,
+		"count": _count_active_weapon_vfx(normalized_weapon_id),
+		"color": _last_weapon_vfx_color_by_weapon.get(normalized_weapon_id, Color.TRANSPARENT),
+		"lifetime_sec": float(_last_weapon_vfx_lifetime_by_weapon.get(normalized_weapon_id, 0.0)),
+		"texture_path": String(_last_weapon_vfx_texture_path_by_weapon.get(normalized_weapon_id, "")),
+	}
+
+
 func get_last_boss_phase_debris_color() -> Color:
 	return _last_boss_phase_debris_color
 
@@ -526,6 +565,7 @@ func _spawn_claw_trails(world_position: Vector2, facing: float) -> void:
 	var facing_sign: float = -1.0 if facing < 0.0 else 1.0
 	var trail_color: Color = _claw_trail_color()
 	_last_claw_trail_color = trail_color
+	_remember_weapon_vfx(&"cat_claw", trail_color, CLAW_TRAIL_LIFETIME_SEC, CLAW_TRAIL_TEXTURE_PATH)
 	for index: int in range(CLAW_TRAIL_COUNT):
 		var trail := _create_vfx_sprite(CLAW_TRAIL_TEXTURE, trail_color, CLAW_TRAIL_SPRITE_SCALE)
 		var row_offset: float = float(index - 1) * 8.0
@@ -543,6 +583,105 @@ func _spawn_claw_trails(world_position: Vector2, facing: float) -> void:
 			"node": trail,
 			"remaining": CLAW_TRAIL_LIFETIME_SEC,
 			"tween": tween,
+			"weapon_id": &"cat_claw",
+		})
+
+
+func _spawn_long_tail_arc(world_position: Vector2, facing: float) -> void:
+	var facing_sign: float = -1.0 if facing < 0.0 else 1.0
+	var arc_color: Color = _long_tail_arc_color()
+	_remember_weapon_vfx(&"long_tail", arc_color, LONG_TAIL_ARC_LIFETIME_SEC, LONG_TAIL_ARC_TEXTURE_PATH)
+	for _index: int in range(LONG_TAIL_ARC_COUNT):
+		var arc := _create_vfx_sprite(LONG_TAIL_ARC_TEXTURE, arc_color, LONG_TAIL_ARC_SPRITE_SCALE)
+		arc.position = world_position + Vector2(12.0 * facing_sign, -2.0)
+		arc.flip_h = facing_sign < 0.0
+		arc.rotation = -0.12 * facing_sign
+		arc.modulate.a = 0.92
+		arc.z_index = 84
+		add_child(arc)
+		var tween: Tween = create_tween()
+		tween.tween_property(
+			arc,
+			"position",
+			arc.position + Vector2(44.0 * facing_sign, -2.0),
+			LONG_TAIL_ARC_LIFETIME_SEC
+		)
+		tween.parallel().tween_property(
+			arc,
+			"rotation",
+			arc.rotation + 0.18 * facing_sign,
+			LONG_TAIL_ARC_LIFETIME_SEC
+		)
+		tween.parallel().tween_property(arc, "modulate:a", 0.0, LONG_TAIL_ARC_LIFETIME_SEC)
+		tween.tween_callback(arc.queue_free)
+		_register_particle_effect(_trails, {
+			"node": arc,
+			"remaining": LONG_TAIL_ARC_LIFETIME_SEC,
+			"tween": tween,
+			"weapon_id": &"long_tail",
+		})
+
+
+func _spawn_fish_bone_wave(world_position: Vector2) -> void:
+	var wave_color: Color = _fish_bone_wave_color()
+	_remember_weapon_vfx(&"fish_bone", wave_color, FISH_BONE_WAVE_LIFETIME_SEC, FISH_BONE_WAVE_TEXTURE_PATH)
+	for _index: int in range(FISH_BONE_WAVE_COUNT):
+		var wave := _create_vfx_sprite(FISH_BONE_WAVE_TEXTURE, wave_color, FISH_BONE_WAVE_SPRITE_SCALE)
+		wave.position = world_position + Vector2(0.0, 6.0)
+		wave.modulate.a = 0.88
+		wave.z_index = 83
+		add_child(wave)
+		var tween: Tween = create_tween()
+		tween.tween_property(
+			wave,
+			"scale",
+			FISH_BONE_WAVE_SPRITE_SCALE * 1.32,
+			FISH_BONE_WAVE_LIFETIME_SEC
+		)
+		tween.parallel().tween_property(wave, "modulate:a", 0.0, FISH_BONE_WAVE_LIFETIME_SEC)
+		tween.tween_callback(wave.queue_free)
+		_register_particle_effect(_trails, {
+			"node": wave,
+			"remaining": FISH_BONE_WAVE_LIFETIME_SEC,
+			"tween": tween,
+			"weapon_id": &"fish_bone",
+		})
+
+
+func _spawn_electro_bell_arcs(world_position: Vector2, facing: float) -> void:
+	var facing_sign: float = -1.0 if facing < 0.0 else 1.0
+	var arc_color: Color = _electro_bell_arc_color()
+	_remember_weapon_vfx(&"electro_bell", arc_color, ELECTRO_BELL_ARC_LIFETIME_SEC, ELECTRO_BELL_ARC_TEXTURE_PATH)
+	for index: int in range(ELECTRO_BELL_ARC_COUNT):
+		var angle: float = -0.9 + float(index) * (1.8 / float(maxi(1, ELECTRO_BELL_ARC_COUNT - 1)))
+		var outward: Vector2 = Vector2(facing_sign, 0.0).rotated(angle)
+		var arc := _create_vfx_sprite(ELECTRO_BELL_ARC_TEXTURE, arc_color, ELECTRO_BELL_ARC_SPRITE_SCALE)
+		arc.position = world_position + outward * (8.0 + float(index % 3) * 4.0)
+		arc.flip_h = facing_sign < 0.0
+		arc.rotation = outward.angle()
+		arc.modulate.a = 0.9
+		arc.z_index = 85
+		add_child(arc)
+		var tween: Tween = create_tween()
+		tween.tween_property(
+			arc,
+			"position",
+			arc.position + outward * (24.0 + float(index % 2) * 6.0),
+			ELECTRO_BELL_ARC_LIFETIME_SEC
+		)
+		tween.parallel().tween_property(
+			arc,
+			"rotation",
+			arc.rotation + 0.22 * facing_sign,
+			ELECTRO_BELL_ARC_LIFETIME_SEC
+		)
+		tween.parallel().tween_property(arc, "modulate:a", 0.0, ELECTRO_BELL_ARC_LIFETIME_SEC)
+		tween.tween_callback(arc.queue_free)
+		_register_particle_effect(_trails, {
+			"node": arc,
+			"remaining": ELECTRO_BELL_ARC_LIFETIME_SEC,
+			"tween": tween,
+			"weapon_id": &"electro_bell",
 		})
 
 
@@ -652,6 +791,26 @@ func _create_vfx_sprite(texture: Texture2D, color: Color, sprite_scale: Vector2)
 	sprite.scale = sprite_scale
 	sprite.modulate = color
 	return sprite
+
+
+func _remember_weapon_vfx(
+	weapon_id: StringName,
+	color: Color,
+	lifetime_sec: float,
+	texture_path: String
+) -> void:
+	var normalized_weapon_id: StringName = StringName(String(weapon_id))
+	_last_weapon_vfx_color_by_weapon[normalized_weapon_id] = color
+	_last_weapon_vfx_lifetime_by_weapon[normalized_weapon_id] = lifetime_sec
+	_last_weapon_vfx_texture_path_by_weapon[normalized_weapon_id] = texture_path
+
+
+func _count_active_weapon_vfx(weapon_id: StringName) -> int:
+	var count: int = 0
+	for effect: Dictionary in _trails:
+		if StringName(String(effect.get("weapon_id", &""))) == weapon_id:
+			count += 1
+	return count
 
 
 func _tick_effects(effects: Array[Dictionary], delta_sec: float) -> void:
@@ -823,6 +982,30 @@ func _claw_trail_color() -> Color:
 	if _colorblind_mode == COLORBLIND_BLUE_YELLOW:
 		return BY_EMPHASIS_COLOR
 	return CLAW_TRAIL_COLOR
+
+
+func _long_tail_arc_color() -> Color:
+	if _colorblind_mode == COLORBLIND_RED_GREEN:
+		return RG_BOSS_METAL_COLOR
+	if _colorblind_mode == COLORBLIND_BLUE_YELLOW:
+		return BY_PARRY_SPARK_COLOR
+	return LONG_TAIL_ARC_COLOR
+
+
+func _fish_bone_wave_color() -> Color:
+	if _colorblind_mode == COLORBLIND_RED_GREEN:
+		return RG_EMPHASIS_COLOR
+	if _colorblind_mode == COLORBLIND_BLUE_YELLOW:
+		return BY_PARRY_SPARK_COLOR
+	return FISH_BONE_WAVE_COLOR
+
+
+func _electro_bell_arc_color() -> Color:
+	if _colorblind_mode == COLORBLIND_RED_GREEN:
+		return RG_NORMAL_SPARK_COLOR
+	if _colorblind_mode == COLORBLIND_BLUE_YELLOW:
+		return BY_EMPHASIS_COLOR
+	return ELECTRO_BELL_ARC_COLOR
 
 
 func _debris_color() -> Color:

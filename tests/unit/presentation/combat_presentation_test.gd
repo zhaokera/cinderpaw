@@ -422,14 +422,100 @@ func test_cat_claw_attack_spawns_three_textured_slash_trails() -> void:
 	assert_bool(_all_sprite_children_have_textures()).is_true()
 
 
-func test_non_cat_claw_attack_does_not_spawn_claw_trails() -> void:
+func test_long_tail_attack_spawns_one_silver_textured_blade_arc() -> void:
 	presentation.on_weapon_attack_event({
 		"weapon_id": &"long_tail",
 		"attack_position": Vector2(100, 120),
 		"facing": 1,
 	})
 
-	assert_int(presentation.get_active_trail_count()).is_equal(0)
+	var snapshot: Dictionary = presentation.get_weapon_vfx_snapshot(&"long_tail")
+
+	assert_int(int(snapshot.get("count", 0))).is_equal(1)
+	assert_str(_color_html(snapshot.get("color", Color.TRANSPARENT))).is_equal("dde8f2")
+	assert_float(float(snapshot.get("lifetime_sec", 0.0))).is_equal_approx(0.5, 0.001)
+	assert_str(String(snapshot.get("texture_path", ""))).is_equal(
+		"res://assets/generated/combat_long_tail_arc_runtime.png"
+	)
+	assert_int(presentation.get_active_trail_count()).is_equal(1)
+	assert_int(_count_children_of_type("Sprite2D")).is_greater_equal(1)
+	assert_int(_count_descendants_of_type(presentation, "ColorRect")).is_equal(0)
+	assert_bool(_all_sprite_children_have_textures()).is_true()
+
+
+func test_fish_bone_attack_spawns_one_white_textured_shockwave() -> void:
+	presentation.on_weapon_attack_event({
+		"weapon_id": &"fish_bone",
+		"attack_position": Vector2(100, 120),
+		"facing": -1,
+	})
+
+	var snapshot: Dictionary = presentation.get_weapon_vfx_snapshot(&"fish_bone")
+
+	assert_int(int(snapshot.get("count", 0))).is_equal(1)
+	assert_str(_color_html(snapshot.get("color", Color.TRANSPARENT))).is_equal("f8f4e8")
+	assert_float(float(snapshot.get("lifetime_sec", 0.0))).is_equal_approx(0.3, 0.001)
+	assert_str(String(snapshot.get("texture_path", ""))).is_equal(
+		"res://assets/generated/combat_fish_bone_wave_runtime.png"
+	)
+	assert_int(presentation.get_active_trail_count()).is_equal(1)
+	assert_int(_count_children_of_type("Sprite2D")).is_greater_equal(1)
+	assert_int(_count_descendants_of_type(presentation, "ColorRect")).is_equal(0)
+	assert_bool(_all_sprite_children_have_textures()).is_true()
+
+
+func test_electro_bell_attack_spawns_blue_textured_arcs() -> void:
+	presentation.on_weapon_attack_event({
+		"weapon_id": &"electro_bell",
+		"attack_position": Vector2(100, 120),
+		"facing": 1,
+	})
+
+	var snapshot: Dictionary = presentation.get_weapon_vfx_snapshot(&"electro_bell")
+
+	assert_int(int(snapshot.get("count", 0))).is_between(5, 8)
+	assert_str(_color_html(snapshot.get("color", Color.TRANSPARENT))).is_equal("38bdf8")
+	assert_float(float(snapshot.get("lifetime_sec", 0.0))).is_equal_approx(0.4, 0.001)
+	assert_str(String(snapshot.get("texture_path", ""))).is_equal(
+		"res://assets/generated/combat_electro_bell_arc_runtime.png"
+	)
+	assert_int(presentation.get_active_trail_count()).is_between(5, 8)
+	assert_int(_count_children_of_type("Sprite2D")).is_greater_equal(
+		int(snapshot.get("count", 0))
+	)
+	assert_int(_count_descendants_of_type(presentation, "ColorRect")).is_equal(0)
+	assert_bool(_all_sprite_children_have_textures()).is_true()
+
+
+func test_weapon_specific_vfx_expire_at_gdd_lifetimes() -> void:
+	_assert_weapon_vfx_expires(&"long_tail", 1, 0.5)
+	_assert_weapon_vfx_expires(&"fish_bone", 1, 0.3)
+	_assert_weapon_vfx_expires(&"electro_bell", 6, 0.4)
+
+
+func test_weapon_specific_vfx_count_toward_particle_budget() -> void:
+	assert_bool(presentation.has_method("get_active_particle_count")).is_true()
+	if not presentation.has_method("get_active_particle_count"):
+		return
+
+	presentation.on_weapon_attack_event({
+		"weapon_id": &"long_tail",
+		"attack_position": Vector2(100, 120),
+		"facing": 1,
+	})
+	presentation.on_weapon_attack_event({
+		"weapon_id": &"fish_bone",
+		"attack_position": Vector2(140, 120),
+		"facing": 1,
+	})
+	presentation.on_weapon_attack_event({
+		"weapon_id": &"electro_bell",
+		"attack_position": Vector2(180, 120),
+		"facing": 1,
+	})
+
+	assert_int(presentation.get_active_trail_count()).is_equal(8)
+	assert_int(int(presentation.call("get_active_particle_count"))).is_equal(8)
 
 
 func test_dodge_event_spawns_three_textured_afterimages_with_gdd_alpha_steps() -> void:
@@ -746,6 +832,29 @@ func _all_texture_rect_descendants_have_textures(root: Node) -> bool:
 		if not _all_texture_rect_descendants_have_textures(child):
 			return false
 	return true
+
+
+func _assert_weapon_vfx_expires(
+	weapon_id: StringName,
+	expected_count: int,
+	lifetime_sec: float
+) -> void:
+	presentation.on_weapon_attack_event({
+		"weapon_id": weapon_id,
+		"attack_position": Vector2(100, 120),
+		"facing": 1,
+	})
+
+	var active_snapshot: Dictionary = presentation.get_weapon_vfx_snapshot(weapon_id)
+	assert_int(int(active_snapshot.get("count", 0))).is_equal(expected_count)
+
+	presentation.advance_time(lifetime_sec - 0.01)
+	var before_expire_snapshot: Dictionary = presentation.get_weapon_vfx_snapshot(weapon_id)
+	assert_int(int(before_expire_snapshot.get("count", 0))).is_equal(expected_count)
+
+	presentation.advance_time(0.03)
+	var expired_snapshot: Dictionary = presentation.get_weapon_vfx_snapshot(weapon_id)
+	assert_int(int(expired_snapshot.get("count", 0))).is_equal(0)
 
 
 func _latest_damage_label() -> Label:
