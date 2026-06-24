@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 6 stories tracked; future stories planned
+> **Stories**: 7 stories tracked; future stories planned
 
 ## Overview
 
@@ -20,6 +20,10 @@ shell. Story005 begins the real runtime scene-tree ownership path by
 instantiating loaded `PackedScene` resources into a configured scene root.
 Story006 closes the first memory-management slice by adding 3-second deferred
 runtime unload, cached quick-return reuse, and max-two resident enforcement.
+Story007 adds the fast-travel preload path: target scenes load behind a 2.0
+second portal gate, reuse deferred cached runtime scenes when available, and
+fall through the same timeout/runtime swap/deferred cache path as regular async
+scene changes.
 
 ## Governing ADRs
 
@@ -37,7 +41,7 @@ runtime unload, cached quick-return reuse, and max-two resident enforcement.
 | TR-scene-003 | Old scenes are deferred-unloaded after 3 seconds and no more than 2 scenes remain resident. | ADR-0007; Story005 keeps previous runtime scene reference after detach; Story006 deferred runtime unload/cache eviction |
 | TR-scene-004 | Scene-local state persists through `get_local_state()` / `set_local_state()` and save serialization. | ADR-0007; local dictionary cache in Story001; runtime scene capture/restore in Story005 |
 | TR-scene-005 | Boss arena locks scene switching during boss fights. | ADR-0007 |
-| TR-scene-006 | Fast travel preloads target scenes during its portal animation. | ADR-0007; future story |
+| TR-scene-006 | Fast travel preloads target scenes during its portal animation. | ADR-0007; Story007 |
 | TR-scene-007 | Scene loading stays under 2 seconds and memory under platform budgets. | ADR-0007; Story003 timing diagnostics partial; Story005 runtime swap seam; memory budget future |
 | TR-scene-008 | Scene load timeout retries once, then fails back to hub. | ADR-0007; Story003 |
 
@@ -51,6 +55,7 @@ runtime unload, cached quick-return reuse, and max-two resident enforcement.
 | 004 | Transition Loading UI Shell | Integration | Complete | ADR-0007 |
 | 005 | Runtime Scene-Tree Swap Ownership | Integration | Complete | ADR-0007 |
 | 006 | Deferred Unload + Runtime Cache Eviction | Integration | Complete | ADR-0007 |
+| 007 | Fast Travel Preload + Scene Change | Integration | Complete | ADR-0007 |
 
 ## Definition of Done
 
@@ -76,11 +81,14 @@ This epic is complete when:
 - Runtime scene-tree swaps keep the outgoing scene as a 3-second deferred cache,
   reuse it for quick returns without another `ResourceLoader` request, and never
   keep more than current scene + one cached runtime scene resident.
-- Later stories add fast travel, audio fades, and memory-budget verification.
+- Fast travel requests preload their target scene during a 2.0 second portal
+  gate, expose fast-travel metadata/signals, and preserve async timeout,
+  runtime swap, and deferred cache behavior.
+- Later stories add loading audio fades and memory-budget verification.
 - Godot CLI/GdUnit and Godot MCP verify the Autoload, runtime logs, and current
   scene visibility after SceneManager changes.
 
 ## Next Step
 
-Continue with fast travel preload, loading audio fades, and scene memory-budget
-verification as later SceneManagement stories.
+Continue with loading audio fades and scene memory-budget verification as later
+SceneManagement stories.

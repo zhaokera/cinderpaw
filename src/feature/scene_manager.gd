@@ -11,6 +11,9 @@ signal on_scene_loaded(scene_id: StringName)
 signal on_scene_load_started(scene_id: StringName, spawn_point: StringName, metadata: Dictionary)
 signal on_scene_changed(old_scene: StringName, new_scene: StringName)
 signal on_scene_load_failed(scene_id: StringName, reason: StringName)
+signal on_fast_travel_preload_started(scene_id: StringName, spawn_point: StringName, metadata: Dictionary)
+signal on_fast_travel_preload_completed(scene_id: StringName, spawn_point: StringName, metadata: Dictionary)
+signal on_fast_travel_preload_failed(scene_id: StringName, reason: StringName)
 
 const SCENE_REGISTRY_DOMAIN: StringName = &"scene_registry"
 const DEFAULT_SCENE_ID: StringName = &"hub"
@@ -18,6 +21,7 @@ const DEFAULT_SPAWN_POINT: StringName = &"default"
 const SCENE_SAVE_KEY: StringName = &"scene"
 const PACKED_SCENE_TYPE_HINT: String = "PackedScene"
 const MIN_TRANSITION_SECONDS: float = 1.5
+const FAST_TRAVEL_PORTAL_SECONDS: float = 2.0
 const LOAD_TIMEOUT_SECONDS: float = 10.0
 const MAX_LOAD_RETRIES: int = 1
 const DEFERRED_UNLOAD_SECONDS: float = 3.0
@@ -39,6 +43,8 @@ var _pending_spawn_point: StringName = DEFAULT_SPAWN_POINT
 var _pending_scene_path: String = ""
 var _loading_elapsed_seconds: float = 0.0
 var _transition_elapsed_seconds: float = 0.0
+var _pending_transition_duration_seconds: float = MIN_TRANSITION_SECONDS
+var _pending_fast_travel: bool = false
 var _load_retry_count: int = 0
 var _last_load_error: StringName = &""
 var _loader_adapter: Object = null
@@ -220,6 +226,34 @@ func request_scene_change(
 	scene_id: StringName,
 	spawn_point: StringName = DEFAULT_SPAWN_POINT
 ) -> bool:
+	return _begin_scene_load_request(scene_id, spawn_point, false)
+
+
+## Starts a fast-travel scene request. The target scene loads during the 2.0s
+## portal animation, then completes through the same runtime swap path as normal
+## async scene changes.
+func request_fast_travel_scene_change(
+	scene_id: StringName,
+	spawn_point: StringName = DEFAULT_SPAWN_POINT
+) -> bool:
+	return _begin_scene_load_request(scene_id, spawn_point, true)
+
+
+func is_fast_travel_loading() -> bool:
+	return _loading and _pending_fast_travel
+
+
+func get_fast_travel_portal_remaining_seconds() -> float:
+	if not is_fast_travel_loading():
+		return 0.0
+	return maxf(_pending_transition_duration_seconds - _transition_elapsed_seconds, 0.0)
+
+
+func _begin_scene_load_request(
+	scene_id: StringName,
+	spawn_point: StringName,
+	fast_travel: bool
+) -> bool:
 	if _scene_locked or _loading or not _scene_registry.has(scene_id):
 		return false
 
@@ -233,6 +267,8 @@ func request_scene_change(
 	_pending_scene_path = path
 	_loading_elapsed_seconds = 0.0
 	_transition_elapsed_seconds = 0.0
+	_pending_transition_duration_seconds = FAST_TRAVEL_PORTAL_SECONDS if fast_travel else MIN_TRANSITION_SECONDS
+	_pending_fast_travel = fast_travel
 	_load_retry_count = 0
 	_last_load_error = &""
 	_loading = true
@@ -243,12 +279,10 @@ func request_scene_change(
 		if error != OK:
 			_fail_pending_load(&"request_failed")
 			return false
-	on_scene_load_started.emit(scene_id, _pending_spawn_point, {
-		"path": _pending_scene_path,
-		"display_name": _display_name_for_scene(scene_id),
-		"transition_duration_sec": MIN_TRANSITION_SECONDS,
-		"cache_hit": _pending_reused_runtime_scene != null,
-	})
+	var metadata: Dictionary = _build_pending_load_metadata(scene_id)
+	if _pending_fast_travel:
+		on_fast_travel_preload_started.emit(scene_id, _pending_spawn_point, metadata.duplicate(true))
+	on_scene_load_started.emit(scene_id, _pending_spawn_point, metadata)
 	return true
 
 
@@ -263,13 +297,13 @@ func advance_loading(delta_seconds: float) -> void:
 	_transition_elapsed_seconds += delta
 
 	if _get_valid_pending_reused_runtime_scene() != null:
-		if _transition_elapsed_seconds >= MIN_TRANSITION_SECONDS:
+		if _transition_elapsed_seconds >= _pending_transition_duration_seconds:
 			_finish_pending_load()
 		return
 
 	var status: int = _get_load_status(_pending_scene_path)
 	if status == THREAD_LOAD_LOADED:
-		if _transition_elapsed_seconds >= MIN_TRANSITION_SECONDS:
+		if _transition_elapsed_seconds >= _pending_transition_duration_seconds:
 			_finish_pending_load()
 		return
 
@@ -425,6 +459,8 @@ func _select_initial_scene_id() -> StringName:
 func _finish_pending_load() -> void:
 	var scene_id: StringName = _pending_scene_id
 	var spawn_point: StringName = _pending_spawn_point
+	var was_fast_travel: bool = _pending_fast_travel
+	var completed_metadata: Dictionary = _build_pending_load_metadata(scene_id)
 	var new_runtime_scene: Node = _consume_pending_reused_runtime_scene()
 	var loaded_resource: Resource = null
 	if new_runtime_scene == null:
@@ -443,6 +479,12 @@ func _finish_pending_load() -> void:
 			new_runtime_scene.queue_free()
 			_fail_pending_load(&"scene_swap_failed", false)
 			return
+	if was_fast_travel:
+		on_fast_travel_preload_completed.emit(
+			scene_id,
+			spawn_point,
+			completed_metadata.duplicate(true)
+		)
 	_reset_pending_load()
 	_commit_logical_scene(scene_id, spawn_point)
 
@@ -460,8 +502,11 @@ func _handle_load_timeout() -> void:
 
 func _fail_pending_load(reason: StringName, fallback_to_default: bool = true) -> void:
 	var failed_scene_id: StringName = _pending_scene_id
+	var was_fast_travel: bool = _pending_fast_travel
 	_last_load_error = reason
 	_reset_pending_load(false)
+	if was_fast_travel:
+		on_fast_travel_preload_failed.emit(failed_scene_id, reason)
 	on_scene_load_failed.emit(failed_scene_id, reason)
 	if fallback_to_default:
 		_fallback_to_default_scene()
@@ -483,10 +528,26 @@ func _reset_pending_load(clear_last_error: bool = true) -> void:
 	_pending_scene_path = ""
 	_loading_elapsed_seconds = 0.0
 	_transition_elapsed_seconds = 0.0
+	_pending_transition_duration_seconds = MIN_TRANSITION_SECONDS
+	_pending_fast_travel = false
 	_load_retry_count = 0
 	_pending_reused_runtime_scene = null
 	if clear_last_error:
 		_last_load_error = &""
+
+
+func _build_pending_load_metadata(scene_id: StringName) -> Dictionary:
+	var metadata: Dictionary = {
+		"path": _pending_scene_path,
+		"display_name": _display_name_for_scene(scene_id),
+		"transition_duration_sec": _pending_transition_duration_seconds,
+		"cache_hit": _pending_reused_runtime_scene != null,
+	}
+	if _pending_fast_travel:
+		metadata["fast_travel"] = true
+		metadata["transition_type"] = "fast_travel"
+		metadata["portal_duration_sec"] = FAST_TRAVEL_PORTAL_SECONDS
+	return metadata
 
 
 func _issue_load_request(path: String) -> int:

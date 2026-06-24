@@ -5,13 +5,30 @@
   handoff、SceneManagement Story003 async load request lifecycle + timeout
   fallback、SceneManagement Story004 transition loading UI shell、
   SceneManagement Story005 runtime scene-tree swap ownership、
-  SceneManagement Story006 deferred unload/cache eviction 已完成；下一步按
-  GDD/架构/Epic 状态推进 SceneManager fast travel、loading audio fades、
-  memory-budget verification，以及玩家可见角色/敌人帧动画持续审计。
+  SceneManagement Story006 deferred unload/cache eviction、
+  SceneManagement Story007 fast travel preload/scene change 已完成；下一步按
+  GDD/架构/Epic 状态推进 SceneManager loading audio fades、memory-budget
+  verification，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Scene Management Story 007: Fast Travel Preload + Scene Change —
+  `SceneManager` 新增 `request_fast_travel_scene_change(scene_id, spawn_point)`
+  一步式 fast-travel async 请求路径，沿用 Story003 `ResourceLoader` seam、
+  Story005 runtime swap 和 Story006 deferred runtime cache；fast travel 使用
+  2.0 秒 portal gate，metadata 包含 `fast_travel=true`、
+  `transition_type="fast_travel"`、`portal_duration_sec=2.0`，并新增
+  started/completed/failed fast-travel signals。已覆盖普通 async 仍保持 1.5 秒
+  gate、deferred cache hit fast travel 不发新 loader request/get、runtime
+  resident count 仍为 current + one cached、timeout retry once + hub fallback。
+  通过 RED `report_439`（缺少 API/signals）、RED `report_441`（缺少
+  `transition_type` metadata）、GREEN focused `report_443` `6/6`、
+  SceneManagement 回归 `report_444` `18/18`、MainScene/HUD 回归
+  `report_445` `35/35`、headless smoke、Godot MCP runtime probe（1.99 秒前不
+  commit，2 秒后切到 `main/mcp_fast_travel_gate`，logs clean，screenshot
+  nonblank，Player/Enemy 为 `AnimatedSprite2D`）验证。QA evidence:
+  `production/qa/evidence/fast-travel-preload-scene-change-2026-06-25.md`。
 - Scene Management Story 006: Deferred Unload + Runtime Cache Eviction —
   `SceneManager` 现在把成功 runtime swap 的 outgoing scene 从 runtime root
   detach 后保留为 3 秒 deferred cache，暴露 previous scene id、remaining
