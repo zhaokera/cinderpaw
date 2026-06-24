@@ -26,6 +26,7 @@ var _last_player_hit_metadata: Dictionary = {}
 func _ready() -> void:
 	_setup_weapon_component()
 	_setup_player_attack_core_chain()
+	_setup_enemy_attack_core_chain()
 	_game_flow.set_no_loss_state_adapter(self)
 	_game_flow.start_boss_encounter(_player.global_position, self)
 	_game_flow.respawn_requested.connect(_on_respawn_requested)
@@ -74,6 +75,15 @@ func _on_player_attack_landed(hit_data: Dictionary) -> void:
 	var enriched_hit_data: Dictionary = _apply_weapon_effects_to_player_hit(hit_data)
 	_last_player_hit_metadata = enriched_hit_data.duplicate(true)
 	_combat_presentation.on_hit_event(enriched_hit_data)
+
+
+func _on_enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool) -> void:
+	_combat_presentation.on_hit_event({
+		"damage": damage,
+		"hit_position": hit_position,
+		"is_crit": is_crit,
+		"source": &"shadow_beast_bite",
+	})
 
 
 func _on_enemy_health_changed(current_hp: int, max_hp: int) -> void:
@@ -263,6 +273,15 @@ func _setup_player_attack_core_chain() -> void:
 			_weapon_component.set_combat_adapter(_player.get_combat_component())
 		if _player.has_method("get_collision_component"):
 			_weapon_component.set_collision_adapter(_player.get_collision_component())
+
+
+func _setup_enemy_attack_core_chain() -> void:
+	if _enemy.has_method("set_damage_calculator_adapter"):
+		_enemy.set_damage_calculator_adapter(_damage_calculator_adapter)
+	if _enemy.has_method("set_attack_target"):
+		_enemy.set_attack_target(_player)
+	if not _enemy.enemy_attack_landed.is_connected(_on_enemy_attack_landed):
+		_enemy.enemy_attack_landed.connect(_on_enemy_attack_landed)
 
 
 func _on_weapon_changed(weapon: Resource) -> void:

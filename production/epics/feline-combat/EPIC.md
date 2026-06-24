@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/feline-combat.md
 > **Architecture Module**: CombatComponent
 > **Status**: Complete
-> **Stories**: 8 stories
+> **Stories**: 9 stories
 
 ## Stories
 
@@ -18,12 +18,13 @@
 | 006 | Cat Energy + Special/Ultimate Gates | Integration | Complete | ADR-0005, ADR-0016 |
 | 007 | Hit Confirmation + Focus Damage Metadata | Integration | Complete | ADR-0002, ADR-0004, ADR-0005 |
 | 008 | Runtime Player Attack Core Chain | Integration | Complete | ADR-0002, ADR-0004, ADR-0005, ADR-0016 |
+| 009 | Runtime Enemy Attack + Shadow Beast Frame Animation | Integration / Visual | Complete | ADR-0002, ADR-0004, ADR-0005 |
 
 ## Overview
 
 Implement `CombatComponent` as a Core entity component that turns normalized input actions into frame-level combat state transitions. It owns the 6-state combat FSM, light combo chain, dodge and parry windows, heavy charge lifecycle, cat energy, battle statistics, and the provisional adapters used to hand off hitbox, damage, health, weapon, and focus-mode data without making Combat an Autoload.
 
-Visual effects, audio, combo HUD, and charge UI remain out of scope for this Core epic. Those requirements are delegated to Combat Presentation, Audio, and HUD/UI epics, which consume Combat signals instead of being called directly. Story 008 adds the first runtime playable attack integration for the vertical slice by wiring PlayerController, MainScene, SimpleEnemy, and the completed Core components together.
+Visual effects, audio, combo HUD, and charge UI remain out of scope for this Core epic. Those requirements are delegated to Combat Presentation, Audio, and HUD/UI epics, which consume Combat signals instead of being called directly. Story 008 adds the first runtime playable attack integration for the vertical slice by wiring PlayerController, MainScene, SimpleEnemy, and the completed Core components together. Story 009 adds reciprocal enemy attack pressure and replaces the runtime enemy's static sprite with a Shadow Beast `AnimatedSprite2D + SpriteFrames` presentation.
 
 ## Governing ADRs
 
@@ -60,8 +61,9 @@ This epic is complete when:
 - `CombatComponent` can be instantiated in GdUnit4 without a full Player scene.
 - Input, DamageCalculator, HealthComponent focus mode, and provisional CollisionComponent adapters are integrated through typed methods/signals.
 - The playable MainScene player attack path uses CombatComponent, CollisionComponent, HealthComponent, WeaponComponent, and StatusEffectComponent instead of prototype direct damage.
+- The runtime enemy attack path uses CollisionComponent, CombatComponent, DamageCalculator, and the player HealthComponent path instead of relying only on prototype contact damage.
 - Presentation-layer visual/audio/UI requirements are explicitly deferred to downstream epics and are not implemented in Core.
 
 ## Next Step
 
-Feline Combat Core and first runtime attack integration are complete. Continue with enemy attack execution, combat feel/presentation, or richer player animation timing so live gameplay feedback matches the implemented combat contracts.
+Feline Combat Core, player attack integration, and runtime enemy attack pressure are complete for the current vertical slice. Continue with richer enemy AI scheduling, boss-specific attacks, audio, or expanded player/enemy animation coverage.

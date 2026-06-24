@@ -1,0 +1,107 @@
+[gd_resource type="SpriteFrames" load_steps=19 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/idle/shadow_beast_idle_000.png" id="1_idle0"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/idle/shadow_beast_idle_001.png" id="2_idle1"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/idle/shadow_beast_idle_002.png" id="3_idle2"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/patrol/shadow_beast_patrol_000.png" id="4_patrol0"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/patrol/shadow_beast_patrol_001.png" id="5_patrol1"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/patrol/shadow_beast_patrol_002.png" id="6_patrol2"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/attack_tell/shadow_beast_attack_tell_000.png" id="7_tell0"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/attack_tell/shadow_beast_attack_tell_001.png" id="8_tell1"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/attack_tell/shadow_beast_attack_tell_002.png" id="9_tell2"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/attack/shadow_beast_attack_000.png" id="10_attack0"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/attack/shadow_beast_attack_001.png" id="11_attack1"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/attack/shadow_beast_attack_002.png" id="12_attack2"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/hurt/shadow_beast_hurt_000.png" id="13_hurt0"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/hurt/shadow_beast_hurt_001.png" id="14_hurt1"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/hurt/shadow_beast_hurt_002.png" id="15_hurt2"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/death/shadow_beast_death_000.png" id="16_death0"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/death/shadow_beast_death_001.png" id="17_death1"]
+[ext_resource type="Texture2D" path="res://assets/characters/shadow_beast/death/shadow_beast_death_002.png" id="18_death2"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_idle0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_idle1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_idle2")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_patrol0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_patrol1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_patrol2")
+}],
+"loop": true,
+"name": &"patrol",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_tell0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_tell1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_tell2")
+}],
+"loop": true,
+"name": &"attack_tell",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("10_attack0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_attack1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_attack2")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("13_hurt0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_hurt1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_hurt2")
+}],
+"loop": false,
+"name": &"hurt",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("16_death0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_death1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_death2")
+}],
+"loop": false,
+"name": &"death",
+"speed": 8.0
+}]

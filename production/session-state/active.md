@@ -1,13 +1,19 @@
 # Active Session State
 
 ## Current Task
-- /architecture-review 完成 + /gate-check pre-production 完成
+- 持续实现 Cinderpaw 垂直切片；最近完成 Feline Combat Story 009 敌人攻击与 Shadow Beast 帧动画
 
 ## Last Completed Task
+- Feline Combat Story 009: Runtime Enemy Attack + Shadow Beast Frame Animation — `SimpleEnemy` 已接入 `AnimatedSprite2D + SpriteFrames`、Core enemy hitbox/Combat/Health 伤害链、MainScene 命中表现转发，并通过 GdUnit 与 Godot MCP 运行时验证
 - /architecture-review: 提取185条TR，构建可追溯性矩阵，生成3个文件（审查报告+traceability index+TR registry）
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `src/gameplay/simple_enemy.gd`, `src/gameplay/simple_enemy.tscn` — Shadow Beast 帧动画与敌人攻击状态机/Core hitbox
+- `src/gameplay/player_controller.gd`, `src/gameplay/main_scene.gd`, `src/core/combat_component.gd` — 敌人命中玩家的 Core 伤害链与表现转发
+- `assets/characters/shadow_beast/`, `scenes/characters/shadow_beast.tscn`, `src/characters/shadow_beast.gd` — image-generated Shadow Beast 角色资源管线
+- `tests/unit/gameplay/simple_enemy_character_animation_test.gd`, `tests/unit/gameplay/main_scene_enemy_attack_core_chain_test.gd` — Story 009 TDD 覆盖
+- `production/epics/feline-combat/story-009-runtime-enemy-attack-animation.md`, `production/qa/evidence/runtime-enemy-attack-shadow-beast-animation-2026-06-24.md` — Story 与 QA 证据
 - `design/gdd/health-death.md` — Retrofit完成：Status→Designed(Retrofit 2026-06-20), 10条规则(+2), 3公式(+HD前缀+变量表), 10 Edge Cases(+4), 14 AC(+5), 10 Tuning Knobs(+3)
 - `design/gdd/hud-ui.md` — 规则4低HP脉动→不脉动, 心跳音→不添加
 - `design/gdd/ai-framework.md` — 新增on_focus_mode_changed监听 + set_global_windup_modifier接口

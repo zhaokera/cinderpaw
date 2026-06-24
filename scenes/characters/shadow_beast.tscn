@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://dutajhm4oo2xo"]
+
+[ext_resource type="Script" path="res://src/characters/shadow_beast.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://assets/characters/shadow_beast/shadow_beast_sprite_frames.tres" id="2_frames"]
+
+[node name="ShadowBeast" type="AnimatedSprite2D"]
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+autoplay = "idle"
+script = ExtResource("1_script")

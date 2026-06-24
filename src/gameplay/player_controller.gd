@@ -311,15 +311,22 @@ func _update_facing() -> void:
 # ---------------------------------------------------------------------------
 
 func take_damage() -> void:
+	apply_damage(CONTACT_DAMAGE, {
+		"source": &"shadow_beast",
+		"damage_type": &"contact",
+	})
+
+
+## Applies resolved combat damage from Core enemy hit confirmations.
+func apply_damage(final_damage: int, metadata: Dictionary = {}) -> void:
 	if _control_locked:
 		return
 	if _state == State.DODGING:
 		return  # Invincible during dodge
+	if final_damage <= 0:
+		return
 	_sprite.modulate = DAMAGE_MODULATE
-	_health.apply_damage(CONTACT_DAMAGE, {
-		"source": &"shadow_beast",
-		"damage_type": &"contact",
-	})
+	_health.apply_damage(final_damage, metadata)
 
 
 func get_current_hp() -> int:

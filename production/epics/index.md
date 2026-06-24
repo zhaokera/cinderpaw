@@ -9,7 +9,7 @@ Engine: Godot 4.6.3
 | input-manager | Foundation | Input System | input.md | 7 stories | Complete |
 | damage-calculator | Foundation | Damage Calculation | damage-calculation.md | 4 stories | Complete |
 | health-death | Core | Health & Death Detection | health-death.md | 6 stories | Complete |
-| feline-combat | Core | Feline Combat | feline-combat.md | 7 stories | Complete |
+| feline-combat | Core | Feline Combat | feline-combat.md | 9 stories | Complete |
 | collision-detection | Core | Collision Detection | collision-detection.md | 5 stories | Complete |
 | ai-framework | Core | AI Framework | ai-framework.md | 6 stories | Complete |
 | boss-config | Core | Boss Configuration | boss-config.md | 6 stories | Complete |

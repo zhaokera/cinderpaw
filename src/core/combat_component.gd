@@ -610,8 +610,12 @@ func _compose_hit_metadata(
 		"skill_modifiers": skill_modifiers,
 		"attack_power": int(_metadata_value(attack_metadata, event, "attack_power", 0)),
 		"enemy_defense": int(_metadata_value(attack_metadata, event, "enemy_defense", 0)),
-		"injected_damage_params": _event_dictionary_value(event, "injected_damage_params"),
-		"data_manager": _event_value(event, "data_manager", null),
+		"injected_damage_params": _metadata_dictionary_value(
+			attack_metadata,
+			event,
+			"injected_damage_params"
+		),
+		"data_manager": _metadata_value(attack_metadata, event, "data_manager", null),
 		"final_damage": int(_event_value(event, "final_damage", 0)),
 	}
 
