@@ -1,12 +1,21 @@
 # Active Session State
 
 ## Current Task
-- Combat Presentation Epic 已完成；下一步按 GDD/架构/Epic 状态选择剩余未完成
-  系统继续推进，优先从 `weapon-styles`、`save-system`、`death-respawn` 等仍为
-  In Progress 的 Epic 中选取下一条实现故事，并继续执行 TDD + Godot MCP
-  运行态验证。
+- Save System Epic 已完成；下一步按 GDD/架构/Epic 状态推进仍未完成的
+  `death-respawn`、SceneManager 接线、以及玩家可见角色/敌人帧动画审计。
+  继续执行 TDD + Godot MCP 运行态验证，玩家可见动作角色必须遵守
+  `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Save System Story 005: Async Write Performance Budget —
+  `SaveSystem` 默认启用异步 slot 写入，新增 pending/dispatch 诊断、
+  `on_save_write_failed(slot, reason)`、单写入锁、主线程完成轮询、
+  Web/deferred fallback、退出期 flush 收尾和同步 fallback；`MainScene`
+  现在通过 `on_save_written`/`on_save_write_failed` 确认手动保存 UI，
+  pending 期间第二次保存请求保持 `Saving...` 且不覆盖原 pending slot。
+  通过 RED `report_384`、`report_388`、`report_392`，GREEN
+  `report_386`、`report_393`，相关回归 `report_394` `42/42`、
+  Godot headless smoke、Godot MCP runtime probe/log/screenshot 验证。
 - Combat Presentation Story 013: Weapon Style VFX Variants —
   `CombatPresentation` 现在对普通 weapon attack-start 的 long-tail
   `trail_blade`、fish-bone `wave_bone`、electro-bell `arc_bell` 生成
@@ -96,8 +105,7 @@
   `autosave_reason="boss_defeat"` / `boss_id="shadow_beast"`；通过 Story004
   RED/GREEN、Save Story001-004 聚焦回归、MainScene gameplay 聚焦回归、
   Godot headless smoke 与 Godot MCP runtime game_eval 验证。`TR-save-007`
-  的 Thread 异步写入仍作为后续 SaveSystem performance follow-up，不在本
-  Story 虚报完成
+  已由 Save System Story005 完成
 - Save System Story 003: Autosave Trigger Adapters —
   新增 `SaveTriggerAdapter` Feature 节点，将存档点、Boss 击败、关键事件、
   场景切换信号接到 `SaveSystem.auto_save()`；支持 snapshot provider、
@@ -142,6 +150,31 @@
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `src/feature/save_system.gd` — Story005 async save write path：默认异步、
+  pending/dispatch 诊断、单写入锁、`on_save_write_failed`、主线程 completion
+  poll、Web/deferred fallback、退出期 flush 与同步 fallback。
+- `src/gameplay/main_scene.gd` — 手动存档 UI 改为等待 SaveSystem 完成/失败信号；
+  pending 期间第二次保存请求保持原 slot authoritative，不覆盖 pending。
+- `tests/unit/save/story_005_async_write_performance_budget_test.gd` —
+  TDD 覆盖异步 dispatch budget、single-write lock、backup preservation、
+  sync fallback 和 async failure cleanup。
+- `tests/unit/gameplay/main_scene_save_load_menu_runtime_test.gd` —
+  TDD 覆盖异步完成前 `Saving...`、完成后槽位刷新、pending 重入 guard、
+  失败反馈。
+- `tests/unit/save/story_001_save_slots_backup_json_pipeline_test.gd`,
+  `tests/unit/save/story_002_version_migration_save_info_metadata_test.gd`,
+  `tests/unit/save/story_003_autosave_trigger_adapter_test.gd`,
+  `tests/unit/save/story_004_main_scene_save_system_runtime_handoff_test.gd` —
+  旧 SaveSystem 故事测试显式使用 sync fallback，保持即时文件断言稳定。
+- `production/epics/save-system/story-005-async-write-performance-budget.md`,
+  `production/epics/save-system/EPIC.md`, `production/epics/index.md`,
+  `production/qa/evidence/async-write-performance-budget-2026-06-25.md`,
+  `production/session-state/active.md` — Story005 状态、Epic/index 完成状态、
+  QA/MCP 证据和下一步状态追踪。
+- `reports/save_story005_async_write_smoke.log`, `reports/report_384/`,
+  `reports/report_386/`, `reports/report_388/`, `reports/report_392/`,
+  `reports/report_393/`, `reports/report_394/` — Story005 RED/GREEN、
+  regression 和 headless smoke evidence。
 - `production/epics/combat-presentation/story-013-weapon-style-vfx-variants.md`,
   `production/qa/evidence/weapon-style-vfx-variants-2026-06-24.md`,
   `design/assets/asset-manifest.md`, `production/epics/combat-presentation/EPIC.md`,
@@ -332,13 +365,13 @@
 - Consistency check: found 1 conflict + 1 stale reference, both fixed
 
 ## Next Steps
-1. Save System performance follow-up — TR-save-007 Thread/async write hardening
-   与 100ms budget evidence
-2. Death & Respawn Story 004 — Savepoint Respawn Selection（仍需
-   SceneManagement/SaveSystem 后续接线）
-3. Visual/animation polish — 按 AGENTS Godot 2D 帧动画规则审计玩家可见
+1. Death & Respawn Story 004 — Savepoint Respawn Selection（使用已完成的
+   SaveSystem API，仍需 SceneManagement/respawn 接线决策）
+2. Visual/animation polish — 按 AGENTS Godot 2D 帧动画规则审计玩家可见
    方块/单帧占位，优先用 image generation 生成透明帧并接入
    `AnimatedSprite2D + SpriteFrames`
+3. SceneManager integration — 标准化 title/continue/load scene handoff 与
+   runtime state restore 边界
 4. Gameplay runtime gap — advanced combat input wiring and Rat King runtime boss encounter
 
 ## Key Decisions Made (this session)

@@ -19,6 +19,8 @@ func before_test() -> void:
 	save_system = save_script.new()
 	add_child(save_system)
 	save_system.call("configure_save_directory", TEST_SAVE_DIR)
+	if save_system.has_method("set_async_write_enabled"):
+		save_system.call("set_async_write_enabled", false)
 	scene = MAIN_SCENE.instantiate() as Node2D
 	add_child(scene)
 

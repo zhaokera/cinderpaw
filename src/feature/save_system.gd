@@ -7,6 +7,7 @@ signal on_save_written(slot: int)
 signal on_save_loaded(slot: int)
 signal on_save_corrupted(slot: int, reason: String)
 signal on_save_load_failed(slot: int, reason: String)
+signal on_save_write_failed(slot: int, reason: String)
 
 const CURRENT_SAVE_VERSION: int = 1
 const AUTOSAVE_SLOT: int = 0
@@ -18,6 +19,23 @@ var _serializables: Array[Dictionary] = []
 var _migrations: Dictionary = {}
 var _last_loaded_data: Dictionary = {}
 var _last_load_from_backup: bool = false
+var _async_write_enabled: bool = true
+var _last_save_dispatch_duration_msec: float = 0.0
+var _write_thread: Thread
+var _write_mutex: Mutex = Mutex.new()
+var _write_pending: bool = false
+var _write_result_ready: bool = false
+var _write_result: Dictionary = {}
+
+
+func _process(_delta: float) -> void:
+	_poll_async_write_result()
+
+
+func _exit_tree() -> void:
+	if not flush_pending_save_write(1000) and _write_thread != null:
+		_write_thread.wait_to_finish()
+	_poll_async_write_result()
 
 
 ## Configures the save directory used by this SaveSystem instance.
@@ -72,6 +90,32 @@ func unregister_migration(from_version: int) -> bool:
 	return true
 
 
+## Enables or disables async save writes. Disabled mode uses the sync fallback.
+func set_async_write_enabled(enabled: bool) -> void:
+	_async_write_enabled = enabled
+
+
+## Returns whether an async save write is awaiting main-thread completion.
+func is_save_write_pending() -> bool:
+	return _write_pending
+
+
+## Returns the duration of the last save dispatch call in milliseconds.
+func get_last_save_dispatch_duration_msec() -> float:
+	return _last_save_dispatch_duration_msec
+
+
+## Waits briefly for a pending async write to finish and emit completion.
+func flush_pending_save_write(timeout_msec: int = 500) -> bool:
+	var deadline_msec: int = Time.get_ticks_msec() + maxi(0, timeout_msec)
+	while _write_pending and Time.get_ticks_msec() <= deadline_msec:
+		_poll_async_write_result()
+		if _write_pending:
+			OS.delay_msec(1)
+	_poll_async_write_result()
+	return not _write_pending
+
+
 ## Writes a manual save to slots 1-3. Slot 0 is reserved for autosave.
 func manual_save(slot: int, player_state: Dictionary = {}, world_state: Dictionary = {}, settings: Dictionary = {}) -> bool:
 	if slot == AUTOSAVE_SLOT:
@@ -113,7 +157,7 @@ func load_game(slot: int) -> bool:
 		return false
 
 	if original_version < CURRENT_SAVE_VERSION:
-		if not _write_slot_file(slot, migrated):
+		if not _write_slot_file_sync(slot, migrated):
 			on_save_load_failed.emit(slot, "migration_write_failed")
 			return false
 
@@ -171,7 +215,9 @@ func get_save_directory() -> String:
 
 
 func _execute_save(slot: int, is_auto: bool, player_state: Dictionary, world_state: Dictionary, settings: Dictionary) -> bool:
+	var dispatch_start_usec: int = Time.get_ticks_usec()
 	if not _is_valid_slot(slot):
+		_last_save_dispatch_duration_msec = _elapsed_msec(dispatch_start_usec)
 		return false
 	_ensure_save_directory()
 	var save_data: Dictionary = _build_save_data(
@@ -181,9 +227,12 @@ func _execute_save(slot: int, is_auto: bool, player_state: Dictionary, world_sta
 		world_state,
 		settings
 	)
-	if not _write_slot_file(slot, save_data):
+	if not _dispatch_slot_write(slot, save_data):
+		_last_save_dispatch_duration_msec = _elapsed_msec(dispatch_start_usec)
 		return false
-	on_save_written.emit(slot)
+	_last_save_dispatch_duration_msec = _elapsed_msec(dispatch_start_usec)
+	if not _async_write_enabled:
+		on_save_written.emit(slot)
 	return true
 
 
@@ -250,18 +299,98 @@ func _deserialize_registered_systems(systems_data: Dictionary, version: int) -> 
 			system.call("deserialize", Dictionary(systems_data[key]).duplicate(true), version)
 
 
-func _write_slot_file(slot: int, save_data: Dictionary) -> bool:
+func _dispatch_slot_write(slot: int, save_data: Dictionary) -> bool:
+	if not _async_write_enabled:
+		return _write_slot_file_sync(slot, save_data)
+	return _write_slot_file_async(slot, save_data)
+
+
+func _write_slot_file_sync(slot: int, save_data: Dictionary) -> bool:
 	var slot_path: String = _slot_path(slot)
 	var backup_path: String = _backup_path(slot)
+	var json_string: String = JSON.stringify(save_data, "\t")
+	var result: Dictionary = _write_slot_paths_sync(slot_path, backup_path, json_string)
+	return bool(result.get("success", false))
+
+
+func _write_slot_file_async(slot: int, save_data: Dictionary) -> bool:
+	if _write_pending:
+		on_save_write_failed.emit(slot, "write_pending")
+		return false
+	var slot_path: String = _slot_path(slot)
+	var backup_path: String = _backup_path(slot)
+	var json_string: String = JSON.stringify(save_data, "\t")
+	_write_pending = true
+	_write_result_ready = false
+	_write_result = {}
+	if OS.has_feature("web"):
+		call_deferred("_complete_deferred_slot_write", slot, slot_path, backup_path, json_string)
+		return true
+	_write_thread = Thread.new()
+	var error: Error = _write_thread.start(
+		Callable(self, "_write_slot_thread").bind(slot, slot_path, backup_path, json_string)
+	)
+	if error != OK:
+		_write_pending = false
+		_write_result = {}
+		push_error("SaveSystem: failed to start async write thread: %d" % int(error))
+		return false
+	return true
+
+
+func _write_slot_thread(slot: int, slot_path: String, backup_path: String, json_string: String) -> void:
+	var result: Dictionary = _write_slot_paths_sync(slot_path, backup_path, json_string)
+	result["slot"] = slot
+	_write_mutex.lock()
+	_write_result = result
+	_write_result_ready = true
+	_write_mutex.unlock()
+
+
+func _complete_deferred_slot_write(slot: int, slot_path: String, backup_path: String, json_string: String) -> void:
+	var result: Dictionary = _write_slot_paths_sync(slot_path, backup_path, json_string)
+	result["slot"] = slot
+	_write_mutex.lock()
+	_write_result = result
+	_write_result_ready = true
+	_write_mutex.unlock()
+	_poll_async_write_result()
+
+
+func _write_slot_paths_sync(slot_path: String, backup_path: String, json_string: String) -> Dictionary:
 	if FileAccess.file_exists(slot_path):
 		var old_content: String = FileAccess.get_file_as_string(slot_path)
 		if not old_content.is_empty():
 			if not _write_text_file(backup_path, old_content):
-				return false
-	var json_string: String = JSON.stringify(save_data, "\t")
+				return {"success": false, "reason": "backup_write_failed"}
 	if not _write_text_file(slot_path, json_string):
-		return false
-	return not _read_valid_save(slot_path).is_empty()
+		return {"success": false, "reason": "slot_write_failed"}
+	if _read_valid_save(slot_path).is_empty():
+		return {"success": false, "reason": "slot_validation_failed"}
+	return {"success": true, "reason": ""}
+
+
+func _poll_async_write_result() -> void:
+	if not _write_pending:
+		return
+	_write_mutex.lock()
+	var has_result: bool = _write_result_ready
+	var result: Dictionary = _write_result.duplicate(true)
+	if has_result:
+		_write_result_ready = false
+		_write_result = {}
+	_write_mutex.unlock()
+	if not has_result:
+		return
+	if _write_thread != null:
+		_write_thread.wait_to_finish()
+		_write_thread = null
+	_write_pending = false
+	var slot: int = int(result.get("slot", -1))
+	if bool(result.get("success", false)):
+		on_save_written.emit(slot)
+	else:
+		on_save_write_failed.emit(slot, String(result.get("reason", "write_failed")))
 
 
 func _read_valid_save(path: String) -> Dictionary:
@@ -341,3 +470,7 @@ func _slot_path(slot: int) -> String:
 
 func _backup_path(slot: int) -> String:
 	return "%sslot_%d.json.bak" % [_save_directory, slot]
+
+
+func _elapsed_msec(start_usec: int) -> float:
+	return float(Time.get_ticks_usec() - start_usec) / 1000.0

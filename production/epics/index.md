@@ -1,6 +1,6 @@
 # Epics Index
 
-Last Updated: 2026-06-24
+Last Updated: 2026-06-25
 Engine: Godot 4.6.3
 
 | Epic | Layer | System | GDD | Stories | Status |
@@ -14,8 +14,8 @@ Engine: Godot 4.6.3
 | ai-framework | Core | AI Framework | ai-framework.md | 6 stories | Complete |
 | boss-config | Core | Boss Configuration | boss-config.md | 6 stories | Complete |
 | status-effects | Core | Status Effects | status-effects.md | 6 stories | Complete |
-| weapon-styles | Core | Weapon Styles | weapon-styles.md | 8 stories | In Progress |
-| save-system | Feature | Save System | save-system.md | 4 stories | In Progress |
+| weapon-styles | Core | Weapon Styles | weapon-styles.md | 8 stories | Complete |
+| save-system | Feature | Save System | save-system.md | 5 stories | Complete |
 | death-respawn | Feature | Death & Respawn | death-respawn.md | 6 stories | In Progress |
 | hud-ui | Presentation | HUD/UI | hud-ui.md | 6 stories | Complete |
 | combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 13 stories tracked | Complete |

@@ -28,6 +28,7 @@ var _save_system: Object = null
 var _registered_save_system: Object = null
 var _save_trigger_adapter: SaveTriggerAdapter = null
 var _boss_phase_transition_source: Object = null
+var _pending_manual_save_slot: int = -1
 
 
 func _ready() -> void:
@@ -197,8 +198,23 @@ func _on_menu_exit_requested() -> void:
 
 
 func _on_menu_save_slot_requested(slot: int) -> void:
+	if _is_manual_save_write_pending():
+		_hud.show_notification("Saving...", 1.5)
+		_hud.show_save_load_menu(
+			_collect_save_slot_infos(),
+			false,
+			"Saving requires a save point"
+		)
+		return
+	_pending_manual_save_slot = slot
 	if save_runtime_to_slot(slot):
-		_hud.show_notification("Game saved", 1.5)
+		if _save_system.has_method("is_save_write_pending") and bool(_save_system.call("is_save_write_pending")):
+			_hud.show_notification("Saving...", 1.5)
+		elif _pending_manual_save_slot == slot:
+			_pending_manual_save_slot = -1
+			_hud.show_notification("Game saved", 1.5)
+	elif _pending_manual_save_slot == slot:
+		_pending_manual_save_slot = -1
 	_hud.show_save_load_menu(
 		_collect_save_slot_infos(),
 		false,
@@ -336,6 +352,7 @@ func configure_save_system_runtime(save_system: Object) -> bool:
 		if not registered:
 			return false
 		_registered_save_system = _save_system
+	_connect_save_system_signals(_save_system)
 	_save_trigger_adapter.configure(_save_system, capture_save_snapshot)
 	return true
 
@@ -647,7 +664,72 @@ func _is_valid_save_system(save_system: Object) -> bool:
 	return save_system != null and is_instance_valid(save_system) and save_system.has_method("manual_save")
 
 
+func _connect_save_system_signals(save_system: Object) -> void:
+	if save_system == null or not is_instance_valid(save_system):
+		return
+	if save_system.has_signal("on_save_written"):
+		var written_callback := Callable(self, "_on_save_system_written")
+		if not save_system.is_connected("on_save_written", written_callback):
+			save_system.connect("on_save_written", written_callback)
+	if save_system.has_signal("on_save_write_failed"):
+		var failed_callback := Callable(self, "_on_save_system_write_failed")
+		if not save_system.is_connected("on_save_write_failed", failed_callback):
+			save_system.connect("on_save_write_failed", failed_callback)
+
+
+func _disconnect_save_system_signals(save_system: Variant) -> void:
+	if save_system == null or not is_instance_valid(save_system):
+		return
+	if save_system.has_signal("on_save_written"):
+		var written_callback := Callable(self, "_on_save_system_written")
+		if save_system.is_connected("on_save_written", written_callback):
+			save_system.disconnect("on_save_written", written_callback)
+	if save_system.has_signal("on_save_write_failed"):
+		var failed_callback := Callable(self, "_on_save_system_write_failed")
+		if save_system.is_connected("on_save_write_failed", failed_callback):
+			save_system.disconnect("on_save_write_failed", failed_callback)
+
+
+func _on_save_system_written(slot: int) -> void:
+	if slot > 0 and slot == _pending_manual_save_slot:
+		_pending_manual_save_slot = -1
+		_hud.show_notification("Game saved", 1.5)
+	_refresh_save_menu_if_visible()
+
+
+func _on_save_system_write_failed(slot: int, _reason: String) -> void:
+	if slot > 0 and slot == _pending_manual_save_slot:
+		_pending_manual_save_slot = -1
+		_hud.show_notification("Save failed", 2.0)
+	_refresh_save_menu_if_visible()
+
+
+func _refresh_save_menu_if_visible() -> void:
+	var menu_mode: StringName = _hud.get_menu_mode()
+	if menu_mode == &"save_load":
+		_hud.show_save_load_menu(
+			_collect_save_slot_infos(),
+			false,
+			"Saving requires a save point"
+		)
+	elif menu_mode == &"main_menu":
+		_hud.show_main_menu(_collect_save_slot_infos())
+
+
+func _is_manual_save_write_pending() -> bool:
+	if _pending_manual_save_slot < 0:
+		return false
+	if not _is_valid_save_system(_save_system):
+		return false
+	if not _save_system.has_method("is_save_write_pending"):
+		return false
+	return bool(_save_system.call("is_save_write_pending"))
+
+
 func _unregister_main_scene_from_save_system() -> void:
+	_disconnect_save_system_signals(_save_system)
+	_pending_manual_save_slot = -1
+	_save_system = null
 	if _registered_save_system == null or not is_instance_valid(_registered_save_system):
 		_registered_save_system = null
 		return

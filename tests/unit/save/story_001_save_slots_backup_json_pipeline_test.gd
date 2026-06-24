@@ -43,6 +43,8 @@ func before_test() -> void:
 	assert_bool(save_system.has_method("configure_save_directory")).is_true()
 	if save_system.has_method("configure_save_directory"):
 		save_system.call("configure_save_directory", TEST_SAVE_DIR)
+	if save_system.has_method("set_async_write_enabled"):
+		save_system.call("set_async_write_enabled", false)
 
 
 func after_test() -> void:

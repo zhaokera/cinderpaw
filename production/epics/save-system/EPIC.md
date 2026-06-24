@@ -3,8 +3,8 @@
 > **Layer**: Feature
 > **GDD**: design/gdd/save-system.md
 > **Architecture Module**: SaveSystem
-> **Status**: In Progress
-> **Stories**: 4 stories
+> **Status**: Complete
+> **Stories**: 5 stories
 
 ## Overview
 
@@ -42,6 +42,7 @@ on SaveSystem directly.
 | 002 | Version Migration + SaveInfo Metadata | Logic | Complete | ADR-0021 |
 | 003 | Autosave Trigger Adapters | Integration | Complete | ADR-0021 |
 | 004 | MainScene SaveSystem Runtime Handoff | Integration | Complete | ADR-0001, ADR-0021 |
+| 005 | Async Write Performance Budget | Logic/Performance | Complete | ADR-0021 |
 
 ## Definition of Done
 
@@ -54,8 +55,12 @@ This epic is complete when:
 - SceneManager and respawn stories can consume SaveSystem through narrow
   adapters instead of direct reload logic.
 - Godot CLI/GdUnit and Godot MCP smoke verify the autoload in runtime.
+- Save writes dispatch asynchronously under the `TR-save-007` 100ms budget,
+  reject concurrent writes without corrupting the pending save, and report final
+  success/failure through main-thread completion signals.
 
 ## Next Step
 
-Connect save/load presentation through HUD/UI Story 005. Keep threaded async
-write hardening as a later SaveSystem performance follow-up for TR-save-007.
+Save System Stories 001-005 are complete. Next recommended work is Death &
+Respawn Story 004 savepoint respawn selection or SceneManager integration that
+consumes the completed SaveSystem APIs.

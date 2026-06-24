@@ -60,6 +60,8 @@ func before_test() -> void:
 	add_child(save_system)
 	add_child(adapter)
 	save_system.call("configure_save_directory", TEST_SAVE_DIR)
+	if save_system.has_method("set_async_write_enabled"):
+		save_system.call("set_async_write_enabled", false)
 	adapter.call("configure", save_system, _build_snapshot)
 
 
