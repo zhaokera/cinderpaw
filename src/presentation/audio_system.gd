@@ -25,6 +25,20 @@ const MAX_CONCURRENT_SFX: int = 16
 const MAX_SFX_DISTANCE_PX: float = 600.0
 const SCENE_TRANSITION_FORCE_FADE_SEC: float = 2.0
 const DEFAULT_SCENE_CROSSFADE_SEC: float = 3.0
+const AUDIO_STATE_NORMAL: StringName = &"NORMAL"
+const AUDIO_STATE_BOSS_FIGHT: StringName = &"BOSS_FIGHT"
+const AUDIO_STATE_LOW_HP: StringName = &"LOW_HP"
+const SFX_PRIORITY_NORMAL: int = 50
+const SFX_PRIORITY_DODGE: int = 60
+const SFX_PRIORITY_DAMAGE: int = 70
+const SFX_PRIORITY_HIGH: int = 90
+const SFX_PRIORITY_CRITICAL: int = 100
+const WEAPON_ATTACK_SFX: Dictionary = {
+	"cat_claw": &"sfx_claw_attack",
+	"long_tail": &"sfx_blade_attack",
+	"fish_bone": &"sfx_bone_attack",
+	"electro_bell": &"sfx_bell_attack",
+}
 const DEFAULT_SCENE_AUDIO_CUES: Dictionary = {
 	"hub": {
 		"music_id": &"mus_hub",
@@ -59,6 +73,9 @@ var _scene_transition_spawn_point: StringName = &""
 var _scene_transition_metadata: Dictionary = {}
 var _scene_transition_failed_scene_id: StringName = &""
 var _scene_transition_failed_reason: StringName = &""
+var _audio_state: StringName = AUDIO_STATE_NORMAL
+var _focus_mode_audio_active: bool = false
+var _last_gameplay_audio_event: Dictionary = {}
 
 
 func _ready() -> void:
@@ -279,6 +296,18 @@ func get_scene_transition_audio_state() -> Dictionary:
 	}
 
 
+func get_audio_state() -> StringName:
+	return _audio_state
+
+
+func is_focus_mode_audio_active() -> bool:
+	return _focus_mode_audio_active
+
+
+func get_last_gameplay_audio_event() -> Dictionary:
+	return _last_gameplay_audio_event.duplicate(true)
+
+
 func on_scene_load_started(
 	scene_id: StringName,
 	spawn_point: StringName,
@@ -317,6 +346,147 @@ func on_scene_load_failed(scene_id: StringName, reason: StringName) -> void:
 	_scene_transition_failed_scene_id = scene_id
 	_scene_transition_failed_reason = reason
 	scene_transition_audio_failed.emit(scene_id, reason)
+
+
+## Routes a resolved hit event to normal or crit impact SFX.
+func on_hit_event(hit_data: Dictionary) -> bool:
+	var is_crit: bool = bool(hit_data.get("is_crit", false))
+	var sfx_id: StringName = &"sfx_hit_crit" if is_crit else &"sfx_hit_normal"
+	var priority: int = SFX_PRIORITY_CRITICAL if is_crit else SFX_PRIORITY_NORMAL
+	return _request_gameplay_sfx(
+		&"hit",
+		sfx_id,
+		_event_position(hit_data, ["hit_position", "position", "world_position"]),
+		priority,
+		hit_data
+	)
+
+
+## Routes successful parry events to the matching parry SFX.
+func on_parry_event(parry_data: Dictionary) -> bool:
+	var parry_type: StringName = StringName(String(parry_data.get("parry_type", &"")))
+	var sfx_id: StringName = &""
+	var priority: int = SFX_PRIORITY_HIGH
+	match parry_type:
+		&"perfect":
+			sfx_id = &"sfx_parry_perfect"
+			priority = SFX_PRIORITY_CRITICAL
+		&"good":
+			sfx_id = &"sfx_parry_good"
+		_:
+			return false
+	return _request_gameplay_sfx(
+		&"parry",
+		sfx_id,
+		_event_position(parry_data, ["position", "world_position", "hit_position"]),
+		priority,
+		parry_data
+	)
+
+
+## Routes a player dodge start to spatial dodge SFX.
+func on_dodge_event(
+	texture_or_metadata: Variant = null,
+	world_position: Vector2 = Vector2.ZERO,
+	facing: float = 1.0
+) -> bool:
+	var metadata: Dictionary = {}
+	var dodge_position: Vector2 = world_position
+	if texture_or_metadata is Dictionary:
+		metadata = Dictionary(texture_or_metadata).duplicate(true)
+		dodge_position = _event_position(metadata, ["position", "world_position", "hit_position"])
+	else:
+		metadata = {
+			"position": world_position,
+			"facing": facing,
+		}
+	return _request_gameplay_sfx(
+		&"dodge",
+		&"sfx_dodge",
+		dodge_position,
+		SFX_PRIORITY_DODGE,
+		metadata
+	)
+
+
+## Routes weapon attack startup metadata to a weapon-specific swing SFX.
+func on_weapon_attack_event(attack_data: Dictionary) -> bool:
+	var weapon_id: StringName = StringName(String(attack_data.get("weapon_id", &"")))
+	var sfx_id: StringName = StringName(String(WEAPON_ATTACK_SFX.get(String(weapon_id), &"")))
+	if sfx_id == &"":
+		return false
+	return _request_gameplay_sfx(
+		&"weapon_attack",
+		sfx_id,
+		_event_position(attack_data, ["attack_position", "position", "world_position"]),
+		SFX_PRIORITY_NORMAL,
+		attack_data
+	)
+
+
+## Routes player damage to standard or focus-mode low-HP injury SFX.
+func on_damage_taken_event(damage_data: Dictionary) -> bool:
+	var focus_damage: bool = (
+		_focus_mode_audio_active
+		or bool(damage_data.get("focus_mode_active", false))
+	)
+	var sfx_id: StringName = &"sfx_damage_taken_lowhp" if focus_damage else &"sfx_damage_taken"
+	var priority: int = SFX_PRIORITY_HIGH if focus_damage else SFX_PRIORITY_DAMAGE
+	return _request_gameplay_sfx(
+		&"damage_taken",
+		sfx_id,
+		_event_position(damage_data, ["hit_position", "position", "world_position"]),
+		priority,
+		damage_data,
+		float(damage_data.get("pitch_offset", 0.0))
+	)
+
+
+## Tracks LOW_HP audio state and plays the focus-mode activation cue on entry.
+func on_focus_mode_changed(entity_id: int, active: bool, metadata: Dictionary) -> bool:
+	_focus_mode_audio_active = active
+	_audio_state = AUDIO_STATE_LOW_HP if active else AUDIO_STATE_NORMAL
+	_last_gameplay_audio_event = {
+		"event_id": &"focus_mode_changed",
+		"entity_id": entity_id,
+		"active": active,
+		"metadata": metadata.duplicate(true),
+	}
+	if not active:
+		return true
+	return _request_gameplay_sfx(
+		&"focus_mode_activate",
+		&"sfx_focus_mode_activate",
+		_event_position(metadata, ["position", "world_position", "hit_position"]),
+		SFX_PRIORITY_HIGH,
+		metadata
+	)
+
+
+## Routes enemy defeat presentation metadata to the enemy death SFX.
+func on_enemy_defeated(metadata: Dictionary = {}) -> bool:
+	return _request_gameplay_sfx(
+		&"enemy_defeated",
+		&"sfx_enemy_death",
+		_event_position(metadata, ["position", "world_position", "hit_position"]),
+		SFX_PRIORITY_HIGH,
+		metadata
+	)
+
+
+## Routes boss phase transition presentation metadata to boss phase SFX.
+func on_boss_phase_transition_started(entity_id: int, phase: int, metadata: Dictionary) -> bool:
+	_audio_state = AUDIO_STATE_BOSS_FIGHT
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	event_metadata["entity_id"] = entity_id
+	event_metadata["phase"] = phase
+	return _request_gameplay_sfx(
+		&"boss_phase_transition",
+		&"sfx_boss_phase",
+		_event_position(event_metadata, ["world_position", "position", "hit_position"]),
+		SFX_PRIORITY_CRITICAL,
+		event_metadata
+	)
 
 
 func _initialize_buses() -> void:
@@ -446,3 +616,40 @@ func _normalize_scene_audio_cue(cue: Dictionary) -> Dictionary:
 			float(cue.get("crossfade_sec", DEFAULT_SCENE_CROSSFADE_SEC))
 		),
 	}
+
+
+func _request_gameplay_sfx(
+	event_id: StringName,
+	sfx_id: StringName,
+	world_position: Vector2,
+	priority: int,
+	metadata: Dictionary,
+	pitch_offset: float = 0.0,
+	volume_db: float = 0.0
+) -> bool:
+	_last_gameplay_audio_event = {
+		"event_id": event_id,
+		"sfx_id": sfx_id,
+		"position": world_position,
+		"priority": priority,
+		"metadata": metadata.duplicate(true),
+	}
+	return play_sfx(sfx_id, world_position, volume_db, pitch_offset, priority)
+
+
+func _event_position(metadata: Dictionary, keys: Array) -> Vector2:
+	for key: Variant in keys:
+		if metadata.has(String(key)):
+			return _read_vector2(metadata.get(String(key)), Vector2.ZERO)
+		if metadata.has(StringName(String(key))):
+			return _read_vector2(metadata.get(StringName(String(key))), Vector2.ZERO)
+	return Vector2.ZERO
+
+
+func _read_vector2(value: Variant, fallback: Vector2) -> Vector2:
+	if value is Vector2:
+		return value
+	if value is Dictionary:
+		var data: Dictionary = Dictionary(value)
+		return Vector2(float(data.get("x", fallback.x)), float(data.get("y", fallback.y)))
+	return fallback

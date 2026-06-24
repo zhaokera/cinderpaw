@@ -8,13 +8,30 @@
   SceneManagement Story006 deferred unload/cache eviction、
   SceneManagement Story007 fast travel preload/scene change、AudioSystem
   Story001 autoload bus/pool baseline、AudioSystem Story002 scene transition
-  audio fades 已完成；下一步按 GDD/架构/Epic 状态推进 SceneManager
-  memory-budget verification、combat/health/boss/UI audio event adapters，以及
+  audio fades、AudioSystem Story003 combat/health event audio adapters 已完成；
+  下一步按 GDD/架构/Epic 状态推进 SceneManager memory-budget verification、
+  UI menu audio、Boss music state transitions、same-SFX merge 和 real audio
+  asset import stories，以及
   玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Audio System Story 003: Combat + Health Event Audio Adapters —
+  `AudioSystem` 现在提供 gameplay SFX event adapters：weapon attack
+  (`sfx_claw_attack`/`sfx_blade_attack`/`sfx_bone_attack`/`sfx_bell_attack`)、
+  hit (`sfx_hit_normal`/`sfx_hit_crit`)、parry
+  (`sfx_parry_perfect`/`sfx_parry_good`)、dodge (`sfx_dodge`)、damage taken
+  (`sfx_damage_taken`/focus active `sfx_damage_taken_lowhp`)、focus enter
+  (`sfx_focus_mode_activate`)、enemy defeated (`sfx_enemy_death`) 和 boss phase
+  (`sfx_boss_phase`)；缺失 stream 继续 silent-safe 并记录 position/priority/
+  pitch metadata。`MainScene` 作为 runtime adapter 转发玩家攻击、敌人伤害、
+  闪避、focus、敌人死亡和 Boss phase 事件，不让 Core/Player/Enemy/SceneManager
+  直接依赖 AudioSystem。通过 RED `report_458`、GREEN `report_459` `16/16`、
+  related regression `report_460` `90/90`、final focused `report_461` `27/27`、
+  headless smoke、Godot MCP runtime probe/log/screenshot 验证；README 保持纯项目介绍。
+  QA evidence:
+  `production/qa/evidence/audio-combat-health-event-adapters-2026-06-25.md`。
 - Audio System Story 002: Scene Transition Audio Fades —
   `AudioSystem` 现在消费场景过渡事件：load-start 会把当前 music/ambient
   记录为 2.0 秒强制淡出并标记 transition audio active；scene changed 会根据

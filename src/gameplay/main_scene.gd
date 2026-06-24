@@ -67,8 +67,8 @@ func _ready() -> void:
 	_player.player_health_changed.connect(_on_player_health_changed)
 	_player.player_died.connect(_on_player_died)
 	_player.attack_landed.connect(_on_player_attack_landed)
-	_player.attack_started.connect(_combat_presentation.on_weapon_attack_event)
-	_player.dodge_started.connect(_combat_presentation.on_dodge_event)
+	_player.attack_started.connect(_on_player_attack_started)
+	_player.dodge_started.connect(_on_player_dodge_started)
 	_connect_player_focus_mode_signal()
 	_enemy.enemy_health_changed.connect(_on_enemy_health_changed)
 	_enemy.enemy_defeated.connect(_on_enemy_defeated)
@@ -117,16 +117,30 @@ func _on_player_attack_landed(hit_data: Dictionary) -> void:
 	enriched_hit_data["show_damage_number"] = _hud.are_damage_numbers_enabled()
 	_last_player_hit_metadata = enriched_hit_data.duplicate(true)
 	_combat_presentation.on_hit_event(enriched_hit_data)
+	_dispatch_audio_event(&"on_hit_event", [enriched_hit_data])
+
+
+func _on_player_attack_started(attack_data: Dictionary) -> void:
+	_combat_presentation.on_weapon_attack_event(attack_data)
+	_dispatch_audio_event(&"on_weapon_attack_event", [attack_data])
+
+
+func _on_player_dodge_started(texture: Texture2D, world_position: Vector2, facing: float) -> void:
+	_combat_presentation.on_dodge_event(texture, world_position, facing)
+	_dispatch_audio_event(&"on_dodge_event", [texture, world_position, facing])
 
 
 func _on_enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool) -> void:
-	_combat_presentation.on_hit_event({
+	var hit_data: Dictionary = {
 		"damage": damage,
 		"hit_position": hit_position,
 		"is_crit": is_crit,
 		"source": &"shadow_beast_bite",
 		"show_damage_number": _hud.are_damage_numbers_enabled(),
-	})
+		"focus_mode_active": _is_player_focus_mode_active(),
+	}
+	_combat_presentation.on_hit_event(hit_data)
+	_dispatch_audio_event(&"on_damage_taken_event", [hit_data])
 
 
 func _on_enemy_health_changed(current_hp: int, max_hp: int) -> void:
@@ -134,6 +148,10 @@ func _on_enemy_health_changed(current_hp: int, max_hp: int) -> void:
 
 
 func _on_enemy_defeated() -> void:
+	_dispatch_audio_event(&"on_enemy_defeated", [{
+		"target_id": SHADOW_BEAST_ID,
+		"position": _enemy.global_position + Vector2(0, -24),
+	}])
 	_combat_presentation.on_kill_event(2, _enemy.global_position + Vector2(0, -24))
 	_game_flow.handle_enemy_defeated()
 	set_world_progress_flag(&"boss_shadow_beast_defeated", true)
@@ -460,9 +478,15 @@ func _is_valid_audio_system(audio_system: Object) -> bool:
 		audio_system != null
 		and is_instance_valid(audio_system)
 		and audio_system.has_method("on_scene_load_started")
-		and audio_system.has_method("on_scene_changed")
-		and audio_system.has_method("on_scene_load_failed")
 	)
+
+
+func _dispatch_audio_event(method_name: StringName, args: Array = []) -> bool:
+	var audio_system: Object = _resolve_audio_system_for_runtime()
+	if audio_system == null or not audio_system.has_method(String(method_name)):
+		return false
+	audio_system.callv(method_name, args)
+	return true
 
 
 func _connect_scene_manager_signals(scene_manager: Object) -> void:
@@ -538,7 +562,7 @@ func _on_scene_manager_load_started(
 		display_name = _display_name_for_scene_id(scene_id)
 	var audio_system: Object = _resolve_audio_system_for_runtime()
 	if audio_system != null:
-		audio_system.call("on_scene_load_started", scene_id, spawn_point, metadata)
+		_dispatch_audio_event(&"on_scene_load_started", [scene_id, spawn_point, metadata])
 	_hud.show_scene_transition(
 		scene_id,
 		display_name,
@@ -549,14 +573,14 @@ func _on_scene_manager_load_started(
 func _on_scene_manager_changed(old_scene: StringName, new_scene: StringName) -> void:
 	var audio_system: Object = _resolve_audio_system_for_runtime()
 	if audio_system != null:
-		audio_system.call("on_scene_changed", old_scene, new_scene)
+		_dispatch_audio_event(&"on_scene_changed", [old_scene, new_scene])
 	_hud.hide_scene_transition()
 
 
 func _on_scene_manager_load_failed(scene_id: StringName, reason: StringName) -> void:
 	var audio_system: Object = _resolve_audio_system_for_runtime()
 	if audio_system != null:
-		audio_system.call("on_scene_load_failed", scene_id, reason)
+		_dispatch_audio_event(&"on_scene_load_failed", [scene_id, reason])
 	_hud.hide_scene_transition()
 	_hud.show_notification("Load failed", 2.0)
 
@@ -806,6 +830,7 @@ func _handle_boss_phase_transition_started(entity_id: int, phase: int, metadata:
 			String(enriched_metadata.get("display_name", "Shadow Beast"))
 		)
 	_combat_presentation.on_boss_phase_transition_started(entity_id, phase, enriched_metadata)
+	_dispatch_audio_event(&"on_boss_phase_transition_started", [entity_id, phase, enriched_metadata])
 
 
 func _on_hud_colorblind_mode_changed(mode: StringName) -> void:
@@ -1139,9 +1164,21 @@ func _connect_player_focus_mode_signal() -> void:
 	if health == null or not health.has_signal("on_focus_mode_changed"):
 		return
 	var focus_signal: Signal = health.get("on_focus_mode_changed")
-	var focus_callback := Callable(_combat_presentation, "on_focus_mode_changed")
-	if not focus_signal.is_connected(focus_callback):
-		focus_signal.connect(focus_callback)
+	var audio_focus_callback := Callable(self, "_on_player_focus_mode_changed")
+	if not focus_signal.is_connected(audio_focus_callback):
+		focus_signal.connect(audio_focus_callback)
+
+
+func _on_player_focus_mode_changed(entity_id: int, active: bool, metadata: Dictionary) -> void:
+	_combat_presentation.on_focus_mode_changed(entity_id, active, metadata)
+	_dispatch_audio_event(&"on_focus_mode_changed", [entity_id, active, metadata])
+
+
+func _is_player_focus_mode_active() -> bool:
+	var health: Node = _player.get_node_or_null("HealthComponent")
+	if health == null or not health.has_method("is_focus_mode_active"):
+		return false
+	return bool(health.call("is_focus_mode_active"))
 
 
 func _sync_combat_presentation_accessibility_settings() -> void:

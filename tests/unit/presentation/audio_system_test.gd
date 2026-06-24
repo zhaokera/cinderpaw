@@ -236,3 +236,120 @@ func test_scene_load_failed_clears_transition_state_without_starting_new_cues() 
 	var transition_state: Dictionary = Dictionary(audio_system.get_scene_transition_audio_state())
 	assert_str(String(transition_state.get("failed_scene_id", &""))).is_equal("main")
 	assert_str(String(transition_state.get("failed_reason", &""))).is_equal("timeout")
+
+
+func test_hit_event_routes_normal_and_crit_sfx_with_priority() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	assert_bool(audio_system.has_method("on_hit_event")).is_true()
+	if not audio_system.has_method("on_hit_event"):
+		return
+
+	assert_bool(bool(audio_system.call("on_hit_event", {
+		"hit_position": Vector2(24, 48),
+		"is_crit": false,
+	}))).is_false()
+	var normal_request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(normal_request.get("sfx_id", &""))).is_equal("sfx_hit_normal")
+	assert_vector(normal_request.get("position", Vector2.ZERO)).is_equal(Vector2(24, 48))
+	var normal_priority: int = int(normal_request.get("priority", 0))
+
+	assert_bool(bool(audio_system.call("on_hit_event", {
+		"hit_position": Vector2(32, 56),
+		"is_crit": true,
+	}))).is_false()
+	var crit_request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(crit_request.get("sfx_id", &""))).is_equal("sfx_hit_crit")
+	assert_vector(crit_request.get("position", Vector2.ZERO)).is_equal(Vector2(32, 56))
+	assert_bool(int(crit_request.get("priority", 0)) > normal_priority).is_true()
+
+
+func test_parry_dodge_enemy_death_and_boss_phase_events_route_to_expected_sfx() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	for method_name: String in [
+		"on_parry_event",
+		"on_dodge_event",
+		"on_enemy_defeated",
+		"on_boss_phase_transition_started",
+		"get_audio_state",
+	]:
+		assert_bool(audio_system.has_method(method_name)).is_true()
+		if not audio_system.has_method(method_name):
+			return
+
+	assert_bool(bool(audio_system.call("on_parry_event", {
+		"parry_type": &"perfect",
+		"position": Vector2(10, 12),
+	}))).is_false()
+	var parry_request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(parry_request.get("sfx_id", &""))).is_equal("sfx_parry_perfect")
+	assert_vector(parry_request.get("position", Vector2.ZERO)).is_equal(Vector2(10, 12))
+
+	assert_bool(bool(audio_system.call("on_parry_event", {
+		"parry_type": &"miss",
+		"position": Vector2(99, 99),
+	}))).is_false()
+	assert_str(String(audio_system.get_last_sfx_request().get("sfx_id", &""))).is_equal("sfx_parry_perfect")
+
+	assert_bool(bool(audio_system.call("on_dodge_event", null, Vector2(40, 50), -1.0))).is_false()
+	var dodge_request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(dodge_request.get("sfx_id", &""))).is_equal("sfx_dodge")
+	assert_vector(dodge_request.get("position", Vector2.ZERO)).is_equal(Vector2(40, 50))
+
+	assert_bool(bool(audio_system.call("on_enemy_defeated", {
+		"position": Vector2(80, 90),
+	}))).is_false()
+	var death_request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(death_request.get("sfx_id", &""))).is_equal("sfx_enemy_death")
+	assert_vector(death_request.get("position", Vector2.ZERO)).is_equal(Vector2(80, 90))
+
+	assert_bool(bool(audio_system.call("on_boss_phase_transition_started", 2, 3, {
+		"world_position": Vector2(120, 140),
+	}))).is_false()
+	var boss_request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(boss_request.get("sfx_id", &""))).is_equal("sfx_boss_phase")
+	assert_vector(boss_request.get("position", Vector2.ZERO)).is_equal(Vector2(120, 140))
+	assert_str(String(audio_system.call("get_audio_state"))).is_equal("BOSS_FIGHT")
+
+
+func test_focus_mode_switches_damage_taken_to_low_hp_cue() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	for method_name: String in [
+		"on_damage_taken_event",
+		"on_focus_mode_changed",
+		"is_focus_mode_audio_active",
+		"get_audio_state",
+	]:
+		assert_bool(audio_system.has_method(method_name)).is_true()
+		if not audio_system.has_method(method_name):
+			return
+
+	assert_bool(bool(audio_system.call("on_damage_taken_event", {
+		"position": Vector2(5, 6),
+		"damage": 12,
+	}))).is_false()
+	assert_str(String(audio_system.get_last_sfx_request().get("sfx_id", &""))).is_equal("sfx_damage_taken")
+
+	assert_bool(bool(audio_system.call("on_focus_mode_changed", 1, true, {
+		"hp_percentage": 0.25,
+	}))).is_false()
+	assert_bool(bool(audio_system.call("is_focus_mode_audio_active"))).is_true()
+	assert_str(String(audio_system.call("get_audio_state"))).is_equal("LOW_HP")
+	assert_str(String(audio_system.get_last_sfx_request().get("sfx_id", &""))).is_equal("sfx_focus_mode_activate")
+
+	assert_bool(bool(audio_system.call("on_damage_taken_event", {
+		"hit_position": Vector2(7, 8),
+		"damage": 16,
+	}))).is_false()
+	var low_hp_request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(low_hp_request.get("sfx_id", &""))).is_equal("sfx_damage_taken_lowhp")
+	assert_vector(low_hp_request.get("position", Vector2.ZERO)).is_equal(Vector2(7, 8))
+
+	assert_bool(bool(audio_system.call("on_focus_mode_changed", 1, false, {}))).is_true()
+	assert_bool(bool(audio_system.call("is_focus_mode_audio_active"))).is_false()
+	assert_str(String(audio_system.call("get_audio_state"))).is_equal("NORMAL")

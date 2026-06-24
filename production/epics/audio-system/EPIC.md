@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/audio-system.md
 > **Architecture Module**: AudioSystem
 > **Status**: In Progress
-> **Stories**: 2 stories tracked
+> **Stories**: 3 stories tracked
 
 ## Overview
 
@@ -41,6 +41,7 @@ calls without pushing logic back into Core.
 |---|-------|------|--------|-----|
 | 001 | Autoload Bus + Pool Baseline | Integration | Complete | ADR-0001, ADR-0010 |
 | 002 | Scene Transition Audio Fades | Integration | Complete | ADR-0007, ADR-0010 |
+| 003 | Combat + Health Event Audio Adapters | Integration | Complete | ADR-0010 |
 
 ## Definition of Done
 
@@ -58,6 +59,6 @@ This epic is complete when:
 
 ## Next Step
 
-Audio System Story 002 is complete. Next recommended work is wiring combat,
-health, boss, and UI event adapters into AudioSystem while keeping missing audio
-assets silent-safe until generated/imported content is available.
+Audio System Story 003 is complete. Next recommended work is UI menu audio,
+Boss music state transitions, same-SFX merge, and real audio asset import
+stories.
