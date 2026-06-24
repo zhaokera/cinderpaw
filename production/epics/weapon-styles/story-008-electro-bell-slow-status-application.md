@@ -1,12 +1,12 @@
 # Story 008: Electro Bell Slow Status Application
 
 > **Epic**: Weapon Styles
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Integration
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-06-23
+> **Last Updated**: 2026-06-24
 
 ## Context
 
@@ -24,10 +24,10 @@ stacking duplicate slows.
 
 ## Acceptance Criteria
 
-- [ ] Electro Bell hits call `apply_status(target_id, slow, source_id)`.
-- [ ] Slow metadata remains 2 seconds and -30% movement.
-- [ ] Repeated Electro Bell hits refresh slow through StatusEffectComponent.
-- [ ] Missing status APIs degrade without errors.
+- [x] Electro Bell hits call `apply_status(target_id, slow, source_id)`.
+- [x] Slow metadata remains 2 seconds and -30% movement.
+- [x] Repeated Electro Bell hits refresh slow through StatusEffectComponent.
+- [x] Missing status APIs degrade without errors.
 
 ## Implementation Notes
 
@@ -57,7 +57,16 @@ canonical `slow` StringName.
 **Required evidence**:
 - Integration: `tests/unit/weapon/story_008_electro_bell_slow_test.gd`.
 
-**Status**: [ ] Not yet created
+**Created evidence**:
+- `tests/unit/weapon/story_008_electro_bell_slow_test.gd`
+- `production/qa/evidence/electro-bell-slow-status-2026-06-24.md`
+- RED: `reports/report_337/`
+- GREEN: `reports/report_338/`
+- Focused regression: `reports/report_340/`
+- MCP screenshot:
+  `reports/visual/cinderpaw-mcp-electro-bell-slow-runtime-20260624.png`
+
+**Status**: [x] Complete
 
 ## Dependencies
 

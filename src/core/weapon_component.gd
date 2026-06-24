@@ -24,6 +24,7 @@ const WEAPON_SWAP_DURATION_SEC: float = 0.5
 const WEAPON_SWAP_TIMER_EPSILON: float = 0.0001
 const SPECIAL_COOLDOWN_TIMER_EPSILON: float = 0.0001
 const COMBAT_STATE_ATTACKING: int = 1
+const STATUS_EFFECT_SLOW: StringName = &"slow"
 const SPECIAL_CAT_ENERGY_COST_BY_ATTACK: Dictionary = {
 	&"gale_claw": 30,
 	&"whirlwind_slash": 40,
@@ -224,18 +225,28 @@ func apply_confirmed_hit_effects(target_adapter: Object, hit_metadata: Dictionar
 	var metadata: Dictionary = hit_metadata.duplicate(true)
 	metadata["shield_break_attempted"] = false
 	metadata["shield_broken"] = false
+	metadata["slow_status_attempted"] = false
+	metadata["slow_status_applied"] = false
 	var weapon: Resource = get_current_weapon()
 	if weapon == null:
 		metadata["shield_break_skipped_reason"] = &"missing_weapon"
+		metadata["slow_status_skipped_reason"] = &"missing_weapon"
 		return metadata
 	var mechanism: Dictionary = weapon.special_mechanism.duplicate(true)
 	var mechanism_type: StringName = StringName(mechanism.get("type", &""))
 	metadata["weapon_id"] = weapon.weapon_id
 	metadata["mechanism_type"] = mechanism_type
-	if mechanism_type != &"shield_break":
-		metadata["shield_break_skipped_reason"] = &"not_shield_break_weapon"
-		return metadata
-	return _apply_shield_break_hit_effect(target_adapter, metadata)
+	match mechanism_type:
+		&"shield_break":
+			metadata["slow_status_skipped_reason"] = &"not_slow_weapon"
+			return _apply_shield_break_hit_effect(target_adapter, metadata)
+		&"slow_on_hit":
+			metadata["shield_break_skipped_reason"] = &"not_shield_break_weapon"
+			return _apply_slow_on_hit_effect(target_adapter, metadata, mechanism)
+		_:
+			metadata["shield_break_skipped_reason"] = &"not_shield_break_weapon"
+			metadata["slow_status_skipped_reason"] = &"not_slow_weapon"
+			return metadata
 
 
 ## Returns special attack metadata for the active weapon or an explicit weapon id.
@@ -420,6 +431,31 @@ func _apply_shield_break_hit_effect(target_adapter: Object, metadata: Dictionary
 	var break_result: Variant = target_adapter.call("break_shield")
 	metadata["shield_broken"] = true if break_result == null else bool(break_result)
 	metadata["shield_break_skipped_reason"] = &"" if bool(metadata["shield_broken"]) else &"no_active_shield"
+	return metadata
+
+
+func _apply_slow_on_hit_effect(
+	target_adapter: Object,
+	metadata: Dictionary,
+	mechanism: Dictionary
+) -> Dictionary:
+	var status_effect_id: StringName = StringName(mechanism.get("status_effect_id", STATUS_EFFECT_SLOW))
+	var slow_percentage: float = float(mechanism.get("slow_percentage", 0.3))
+	var slow_duration_sec: float = float(mechanism.get("slow_duration_sec", 2.0))
+	var slow_movement_modifier: float = clampf(1.0 - slow_percentage, 0.0, 1.0)
+	metadata["status_effect_id"] = status_effect_id
+	metadata["slow_duration_sec"] = slow_duration_sec
+	metadata["slow_percentage"] = slow_percentage
+	metadata["slow_movement_modifier"] = slow_movement_modifier
+	metadata["slow_status_attempted"] = true
+	if target_adapter == null or not target_adapter.has_method("apply_status"):
+		metadata["slow_status_skipped_reason"] = &"missing_apply_status"
+		return metadata
+	var target_id: int = int(metadata.get("target_id", 0))
+	var source_id: int = int(metadata.get("source_id", metadata.get("attacker_id", 0)))
+	var apply_result: Variant = target_adapter.call("apply_status", target_id, status_effect_id, source_id)
+	metadata["slow_status_applied"] = true if apply_result == null else bool(apply_result)
+	metadata["slow_status_skipped_reason"] = &"" if bool(metadata["slow_status_applied"]) else &"status_rejected"
 	return metadata
 
 

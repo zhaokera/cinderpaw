@@ -1201,3 +1201,34 @@
 - Next recommended: Weapon Styles Story 008 Electro Bell slow status
   application, then a dedicated player attack integration story to wire the
   playable attack chain into Core Combat/Collision/Health.
+
+## Session Extract — Electro Bell Slow Status Application 2026-06-24
+- Scope: Implement Weapon Styles Story 008, covering `TR-weapon-006` Electro
+  Bell slow status application through StatusEffectComponent-compatible
+  adapters.
+- Files changed: `src/core/weapon_component.gd`,
+  `tests/unit/weapon/story_008_electro_bell_slow_test.gd`,
+  `production/epics/weapon-styles/EPIC.md`,
+  `production/epics/weapon-styles/story-008-electro-bell-slow-status-application.md`,
+  and QA evidence under `production/qa/evidence/`.
+- Implementation: WeaponComponent's confirmed-hit effect hook now handles
+  `slow_on_hit`, calls target `apply_status(target_id, slow, source_id)`, and
+  returns slow metadata for duration, percentage, movement modifier, application
+  result, and safe missing-API degradation.
+- TDD evidence: RED first failed because Electro Bell did not apply slow status
+  (`reports/report_337/`); GREEN story suite passed 4/4
+  (`reports/report_338/`).
+- Regression evidence: weapon stories 001-008, status stories 001-006, health
+  shield pipeline, combat heavy charge, collision duplicate suppression, and
+  main-scene weapon swap suites passed 80/80 (`reports/report_340/`);
+  `godot --headless --path . --quit-after 1` passed.
+- Runtime evidence: Godot MCP session `cinderpaw@c4d7` ran
+  `res://scenes/main.tscn`; runtime `game_eval` switched to Electro Bell,
+  applied `slow` for 2 seconds at -30% movement, refreshed repeated hits to 2.0
+  seconds without duplication, and degraded safely for a target without
+  `apply_status()`.
+- Visual evidence:
+  `reports/visual/cinderpaw-mcp-electro-bell-slow-runtime-20260624.png`.
+- Epic status: Weapon Styles now has Stories 001-008 complete.
+- Next recommended: create/implement a player attack integration story to wire
+  the playable attack chain into Core Combat/Collision/Health/Weapon callbacks.

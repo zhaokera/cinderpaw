@@ -3,7 +3,7 @@
 > **Layer**: Core
 > **GDD**: design/gdd/weapon-styles.md
 > **Architecture Module**: WeaponStyleManager
-> **Status**: In Progress
+> **Status**: Complete
 > **Stories**: 8 stories
 
 ## Overview
@@ -50,7 +50,7 @@ HUD, audio, save-file orchestration, or collision detection internals.
 | 005 | Cat Claw Dodge-Counter Crit Bonus | Integration | Complete | ADR-0005, ADR-0016 |
 | 006 | Long Tail Multi-Target Range Contract | Integration | Complete | ADR-0004, ADR-0016 |
 | 007 | Fish Bone Charged Shield Break | Integration | Complete | ADR-0016, ADR-0019 |
-| 008 | Electro Bell Slow Status Application | Integration | Ready | ADR-0016, ADR-0017 |
+| 008 | Electro Bell Slow Status Application | Integration | Complete | ADR-0016, ADR-0017 |
 
 ## Definition of Done
 
@@ -65,5 +65,6 @@ This epic is complete when:
 
 ## Next Step
 
-Stories 001-007 are complete. Continue with
-`production/epics/weapon-styles/story-008-electro-bell-slow-status-application.md`.
+Stories 001-008 are complete. Next recommended integration work is a dedicated
+player attack story that wires the playable attack chain into Core
+Combat/Collision/Health/Weapon callbacks.
