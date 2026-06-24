@@ -1867,3 +1867,15 @@
 - Asset note: generated `combat_boss_phase_overlay.png` through image generation, copied source into `assets/generated/source/`, removed `#00FF00` chroma key to alpha, and imported through Godot.
 - Blockers: None
 - Next: continue Combat Presentation colorblind remaps, performance-budget checks, low-HP focus shake reduction, boss phase audio/HUD follow-up, or real BossConfig scene integration.
+
+## Session Extract — /dev-story 2026-06-25
+
+- Story: `production/epics/audio-system/story-001-autoload-bus-pool-baseline.md` — AudioSystem Autoload Bus + Pool Baseline
+- Files changed: `src/presentation/audio_system.gd`, `project.godot`, `tests/unit/presentation/audio_system_test.gd`, `production/epics/audio-system/EPIC.md`, `production/epics/audio-system/story-001-autoload-bus-pool-baseline.md`, `production/epics/index.md`, `production/qa/evidence/audio-system-autoload-bus-pool-baseline-2026-06-25.md`, `production/session-state/active.md`
+- Implementation: Added AudioSystem as Autoload #3 after InputManager and before SaveSystem, created runtime Master/Music/SFX/Ambient/UI bus setup with linear percentage volumes, added a 16-player `AudioStreamPlayer2D` SFX pool, and exposed silent-safe `play_sfx`, `play_music`, `stop_music`, `play_ambient`, `stop_ambient`, `set_bus_volume`, and stream registration APIs.
+- Test written: `tests/unit/presentation/audio_system_test.gd`
+- Verification: RED failed on missing AudioSystem script/autoload (`reports/report_446/`); RED refinement failed on SFX max distance/bus send coverage (`reports/report_448/`); GREEN focused AudioSystem `6/6` (`reports/report_449/`); related Presentation/Input/Save/Scene regression `109/109` (`reports/report_451/`); headless project smoke exited 0.
+- Runtime evidence: Godot MCP ran `res://scenes/main.tscn`; runtime probe confirmed `/root/AudioSystem`, five buses with default volume percentages, SFX pool size 16, missing audio calls safely returning false, pitch metadata recorded, clean game logs, and capturable 1280x720 game frame.
+- Asset note: no image-generated visual asset was required for this audio infrastructure slice; real SFX/music/ambience asset generation/import is deferred to later audio content stories.
+- Blockers: None
+- Next: implement Audio System Story 002 scene-transition audio fades by wiring SceneManager transition events to AudioSystem-owned fade APIs, then add real generated/imported audio content and combat event adapters.
