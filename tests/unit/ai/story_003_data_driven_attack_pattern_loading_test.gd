@@ -7,6 +7,7 @@ const SCHEMA_VALIDATOR_SCRIPT: Script = preload("res://src/foundation/schema_val
 
 const ENEMY_STATS_PATH: String = "res://data/combat/enemy_stats.json"
 const ENEMY_STATS_SCHEMA_PATH: String = "res://data/schemas/enemy_stats.schema.json"
+const BOSS_CONFIGS_PATH: String = "res://data/combat/boss_configs.json"
 
 
 class FakeEnemyStatsAdapter:
@@ -113,6 +114,24 @@ func test_project_enemy_stats_data_loads_through_data_manager_and_schema() -> vo
 	assert_array(entry["attack_patterns"]).is_not_empty()
 	assert_bool(ai.load_attack_patterns(&"mechanical_rat", data_manager)).is_true()
 	assert_bool(ai.has_attack_patterns()).is_true()
+
+
+func test_rat_king_enemy_stats_patterns_cover_boss_config_phase_pattern_ids() -> void:
+	var enemy_stats: Dictionary = _load_json(ENEMY_STATS_PATH)
+	var boss_configs: Dictionary = _load_json(BOSS_CONFIGS_PATH)
+	var rat_king_entry: Dictionary = enemy_stats["entries"]["boss_01_rat_king"]
+	var boss_config: Dictionary = boss_configs["entries"]["boss_01_rat_king"]
+	var pattern_ids: Array = []
+	for pattern: Dictionary in rat_king_entry["attack_patterns"]:
+		pattern_ids.append(StringName(pattern["pattern_id"]))
+
+	assert_bool(data_manager.get_entry(&"enemy_stats", &"boss_01_rat_king") is Dictionary).is_true()
+	assert_bool(ai.load_attack_patterns(&"boss_01_rat_king", data_manager)).is_true()
+	assert_bool(ai.has_attack_patterns()).is_true()
+
+	for phase: Dictionary in boss_config["phases"]:
+		for pattern_id: String in phase["attack_patterns"]:
+			assert_array(pattern_ids).contains(StringName(pattern_id))
 
 
 func _load_json(path: String) -> Dictionary:

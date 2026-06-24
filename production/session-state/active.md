@@ -9,16 +9,31 @@
   SceneManagement Story007 fast travel preload/scene change、AudioSystem
   Story001 autoload bus/pool baseline、AudioSystem Story002 scene transition
   audio fades、AudioSystem Story003 combat/health event audio adapters、
-  CombatPresentation Story014 Rat King boss frame animation slice 已完成；
-  下一步按 GDD/架构/Epic 状态推进 RatKingBoss runtime scene/MainScene boss
-  replacement 已完成；下一步推进完整 Rat King boss AI attack scheduling、
-  specialized attack animation expansion、SceneManager memory-budget
+  CombatPresentation Story014 Rat King boss frame animation slice、
+  BossConfig Story007 RatKingBoss runtime scene/MainScene boss replacement、
+  BossConfig Story008 Rat King AI attack scheduler runtime integration 已完成；
+  下一步推进 specialized attack animation expansion、live phase 2 summon
+  runtime、arena mutation runtime、SceneManager memory-budget
   verification、UI menu audio、Boss music state transitions、same-SFX merge 和
   real audio asset import stories，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Boss Configuration Story 008: Rat King AI Attack Scheduler MainScene Runtime
+  Integration — `AIComponent` 新增 BossConfig `apply_boss_phase()` 合同、
+  当前 phase-filtered attack pattern ids、按 pattern id 启动攻击和
+  BossConfig attack_speed_modifier timing；`data/combat/enemy_stats.json`
+  新增 `boss_01_rat_king` 的 `charge`、`claw_swipe`、`slam`、
+  `berserk_combo` attack profiles，Schema/DataManager 测试覆盖 BossConfig
+  phase ids 与 AI pattern ids 对齐。`RatKingBoss` 现在运行时挂载
+  `AIComponent`，关闭重复 physics 推进，由 RatKingBoss 单入口推进
+  startup/active/recovery，并通过 `activate_hitbox()` adapter 合并 AI
+  pattern metadata 和 Rat King Combat damage metadata。通过 RED
+  `report_476`、GREEN focused `report_478` `18/18`、Boss/AI/Gameplay
+  regression `report_479` `74/74`、headless smoke、Godot MCP runtime tree /
+  game_eval / logs / screenshot 验证。QA evidence:
+  `production/qa/evidence/rat-king-ai-attack-scheduler-2026-06-25.md`。
 - Boss Configuration Story 007: Rat King Runtime MainScene Replacement —
   新增 `src/gameplay/rat_king_boss.gd` 和 `src/gameplay/rat_king_boss.tscn`，
   将 `scenes/main.tscn` 的 `/Main/Enemy` 从 Shadow Beast prototype 替换为

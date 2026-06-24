@@ -67,6 +67,8 @@ var _hitbox_activated_this_attack: bool = false
 var _focus_mode_active: bool = false
 var _focus_windup_extension_frames: int = DEFAULT_FOCUS_WINDUP_EXTENSION_FRAMES
 var _current_boss_phase: int = 1
+var _boss_phase_attack_pattern_ids: Array = []
+var _boss_attack_speed_modifier: float = 1.0
 var _flee_enabled: bool = true
 var _berserk_enabled: bool = true
 var _flee_hp_threshold: float = DEFAULT_FLEE_HP_THRESHOLD
@@ -220,7 +222,47 @@ func start_attack(pattern_index: int = 0) -> bool:
 	var available_patterns: Array[Dictionary] = _get_current_attack_patterns()
 	if pattern_index < 0 or pattern_index >= available_patterns.size():
 		return false
-	_current_attack_pattern = available_patterns[pattern_index].duplicate(true)
+	return _start_attack_from_pattern(available_patterns[pattern_index])
+
+
+## Starts the loaded attack pattern with the given pattern id.
+func start_attack_by_pattern_id(pattern_id: StringName) -> bool:
+	for pattern: Dictionary in _get_current_attack_patterns():
+		if StringName(pattern.get("pattern_id", &"default_attack")) == pattern_id:
+			return _start_attack_from_pattern(pattern)
+	return false
+
+
+## Applies the BossConfig phase contract without listening to raw health thresholds.
+func apply_boss_phase(
+	phase_id: int,
+	attack_patterns: Array,
+	attack_speed_modifier: float
+) -> void:
+	_current_boss_phase = maxi(1, phase_id)
+	_boss_phase_attack_pattern_ids = _string_names_from_array(attack_patterns)
+	_boss_attack_speed_modifier = clampf(
+		attack_speed_modifier,
+		MIN_ATTACK_MODIFIER,
+		MAX_ATTACK_MODIFIER
+	)
+
+
+## Returns the pattern ids available after phase and BossConfig filtering.
+func get_current_attack_pattern_ids() -> Array:
+	var pattern_ids: Array = []
+	for pattern: Dictionary in _get_current_attack_patterns():
+		pattern_ids.append(StringName(pattern.get("pattern_id", &"default_attack")))
+	return pattern_ids
+
+
+## Returns the current attack pattern id, or an empty id when no attack is active.
+func get_current_attack_pattern_id() -> StringName:
+	return StringName(_current_attack_pattern.get("pattern_id", &""))
+
+
+func _start_attack_from_pattern(pattern: Dictionary) -> bool:
+	_current_attack_pattern = pattern.duplicate(true)
 	_apply_berserk_timing(_current_attack_pattern)
 	_current_attack_pattern["startup_frames"] = _get_effective_startup_frames(_current_attack_pattern)
 	_attack_phase = ATTACK_PHASE_STARTUP
@@ -266,6 +308,15 @@ func get_berserk_attack_speed_modifier() -> float:
 	if _berserk_active:
 		return _berserk_attack_speed_multiplier
 	return 1.0
+
+
+## Returns the combined BossConfig and low-HP attack speed modifier.
+func get_attack_speed_modifier() -> float:
+	return clampf(
+		_boss_attack_speed_modifier * get_berserk_attack_speed_modifier(),
+		MIN_ATTACK_MODIFIER,
+		MAX_ATTACK_MODIFIER
+	)
 
 
 ## Returns current pattern weights after base, phase, and HP modifiers.
@@ -430,7 +481,7 @@ func _is_combat_state(state: AIState) -> bool:
 
 
 func _apply_berserk_timing(pattern: Dictionary) -> void:
-	var speed_modifier: float = get_berserk_attack_speed_modifier()
+	var speed_modifier: float = get_attack_speed_modifier()
 	if speed_modifier <= 1.0:
 		return
 	pattern["startup_frames"] = _speed_scaled_frame_count(pattern.get("startup_frames", 1))
@@ -440,7 +491,7 @@ func _apply_berserk_timing(pattern: Dictionary) -> void:
 
 func _speed_scaled_frame_count(frame_value: Variant) -> int:
 	var base_frames: int = maxi(1, int(frame_value))
-	return maxi(1, int(round(float(base_frames) / get_berserk_attack_speed_modifier())))
+	return maxi(1, int(round(float(base_frames) / get_attack_speed_modifier())))
 
 
 func _calculate_attack_weight(pattern: Dictionary) -> float:
@@ -504,6 +555,7 @@ func _normalize_attack_pattern(source: Dictionary) -> Dictionary:
 		"active_frames": _read_int(source, "active_frames", DEFAULT_ATTACK_ACTIVE_FRAMES, 1, 120),
 		"recovery_frames": _read_int(source, "recovery_frames", DEFAULT_ATTACK_RECOVERY_FRAMES, 1, 300),
 		"damage_type": StringName(String(source.get("damage_type", "physical"))),
+		"damage": _read_int(source, "damage", 0, 0, 999),
 		"hitbox_config": _normalize_hitbox_config(source.get("hitbox_config", {})),
 		"vulnerability_window": _normalize_vulnerability_window(
 			source.get("vulnerability_window", {}),
@@ -697,9 +749,12 @@ func _activate_current_hitbox() -> void:
 
 func _get_current_attack_patterns() -> Array[Dictionary]:
 	var phase_patterns: Variant = _phase_attack_patterns.get(_current_boss_phase, [])
+	var source_patterns: Array[Dictionary] = []
 	if phase_patterns is Array and not (phase_patterns as Array).is_empty():
-		return _dictionary_array_from_array(phase_patterns as Array)
-	return _attack_patterns
+		source_patterns = _dictionary_array_from_array(phase_patterns as Array)
+	else:
+		source_patterns = _attack_patterns
+	return _filter_patterns_by_boss_phase_ids(source_patterns)
 
 
 func _dictionary_array_from_array(source: Array) -> Array[Dictionary]:
@@ -708,6 +763,26 @@ func _dictionary_array_from_array(source: Array) -> Array[Dictionary]:
 		if value is Dictionary:
 			typed_values.append(value as Dictionary)
 	return typed_values
+
+
+func _filter_patterns_by_boss_phase_ids(source_patterns: Array[Dictionary]) -> Array[Dictionary]:
+	if _boss_phase_attack_pattern_ids.is_empty():
+		return source_patterns
+	var filtered_patterns: Array[Dictionary] = []
+	for pattern: Dictionary in source_patterns:
+		var pattern_id: StringName = StringName(pattern.get("pattern_id", &"default_attack"))
+		if _boss_phase_attack_pattern_ids.has(pattern_id):
+			filtered_patterns.append(pattern)
+	return filtered_patterns
+
+
+func _string_names_from_array(source: Array) -> Array:
+	var result: Array = []
+	for value: Variant in source:
+		var pattern_id: StringName = StringName(String(value))
+		if pattern_id != &"":
+			result.append(pattern_id)
+	return result
 
 
 func _get_effective_startup_frames(pattern: Dictionary) -> int:
@@ -722,6 +797,7 @@ func _build_attack_metadata() -> Dictionary:
 	return {
 		"pattern_id": _current_attack_pattern.get("pattern_id", &"default_attack"),
 		"damage_type": _current_attack_pattern.get("damage_type", &"physical"),
+		"damage": _current_attack_pattern.get("damage", 0),
 		"startup_frames": _current_attack_pattern.get("startup_frames", DEFAULT_ATTACK_STARTUP_FRAMES),
 		"active_frames": _current_attack_pattern.get("active_frames", DEFAULT_ATTACK_ACTIVE_FRAMES),
 		"recovery_frames": _current_attack_pattern.get("recovery_frames", DEFAULT_ATTACK_RECOVERY_FRAMES),

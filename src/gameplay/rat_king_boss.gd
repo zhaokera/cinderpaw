@@ -39,6 +39,7 @@ const COLLISION_COMPONENT_SCRIPT: Script = preload("res://src/core/collision_com
 const COMBAT_COMPONENT_SCRIPT: Script = preload("res://src/core/combat_component.gd")
 const STATUS_EFFECT_COMPONENT_SCRIPT: Script = preload("res://src/core/status_effect_component.gd")
 const BOSS_CONFIG_COMPONENT_SCRIPT: Script = preload("res://src/core/boss_config_component.gd")
+const AI_COMPONENT_SCRIPT: Script = preload("res://src/core/ai_component.gd")
 
 enum State { IDLE, HIT, ATTACK_TELL, ATTACK_ACTIVE, ATTACK_RECOVERY, PHASE_TRANSITION, DEAD }
 
@@ -49,12 +50,14 @@ var _attack_timer: int = 0
 var _attack_cooldown_timer: int = 0
 var _contact_damage_timer: int = 0
 var _last_enemy_attack_metadata: Dictionary = {}
+var _active_attack_metadata: Dictionary = {}
 var _attack_target: Node = null
 var _health: HealthComponent = null
 var _collision: CollisionComponent = null
 var _combat: CombatComponent = null
 var _status_effects: StatusEffectComponent = null
 var _boss_config: BossConfigComponent = null
+var _ai: AIComponent = null
 var _damage_calculator_adapter: Object = null
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
@@ -91,6 +94,11 @@ func _physics_process(delta: float) -> void:
 
 
 func request_attack() -> bool:
+	if _ai != null and _ai.has_attack_patterns():
+		var selected_pattern: Dictionary = _ai.select_attack_pattern()
+		var pattern_id: StringName = StringName(selected_pattern.get("pattern_id", &""))
+		if pattern_id != &"":
+			return request_attack_pattern(pattern_id)
 	if _state != State.IDLE or _attack_cooldown_timer > 0:
 		return false
 	_face_attack_target()
@@ -101,16 +109,30 @@ func request_attack() -> bool:
 	return true
 
 
+func request_attack_pattern(pattern_id: StringName) -> bool:
+	if _ai == null or _state != State.IDLE or _attack_cooldown_timer > 0:
+		return false
+	if not _ai.start_attack_by_pattern_id(pattern_id):
+		return false
+	_face_attack_target()
+	velocity = Vector2.ZERO
+	_active_attack_metadata.clear()
+	_state = State.ATTACK_TELL
+	_attack_timer = _ai.get_effective_attack_startup_frames()
+	_play_character_animation(ANIMATION_ATTACK_TELL, true)
+	return true
+
+
 func advance_attack_frames(frames: int) -> void:
 	for _index: int in range(maxi(0, frames)):
 		_attack_cooldown_timer = maxi(_attack_cooldown_timer - 1, 0)
 		match _state:
 			State.ATTACK_TELL:
-				_process_attack_tell(1.0 / 60.0)
+				_process_ai_attack(1.0 / 60.0)
 			State.ATTACK_ACTIVE:
-				_process_attack_active(1.0 / 60.0)
+				_process_ai_attack(1.0 / 60.0)
 			State.ATTACK_RECOVERY:
-				_process_attack_recovery(1.0 / 60.0)
+				_process_ai_attack(1.0 / 60.0)
 			_:
 				pass
 
@@ -166,6 +188,37 @@ func set_damage_calculator_adapter(damage_calculator_adapter: Object) -> void:
 		_combat.set_damage_calculator_adapter(_damage_calculator_adapter)
 
 
+func apply_boss_phase(
+	phase_id: int,
+	attack_patterns: Array,
+	attack_speed_modifier: float
+) -> void:
+	if _ai == null:
+		return
+	_ai.apply_boss_phase(phase_id, attack_patterns, attack_speed_modifier)
+
+
+func activate_hitbox(
+	hitbox_id: StringName,
+	duration_frames: int,
+	offset: Vector2,
+	size: Vector2,
+	attack_metadata: Dictionary = {}
+) -> void:
+	if _collision == null:
+		return
+	var oriented_offset: Vector2 = Vector2(_facing * absf(offset.x), offset.y)
+	var metadata: Dictionary = _build_attack_metadata(attack_metadata, hitbox_id)
+	_active_attack_metadata = metadata.duplicate(true)
+	_collision.activate_hitbox(
+		hitbox_id,
+		duration_frames,
+		oriented_offset,
+		size,
+		metadata
+	)
+
+
 func get_current_hp() -> int:
 	if _health == null:
 		return FALLBACK_MAX_HP
@@ -201,6 +254,8 @@ func get_current_phase() -> int:
 
 
 func get_attack_phase() -> StringName:
+	if _ai != null and _ai.get_attack_phase() != &"none":
+		return _ai.get_attack_phase()
 	match _state:
 		State.ATTACK_TELL:
 			return &"startup"
@@ -228,8 +283,36 @@ func get_status_effect_component() -> StatusEffectComponent:
 	return _status_effects
 
 
+func get_ai_component() -> AIComponent:
+	return _ai
+
+
 func get_boss_config_component() -> BossConfigComponent:
 	return _boss_config
+
+
+func get_available_attack_pattern_ids() -> Array:
+	if _ai == null:
+		return []
+	return _ai.get_current_attack_pattern_ids()
+
+
+func get_current_attack_pattern_id() -> StringName:
+	if _ai == null:
+		return &""
+	return _ai.get_current_attack_pattern_id()
+
+
+func get_current_attack_startup_frames() -> int:
+	if _ai == null:
+		return ATTACK_TELL_FRAMES
+	return _ai.get_effective_attack_startup_frames()
+
+
+func get_attack_speed_modifier() -> float:
+	if _ai == null:
+		return 1.0
+	return _ai.get_attack_speed_modifier()
 
 
 func get_last_enemy_attack_metadata() -> Dictionary:
@@ -257,6 +340,7 @@ func restore_respawn_snapshot(snapshot: Dictionary) -> void:
 	_attack_cooldown_timer = 0
 	_contact_damage_timer = 0
 	_last_enemy_attack_metadata = {}
+	_active_attack_metadata = {}
 	velocity = Vector2.ZERO
 	collision_layer = _read_int(snapshot.get("collision_layer", collision_layer), collision_layer)
 	collision_mask = _read_int(snapshot.get("collision_mask", collision_mask), collision_mask)
@@ -272,6 +356,7 @@ func restore_respawn_snapshot(snapshot: Dictionary) -> void:
 		_collision.set_hurtbox_state(&"normal")
 	if _status_effects != null:
 		_status_effects.clear_all_effects()
+	_setup_ai_component()
 	_update_sprite_facing()
 	_play_character_animation(ANIMATION_IDLE, true)
 	enemy_health_changed.emit(get_current_hp(), get_max_hp())
@@ -303,9 +388,7 @@ func _process_attack_tell(_delta: float) -> void:
 	velocity.x = 0.0
 	_update_sprite_facing()
 	_play_character_animation(ANIMATION_ATTACK_TELL)
-	_attack_timer -= 1
-	if _attack_timer <= 0:
-		_enter_attack_active()
+	_process_ai_attack(_delta)
 
 
 func _enter_attack_active() -> void:
@@ -325,19 +408,53 @@ func _enter_attack_active() -> void:
 func _process_attack_active(_delta: float) -> void:
 	velocity.x = 0.0
 	_play_character_animation(ANIMATION_ATTACK)
-	_attack_timer -= 1
-	if _attack_timer <= 0:
-		_state = State.ATTACK_RECOVERY
-		_attack_timer = ATTACK_RECOVERY_FRAMES
+	_process_ai_attack(_delta)
 
 
 func _process_attack_recovery(_delta: float) -> void:
 	velocity.x = 0.0
-	_attack_timer -= 1
-	if _attack_timer <= 0:
-		_state = State.IDLE
-		_attack_cooldown_timer = ATTACK_COOLDOWN_FRAMES
-		_play_character_animation(ANIMATION_IDLE, true)
+	_process_ai_attack(_delta)
+
+
+func _process_ai_attack(_delta: float) -> void:
+	if _ai == null or _ai.get_current_state() != AIComponent.AIState.ATTACK:
+		_finish_ai_attack_if_needed()
+		return
+	_ai.advance_attack_frames(1)
+	_sync_state_from_ai_attack()
+
+
+func _sync_state_from_ai_attack() -> void:
+	if _ai == null or _ai.get_current_state() != AIComponent.AIState.ATTACK:
+		_finish_ai_attack_if_needed()
+		return
+	var attack_phase: StringName = _ai.get_attack_phase()
+	var previous_state: State = _state
+	match attack_phase:
+		&"startup":
+			_state = State.ATTACK_TELL
+			_attack_timer = maxi(1, _ai.get_effective_attack_startup_frames() - _ai.get_attack_frame())
+			_play_character_animation(ANIMATION_ATTACK_TELL)
+		&"active":
+			_state = State.ATTACK_ACTIVE
+			_attack_timer = ATTACK_ACTIVE_FRAMES
+			_play_character_animation(ANIMATION_ATTACK, previous_state != State.ATTACK_ACTIVE)
+		&"recovery":
+			_state = State.ATTACK_RECOVERY
+			_attack_timer = ATTACK_RECOVERY_FRAMES
+			_play_character_animation(ANIMATION_ATTACK)
+		_:
+			_finish_ai_attack_if_needed()
+
+
+func _finish_ai_attack_if_needed() -> void:
+	if _state != State.ATTACK_TELL and _state != State.ATTACK_ACTIVE and _state != State.ATTACK_RECOVERY:
+		return
+	_state = State.IDLE
+	_attack_timer = 0
+	_attack_cooldown_timer = ATTACK_COOLDOWN_FRAMES
+	_sprite.modulate = NORMAL_MODULATE
+	_play_character_animation(ANIMATION_IDLE, true)
 
 
 func _process_phase_transition(_delta: float) -> void:
@@ -371,6 +488,11 @@ func _ensure_core_components() -> void:
 		_boss_config = BOSS_CONFIG_COMPONENT_SCRIPT.new() as BossConfigComponent
 		_boss_config.name = "BossConfigComponent"
 		add_child(_boss_config)
+	_ai = get_node_or_null("AIComponent") as AIComponent
+	if _ai == null:
+		_ai = AI_COMPONENT_SCRIPT.new() as AIComponent
+		_ai.name = "AIComponent"
+		add_child(_ai)
 
 
 func _setup_core_components() -> void:
@@ -399,6 +521,30 @@ func _setup_core_components() -> void:
 	_boss_config.set_ai_adapter(self)
 	if not _boss_config.on_boss_phase_transition_started.is_connected(_on_boss_phase_transition_started):
 		_boss_config.on_boss_phase_transition_started.connect(_on_boss_phase_transition_started)
+	_setup_ai_component()
+
+
+func _setup_ai_component() -> void:
+	if _ai == null:
+		return
+	var root_data_manager: Node = get_node_or_null("/root/DataManager")
+	_ai.set_physics_process(false)
+	_ai.set_entity_id(BOSS_ENTITY_ID)
+	_ai.set_data_adapter(root_data_manager)
+	_ai.set_collision_adapter(self)
+	_ai.load_attack_patterns(BOSS_ID, root_data_manager)
+	_apply_current_boss_phase_to_ai()
+
+
+func _apply_current_boss_phase_to_ai() -> void:
+	if _ai == null or _boss_config == null or not _boss_config.has_boss_config():
+		return
+	var phase_id: int = _boss_config.get_current_phase()
+	apply_boss_phase(
+		phase_id,
+		_boss_config.get_phase_attack_patterns(phase_id),
+		_boss_config.get_attack_speed_modifier(phase_id)
+	)
 
 
 func _reload_boss_config() -> bool:
@@ -425,6 +571,9 @@ func _resolved_phase_thresholds() -> Array:
 func _on_core_hp_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:
 	enemy_health_changed.emit(current_hp, max_hp)
 	if current_hp <= 0 or _state == State.DEAD or _state == State.PHASE_TRANSITION:
+		return
+	if _state == State.ATTACK_TELL or _state == State.ATTACK_ACTIVE or _state == State.ATTACK_RECOVERY:
+		_sprite.modulate = HIT_MODULATE
 		return
 	_hit_timer = HIT_FLASH_FRAMES
 	_state = State.HIT
@@ -461,36 +610,46 @@ func _on_boss_phase_transition_started(
 
 
 func _on_core_attack_hit(metadata: Dictionary) -> void:
-	_last_enemy_attack_metadata = metadata.duplicate(true)
+	var merged_metadata: Dictionary = _active_attack_metadata.duplicate(true)
+	for key: Variant in metadata.keys():
+		merged_metadata[key] = metadata[key]
+	_last_enemy_attack_metadata = merged_metadata.duplicate(true)
 	var hit_position: Vector2 = _read_vector2(
-		metadata.get("hit_position", global_position),
+		merged_metadata.get("hit_position", global_position),
 		global_position
 	)
 	enemy_attack_landed.emit(
-		int(metadata.get("final_damage", 0)),
+		int(merged_metadata.get("final_damage", 0)),
 		hit_position,
-		bool(metadata.get("is_crit", false))
+		bool(merged_metadata.get("is_crit", false))
 	)
 
 
-func _build_attack_metadata() -> Dictionary:
-	return {
+func _build_attack_metadata(
+	ai_metadata: Dictionary = {},
+	hitbox_id: StringName = ATTACK_HITBOX_ID
+) -> Dictionary:
+	var damage: int = int(ai_metadata.get("damage", _damage_for_hitbox(hitbox_id)))
+	var metadata: Dictionary = {
 		"source": &"rat_king",
 		"attack_type": &"light",
-		"weapon_id": ATTACK_HITBOX_ID,
+		"weapon_id": hitbox_id,
 		"combo_index": 0,
 		"hit_frame": RAT_KING_CLAW_HIT_FRAME,
 		"attack_power": 0,
 		"enemy_defense": 0,
-		"injected_damage_params": _build_enemy_damage_params(),
+		"injected_damage_params": _build_enemy_damage_params(hitbox_id, damage),
 	}
+	for key: Variant in ai_metadata.keys():
+		metadata[key] = ai_metadata[key]
+	return metadata
 
 
-func _build_enemy_damage_params() -> Dictionary:
+func _build_enemy_damage_params(hitbox_id: StringName, damage: int) -> Dictionary:
 	return {
 		"entries": {
-			String(ATTACK_HITBOX_ID): {
-				"weapon_base": RAT_KING_CLAW_DAMAGE,
+			String(hitbox_id): {
+				"weapon_base": maxi(0, damage),
 				"combo_multipliers": {
 					"0": 1.0,
 				},
@@ -501,6 +660,20 @@ func _build_enemy_damage_params() -> Dictionary:
 			},
 		},
 	}
+
+
+func _damage_for_hitbox(hitbox_id: StringName) -> int:
+	match hitbox_id:
+		&"rat_king_claw":
+			return RAT_KING_CLAW_DAMAGE
+		&"rat_king_charge":
+			return 14
+		&"rat_king_slam":
+			return 16
+		&"rat_king_berserk_combo":
+			return 14
+		_:
+			return RAT_KING_CLAW_DAMAGE
 
 
 func _can_auto_attack_target() -> bool:

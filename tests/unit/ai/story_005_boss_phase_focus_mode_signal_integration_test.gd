@@ -139,6 +139,28 @@ func test_boss_phase_switches_future_pattern_sets_when_available() -> void:
 	assert_int(metadata["startup_frames"]).is_equal(5)
 
 
+func test_boss_config_apply_phase_contract_filters_pattern_ids_and_speed() -> void:
+	assert_bool(ai.has_method("apply_boss_phase")).is_true()
+	assert_bool(ai.has_method("get_current_attack_pattern_ids")).is_true()
+	assert_bool(ai.has_method("get_attack_speed_modifier")).is_true()
+	assert_bool(ai.has_method("start_attack_by_pattern_id")).is_true()
+	if not (
+		ai.has_method("apply_boss_phase")
+		and ai.has_method("get_current_attack_pattern_ids")
+		and ai.has_method("get_attack_speed_modifier")
+		and ai.has_method("start_attack_by_pattern_id")
+	):
+		return
+
+	ai.call("apply_boss_phase", 2, [&"phase_two_spark"], 1.2)
+
+	assert_int(ai.get_current_boss_phase()).is_equal(2)
+	assert_array(ai.call("get_current_attack_pattern_ids")).is_equal([&"phase_two_spark"])
+	assert_float(float(ai.call("get_attack_speed_modifier"))).is_equal_approx(1.2, 0.001)
+	assert_bool(bool(ai.call("start_attack_by_pattern_id", &"phase_two_spark"))).is_true()
+	assert_int(ai.get_effective_attack_startup_frames()).is_equal(4)
+
+
 func _load_phase_patterns() -> void:
 	var adapter := FakeEnemyStatsAdapter.new({
 		"phase_boss": {

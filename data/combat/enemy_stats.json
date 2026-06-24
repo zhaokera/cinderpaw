@@ -40,6 +40,84 @@
 					"base_weight": 0.75
 				}
 			]
+		},
+		"boss_01_rat_king": {
+			"max_hp": 300,
+			"patrol_speed": 0,
+			"attack_patterns": [
+				{
+					"pattern_id": "charge",
+					"startup_frames": 20,
+					"active_frames": 8,
+					"recovery_frames": 24,
+					"damage": 14,
+					"damage_type": "physical",
+					"hitbox_config": {
+						"hitbox_id": "rat_king_charge",
+						"offset": {"x": 84, "y": -44},
+						"size": {"x": 116, "y": 54}
+					},
+					"vulnerability_window": {
+						"start_frame": 12,
+						"size_frames": 8
+					},
+					"base_weight": 0.9
+				},
+				{
+					"pattern_id": "claw_swipe",
+					"startup_frames": 15,
+					"active_frames": 5,
+					"recovery_frames": 18,
+					"damage": 12,
+					"damage_type": "physical",
+					"hitbox_config": {
+						"hitbox_id": "rat_king_claw",
+						"offset": {"x": 56, "y": -42},
+						"size": {"x": 78, "y": 38}
+					},
+					"vulnerability_window": {
+						"start_frame": 9,
+						"size_frames": 6
+					},
+					"base_weight": 1.1
+				},
+				{
+					"pattern_id": "slam",
+					"startup_frames": 25,
+					"active_frames": 8,
+					"recovery_frames": 30,
+					"damage": 16,
+					"damage_type": "physical",
+					"hitbox_config": {
+						"hitbox_id": "rat_king_slam",
+						"offset": {"x": 36, "y": -24},
+						"size": {"x": 150, "y": 66}
+					},
+					"vulnerability_window": {
+						"start_frame": 15,
+						"size_frames": 10
+					},
+					"base_weight": 0.8
+				},
+				{
+					"pattern_id": "berserk_combo",
+					"startup_frames": 10,
+					"active_frames": 6,
+					"recovery_frames": 20,
+					"damage": 14,
+					"damage_type": "physical",
+					"hitbox_config": {
+						"hitbox_id": "rat_king_berserk_combo",
+						"offset": {"x": 62, "y": -42},
+						"size": {"x": 92, "y": 42}
+					},
+					"vulnerability_window": {
+						"start_frame": 6,
+						"size_frames": 4
+					},
+					"base_weight": 1.4
+				}
+			]
 		}
 	}
 }
