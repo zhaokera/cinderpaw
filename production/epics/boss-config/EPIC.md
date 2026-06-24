@@ -4,11 +4,13 @@
 > **GDD**: design/gdd/boss-config.md
 > **Architecture Module**: BossConfigComponent
 > **Status**: Complete
-> **Stories**: 6 stories
+> **Stories**: 7 stories
 
 ## Overview
 
 This epic implements the data-driven Boss configuration layer for the MVP boss, Garbage Bin Rat King. It provides a BossConfigComponent mounted on Boss entities, loads phase and reward data through the existing DataManager JSON pipeline, coordinates phase transitions with AI and Health signals, and exposes stable integration points for arena changes, rewards, and downstream presentation systems.
+Story007 mounts this BossConfig contract into the playable `MainScene` through
+the Rat King runtime shell.
 
 ## Governing ADRs
 
@@ -42,6 +44,7 @@ This epic implements the data-driven Boss configuration layer for the MVP boss, 
 | 004 | Phase Arena Change Adapter + Scene Lock Hooks | Integration | Complete | ADR-0007 |
 | 005 | Desperation Defense + Defeat Reward Dispatch | Integration | Complete | ADR-0002 |
 | 006 | Boss Parry Damage + STUN Immunity | Integration | Complete | ADR-0005 |
+| 007 | Rat King Runtime MainScene Replacement | Integration + Visual/Feel | Complete | ADR-0001/0002/0006 |
 
 ## Definition of Done
 
@@ -49,11 +52,14 @@ This epic is complete when:
 - All stories are implemented, reviewed, and closed via `/story-done`.
 - BossConfigComponent loads Rat King config through the DataManager asset pipeline.
 - Boss phase, summon, arena, desperation, parry, and reward criteria from `design/gdd/boss-config.md` are verified.
+- MainScene instantiates the Rat King runtime shell instead of the Shadow Beast
+  prototype as its visible boss surface.
 - Logic and Integration stories have passing automated tests.
 - Visual/audio/UI follow-up work is routed to Combat Presentation, Audio, and HUD/UI epics instead of being implemented here.
 
 ## Next Step
 
-Boss Configuration Core scope is complete. Move to downstream consumer epics for
-StatusEffect/AI STUN integration, combat presentation feedback, HUD/UI, Ability,
-Save, and progression reward consumption.
+Boss Configuration Core scope is complete through the playable Rat King runtime
+shell. Move to downstream consumer stories for full boss AI attack scheduling,
+specialized attack animation expansion, boss music/SFX, HUD polish, ability
+unlock presentation, and progression reward consumption.

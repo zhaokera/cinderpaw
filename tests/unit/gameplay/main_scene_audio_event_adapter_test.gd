@@ -2,7 +2,7 @@
 extends GdUnitTestSuite
 
 const MAIN_SCENE: PackedScene = preload("res://scenes/main.tscn")
-const ENEMY_HITBOX_ID: StringName = &"shadow_beast_bite"
+const ENEMY_HITBOX_ID: StringName = &"rat_king_claw"
 const ATTACK_TELL_FRAMES: int = 8
 
 var scene: Node2D
@@ -109,7 +109,7 @@ class FakeBossPhaseSource:
 
 	func emit_phase() -> void:
 		on_boss_phase_transition_started.emit(2, 3, {
-			"display_name": "Shadow Beast",
+			"display_name": "垃圾桶鼠王",
 			"world_position": Vector2(320, 360),
 		})
 
@@ -165,7 +165,7 @@ func test_enemy_damage_and_player_dodge_events_route_to_audio_system() -> void:
 		return
 	var damage_event: Dictionary = audio_system.damage_taken_events[0]
 	assert_int(int(damage_event.get("damage", 0))).is_equal(12)
-	assert_str(String(damage_event.get("source", &""))).is_equal("shadow_beast_bite")
+	assert_str(String(damage_event.get("source", &""))).is_equal("rat_king_claw")
 	assert_bool(damage_event.has("hit_position")).is_true()
 
 	assert_bool(bool(player.call("request_dodge"))).is_true()

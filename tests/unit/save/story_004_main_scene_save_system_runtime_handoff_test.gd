@@ -110,8 +110,8 @@ func test_boss_defeat_autosaves_slot_zero_through_runtime_trigger_adapter() -> v
 	var saved: Dictionary = _read_json(_slot_path(0))
 	assert_bool(bool(saved["_meta"]["is_auto"])).is_true()
 	assert_str(String(saved["world_state"]["autosave_reason"])).is_equal("boss_defeat")
-	assert_str(String(saved["world_state"]["autosave_context"]["boss_id"])).is_equal("shadow_beast")
-	assert_bool(Array(saved["world_state"]["defeated_bosses"]).has("shadow_beast")).is_true()
+	assert_str(String(saved["world_state"]["autosave_context"]["boss_id"])).is_equal("boss_01_rat_king")
+	assert_bool(Array(saved["world_state"]["defeated_bosses"]).has("boss_01_rat_king")).is_true()
 	assert_int(int(saved["player_state"]["currency"])).is_equal(25)
 
 

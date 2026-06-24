@@ -2,7 +2,7 @@
 extends Node2D
 
 @onready var _player: PlayerController = $Player
-@onready var _enemy: SimpleEnemy = $Enemy
+@onready var _enemy = $Enemy
 @onready var _hud = $HUD
 @onready var _combat_presentation = $CombatPresentation
 @onready var _game_flow = $GameFlowController
@@ -14,7 +14,9 @@ const MAIN_SCENE_SAVE_KEY: StringName = &"main_scene"
 const SCENE_MANAGER_SAVE_KEY: StringName = &"scene"
 const MAIN_SCENE_ID: String = "main"
 const DEFAULT_NEW_GAME_SPAWN_POINT: StringName = &"default"
-const SHADOW_BEAST_ID: String = "shadow_beast"
+const RAT_KING_BOSS_ID: String = "boss_01_rat_king"
+const RAT_KING_BOSS_DISPLAY_NAME: String = "垃圾桶鼠王"
+const RAT_KING_ATTACK_SOURCE: StringName = &"rat_king_claw"
 
 var _pause_menu_active: bool = false
 var _currency_amount: int = 0
@@ -72,17 +74,18 @@ func _ready() -> void:
 	_connect_player_focus_mode_signal()
 	_enemy.enemy_health_changed.connect(_on_enemy_health_changed)
 	_enemy.enemy_defeated.connect(_on_enemy_defeated)
+	_register_enemy_boss_phase_source()
 	_combat_presentation.set_camera($Player/Camera2D)
 	_sync_combat_presentation_accessibility_settings()
 
 	_hud.update_hp(_player.get_current_hp(), _player.get_max_hp())
-	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), 1, "Shadow Beast")
+	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), 1, _get_enemy_display_name())
 	_hud.update_currency(_currency_amount)
 	_update_weapon_hud()
 	configure_save_system_runtime(get_node_or_null("/root/SaveSystem"))
 	configure_scene_manager_runtime(get_node_or_null("/root/SceneManager"))
 	configure_audio_system_runtime(get_node_or_null("/root/AudioSystem"))
-	_hud.show_notification("Hunt the shadow beast", 2.0)
+	_hud.show_notification("Hunt the Rat King", 2.0)
 
 
 func _exit_tree() -> void:
@@ -135,7 +138,7 @@ func _on_enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool) 
 		"damage": damage,
 		"hit_position": hit_position,
 		"is_crit": is_crit,
-		"source": &"shadow_beast_bite",
+		"source": RAT_KING_ATTACK_SOURCE,
 		"show_damage_number": _hud.are_damage_numbers_enabled(),
 		"focus_mode_active": _is_player_focus_mode_active(),
 	}
@@ -144,19 +147,19 @@ func _on_enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool) 
 
 
 func _on_enemy_health_changed(current_hp: int, max_hp: int) -> void:
-	_hud.update_boss_hp(current_hp, max_hp, 1, "Shadow Beast")
+	_hud.update_boss_hp(current_hp, max_hp, _get_enemy_phase(), _get_enemy_display_name())
 
 
 func _on_enemy_defeated() -> void:
 	_dispatch_audio_event(&"on_enemy_defeated", [{
-		"target_id": SHADOW_BEAST_ID,
+		"target_id": RAT_KING_BOSS_ID,
 		"position": _enemy.global_position + Vector2(0, -24),
 	}])
 	_combat_presentation.on_kill_event(2, _enemy.global_position + Vector2(0, -24))
 	_game_flow.handle_enemy_defeated()
-	set_world_progress_flag(&"boss_shadow_beast_defeated", true)
+	set_world_progress_flag(&"boss_rat_king_defeated", true)
 	_trigger_runtime_autosave(&"boss_defeat", {
-		"boss_id": SHADOW_BEAST_ID,
+		"boss_id": RAT_KING_BOSS_ID,
 	})
 
 
@@ -169,8 +172,8 @@ func _on_respawn_requested(respawn_position: Vector2, revive_hp_percentage: floa
 func _on_victory_reached() -> void:
 	_hud.hide_boss_hp()
 	grant_currency(25)
-	_hud.show_notification("Shadow beast defeated", 3.0)
-	_hud.show_retry_menu("Shadow beast defeated", "Retry the encounter or stay with your prize.")
+	_hud.show_notification("Rat King defeated", 3.0)
+	_hud.show_retry_menu("Rat King defeated", "Retry the encounter or stay with your prize.")
 
 
 func _on_menu_pause_requested() -> void:
@@ -293,7 +296,7 @@ func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
 		return
 	var enemy_snapshot: Dictionary = Dictionary(snapshot.get("enemy", {}))
 	_enemy.restore_respawn_snapshot(enemy_snapshot)
-	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), 1, "Shadow Beast")
+	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), _get_enemy_phase(), _get_enemy_display_name())
 
 
 func cleanup_temporary_summons() -> void:
@@ -809,6 +812,13 @@ func register_boss_phase_transition_source(source: Object) -> bool:
 	return true
 
 
+func _register_enemy_boss_phase_source() -> bool:
+	if not is_instance_valid(_enemy) or not _enemy.has_method("get_boss_config_component"):
+		return false
+	var boss_config: Object = _enemy.call("get_boss_config_component")
+	return register_boss_phase_transition_source(boss_config)
+
+
 func is_boss_phase_transition_source_connected() -> bool:
 	if _boss_phase_transition_source == null or not is_instance_valid(_boss_phase_transition_source):
 		return false
@@ -827,7 +837,7 @@ func _handle_boss_phase_transition_started(entity_id: int, phase: int, metadata:
 			_enemy.get_current_hp(),
 			_enemy.get_max_hp(),
 			phase,
-			String(enriched_metadata.get("display_name", "Shadow Beast"))
+			String(enriched_metadata.get("display_name", _get_enemy_display_name()))
 		)
 	_combat_presentation.on_boss_phase_transition_started(entity_id, phase, enriched_metadata)
 	_dispatch_audio_event(&"on_boss_phase_transition_started", [entity_id, phase, enriched_metadata])
@@ -1085,9 +1095,23 @@ func _disconnect_boss_phase_transition_source() -> void:
 
 func _get_defeated_bosses() -> Array[String]:
 	var defeated: Array[String] = []
-	if bool(_world_progress_flags.get("boss_shadow_beast_defeated", false)):
-		defeated.append(SHADOW_BEAST_ID)
+	if bool(_world_progress_flags.get("boss_rat_king_defeated", false)):
+		defeated.append(RAT_KING_BOSS_ID)
 	return defeated
+
+
+func _get_enemy_display_name() -> String:
+	if is_instance_valid(_enemy) and _enemy.has_method("get_display_name"):
+		var display_name: String = String(_enemy.call("get_display_name")).strip_edges()
+		if display_name != "":
+			return display_name
+	return RAT_KING_BOSS_DISPLAY_NAME
+
+
+func _get_enemy_phase() -> int:
+	if is_instance_valid(_enemy) and _enemy.has_method("get_current_phase"):
+		return maxi(1, int(_enemy.call("get_current_phase")))
+	return 1
 
 
 func _vector2_to_dictionary(value: Vector2) -> Dictionary:

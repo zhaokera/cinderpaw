@@ -1,13 +1,13 @@
 [gd_scene format=3 uid="uid://main001"]
 
 [ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="1_player"]
-[ext_resource type="PackedScene" uid="uid://enemy001" path="res://src/gameplay/simple_enemy.tscn" id="2_enemy"]
 [ext_resource type="Texture2D" uid="uid://4j2ise5khuss" path="res://assets/generated/wasteland_alley_bg.png" id="3_bg"]
 [ext_resource type="Texture2D" uid="uid://dkevbdaim2qje" path="res://assets/generated/wasteland_ground_1280.png" id="4_ground"]
 [ext_resource type="Texture2D" uid="uid://c0gn4h7xmd8a3" path="res://assets/generated/wasteland_platform_360.png" id="5_platform"]
 [ext_resource type="Script" uid="uid://65roojyvug5w" path="res://src/gameplay/main_scene.gd" id="6_main"]
 [ext_resource type="Script" uid="uid://r85oy8dxfgs" path="res://src/presentation/hud_manager.gd" id="7_hud"]
 [ext_resource type="Script" uid="uid://dk5c1kutnlall" path="res://src/presentation/combat_presentation.gd" id="8_combat_presentation"]
+[ext_resource type="PackedScene" uid="uid://cxrtq1c5nol33" path="res://src/gameplay/rat_king_boss.tscn" id="9_85g3d"]
 [ext_resource type="Script" uid="uid://dg1hownpawbt" path="res://src/gameplay/game_flow_controller.gd" id="9_game_flow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
@@ -110,6 +110,6 @@ script = ExtResource("9_game_flow")
 [node name="HUD" type="CanvasLayer" parent="." unique_id=859908319]
 script = ExtResource("7_hud")
 
-[node name="Enemy" parent="." unique_id=340317880 instance=ExtResource("2_enemy")]
+[node name="Enemy" parent="." unique_id=1244115510 instance=ExtResource("9_85g3d")]
 z_index = 20
 position = Vector2(560, 456)

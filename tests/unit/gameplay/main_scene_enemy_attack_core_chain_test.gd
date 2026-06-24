@@ -2,7 +2,7 @@
 extends GdUnitTestSuite
 
 const MAIN_SCENE: PackedScene = preload("res://scenes/main.tscn")
-const ENEMY_HITBOX_ID: StringName = &"shadow_beast_bite"
+const ENEMY_HITBOX_ID: StringName = &"rat_king_claw"
 const ATTACK_TELL_FRAMES: int = 8
 const EXPECTED_ATTACK_DAMAGE: int = 12
 
@@ -65,7 +65,7 @@ func test_enemy_attack_tell_then_active_hitbox_damages_player_once() -> void:
 
 	var metadata: Dictionary = enemy.call("get_last_enemy_attack_metadata")
 	assert_int(int(metadata.get("target_id", -1))).is_equal(1)
-	assert_str(String(metadata.get("hitbox_id", &""))).is_equal("shadow_beast_bite")
+	assert_str(String(metadata.get("hitbox_id", &""))).is_equal("rat_king_claw")
 	assert_int(int(metadata.get("final_damage", 0))).is_equal(EXPECTED_ATTACK_DAMAGE)
 	assert_int(int(combat_presentation.call("get_active_damage_number_count"))).is_equal(1)
 

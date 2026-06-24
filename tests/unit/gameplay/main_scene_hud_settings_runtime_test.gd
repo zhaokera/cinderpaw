@@ -2,7 +2,7 @@
 extends GdUnitTestSuite
 
 const MAIN_SCENE: PackedScene = preload("res://scenes/main.tscn")
-const ENEMY_HITBOX_ID: StringName = &"shadow_beast_bite"
+const ENEMY_HITBOX_ID: StringName = &"rat_king_claw"
 const ATTACK_TELL_FRAMES: int = 8
 
 var scene: Node2D

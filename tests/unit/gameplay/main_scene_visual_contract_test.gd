@@ -15,11 +15,13 @@ const PLAYER_REQUIRED_ANIMATIONS: Array[StringName] = [
 ]
 const ENEMY_REQUIRED_ANIMATIONS: Array[StringName] = [
 	&"idle",
-	&"patrol",
 	&"attack_tell",
 	&"attack",
 	&"hurt",
 	&"death",
+	&"phase_1_intro",
+	&"phase_2_rebuild",
+	&"phase_3_overload",
 ]
 
 class FakeBossPhaseSource:
@@ -29,8 +31,8 @@ class FakeBossPhaseSource:
 
 	func emit_transition_started() -> void:
 		on_boss_phase_transition_started.emit(42, 2, {
-			"boss_id": "shadow_beast",
-			"display_name": "Shadow Beast",
+			"boss_id": "boss_01_rat_king",
+			"display_name": "垃圾桶鼠王",
 			"previous_phase": 1,
 			"hp_threshold": 0.66,
 			"trigger_hp_percentage": 0.65,
@@ -73,11 +75,15 @@ func test_runtime_characters_use_animated_sprite_frames() -> void:
 func test_runtime_characters_do_not_use_legacy_single_image_textures() -> void:
 	assert_bool(_scene_file_text_contains("assets/generated/cinderpaw_player.png")).is_false()
 	assert_bool(_scene_file_text_contains("assets/generated/shadow_beast_enemy.png")).is_false()
+	assert_bool(_scene_file_text_contains("res://src/gameplay/simple_enemy.tscn")).is_false()
 	var player_sprite := _animated_sprite_or_fail("Player/Sprite")
 	var enemy_sprite := _animated_sprite_or_fail("Enemy/Sprite")
 	if player_sprite == null or enemy_sprite == null:
 		return
 
+	assert_str(enemy_sprite.sprite_frames.resource_path).is_equal(
+		"res://assets/characters/rat_king/rat_king_sprite_frames.tres"
+	)
 	assert_bool(_sprite_frames_use_texture_path(
 		player_sprite.sprite_frames,
 		"res://assets/generated/cinderpaw_player.png"

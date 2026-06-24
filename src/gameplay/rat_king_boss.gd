@@ -1,0 +1,562 @@
+## Rat King runtime boss shell for the current playable MainScene.
+##
+## This node preserves the existing MainScene enemy contract while mounting the
+## real Rat King AnimatedSprite2D surface and BossConfigComponent phase hooks.
+class_name RatKingBoss
+extends CharacterBody2D
+
+signal enemy_health_changed(current_hp: int, max_hp: int)
+signal enemy_defeated
+signal enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool)
+
+const GRAVITY: float = 800.0
+const BOSS_ENTITY_ID: int = 2
+const BOSS_ID: StringName = &"boss_01_rat_king"
+const BOSS_DISPLAY_NAME: String = "垃圾桶鼠王"
+const FALLBACK_MAX_HP: int = 300
+const HIT_FLASH_FRAMES: int = 6
+const CONTACT_DAMAGE_COOLDOWN_FRAMES: int = 45
+const ATTACK_RANGE_PX: float = 110.0
+const ATTACK_TELL_FRAMES: int = 8
+const ATTACK_ACTIVE_FRAMES: int = 4
+const ATTACK_RECOVERY_FRAMES: int = 14
+const ATTACK_COOLDOWN_FRAMES: int = 28
+const ATTACK_HITBOX_ID: StringName = &"rat_king_claw"
+const ATTACK_HITBOX_SIZE: Vector2 = Vector2(72, 34)
+const ATTACK_HITBOX_OFFSET: Vector2 = Vector2(54, -42)
+const RAT_KING_CLAW_DAMAGE: int = 12
+const RAT_KING_CLAW_HIT_FRAME: int = 99
+const BOSS_HURTBOX_SIZE: Vector2 = Vector2(72, 86)
+const NORMAL_MODULATE: Color = Color.WHITE
+const HIT_MODULATE: Color = Color(1.0, 0.88, 0.88, 1.0)
+const ANIMATION_IDLE: StringName = &"idle"
+const ANIMATION_ATTACK_TELL: StringName = &"attack_tell"
+const ANIMATION_ATTACK: StringName = &"attack"
+const ANIMATION_HURT: StringName = &"hurt"
+const ANIMATION_DEATH: StringName = &"death"
+const HEALTH_COMPONENT_SCRIPT: Script = preload("res://src/core/health_component.gd")
+const COLLISION_COMPONENT_SCRIPT: Script = preload("res://src/core/collision_component.gd")
+const COMBAT_COMPONENT_SCRIPT: Script = preload("res://src/core/combat_component.gd")
+const STATUS_EFFECT_COMPONENT_SCRIPT: Script = preload("res://src/core/status_effect_component.gd")
+const BOSS_CONFIG_COMPONENT_SCRIPT: Script = preload("res://src/core/boss_config_component.gd")
+
+enum State { IDLE, HIT, ATTACK_TELL, ATTACK_ACTIVE, ATTACK_RECOVERY, PHASE_TRANSITION, DEAD }
+
+var _state: State = State.IDLE
+var _facing: float = -1.0
+var _hit_timer: int = 0
+var _attack_timer: int = 0
+var _attack_cooldown_timer: int = 0
+var _contact_damage_timer: int = 0
+var _last_enemy_attack_metadata: Dictionary = {}
+var _attack_target: Node = null
+var _health: HealthComponent = null
+var _collision: CollisionComponent = null
+var _combat: CombatComponent = null
+var _status_effects: StatusEffectComponent = null
+var _boss_config: BossConfigComponent = null
+var _damage_calculator_adapter: Object = null
+
+@onready var _sprite: AnimatedSprite2D = $Sprite
+
+
+func _ready() -> void:
+	_ensure_core_components()
+	_setup_core_components()
+	_play_character_animation(ANIMATION_IDLE, true)
+	enemy_health_changed.emit(get_current_hp(), get_max_hp())
+
+
+func _physics_process(delta: float) -> void:
+	_contact_damage_timer = maxi(_contact_damage_timer - 1, 0)
+	_attack_cooldown_timer = maxi(_attack_cooldown_timer - 1, 0)
+	if _status_effects != null:
+		_status_effects.advance_time(delta)
+	advance_boss_runtime(delta)
+	match _state:
+		State.IDLE:
+			_process_idle(delta)
+		State.HIT:
+			_process_hit(delta)
+		State.ATTACK_TELL:
+			_process_attack_tell(delta)
+		State.ATTACK_ACTIVE:
+			_process_attack_active(delta)
+		State.ATTACK_RECOVERY:
+			_process_attack_recovery(delta)
+		State.PHASE_TRANSITION:
+			_process_phase_transition(delta)
+		State.DEAD:
+			return
+
+
+func request_attack() -> bool:
+	if _state != State.IDLE or _attack_cooldown_timer > 0:
+		return false
+	_face_attack_target()
+	velocity = Vector2.ZERO
+	_state = State.ATTACK_TELL
+	_attack_timer = ATTACK_TELL_FRAMES
+	_play_character_animation(ANIMATION_ATTACK_TELL, true)
+	return true
+
+
+func advance_attack_frames(frames: int) -> void:
+	for _index: int in range(maxi(0, frames)):
+		_attack_cooldown_timer = maxi(_attack_cooldown_timer - 1, 0)
+		match _state:
+			State.ATTACK_TELL:
+				_process_attack_tell(1.0 / 60.0)
+			State.ATTACK_ACTIVE:
+				_process_attack_active(1.0 / 60.0)
+			State.ATTACK_RECOVERY:
+				_process_attack_recovery(1.0 / 60.0)
+			_:
+				pass
+
+
+func advance_boss_runtime(delta_sec: float) -> void:
+	if _boss_config == null:
+		return
+	var was_transition_active: bool = _boss_config.is_transition_active()
+	_boss_config.advance_transition(maxf(0.0, delta_sec))
+	_boss_config.advance_time(maxf(0.0, delta_sec))
+	if was_transition_active and not _boss_config.is_transition_active() and _state == State.PHASE_TRANSITION:
+		_state = State.IDLE
+		_sprite.modulate = NORMAL_MODULATE
+		_play_character_animation(ANIMATION_IDLE, true)
+
+
+func take_damage() -> void:
+	apply_damage(RAT_KING_CLAW_DAMAGE, {
+		"source": &"legacy_player_hitbox",
+		"damage_type": &"slash",
+	})
+
+
+func apply_damage(final_damage: int, metadata: Dictionary = {}) -> void:
+	if _state == State.DEAD or _health == null:
+		return
+	if _boss_config != null and _boss_config.is_invulnerable():
+		return
+	_health.apply_damage(final_damage, metadata)
+
+
+func break_shield() -> bool:
+	if _health == null:
+		return false
+	return _health.break_shield()
+
+
+func apply_status(target_id: int, effect_id: StringName, source_id: int = 0) -> bool:
+	if _status_effects == null:
+		return false
+	return _status_effects.apply_status(target_id, effect_id, source_id)
+
+
+func set_attack_target(target: Node) -> void:
+	_attack_target = target
+	if _combat != null:
+		_combat.set_health_adapter(_attack_target)
+
+
+func set_damage_calculator_adapter(damage_calculator_adapter: Object) -> void:
+	_damage_calculator_adapter = damage_calculator_adapter
+	if _combat != null:
+		_combat.set_damage_calculator_adapter(_damage_calculator_adapter)
+
+
+func get_current_hp() -> int:
+	if _health == null:
+		return FALLBACK_MAX_HP
+	return _health.get_current_hp()
+
+
+func get_max_hp() -> int:
+	if _health == null:
+		return FALLBACK_MAX_HP
+	return _health.get_max_hp()
+
+
+func get_entity_id() -> int:
+	return BOSS_ENTITY_ID
+
+
+func get_current_boss_id() -> StringName:
+	if _boss_config != null and _boss_config.has_boss_config():
+		return _boss_config.get_boss_id()
+	return BOSS_ID
+
+
+func get_display_name() -> String:
+	if _boss_config != null and _boss_config.has_boss_config():
+		return _boss_config.get_display_name()
+	return BOSS_DISPLAY_NAME
+
+
+func get_current_phase() -> int:
+	if _boss_config == null:
+		return 1
+	return _boss_config.get_current_phase()
+
+
+func get_attack_phase() -> StringName:
+	match _state:
+		State.ATTACK_TELL:
+			return &"startup"
+		State.ATTACK_ACTIVE:
+			return &"active"
+		State.ATTACK_RECOVERY:
+			return &"recovery"
+		_:
+			return &"none"
+
+
+func get_health_component() -> HealthComponent:
+	return _health
+
+
+func get_collision_component() -> CollisionComponent:
+	return _collision
+
+
+func get_combat_component() -> CombatComponent:
+	return _combat
+
+
+func get_status_effect_component() -> StatusEffectComponent:
+	return _status_effects
+
+
+func get_boss_config_component() -> BossConfigComponent:
+	return _boss_config
+
+
+func get_last_enemy_attack_metadata() -> Dictionary:
+	return _last_enemy_attack_metadata.duplicate(true)
+
+
+func capture_respawn_snapshot() -> Dictionary:
+	return {
+		"global_position": global_position,
+		"hp": get_current_hp(),
+		"phase": get_current_phase(),
+		"facing": _facing,
+		"collision_layer": collision_layer,
+		"collision_mask": collision_mask,
+		"sprite_modulate": _sprite.modulate,
+	}
+
+
+func restore_respawn_snapshot(snapshot: Dictionary) -> void:
+	global_position = _read_vector2(snapshot.get("global_position", global_position), global_position)
+	_state = State.IDLE
+	_facing = _read_float(snapshot.get("facing", _facing), _facing)
+	_hit_timer = 0
+	_attack_timer = 0
+	_attack_cooldown_timer = 0
+	_contact_damage_timer = 0
+	_last_enemy_attack_metadata = {}
+	velocity = Vector2.ZERO
+	collision_layer = _read_int(snapshot.get("collision_layer", collision_layer), collision_layer)
+	collision_mask = _read_int(snapshot.get("collision_mask", collision_mask), collision_mask)
+	_sprite.modulate = _read_color(snapshot.get("sprite_modulate", NORMAL_MODULATE), NORMAL_MODULATE)
+	_reload_boss_config()
+	var max_hp: int = _resolved_max_hp()
+	var hp: int = clampi(_read_int(snapshot.get("hp", max_hp), max_hp), 0, max_hp)
+	if _health != null:
+		_health.configure(BOSS_ENTITY_ID, max_hp, hp, 0, 0, false)
+		_health.configure_boss_phases(_resolved_phase_thresholds())
+	if _collision != null:
+		_collision.deactivate_all_hitboxes()
+		_collision.set_hurtbox_state(&"normal")
+	if _status_effects != null:
+		_status_effects.clear_all_effects()
+	_update_sprite_facing()
+	_play_character_animation(ANIMATION_IDLE, true)
+	enemy_health_changed.emit(get_current_hp(), get_max_hp())
+
+
+func _process_idle(delta: float) -> void:
+	if _can_auto_attack_target():
+		request_attack()
+		return
+	velocity.x = 0.0
+	velocity.y += GRAVITY * delta
+	move_and_slide()
+	_update_sprite_facing()
+	_play_character_animation(ANIMATION_IDLE)
+
+
+func _process_hit(delta: float) -> void:
+	velocity.x = 0.0
+	velocity.y += GRAVITY * delta
+	move_and_slide()
+	_hit_timer -= 1
+	if _hit_timer <= 0:
+		_sprite.modulate = NORMAL_MODULATE
+		_state = State.IDLE
+		_play_character_animation(ANIMATION_IDLE, true)
+
+
+func _process_attack_tell(_delta: float) -> void:
+	velocity.x = 0.0
+	_update_sprite_facing()
+	_play_character_animation(ANIMATION_ATTACK_TELL)
+	_attack_timer -= 1
+	if _attack_timer <= 0:
+		_enter_attack_active()
+
+
+func _enter_attack_active() -> void:
+	_state = State.ATTACK_ACTIVE
+	_attack_timer = ATTACK_ACTIVE_FRAMES
+	_play_character_animation(ANIMATION_ATTACK, true)
+	if _collision != null:
+		_collision.activate_hitbox(
+			ATTACK_HITBOX_ID,
+			ATTACK_ACTIVE_FRAMES,
+			Vector2(_facing * ATTACK_HITBOX_OFFSET.x, ATTACK_HITBOX_OFFSET.y),
+			ATTACK_HITBOX_SIZE,
+			_build_attack_metadata()
+		)
+
+
+func _process_attack_active(_delta: float) -> void:
+	velocity.x = 0.0
+	_play_character_animation(ANIMATION_ATTACK)
+	_attack_timer -= 1
+	if _attack_timer <= 0:
+		_state = State.ATTACK_RECOVERY
+		_attack_timer = ATTACK_RECOVERY_FRAMES
+
+
+func _process_attack_recovery(_delta: float) -> void:
+	velocity.x = 0.0
+	_attack_timer -= 1
+	if _attack_timer <= 0:
+		_state = State.IDLE
+		_attack_cooldown_timer = ATTACK_COOLDOWN_FRAMES
+		_play_character_animation(ANIMATION_IDLE, true)
+
+
+func _process_phase_transition(_delta: float) -> void:
+	velocity.x = 0.0
+	velocity.y = 0.0
+
+
+func _ensure_core_components() -> void:
+	_health = get_node_or_null("HealthComponent") as HealthComponent
+	if _health == null:
+		_health = HEALTH_COMPONENT_SCRIPT.new() as HealthComponent
+		_health.name = "HealthComponent"
+		add_child(_health)
+	_collision = get_node_or_null("CollisionComponent") as CollisionComponent
+	if _collision == null:
+		_collision = COLLISION_COMPONENT_SCRIPT.new() as CollisionComponent
+		_collision.name = "CollisionComponent"
+		add_child(_collision)
+	_combat = get_node_or_null("CombatComponent") as CombatComponent
+	if _combat == null:
+		_combat = COMBAT_COMPONENT_SCRIPT.new() as CombatComponent
+		_combat.name = "CombatComponent"
+		add_child(_combat)
+	_status_effects = get_node_or_null("StatusEffectComponent") as StatusEffectComponent
+	if _status_effects == null:
+		_status_effects = STATUS_EFFECT_COMPONENT_SCRIPT.new() as StatusEffectComponent
+		_status_effects.name = "StatusEffectComponent"
+		add_child(_status_effects)
+	_boss_config = get_node_or_null("BossConfigComponent") as BossConfigComponent
+	if _boss_config == null:
+		_boss_config = BOSS_CONFIG_COMPONENT_SCRIPT.new() as BossConfigComponent
+		_boss_config.name = "BossConfigComponent"
+		add_child(_boss_config)
+
+
+func _setup_core_components() -> void:
+	_reload_boss_config()
+	var max_hp: int = _resolved_max_hp()
+	_health.configure(BOSS_ENTITY_ID, max_hp, max_hp, 0, 0, false)
+	_health.configure_boss_phases(_resolved_phase_thresholds())
+	if not _health.on_hp_changed.is_connected(_on_core_hp_changed):
+		_health.on_hp_changed.connect(_on_core_hp_changed)
+	if not _health.on_death.is_connected(_on_core_death):
+		_health.on_death.connect(_on_core_death)
+	_collision.configure_entity(BOSS_ENTITY_ID, &"enemy")
+	_collision.set_hurtbox_size(BOSS_HURTBOX_SIZE)
+	_collision.set_health_adapter(_health)
+	_combat.set_collision_adapter(_collision)
+	if _attack_target != null:
+		_combat.set_health_adapter(_attack_target)
+	if _damage_calculator_adapter != null:
+		_combat.set_damage_calculator_adapter(_damage_calculator_adapter)
+	if not _combat.on_attack_hit.is_connected(_on_core_attack_hit):
+		_combat.on_attack_hit.connect(_on_core_attack_hit)
+	_status_effects.configure_entity(BOSS_ENTITY_ID, false)
+	_status_effects.set_health_adapter(_health)
+	_boss_config.set_entity_id(BOSS_ENTITY_ID)
+	_boss_config.set_health_adapter(_health)
+	_boss_config.set_ai_adapter(self)
+	if not _boss_config.on_boss_phase_transition_started.is_connected(_on_boss_phase_transition_started):
+		_boss_config.on_boss_phase_transition_started.connect(_on_boss_phase_transition_started)
+
+
+func _reload_boss_config() -> bool:
+	if _boss_config == null:
+		return false
+	var root_data_manager: Node = get_node_or_null("/root/DataManager")
+	if root_data_manager != null:
+		_boss_config.set_data_adapter(root_data_manager)
+	return _boss_config.load_boss_config(BOSS_ID, root_data_manager)
+
+
+func _resolved_max_hp() -> int:
+	if _boss_config != null and _boss_config.has_boss_config():
+		return _boss_config.get_max_hp()
+	return FALLBACK_MAX_HP
+
+
+func _resolved_phase_thresholds() -> Array:
+	if _boss_config != null and _boss_config.has_boss_config():
+		return _boss_config.get_phase_thresholds()
+	return [0.66, 0.33]
+
+
+func _on_core_hp_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:
+	enemy_health_changed.emit(current_hp, max_hp)
+	if current_hp <= 0 or _state == State.DEAD or _state == State.PHASE_TRANSITION:
+		return
+	_hit_timer = HIT_FLASH_FRAMES
+	_state = State.HIT
+	_sprite.modulate = HIT_MODULATE
+	_play_character_animation(ANIMATION_HURT, true)
+
+
+func _on_core_death(_entity_id: int, _metadata: Dictionary) -> void:
+	if _state == State.DEAD:
+		return
+	_state = State.DEAD
+	if _collision != null:
+		_collision.deactivate_all_hitboxes()
+		_collision.set_hurtbox_state(&"gone")
+	_play_character_animation(ANIMATION_DEATH, true)
+	enemy_defeated.emit()
+	_sprite.modulate.a = 0.85
+	set_deferred("collision_layer", 0)
+	set_deferred("collision_mask", 0)
+
+
+func _on_boss_phase_transition_started(
+	_entity_id: int,
+	_phase: int,
+	metadata: Dictionary
+) -> void:
+	var animation_name: StringName = StringName(String(metadata.get("transition_animation", "")))
+	if animation_name == &"" or _sprite.sprite_frames == null:
+		return
+	if _sprite.sprite_frames.has_animation(animation_name):
+		_state = State.PHASE_TRANSITION
+		_sprite.modulate = NORMAL_MODULATE
+		_play_character_animation(animation_name, true)
+
+
+func _on_core_attack_hit(metadata: Dictionary) -> void:
+	_last_enemy_attack_metadata = metadata.duplicate(true)
+	var hit_position: Vector2 = _read_vector2(
+		metadata.get("hit_position", global_position),
+		global_position
+	)
+	enemy_attack_landed.emit(
+		int(metadata.get("final_damage", 0)),
+		hit_position,
+		bool(metadata.get("is_crit", false))
+	)
+
+
+func _build_attack_metadata() -> Dictionary:
+	return {
+		"source": &"rat_king",
+		"attack_type": &"light",
+		"weapon_id": ATTACK_HITBOX_ID,
+		"combo_index": 0,
+		"hit_frame": RAT_KING_CLAW_HIT_FRAME,
+		"attack_power": 0,
+		"enemy_defense": 0,
+		"injected_damage_params": _build_enemy_damage_params(),
+	}
+
+
+func _build_enemy_damage_params() -> Dictionary:
+	return {
+		"entries": {
+			String(ATTACK_HITBOX_ID): {
+				"weapon_base": RAT_KING_CLAW_DAMAGE,
+				"combo_multipliers": {
+					"0": 1.0,
+				},
+				"special_move": {
+					"multiplier": 1.0,
+					"hits": 1,
+				},
+			},
+		},
+	}
+
+
+func _can_auto_attack_target() -> bool:
+	if _attack_target == null or _attack_cooldown_timer > 0:
+		return false
+	var to_target: Vector2 = _attack_target.global_position - global_position
+	return absf(to_target.x) <= ATTACK_RANGE_PX and absf(to_target.y) <= 70.0
+
+
+func _face_attack_target() -> void:
+	if _attack_target != null:
+		var delta_x: float = _attack_target.global_position.x - global_position.x
+		if absf(delta_x) > 1.0:
+			_facing = signf(delta_x)
+	_update_sprite_facing()
+
+
+func _update_sprite_facing() -> void:
+	if _sprite == null:
+		return
+	_sprite.flip_h = _facing < 0.0
+
+
+func _play_character_animation(animation_name: StringName, restart: bool = false) -> void:
+	if _sprite == null or _sprite.sprite_frames == null:
+		return
+	if not _sprite.sprite_frames.has_animation(animation_name):
+		return
+	if restart:
+		_sprite.animation = animation_name
+		_sprite.frame = 0
+		_sprite.frame_progress = 0.0
+	_sprite.play(animation_name)
+
+
+func _read_vector2(value: Variant, fallback: Vector2) -> Vector2:
+	if value is Vector2:
+		return value
+	return fallback
+
+
+func _read_int(value: Variant, fallback: int) -> int:
+	if value is int:
+		return value
+	if value is float:
+		return int(value)
+	return fallback
+
+
+func _read_float(value: Variant, fallback: float) -> float:
+	if value is int or value is float:
+		return float(value)
+	return fallback
+
+
+func _read_color(value: Variant, fallback: Color) -> Color:
+	if value is Color:
+		return value
+	return fallback

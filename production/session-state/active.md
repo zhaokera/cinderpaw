@@ -11,13 +11,31 @@
   audio fades、AudioSystem Story003 combat/health event audio adapters、
   CombatPresentation Story014 Rat King boss frame animation slice 已完成；
   下一步按 GDD/架构/Epic 状态推进 RatKingBoss runtime scene/MainScene boss
-  replacement、SceneManager memory-budget verification、UI menu audio、Boss
-  music state transitions、same-SFX merge 和 real audio asset import stories，以及
-  玩家可见角色/敌人帧动画持续审计。
+  replacement 已完成；下一步推进完整 Rat King boss AI attack scheduling、
+  specialized attack animation expansion、SceneManager memory-budget
+  verification、UI menu audio、Boss music state transitions、same-SFX merge 和
+  real audio asset import stories，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Boss Configuration Story 007: Rat King Runtime MainScene Replacement —
+  新增 `src/gameplay/rat_king_boss.gd` 和 `src/gameplay/rat_king_boss.tscn`，
+  将 `scenes/main.tscn` 的 `/Main/Enemy` 从 Shadow Beast prototype 替换为
+  Rat King runtime shell；`RatKingBoss` 挂载 Health、Collision、Combat、
+  StatusEffect 和 BossConfig components，保持 MainScene 所需
+  `enemy_health_changed`、`enemy_defeated`、`enemy_attack_landed`、
+  attack/status/shield/respawn 方法契约，并使用
+  `assets/characters/rat_king/rat_king_sprite_frames.tres` 作为可见
+  `AnimatedSprite2D` 表面。MainScene 的 HUD、Audio、CombatPresentation、
+  SaveSystem autosave 和 defeated boss state 已改用 `boss_01_rat_king` /
+  `rat_king_claw`，并验证 66% HP 阈值会经 BossConfig 进入 phase 2、触发
+  `phase_2_rebuild` 与 Presentation debris。通过 RED `report_468`、GREEN
+  `report_469` `7/7`、visual/runtime regression `report_470` `28/28`、
+  related boss/gameplay/save regression `report_475` `57/57`、MCP 修正编辑器
+  stale Enemy cache 后 focused `report_474` `7/7`、headless smoke、Godot MCP
+  runtime probe/log/screenshot 验证。QA evidence:
+  `production/qa/evidence/rat-king-boss-runtime-main-scene-replacement-2026-06-25.md`。
 - Combat Presentation Story 014: Rat King Boss Frame Animation Slice —
   新增 image-generated Rat King boss sprite sheet，复制到
   `assets/characters/rat_king/source/`，通过 chroma-key removal 生成 alpha
