@@ -20,6 +20,8 @@ const PACKED_SCENE_TYPE_HINT: String = "PackedScene"
 const MIN_TRANSITION_SECONDS: float = 1.5
 const LOAD_TIMEOUT_SECONDS: float = 10.0
 const MAX_LOAD_RETRIES: int = 1
+const DEFERRED_UNLOAD_SECONDS: float = 3.0
+const MAX_RESIDENT_RUNTIME_SCENES: int = 2
 const THREAD_LOAD_INVALID_RESOURCE: int = 0
 const THREAD_LOAD_IN_PROGRESS: int = 1
 const THREAD_LOAD_FAILED: int = 2
@@ -43,6 +45,9 @@ var _loader_adapter: Object = null
 var _runtime_scene_root: Node = null
 var _current_runtime_scene: Node = null
 var _previous_runtime_scene: Node = null
+var _previous_runtime_scene_id: StringName = &""
+var _previous_runtime_scene_unload_seconds: float = 0.0
+var _pending_reused_runtime_scene: Node = null
 
 
 func _ready() -> void:
@@ -52,6 +57,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	advance_loading(delta)
+	advance_deferred_unload(delta)
 
 
 ## Loads the project scene registry through DataManager or an injected adapter.
@@ -103,6 +109,7 @@ func configure_scene_registry(registry_data: Dictionary) -> bool:
 	_scene_registry = normalized
 	_loaded_scenes.clear()
 	_scene_states.clear()
+	_evict_previous_runtime_scene()
 	_reset_pending_load()
 	for scene_id: StringName in _scene_registry.keys():
 		if bool(_scene_registry[scene_id].get("preload", false)):
@@ -154,11 +161,12 @@ func configure_runtime_scene_root(root: Node, current_scene_node: Node = null) -
 		if current_scene_node.get_parent() != root:
 			return false
 
+	_evict_previous_runtime_scene()
+	_pending_reused_runtime_scene = null
 	_runtime_scene_root = root
 	_current_runtime_scene = current_scene_node
 	if _current_runtime_scene == null and root.get_child_count() > 0:
 		_current_runtime_scene = root.get_child(0)
-	_previous_runtime_scene = null
 	return true
 
 
@@ -178,6 +186,32 @@ func get_current_runtime_scene_node() -> Node:
 
 func get_previous_runtime_scene_node() -> Node:
 	return _get_valid_previous_runtime_scene()
+
+
+func get_previous_runtime_scene_id() -> StringName:
+	if _get_valid_previous_runtime_scene() == null:
+		return &""
+	return _previous_runtime_scene_id
+
+
+func get_deferred_unload_remaining_seconds() -> float:
+	if _get_valid_previous_runtime_scene() == null:
+		return 0.0
+	return _previous_runtime_scene_unload_seconds
+
+
+func get_resident_runtime_scene_count() -> int:
+	var resident_count: int = 0
+	var current_scene: Node = _get_valid_current_runtime_scene()
+	var previous_scene: Node = _get_valid_previous_runtime_scene()
+	var reused_scene: Node = _get_valid_pending_reused_runtime_scene()
+	if current_scene != null:
+		resident_count += 1
+	if previous_scene != null and previous_scene != current_scene:
+		resident_count += 1
+	if reused_scene != null and reused_scene != current_scene and reused_scene != previous_scene:
+		resident_count += 1
+	return resident_count
 
 
 ## Starts an asynchronous scene load request without immediately committing the
@@ -203,14 +237,17 @@ func request_scene_change(
 	_last_load_error = &""
 	_loading = true
 
-	var error: int = _issue_load_request(_pending_scene_path)
-	if error != OK:
-		_fail_pending_load(&"request_failed")
-		return false
+	_pending_reused_runtime_scene = _take_previous_runtime_scene_for(scene_id)
+	if _pending_reused_runtime_scene == null:
+		var error: int = _issue_load_request(_pending_scene_path)
+		if error != OK:
+			_fail_pending_load(&"request_failed")
+			return false
 	on_scene_load_started.emit(scene_id, _pending_spawn_point, {
 		"path": _pending_scene_path,
 		"display_name": _display_name_for_scene(scene_id),
 		"transition_duration_sec": MIN_TRANSITION_SECONDS,
+		"cache_hit": _pending_reused_runtime_scene != null,
 	})
 	return true
 
@@ -225,6 +262,11 @@ func advance_loading(delta_seconds: float) -> void:
 	_loading_elapsed_seconds += delta
 	_transition_elapsed_seconds += delta
 
+	if _get_valid_pending_reused_runtime_scene() != null:
+		if _transition_elapsed_seconds >= MIN_TRANSITION_SECONDS:
+			_finish_pending_load()
+		return
+
 	var status: int = _get_load_status(_pending_scene_path)
 	if status == THREAD_LOAD_LOADED:
 		if _transition_elapsed_seconds >= MIN_TRANSITION_SECONDS:
@@ -237,6 +279,21 @@ func advance_loading(delta_seconds: float) -> void:
 
 	if _loading_elapsed_seconds >= LOAD_TIMEOUT_SECONDS:
 		_handle_load_timeout()
+
+
+func advance_deferred_unload(delta_seconds: float) -> void:
+	var previous_scene: Node = _get_valid_previous_runtime_scene()
+	if previous_scene == null:
+		_clear_previous_runtime_scene_reference()
+		return
+
+	var delta: float = maxf(delta_seconds, 0.0)
+	_previous_runtime_scene_unload_seconds = maxf(
+		_previous_runtime_scene_unload_seconds - delta,
+		0.0
+	)
+	if _previous_runtime_scene_unload_seconds <= 0.0:
+		_evict_previous_runtime_scene()
 
 
 func get_pending_scene() -> StringName:
@@ -368,13 +425,17 @@ func _select_initial_scene_id() -> StringName:
 func _finish_pending_load() -> void:
 	var scene_id: StringName = _pending_scene_id
 	var spawn_point: StringName = _pending_spawn_point
-	var loaded_resource: Resource = _get_loaded_resource(_pending_scene_path)
+	var new_runtime_scene: Node = _consume_pending_reused_runtime_scene()
+	var loaded_resource: Resource = null
+	if new_runtime_scene == null:
+		loaded_resource = _get_loaded_resource(_pending_scene_path)
 	if _is_runtime_scene_swap_enabled():
-		if not loaded_resource is PackedScene:
-			_fail_pending_load(&"invalid_packed_scene", false)
-			return
-		var packed_scene: PackedScene = loaded_resource as PackedScene
-		var new_runtime_scene: Node = packed_scene.instantiate()
+		if new_runtime_scene == null:
+			if not loaded_resource is PackedScene:
+				_fail_pending_load(&"invalid_packed_scene", false)
+				return
+			var packed_scene: PackedScene = loaded_resource as PackedScene
+			new_runtime_scene = packed_scene.instantiate()
 		if new_runtime_scene == null:
 			_fail_pending_load(&"instantiate_failed", false)
 			return
@@ -423,6 +484,7 @@ func _reset_pending_load(clear_last_error: bool = true) -> void:
 	_loading_elapsed_seconds = 0.0
 	_transition_elapsed_seconds = 0.0
 	_load_retry_count = 0
+	_pending_reused_runtime_scene = null
 	if clear_last_error:
 		_last_load_error = &""
 
@@ -467,12 +529,11 @@ func _swap_runtime_scene(scene_id: StringName, new_runtime_scene: Node) -> bool:
 		return false
 
 	_save_current_runtime_scene_state()
+	var old_scene_id: StringName = _current_scene_id
 	var old_runtime_scene: Node = _get_valid_current_runtime_scene()
 	if old_runtime_scene != null and old_runtime_scene.get_parent() == _runtime_scene_root:
 		_runtime_scene_root.remove_child(old_runtime_scene)
-		_previous_runtime_scene = old_runtime_scene
-	else:
-		_previous_runtime_scene = null
+		_queue_previous_runtime_scene(old_scene_id, old_runtime_scene)
 
 	_runtime_scene_root.add_child(new_runtime_scene)
 	_current_runtime_scene = new_runtime_scene
@@ -505,16 +566,75 @@ func _is_runtime_scene_swap_enabled() -> bool:
 	return _runtime_scene_root != null and is_instance_valid(_runtime_scene_root)
 
 
+func _is_runtime_scene_node_valid(scene: Variant) -> bool:
+	if scene == null:
+		return false
+	if not is_instance_valid(scene):
+		return false
+	if not scene is Node:
+		return false
+	var node: Node = scene as Node
+	return not node.is_queued_for_deletion()
+
+
 func _get_valid_current_runtime_scene() -> Node:
-	if _current_runtime_scene != null and is_instance_valid(_current_runtime_scene):
+	if _is_runtime_scene_node_valid(_current_runtime_scene):
 		return _current_runtime_scene
 	return null
 
 
 func _get_valid_previous_runtime_scene() -> Node:
-	if _previous_runtime_scene != null and is_instance_valid(_previous_runtime_scene):
+	if _is_runtime_scene_node_valid(_previous_runtime_scene):
 		return _previous_runtime_scene
 	return null
+
+
+func _get_valid_pending_reused_runtime_scene() -> Node:
+	if _is_runtime_scene_node_valid(_pending_reused_runtime_scene):
+		return _pending_reused_runtime_scene
+	return null
+
+
+func _queue_previous_runtime_scene(scene_id: StringName, scene: Node) -> void:
+	if not _is_runtime_scene_node_valid(scene):
+		return
+	_evict_previous_runtime_scene()
+	_previous_runtime_scene = scene
+	_previous_runtime_scene_id = scene_id
+	_previous_runtime_scene_unload_seconds = DEFERRED_UNLOAD_SECONDS
+
+
+func _take_previous_runtime_scene_for(scene_id: StringName) -> Node:
+	var previous_scene: Node = _get_valid_previous_runtime_scene()
+	if previous_scene == null:
+		_clear_previous_runtime_scene_reference()
+		return null
+	if _previous_runtime_scene_id != scene_id:
+		return null
+
+	_previous_runtime_scene = null
+	_previous_runtime_scene_id = &""
+	_previous_runtime_scene_unload_seconds = 0.0
+	return previous_scene
+
+
+func _consume_pending_reused_runtime_scene() -> Node:
+	var reused_scene: Node = _get_valid_pending_reused_runtime_scene()
+	_pending_reused_runtime_scene = null
+	return reused_scene
+
+
+func _evict_previous_runtime_scene() -> void:
+	var previous_scene: Node = _get_valid_previous_runtime_scene()
+	if previous_scene != null:
+		previous_scene.queue_free()
+	_clear_previous_runtime_scene_reference()
+
+
+func _clear_previous_runtime_scene_reference() -> void:
+	_previous_runtime_scene = null
+	_previous_runtime_scene_id = &""
+	_previous_runtime_scene_unload_seconds = 0.0
 
 
 func _resolve_spawn_point(scene_id: StringName, spawn_point: StringName) -> StringName:

@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 5 stories tracked; future stories planned
+> **Stories**: 6 stories tracked; future stories planned
 
 ## Overview
 
@@ -17,9 +17,9 @@ SceneManager baseline. Story003 adds the async request lifecycle, 1.5 second
 transition timing gate, `ResourceLoader` completion, and 10 second timeout retry
 with hub fallback. Story004 connects that lifecycle to a textured loading UI
 shell. Story005 begins the real runtime scene-tree ownership path by
-instantiating loaded `PackedScene` resources into a configured scene root before
-the project attempts deferred unload/cache enforcement, fast travel, or audio
-fade polish.
+instantiating loaded `PackedScene` resources into a configured scene root.
+Story006 closes the first memory-management slice by adding 3-second deferred
+runtime unload, cached quick-return reuse, and max-two resident enforcement.
 
 ## Governing ADRs
 
@@ -34,7 +34,7 @@ fade polish.
 |-------|-------------|--------------|
 | TR-scene-001 | Scene registry maps `scene_id` to `{path, type, preload}`, with hub preloaded and resident. | ADR-0007 |
 | TR-scene-002 | Async scene loading uses background loading plus 1-2 second transition animation. | ADR-0007; Story003 request lifecycle + timing gate; Story004 transition visual/loading UI shell |
-| TR-scene-003 | Old scenes are deferred-unloaded after 3 seconds and no more than 2 scenes remain resident. | ADR-0007; Story005 keeps previous runtime scene reference after detach; deferred timer/cache eviction future |
+| TR-scene-003 | Old scenes are deferred-unloaded after 3 seconds and no more than 2 scenes remain resident. | ADR-0007; Story005 keeps previous runtime scene reference after detach; Story006 deferred runtime unload/cache eviction |
 | TR-scene-004 | Scene-local state persists through `get_local_state()` / `set_local_state()` and save serialization. | ADR-0007; local dictionary cache in Story001; runtime scene capture/restore in Story005 |
 | TR-scene-005 | Boss arena locks scene switching during boss fights. | ADR-0007 |
 | TR-scene-006 | Fast travel preloads target scenes during its portal animation. | ADR-0007; future story |
@@ -50,6 +50,7 @@ fade polish.
 | 003 | Async Load Request Lifecycle + Timeout Fallback | Integration | Complete | ADR-0007 |
 | 004 | Transition Loading UI Shell | Integration | Complete | ADR-0007 |
 | 005 | Runtime Scene-Tree Swap Ownership | Integration | Complete | ADR-0007 |
+| 006 | Deferred Unload + Runtime Cache Eviction | Integration | Complete | ADR-0007 |
 
 ## Definition of Done
 
@@ -72,13 +73,14 @@ This epic is complete when:
 - Runtime scene-tree swaps instantiate loaded `PackedScene` resources into a
   configured SceneManager-owned root, detach the outgoing runtime scene, and
   preserve scene-local state through `get_local_state()` / `set_local_state()`.
-- Later stories add 3-second deferred unload/cache eviction, fast travel, audio
-  fades, and memory-budget verification.
+- Runtime scene-tree swaps keep the outgoing scene as a 3-second deferred cache,
+  reuse it for quick returns without another `ResourceLoader` request, and never
+  keep more than current scene + one cached runtime scene resident.
+- Later stories add fast travel, audio fades, and memory-budget verification.
 - Godot CLI/GdUnit and Godot MCP verify the Autoload, runtime logs, and current
   scene visibility after SceneManager changes.
 
 ## Next Step
 
-Continue with deferred unload/cache eviction, max-two-resident enforcement, fast
-travel preload, loading audio fades, and scene memory-budget verification as
-later SceneManagement stories.
+Continue with fast travel preload, loading audio fades, and scene memory-budget
+verification as later SceneManagement stories.

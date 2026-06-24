@@ -4,13 +4,28 @@
 - Save System、Death & Respawn、SceneManagement Story002 title/continue/load
   handoff、SceneManagement Story003 async load request lifecycle + timeout
   fallback、SceneManagement Story004 transition loading UI shell、
-  SceneManagement Story005 runtime scene-tree swap ownership 已完成；下一步按
-  GDD/架构/Epic 状态推进 SceneManager deferred unload/cache、fast travel、
-  loading audio fades、memory-budget verification，以及玩家可见角色/敌人帧动画持续审计。
+  SceneManagement Story005 runtime scene-tree swap ownership、
+  SceneManagement Story006 deferred unload/cache eviction 已完成；下一步按
+  GDD/架构/Epic 状态推进 SceneManager fast travel、loading audio fades、
+  memory-budget verification，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Scene Management Story 006: Deferred Unload + Runtime Cache Eviction —
+  `SceneManager` 现在把成功 runtime swap 的 outgoing scene 从 runtime root
+  detach 后保留为 3 秒 deferred cache，暴露 previous scene id、remaining
+  seconds、resident runtime scene count 诊断；3 秒内返回 cached `scene_id`
+  会复用同一个 Node，不再发起新的 threaded load request；连续第三场景切换会先
+  evict 旧 cache，保证 SceneManager-owned resident runtime scene 始终不超过
+  current + one cached。兼容 Story003 无 runtime root logical async contract
+  与 Story005 invalid PackedScene failure/current attached contract。通过 RED
+  `report_432`、GREEN focused `report_434` `4/4`、SceneManagement 回归
+  `report_437` `12/12`、相关回归 `report_438` `59/59`、headless smoke、
+  Godot MCP runtime probe（cache hit 复用同一 hub Node、resident count 2、
+  deferred unload 清空 previous）、clean game/editor logs、非空截图与
+  Player/Enemy `AnimatedSprite2D` runtime tree 验证。QA evidence:
+  `production/qa/evidence/deferred-unload-cache-eviction-2026-06-25.md`。
 - Scene Management Story 005: Runtime Scene-Tree Swap Ownership —
   `SceneManager` 现在可配置 runtime scene root，async load 完成且 1.5 秒
   transition gate 满足后会实例化 loaded `PackedScene` 并挂到该 root，先完成
