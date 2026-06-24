@@ -1584,3 +1584,14 @@
 - Asset note: no new project image asset was required for Story008; Label styling covers the visual requirement
 - Blockers: None
 - Next: /code-review changed files then continue Combat Presentation boss phase feedback, colorblind remaps, performance-budget checks, low-HP focus shake reduction, or Save System TR-save-007 async write hardening
+
+## Session Extract — /dev-story 2026-06-24
+
+- Story: `production/epics/combat-presentation/story-009-boss-phase-transition-signal-contract.md` — Boss Phase Transition Signal Contract
+- Files changed: `src/core/boss_config_component.gd`, `tests/unit/boss/story_007_phase_transition_start_signal_contract_test.gd`, `production/epics/combat-presentation/EPIC.md`, `production/epics/combat-presentation/story-009-boss-phase-transition-signal-contract.md`, `production/epics/index.md`, `production/qa/evidence/boss-phase-transition-signal-contract-2026-06-24.md`, `production/session-state/active.md`
+- Implementation: Added `on_boss_phase_transition_started(entity_id, phase, metadata)` from BossConfigComponent's actual transition-start point, preserves Health trigger HP percentage, maps Health threshold ordinals to actual Rat King phase IDs, and emits metadata before AI/arena adapters are applied.
+- Test written: `tests/unit/boss/story_007_phase_transition_start_signal_contract_test.gd`
+- Verification: RED failed on missing transition-start signal (`reports/report_358/`); GREEN focused Story009 `3/3` (`reports/report_359/`); related Boss/Health/AI regression `39/39` (`reports/report_360/`); headless main-scene smoke clean; Godot MCP runtime probe/log evidence captured.
+- Asset note: no image-generated visual asset was required for this signal contract slice.
+- Blockers: None
+- Next: implement Combat Presentation boss phase visual/audio feedback using this BossConfig signal, or continue colorblind remaps/performance-budget checks.

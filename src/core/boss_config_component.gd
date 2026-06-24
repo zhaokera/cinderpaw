@@ -2,6 +2,8 @@
 extends Node
 class_name BossConfigComponent
 
+signal on_boss_phase_transition_started(entity_id: int, phase: int, metadata: Dictionary)
+
 const BOSS_CONFIGS_DOMAIN: StringName = &"boss_configs"
 const DEFAULT_TRANSITION_DURATION_SEC: float = 2.5
 const DEFAULT_DEFENSE_MODIFIER: float = 1.0
@@ -220,12 +222,19 @@ func is_invulnerable() -> bool:
 
 ## Queues a valid future phase transition.
 func queue_phase_transition(phase_id: int) -> void:
+	_queue_phase_transition(phase_id, _get_phase_threshold(phase_id))
+
+
+func _queue_phase_transition(phase_id: int, hp_percentage: float) -> void:
 	var normalized_phase_id: int = maxi(1, phase_id)
 	if normalized_phase_id <= _current_phase or get_phase_config(normalized_phase_id).is_empty():
 		return
-	if _transition_queue.has(normalized_phase_id):
+	if _transition_queue_has_phase(normalized_phase_id):
 		return
-	_transition_queue.append(normalized_phase_id)
+	_transition_queue.append({
+		"phase_id": normalized_phase_id,
+		"hp_percentage": clampf(hp_percentage, 0.0, 1.0),
+	})
 
 
 ## Advances queued or active phase transitions for deterministic tests and gameplay ticks.
@@ -286,14 +295,17 @@ func _disconnect_health_signal(signal_name: StringName, callback: Callable) -> v
 func _handle_boss_phase_change(
 	entity_or_phase: Variant,
 	maybe_phase: Variant = null,
-	_hp_percentage: float = 0.0
+	hp_percentage: float = 0.0
 ) -> void:
 	if maybe_phase == null:
 		queue_phase_transition(int(entity_or_phase))
 		return
 	if not _matches_entity_id(int(entity_or_phase)):
 		return
-	queue_phase_transition(int(maybe_phase))
+	_queue_phase_transition(
+		_resolve_phase_signal_target_phase(int(maybe_phase), hp_percentage),
+		hp_percentage
+	)
 
 
 func _handle_boss_death(
@@ -323,14 +335,88 @@ func _is_ai_attack_complete() -> bool:
 
 
 func _start_next_transition() -> void:
-	var next_phase: int = int(_transition_queue.pop_front())
+	var transition_request: Dictionary = _transition_queue.pop_front()
+	var next_phase: int = int(transition_request.get("phase_id", 1))
+	var hp_percentage: float = float(transition_request.get(
+		"hp_percentage",
+		_get_phase_threshold(next_phase)
+	))
+	var previous_phase: int = _current_phase
 	if _current_phase == _summon_phase_id and next_phase != _summon_phase_id:
 		_reset_summon_timer()
 	_current_phase = next_phase
 	_transition_active = true
 	_transition_remaining_sec = DEFAULT_TRANSITION_DURATION_SEC
+	on_boss_phase_transition_started.emit(
+		_entity_id,
+		next_phase,
+		_build_phase_transition_metadata(next_phase, previous_phase, hp_percentage)
+	)
 	_apply_phase_to_ai(next_phase)
 	_apply_arena_changes(next_phase)
+
+
+func _resolve_phase_signal_target_phase(incoming_phase: int, hp_percentage: float) -> int:
+	var normalized_phase: int = maxi(1, incoming_phase)
+	var ordinal_target_phase: int = normalized_phase + 1
+	if _should_treat_phase_signal_as_threshold_ordinal(
+		normalized_phase,
+		ordinal_target_phase,
+		hp_percentage
+	):
+		return ordinal_target_phase
+	return normalized_phase
+
+
+func _should_treat_phase_signal_as_threshold_ordinal(
+	incoming_phase: int,
+	ordinal_target_phase: int,
+	hp_percentage: float
+) -> bool:
+	if get_phase_config(ordinal_target_phase).is_empty():
+		return false
+	var ordinal_threshold: float = _get_phase_threshold(ordinal_target_phase)
+	if hp_percentage > 0.0 and ordinal_threshold > 0.0 and hp_percentage > ordinal_threshold:
+		return false
+	return incoming_phase <= _current_phase or _transition_queue_has_phase(incoming_phase)
+
+
+func _transition_queue_has_phase(phase_id: int) -> bool:
+	for transition_request: Dictionary in _transition_queue:
+		if int(transition_request.get("phase_id", 0)) == phase_id:
+			return true
+	return false
+
+
+func _get_phase_threshold(phase_id: int) -> float:
+	var phase: Dictionary = get_phase_config(phase_id)
+	if phase.is_empty():
+		return 0.0
+	return clampf(float(phase.get("hp_threshold", 0.0)), 0.0, 1.0)
+
+
+func _build_phase_transition_metadata(
+	phase_id: int,
+	previous_phase: int,
+	trigger_hp_percentage: float
+) -> Dictionary:
+	var phase: Dictionary = get_phase_config(phase_id)
+	return {
+		"boss_id": _boss_id,
+		"display_name": _display_name,
+		"previous_phase": previous_phase,
+		"hp_threshold": _get_phase_threshold(phase_id),
+		"hp_percentage": clampf(trigger_hp_percentage, 0.0, 1.0),
+		"trigger_hp_percentage": clampf(trigger_hp_percentage, 0.0, 1.0),
+		"current_hp_percentage": _query_health_percentage_or(trigger_hp_percentage),
+		"transition_duration_sec": DEFAULT_TRANSITION_DURATION_SEC,
+		"transition_animation": String(phase.get("transition_animation", "")),
+		"attack_patterns": get_phase_attack_patterns(phase_id),
+		"attack_speed_modifier": get_attack_speed_modifier(phase_id),
+		"special_attacks": _read_array(phase.get("special_attacks", [])),
+		"arena_changes": _read_array(phase.get("arena_changes", [])),
+		"queued_phase_count_after_start": _transition_queue.size(),
+	}
 
 
 func _advance_summon_schedule(delta_sec: float) -> void:
@@ -437,12 +523,16 @@ func _apply_arena_changes(phase_id: int) -> void:
 
 
 func _query_health_percentage() -> float:
+	return _query_health_percentage_or(1.0)
+
+
+func _query_health_percentage_or(fallback: float) -> float:
 	if _health_adapter == null or not _health_adapter.has_method("get_hp_percentage"):
-		return 1.0
+		return clampf(fallback, 0.0, 1.0)
 	var hp_percentage: Variant = _health_adapter.call("get_hp_percentage")
 	if _is_number(hp_percentage):
 		return clampf(float(hp_percentage), 0.0, 1.0)
-	return 1.0
+	return clampf(fallback, 0.0, 1.0)
 
 
 func _is_successful_parry_type(parry_type: StringName) -> bool:
