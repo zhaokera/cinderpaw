@@ -42,6 +42,9 @@ const RESPAWN_INVINCIBILITY_FRAMES: int = 120
 const RESPAWN_FLASH_INTERVAL_FRAMES: int = 8
 const RESPAWN_FLASH_DIM_ALPHA: float = 0.42
 const RESPAWN_FLASH_BRIGHT_ALPHA: float = 0.72
+const PLAYER_HURTBOX_SIZE: Vector2 = Vector2(20, 44)
+const COMBAT_COMPONENT_SCRIPT: Script = preload("res://src/core/combat_component.gd")
+const COLLISION_COMPONENT_SCRIPT: Script = preload("res://src/core/collision_component.gd")
 
 # ---------------------------------------------------------------------------
 # State
@@ -59,6 +62,10 @@ var _dodge_cooldown_timer: int = 0
 var _control_locked: bool = false
 var _respawn_visual_remaining_frames: int = 0
 var _respawn_visual_elapsed_frames: int = 0
+var _combat: CombatComponent = null
+var _collision: CollisionComponent = null
+var _weapon_component: Object = null
+var _damage_calculator_adapter: Object = null
 
 # ---------------------------------------------------------------------------
 # Node References
@@ -74,11 +81,13 @@ var _respawn_visual_elapsed_frames: int = 0
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
+	_ensure_core_components()
 	_hitbox_area.body_entered.connect(_on_attack_hit_body)
 	_health.configure(PLAYER_ENTITY_ID, PLAYER_MAX_HP, PLAYER_MAX_HP, 0, 0, true)
 	_health.set_active_enemy_count(1)
 	_health.on_hp_changed.connect(_on_health_changed)
 	_health.on_death.connect(_on_death)
+	_setup_core_combat_chain()
 	player_health_changed.emit(_health.get_current_hp(), _health.get_max_hp())
 
 
@@ -153,7 +162,7 @@ func _handle_input() -> void:
 
 	# Attack
 	if Input.is_action_just_pressed("attack") and _state == State.IDLE:
-		_start_attack()
+		request_attack()
 
 	# Dodge
 	if Input.is_action_just_pressed("dodge") and _state == State.IDLE and _dodge_cooldown_timer <= 0:
@@ -176,12 +185,39 @@ func _apply_dodge_velocity(_delta: float) -> void:
 # Attack
 # ---------------------------------------------------------------------------
 
-func _start_attack() -> void:
+## Requests a player light attack through the Core combat/collision/weapon chain.
+func request_attack() -> bool:
+	if _control_locked or _state != State.IDLE:
+		return false
+	if _combat != null and _combat.get_current_state() != CombatComponent.CombatState.IDLE:
+		return false
+	var combo_index: int = _combat.get_combo_index() if _combat != null else 0
+	var core_hitbox_activated: bool = _activate_weapon_hitbox(combo_index)
+	if not core_hitbox_activated and _weapon_component != null:
+		return false
+	if _combat != null:
+		_combat.on_action_triggered(&"attack", {"combo_index": combo_index})
+	_start_attack_visual()
+	return true
+
+
+func _start_attack_visual() -> void:
 	_state = State.ATTACKING
 	_attack_timer = ATTACK_DURATION_FRAMES
 	_hitbox_shape.disabled = false
 	# Position hitbox in front of player
 	_hitbox_area.position.x = _facing * 20.0
+
+
+func _activate_weapon_hitbox(combo_index: int) -> bool:
+	if _weapon_component == null or not _weapon_component.has_method("activate_current_attack_hitbox"):
+		return false
+	return bool(_weapon_component.call(
+		"activate_current_attack_hitbox",
+		&"light",
+		ATTACK_DURATION_FRAMES,
+		combo_index
+	))
 
 
 func _update_attack_visual() -> void:
@@ -193,6 +229,8 @@ func _update_attack_visual() -> void:
 
 
 func _on_attack_hit_body(body: Node2D) -> void:
+	if _combat != null:
+		return
 	if _state != State.ATTACKING:
 		return
 	if body.has_method("take_damage"):
@@ -249,6 +287,35 @@ func get_max_hp() -> int:
 	return _health.get_max_hp()
 
 
+## Returns the runtime CombatComponent used by the playable attack chain.
+func get_combat_component() -> CombatComponent:
+	return _combat
+
+
+## Returns the runtime CollisionComponent used by combat hitboxes and hurtbox state.
+func get_collision_component() -> CollisionComponent:
+	return _collision
+
+
+## Injects the active weapon component used to activate attack hitboxes.
+func set_weapon_component(weapon_component: Object) -> void:
+	_weapon_component = weapon_component
+
+
+## Injects the target adapter that receives resolved player attack damage.
+func set_target_health_adapter(target_health_adapter: Object) -> void:
+	if _combat == null:
+		return
+	_combat.set_health_adapter(target_health_adapter)
+
+
+## Injects the runtime damage adapter used by CombatComponent.
+func set_damage_calculator_adapter(damage_calculator_adapter: Object) -> void:
+	_damage_calculator_adapter = damage_calculator_adapter
+	if _combat != null:
+		_combat.set_damage_calculator_adapter(_damage_calculator_adapter)
+
+
 func set_control_locked(locked: bool) -> void:
 	_control_locked = locked
 	if locked:
@@ -288,6 +355,39 @@ func _on_health_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:
 
 func _on_death(_entity_id: int, metadata: Dictionary) -> void:
 	player_died.emit(metadata.duplicate(true))
+
+
+func _ensure_core_components() -> void:
+	_combat = get_node_or_null("CombatComponent") as CombatComponent
+	if _combat == null:
+		_combat = COMBAT_COMPONENT_SCRIPT.new() as CombatComponent
+		_combat.name = "CombatComponent"
+		add_child(_combat)
+	_collision = get_node_or_null("CollisionComponent") as CollisionComponent
+	if _collision == null:
+		_collision = COLLISION_COMPONENT_SCRIPT.new() as CollisionComponent
+		_collision.name = "CollisionComponent"
+		add_child(_collision)
+
+
+func _setup_core_combat_chain() -> void:
+	if _collision != null:
+		_collision.configure_entity(PLAYER_ENTITY_ID, &"player")
+		_collision.set_hurtbox_size(PLAYER_HURTBOX_SIZE)
+		_collision.set_health_adapter(_health)
+	if _combat != null:
+		_combat.set_collision_adapter(_collision)
+		_combat.set_hurtbox_adapter(_collision)
+		if _damage_calculator_adapter != null:
+			_combat.set_damage_calculator_adapter(_damage_calculator_adapter)
+		if not _combat.on_attack_hit.is_connected(_on_core_attack_hit):
+			_combat.on_attack_hit.connect(_on_core_attack_hit)
+	if not _health.on_focus_mode_changed.is_connected(_combat.on_focus_mode_changed):
+		_health.on_focus_mode_changed.connect(_combat.on_focus_mode_changed)
+
+
+func _on_core_attack_hit(metadata: Dictionary) -> void:
+	attack_landed.emit(metadata.duplicate(true))
 
 
 func _start_respawn_visual_feedback() -> void:

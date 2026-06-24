@@ -1,5 +1,5 @@
 ## Core entity component that owns hitbox lifecycle state.
-extends Node
+extends Node2D
 class_name CollisionComponent
 
 const HITBOX_AREA_SCRIPT: Script = preload("res://src/core/hitbox_area.gd")

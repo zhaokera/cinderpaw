@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/feline-combat.md
 > **Architecture Module**: CombatComponent
 > **Status**: Complete
-> **Stories**: 7 stories
+> **Stories**: 8 stories
 
 ## Stories
 
@@ -17,12 +17,13 @@
 | 005 | Heavy Charge + Hit Stun + Aerial Hooks | Logic | Complete | ADR-0005 |
 | 006 | Cat Energy + Special/Ultimate Gates | Integration | Complete | ADR-0005, ADR-0016 |
 | 007 | Hit Confirmation + Focus Damage Metadata | Integration | Complete | ADR-0002, ADR-0004, ADR-0005 |
+| 008 | Runtime Player Attack Core Chain | Integration | Complete | ADR-0002, ADR-0004, ADR-0005, ADR-0016 |
 
 ## Overview
 
 Implement `CombatComponent` as a Core entity component that turns normalized input actions into frame-level combat state transitions. It owns the 6-state combat FSM, light combo chain, dodge and parry windows, heavy charge lifecycle, cat energy, battle statistics, and the provisional adapters used to hand off hitbox, damage, health, weapon, and focus-mode data without making Combat an Autoload.
 
-Visual effects, audio, combo HUD, and charge UI remain out of scope for this Core epic. Those requirements are delegated to Combat Presentation, Audio, and HUD/UI epics, which consume Combat signals instead of being called directly.
+Visual effects, audio, combo HUD, and charge UI remain out of scope for this Core epic. Those requirements are delegated to Combat Presentation, Audio, and HUD/UI epics, which consume Combat signals instead of being called directly. Story 008 adds the first runtime playable attack integration for the vertical slice by wiring PlayerController, MainScene, SimpleEnemy, and the completed Core components together.
 
 ## Governing ADRs
 
@@ -58,8 +59,9 @@ This epic is complete when:
 - All Core acceptance criteria from `design/gdd/feline-combat.md` are covered by passing tests under `tests/unit/combat/`.
 - `CombatComponent` can be instantiated in GdUnit4 without a full Player scene.
 - Input, DamageCalculator, HealthComponent focus mode, and provisional CollisionComponent adapters are integrated through typed methods/signals.
+- The playable MainScene player attack path uses CombatComponent, CollisionComponent, HealthComponent, WeaponComponent, and StatusEffectComponent instead of prototype direct damage.
 - Presentation-layer visual/audio/UI requirements are explicitly deferred to downstream epics and are not implemented in Core.
 
 ## Next Step
 
-Feline Combat Core is complete. Continue with a downstream integration epic that consumes Combat signals and metadata, such as Weapon Styles, Combat Presentation, Audio, HUD/UI, or Death metadata integration.
+Feline Combat Core and first runtime attack integration are complete. Continue with enemy attack execution, combat feel/presentation, or richer player animation timing so live gameplay feedback matches the implemented combat contracts.

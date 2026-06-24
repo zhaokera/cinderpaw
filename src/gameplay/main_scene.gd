@@ -9,6 +9,7 @@ extends Node2D
 
 const BATTLE_SUMMARY_ENABLED: bool = false
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
+const RUNTIME_DAMAGE_CALCULATOR_ADAPTER_SCRIPT: Script = preload("res://src/gameplay/runtime_damage_calculator_adapter.gd")
 
 var _pause_menu_active: bool = false
 var _currency_amount: int = 0
@@ -18,10 +19,13 @@ var _current_weapon_id: StringName = &"cat_claw"
 var _weapon_levels: Dictionary = {"cat_claw": 0}
 var _world_progress_flags: Dictionary = {}
 var _weapon_component: WeaponComponent = null
+var _damage_calculator_adapter: Object = null
+var _last_player_hit_metadata: Dictionary = {}
 
 
 func _ready() -> void:
 	_setup_weapon_component()
+	_setup_player_attack_core_chain()
 	_game_flow.set_no_loss_state_adapter(self)
 	_game_flow.start_boss_encounter(_player.global_position, self)
 	_game_flow.respawn_requested.connect(_on_respawn_requested)
@@ -65,7 +69,9 @@ func _on_player_died(death_metadata: Dictionary) -> void:
 
 
 func _on_player_attack_landed(hit_data: Dictionary) -> void:
-	_combat_presentation.on_hit_event(hit_data)
+	var enriched_hit_data: Dictionary = _apply_weapon_effects_to_player_hit(hit_data)
+	_last_player_hit_metadata = enriched_hit_data.duplicate(true)
+	_combat_presentation.on_hit_event(enriched_hit_data)
 
 
 func _on_enemy_health_changed(current_hp: int, max_hp: int) -> void:
@@ -225,6 +231,10 @@ func get_weapon_hud_text() -> String:
 	return _hud.get_weapon_label_text()
 
 
+func get_last_player_hit_metadata() -> Dictionary:
+	return _last_player_hit_metadata.duplicate(true)
+
+
 func _setup_weapon_component() -> void:
 	_weapon_component = WEAPON_COMPONENT_SCRIPT.new() as WeaponComponent
 	_weapon_component.name = "WeaponComponent"
@@ -235,6 +245,22 @@ func _setup_weapon_component() -> void:
 	_weapon_component.on_weapon_changed.connect(_on_weapon_changed)
 	_acquired_weapons = _weapon_component.get_weapon_ids()
 	_sync_weapon_component_from_runtime_state()
+
+
+func _setup_player_attack_core_chain() -> void:
+	var root_data_manager: Node = get_node_or_null("/root/DataManager")
+	_damage_calculator_adapter = RUNTIME_DAMAGE_CALCULATOR_ADAPTER_SCRIPT.new(root_data_manager)
+	if _player.has_method("set_damage_calculator_adapter"):
+		_player.set_damage_calculator_adapter(_damage_calculator_adapter)
+	if _player.has_method("set_target_health_adapter"):
+		_player.set_target_health_adapter(_enemy)
+	if _player.has_method("set_weapon_component"):
+		_player.set_weapon_component(_weapon_component)
+	if _weapon_component != null:
+		if _player.has_method("get_combat_component"):
+			_weapon_component.set_combat_adapter(_player.get_combat_component())
+		if _player.has_method("get_collision_component"):
+			_weapon_component.set_collision_adapter(_player.get_collision_component())
 
 
 func _on_weapon_changed(weapon: Resource) -> void:
@@ -275,6 +301,12 @@ func _update_weapon_hud_with_resource(weapon: Resource) -> void:
 	if String(weapon.display_name).strip_edges() != "":
 		display_name = StringName(weapon.display_name)
 	_hud.update_weapon(display_name, 0.0)
+
+
+func _apply_weapon_effects_to_player_hit(hit_data: Dictionary) -> Dictionary:
+	if _weapon_component == null:
+		return hit_data.duplicate(true)
+	return _weapon_component.apply_confirmed_hit_effects(_enemy, hit_data)
 
 
 func _string_names_to_strings(values: Array[StringName]) -> Array[String]:

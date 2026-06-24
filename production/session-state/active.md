@@ -259,6 +259,16 @@
 - Blockers: None for the Data/Balance slice.
 - Next recommended: Generate a QA plan for broader manual verification, then pick the next implementation epic/story beyond Data/Balance.
 
+## Session Extract — Runtime Player Attack Core Chain 2026-06-24
+- Story: production/epics/feline-combat/story-008-runtime-player-attack-core-chain.md — Player attack runtime Core chain
+- Status: Complete
+- Files changed: src/core/collision_component.gd, src/gameplay/player_controller.gd, src/gameplay/simple_enemy.gd, src/gameplay/main_scene.gd, src/gameplay/runtime_damage_calculator_adapter.gd, tests/unit/gameplay/main_scene_player_attack_core_chain_test.gd, production/epics/feline-combat/EPIC.md, production/qa/evidence/player-attack-core-chain-2026-06-24.md
+- Implementation: PlayerController now creates/uses CombatComponent and CollisionComponent, MainScene injects WeaponComponent and RuntimeDamageCalculatorAdapter, SimpleEnemy exposes Health/Collision/Status adapters, and CollisionComponent extends Node2D so runtime hitboxes inherit entity transforms.
+- TDD evidence: RED report_341 failed on missing runtime attack contract; GREEN report_342 2/2 passing.
+- Regression evidence: focused gameplay/combat/collision/health/status/weapon regression report_343 passed 134/134.
+- Runtime evidence: headless main scene smoke passed with clean log scan; Godot MCP launched main.tscn, verified Cat Claw HP 30→12 and Electro Bell slow status/movement modifier 0.7, captured reports/visual/cinderpaw-mcp-player-attack-core-chain-20260624.png, and game logs had no runtime errors.
+- Next recommended: Enemy attack execution + combat presentation timing so live play has reciprocal combat pressure and clearer hit feedback.
+
 ## Session Extract — /create-stories 2026-06-23 (damage-calculator)
 - Epic: production/epics/damage-calculator/EPIC.md — Damage Calculation
 - Stories created: 4
