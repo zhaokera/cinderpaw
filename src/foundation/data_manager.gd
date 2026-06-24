@@ -368,13 +368,13 @@ func _load_manifest(manifest_path: String) -> bool:
 		var def: Dictionary = domain_def as Dictionary
 		if def == null:
 			continue
-		var name: String = def.get("name", "")
+		var domain_id: String = def.get("name", "")
 		var path: String = def.get("path", "")
 		var is_preload: bool = def.get("preload", false)
-		if name.is_empty() or path.is_empty():
+		if domain_id.is_empty() or path.is_empty():
 			push_warning("DataManager WARNING: skipping invalid domain definition in manifest")
 			continue
-		_domain_registry[name] = {"path": path, "preload": is_preload}
+		_domain_registry[domain_id] = {"path": path, "preload": is_preload}
 
 	print("DataManager: manifest loaded, %d domain(s) registered" % _domain_registry.size())
 	return true

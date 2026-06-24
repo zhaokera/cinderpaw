@@ -30,9 +30,36 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 @.Codex/docs/coordination-rules.md
 
+## Parallel Agent Use
+
+- Prefer parallel Codex subagents for independent workstreams that do not write
+  the same files or depend on the same unresolved decision.
+- Good parallel splits include: asset prompt/spec review, documentation/evidence
+  updates, isolated test failure investigation, and scene/runtime verification.
+- Keep shared gameplay code, scene wiring, and resource ownership changes under
+  one integrating agent unless the write sets are clearly disjoint.
+- The integrating agent must review subagent results, resolve conflicts, and run
+  the final Godot/GdUnit/MCP verification before reporting completion.
+
 ## Language
 
 所有对话、审查报告、问题描述、修订说明均使用**中文**与用户交流。代码注释、变量命名、文件命名仍按 Coding Standards 执行（英文）。GDD 文档正文使用中文，技术术语可保留英文原文。
+
+## Godot 2D Frame Animation Rules
+
+动作类角色不能长期停留在静态方块或单张占位图表现。新增或重做 2D 角色动画时遵守以下规则：
+
+1. 所有 2D 角色帧动画统一使用 `AnimatedSprite2D` + `SpriteFrames`。
+2. 角色动画素材必须放在 `assets/characters/<character_name>/<animation_name>/`。
+3. PNG 帧必须透明背景、尺寸一致、锚点一致、命名连续，例如
+   `<character_name>_<animation_name>_000.png`。
+4. 新增角色必须同时创建 `scenes/characters/<character_name>.tscn` 和
+   `src/characters/<character_name>.gd`，并将动画资源接入场景。
+5. 修改 Godot 场景、`SpriteFrames`、角色脚本或动画资源后，必须通过
+   Godot MCP 检查场景加载、脚本错误和运行时错误；不能只凭文件内容判断场景可用。
+6. 如果 MCP 返回 Godot 报错，必须先修复报错并重新验证，不能继续新增功能。
+7. 如果 MCP 临时不可用，必须先诊断 MCP 连接；阻塞时可用 Godot CLI/headless
+   作为临时验证，但后续仍要补 MCP 运行时检查。
 
 ## Collaboration Protocol
 

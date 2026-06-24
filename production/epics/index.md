@@ -17,4 +17,4 @@ Engine: Godot 4.6.3
 | weapon-styles | Core | Weapon Styles | weapon-styles.md | 8 stories | In Progress |
 | death-respawn | Feature | Death & Respawn | death-respawn.md | 6 stories | In Progress |
 | hud-ui | Presentation | HUD/UI | hud-ui.md | 6 stories | In Progress |
-| combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 1 story tracked | In Progress |
+| combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 2 stories tracked | In Progress |

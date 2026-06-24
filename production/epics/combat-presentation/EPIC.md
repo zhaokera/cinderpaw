@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 1 story tracked
+> **Stories**: 2 stories tracked
 
 ## Overview
 
@@ -40,6 +40,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | # | Story | Type | Status | ADR |
 |---|-------|------|--------|-----|
 | 001 | Textured Hit Spark + Enemy Debris Slice | Visual/Runtime | Complete | ADR-0001, ADR-0002 |
+| 002 | Parry Flash + Cat Claw Trail Slice | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0016 |
 
 ## Definition of Done
 
@@ -53,5 +54,6 @@ This epic is complete when:
 
 ## Next Step
 
-Continue with parry flash and claw slash trail VFX because they are the most
-visible missing feedback after the basic hit and kill effects.
+Continue with dodge afterimages and remaining weapon/boss presentation slices.
+The epic stays In Progress until parry, dodge, weapon trail, boss phase, and
+damage-number feedback all satisfy `design/gdd/combat-presentation.md`.

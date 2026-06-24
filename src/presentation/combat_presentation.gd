@@ -8,20 +8,34 @@ const KILL_HITSTOP_FRAMES: int = 6
 const NORMAL_SHAKE_INTENSITY: float = 2.0
 const CRIT_SHAKE_INTENSITY: float = 5.0
 const KILL_SHAKE_INTENSITY: float = 5.0
+const PARRY_SHAKE_INTENSITY: float = 8.0
 const DAMAGE_NUMBER_LIFETIME_SEC: float = 1.5
 const SPARK_LIFETIME_SEC: float = 0.3
 const DEBRIS_LIFETIME_SEC: float = 1.0
+const PARRY_SPARK_LIFETIME_SEC: float = 0.8
+const PARRY_FLASH_LIFETIME_SEC: float = 8.0 / 60.0
+const CLAW_TRAIL_LIFETIME_SEC: float = 0.4
 const NORMAL_SPARK_COUNT: int = 6
 const CRIT_SPARK_COUNT: int = 12
 const KILL_DEBRIS_COUNT: int = 18
+const PERFECT_PARRY_SPARK_COUNT: int = 22
+const CLAW_TRAIL_COUNT: int = 3
+const PERFECT_PARRY_HITSTOP_FRAMES: int = 8
+const PERFECT_PARRY_FLASH_ALPHA: float = 0.8
 const NORMAL_DAMAGE_COLOR: Color = Color.WHITE
 const CRIT_DAMAGE_COLOR: Color = Color("#ECC94B")
 const SPARK_COLOR: Color = Color(1.0, 0.94, 0.76, 1.0)
 const DEBRIS_COLOR: Color = Color(0.78, 0.18, 0.16, 1.0)
+const PARRY_SPARK_COLOR: Color = Color(1.0, 0.96, 0.72, 1.0)
+const CLAW_TRAIL_COLOR: Color = Color(1.0, 0.9, 0.48, 1.0)
 const HIT_SPARK_TEXTURE: Texture2D = preload("res://assets/generated/combat_hit_spark.png")
 const ENEMY_DEBRIS_TEXTURE: Texture2D = preload("res://assets/generated/combat_enemy_debris.png")
+const PARRY_SPARK_TEXTURE: Texture2D = preload("res://assets/generated/combat_parry_spark.png")
+const CLAW_TRAIL_TEXTURE: Texture2D = preload("res://assets/generated/combat_claw_trail.png")
 const SPARK_SPRITE_SCALE: Vector2 = Vector2(0.16, 0.16)
 const DEBRIS_SPRITE_SCALE: Vector2 = Vector2(0.12, 0.12)
+const PARRY_SPARK_SPRITE_SCALE: Vector2 = Vector2(0.18, 0.18)
+const CLAW_TRAIL_SPRITE_SCALE: Vector2 = Vector2(0.34, 0.34)
 
 var _hitstop_frames_remaining: int = 0
 var _screen_shake_intensity: float = 0.0
@@ -31,8 +45,12 @@ var _camera_base_offset: Vector2 = Vector2.ZERO
 var _damage_numbers: Array[Dictionary] = []
 var _sparks: Array[Dictionary] = []
 var _debris: Array[Dictionary] = []
+var _parry_sparks: Array[Dictionary] = []
+var _trails: Array[Dictionary] = []
+var _flashes: Array[Dictionary] = []
 var _last_damage_number_text: String = ""
 var _last_damage_number_color: Color = NORMAL_DAMAGE_COLOR
+var _last_flash_alpha: float = 0.0
 
 
 func _process(delta: float) -> void:
@@ -76,6 +94,26 @@ func on_kill_event(_target_id: int, world_position: Vector2) -> void:
 	_spawn_debris(world_position, KILL_DEBRIS_COUNT)
 
 
+func on_parry_event(parry_data: Dictionary) -> void:
+	var parry_type: StringName = StringName(String(parry_data.get("parry_type", &"")))
+	if parry_type != &"perfect":
+		return
+	var parry_position: Vector2 = _read_vector2(parry_data.get("position", Vector2.ZERO))
+	play_hitstop(PERFECT_PARRY_HITSTOP_FRAMES)
+	play_screen_shake(PARRY_SHAKE_INTENSITY, PERFECT_PARRY_HITSTOP_FRAMES)
+	_spawn_screen_flash(PERFECT_PARRY_FLASH_ALPHA, PARRY_FLASH_LIFETIME_SEC)
+	_spawn_parry_sparks(parry_position, PERFECT_PARRY_SPARK_COUNT)
+
+
+func on_weapon_attack_event(attack_data: Dictionary) -> void:
+	var weapon_id: StringName = StringName(String(attack_data.get("weapon_id", &"")))
+	if weapon_id != &"cat_claw":
+		return
+	var attack_position: Vector2 = _read_vector2(attack_data.get("attack_position", attack_data.get("position", Vector2.ZERO)))
+	var facing: float = _read_float(attack_data.get("facing", 1.0), 1.0)
+	_spawn_claw_trails(attack_position, facing)
+
+
 func play_hitstop(frames: int) -> void:
 	_hitstop_frames_remaining = maxi(_hitstop_frames_remaining, maxi(0, frames))
 
@@ -93,6 +131,9 @@ func advance_time(delta_sec: float) -> void:
 	_tick_effects(_damage_numbers, safe_delta)
 	_tick_effects(_sparks, safe_delta)
 	_tick_effects(_debris, safe_delta)
+	_tick_effects(_parry_sparks, safe_delta)
+	_tick_effects(_trails, safe_delta)
+	_tick_effects(_flashes, safe_delta)
 
 
 func get_active_damage_number_count() -> int:
@@ -105,6 +146,18 @@ func get_active_spark_count() -> int:
 
 func get_active_debris_count() -> int:
 	return _debris.size()
+
+
+func get_active_parry_spark_count() -> int:
+	return _parry_sparks.size()
+
+
+func get_active_trail_count() -> int:
+	return _trails.size()
+
+
+func get_active_flash_count() -> int:
+	return _flashes.size()
 
 
 func get_hitstop_frames_remaining() -> int:
@@ -121,6 +174,10 @@ func get_last_damage_number_text() -> String:
 
 func get_last_damage_number_color() -> Color:
 	return _last_damage_number_color
+
+
+func get_last_flash_alpha() -> float:
+	return _last_flash_alpha
 
 
 func _spawn_damage_number(world_position: Vector2, damage: int, color: Color) -> void:
@@ -160,6 +217,69 @@ func _spawn_sparks(world_position: Vector2, count: int, color: Color) -> void:
 		_sparks.append({
 			"node": spark,
 			"remaining": SPARK_LIFETIME_SEC,
+		})
+
+
+func _spawn_parry_sparks(world_position: Vector2, count: int) -> void:
+	for index: int in range(maxi(0, count)):
+		var angle: float = (float(index) / float(maxi(1, count))) * TAU
+		var outward: Vector2 = Vector2.RIGHT.rotated(angle)
+		var spark := _create_vfx_sprite(PARRY_SPARK_TEXTURE, PARRY_SPARK_COLOR, PARRY_SPARK_SPRITE_SCALE)
+		spark.position = world_position + outward * (6.0 + float(index % 3) * 2.0)
+		spark.rotation = angle
+		spark.z_index = 86
+		add_child(spark)
+		var tween: Tween = create_tween()
+		tween.tween_property(spark, "position", spark.position + outward * 42.0, PARRY_SPARK_LIFETIME_SEC)
+		tween.parallel().tween_property(spark, "modulate:a", 0.0, PARRY_SPARK_LIFETIME_SEC)
+		tween.tween_callback(spark.queue_free)
+		_parry_sparks.append({
+			"node": spark,
+			"remaining": PARRY_SPARK_LIFETIME_SEC,
+		})
+
+
+func _spawn_screen_flash(alpha: float, duration_sec: float) -> void:
+	_last_flash_alpha = clampf(alpha, 0.0, 1.0)
+	var layer := CanvasLayer.new()
+	layer.layer = 100
+	var flash := ColorRect.new()
+	flash.color = Color(1.0, 1.0, 1.0, _last_flash_alpha)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flash.offset_left = 0.0
+	flash.offset_top = 0.0
+	flash.offset_right = 1280.0
+	flash.offset_bottom = 720.0
+	layer.add_child(flash)
+	add_child(layer)
+	var tween: Tween = create_tween()
+	tween.tween_property(flash, "modulate:a", 0.0, maxf(0.01, duration_sec))
+	tween.tween_callback(layer.queue_free)
+	_flashes.append({
+		"node": layer,
+		"remaining": duration_sec,
+	})
+
+
+func _spawn_claw_trails(world_position: Vector2, facing: float) -> void:
+	var facing_sign: float = -1.0 if facing < 0.0 else 1.0
+	for index: int in range(CLAW_TRAIL_COUNT):
+		var trail := _create_vfx_sprite(CLAW_TRAIL_TEXTURE, CLAW_TRAIL_COLOR, CLAW_TRAIL_SPRITE_SCALE)
+		var row_offset: float = float(index - 1) * 8.0
+		trail.position = world_position + Vector2(float(index) * 5.0 * facing_sign, row_offset)
+		trail.flip_h = facing_sign < 0.0
+		trail.rotation = (-0.28 * facing_sign) + float(index - 1) * 0.07
+		trail.modulate.a = 0.9 - float(index) * 0.12
+		trail.z_index = 84
+		add_child(trail)
+		var tween: Tween = create_tween()
+		tween.tween_property(trail, "position", trail.position + Vector2(26.0 * facing_sign, -4.0), CLAW_TRAIL_LIFETIME_SEC)
+		tween.parallel().tween_property(trail, "modulate:a", 0.0, CLAW_TRAIL_LIFETIME_SEC)
+		tween.tween_callback(trail.queue_free)
+		_trails.append({
+			"node": trail,
+			"remaining": CLAW_TRAIL_LIFETIME_SEC,
 		})
 
 
@@ -216,6 +336,12 @@ func _read_vector2(value: Variant) -> Vector2:
 	if value is Vector2:
 		return value
 	return Vector2.ZERO
+
+
+func _read_float(value: Variant, fallback: float) -> float:
+	if value is float or value is int:
+		return float(value)
+	return fallback
 
 
 func _damage_color_for_amount(damage: int) -> Color:

@@ -1251,3 +1251,44 @@
 - Epic status: Weapon Styles now has Stories 001-008 complete.
 - Next recommended: create/implement a player attack integration story to wire
   the playable attack chain into Core Combat/Collision/Health/Weapon callbacks.
+
+## Session Extract — Combat Presentation Parry Flash + Cat Claw Trail 2026-06-24
+- Scope: Implement Combat Presentation Story 002, covering `TR-combatfx-003`
+  and `TR-combatfx-004` for PERFECT parry flash/radial sparks and Cat Claw
+  attack-start slash trails.
+- Files changed: `src/presentation/combat_presentation.gd`,
+  `src/gameplay/player_controller.gd`, `src/gameplay/main_scene.gd`,
+  `src/foundation/data_manager.gd`, `tests/unit/presentation/combat_presentation_test.gd`,
+  `tests/unit/gameplay/main_scene_player_attack_core_chain_test.gd`,
+  generated VFX assets under `assets/generated/`, `AGENTS.md`, asset tracking,
+  Combat Presentation epic/story docs, and QA evidence.
+- Implementation: CombatPresentation now handles `on_parry_event()` and
+  `on_weapon_attack_event()`, spawning an 80% white flash, 22 textured radial
+  parry sparks, and exactly 3 textured Cat Claw trail sprites. PlayerController
+  emits `attack_started` metadata for light attacks, and MainScene routes that
+  signal into CombatPresentation.
+- Asset pipeline: generated `combat_parry_spark` and `combat_claw_trail` with
+  image generation, removed chroma-key backgrounds to alpha, resized runtime
+  PNGs to 96x96, imported through Godot, and recorded them in
+  `design/assets/asset-manifest.md`.
+- TDD evidence: RED first failed on missing CombatPresentation parry/weapon
+  attack APIs and missing MainScene trail runtime contract; GREEN focus suites
+  passed `9/9` and `2/2` (`reports/report_348/`, `reports/report_349/`).
+- Runtime evidence: headless main scene smoke passed with no error/warning
+  log matches. Godot MCP session `cinderpaw@c1b2` ran
+  `res://scenes/main.tscn`; runtime `game_eval` returned `trails=3`,
+  `parry_sparks=22`, `flashes=1`, `last_flash_alpha=0.8`, `hitstop=8`,
+  `shake=8`, and clean game/editor logs.
+- Visual evidence:
+  `reports/visual/cinderpaw-mcp-parry-claw-trail-runtime-20260624.png`.
+- MCP gate note: an old editor error for `get_slide_count()` persisted after
+  log clearing despite the editor and filesystem both reading clean source.
+  Reloading the Godot AI plugin, reopening/reimporting the scene/scripts, and
+  restarting the project cleared the stale editor log; final MCP editor log had
+  `0` lines.
+- Epic status: Combat Presentation Stories 001-002 are complete; Epic remains
+  In Progress for dodge afterimages, boss phase feedback, and remaining
+  damage-number/weapon presentation polish.
+- Next recommended: implement dodge afterimage feedback using image-generated
+  sprite assets and then start converting the player/enemy from static sprites
+  to `AnimatedSprite2D` + `SpriteFrames` per `AGENTS.md`.

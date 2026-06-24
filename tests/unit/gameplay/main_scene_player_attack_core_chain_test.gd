@@ -26,10 +26,12 @@ func test_player_light_attack_damages_enemy_through_core_chain_once() -> void:
 	var enemy = scene.get_node("Enemy")
 	var player_collision = player.get_collision_component()
 	var enemy_collision = enemy.get_collision_component()
+	var combat_presentation = scene.get_node("CombatPresentation")
 	var enemy_start_hp: int = enemy.get_current_hp()
 
 	assert_bool(player.request_attack()).is_true()
 	assert_bool(player_collision.is_hitbox_active(&"cat_claw_light")).is_true()
+	assert_int(combat_presentation.get_active_trail_count()).is_equal(3)
 
 	player_collision.process_detection_frame({
 		&"cat_claw_light": [enemy_collision.get_hurtbox()],
@@ -88,6 +90,7 @@ func _assert_runtime_attack_contract() -> bool:
 		and enemy.has_method("get_entity_id")
 		and enemy.has_method("get_collision_component")
 		and enemy.has_method("get_status_effect_component")
+		and scene.get_node("CombatPresentation").has_method("get_active_trail_count")
 		and scene.has_method("get_last_player_hit_metadata")
 	)
 	assert_bool(has_contract).is_true()

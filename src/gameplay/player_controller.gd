@@ -8,6 +8,7 @@ extends CharacterBody2D
 signal player_health_changed(current_hp: int, max_hp: int)
 signal player_died(death_metadata: Dictionary)
 signal attack_landed(hit_data: Dictionary)
+signal attack_started(attack_data: Dictionary)
 
 # ---------------------------------------------------------------------------
 # Constants — Movement
@@ -198,6 +199,7 @@ func request_attack() -> bool:
 	if _combat != null:
 		_combat.on_action_triggered(&"attack", {"combo_index": combo_index})
 	_start_attack_visual()
+	attack_started.emit(_build_attack_started_metadata(combo_index))
 	return true
 
 
@@ -218,6 +220,28 @@ func _activate_weapon_hitbox(combo_index: int) -> bool:
 		ATTACK_DURATION_FRAMES,
 		combo_index
 	))
+
+
+func _build_attack_started_metadata(combo_index: int) -> Dictionary:
+	return {
+		"weapon_id": _get_current_weapon_id(),
+		"attack_type": &"light",
+		"combo_index": combo_index,
+		"attack_position": global_position + Vector2(_facing * 34.0, -24.0),
+		"facing": _facing,
+	}
+
+
+func _get_current_weapon_id() -> StringName:
+	if _weapon_component == null or not _weapon_component.has_method("get_current_weapon"):
+		return &"cat_claw"
+	var weapon: Resource = _weapon_component.call("get_current_weapon")
+	if weapon == null:
+		return &"cat_claw"
+	var weapon_id: Variant = weapon.get("weapon_id")
+	if weapon_id == null:
+		return &"cat_claw"
+	return StringName(String(weapon_id))
 
 
 func _update_attack_visual() -> void:
@@ -408,7 +432,7 @@ func _advance_respawn_visual() -> void:
 
 
 func _apply_respawn_visual_alpha() -> void:
-	var flash_step: int = _respawn_visual_elapsed_frames / RESPAWN_FLASH_INTERVAL_FRAMES
+	var flash_step: int = floori(float(_respawn_visual_elapsed_frames) / float(RESPAWN_FLASH_INTERVAL_FRAMES))
 	var alpha: float = RESPAWN_FLASH_DIM_ALPHA
 	if flash_step % 2 == 1:
 		alpha = RESPAWN_FLASH_BRIGHT_ALPHA

@@ -36,6 +36,7 @@ func _ready() -> void:
 	_player.player_health_changed.connect(_on_player_health_changed)
 	_player.player_died.connect(_on_player_died)
 	_player.attack_landed.connect(_on_player_attack_landed)
+	_player.attack_started.connect(_combat_presentation.on_weapon_attack_event)
 	_enemy.enemy_health_changed.connect(_on_enemy_health_changed)
 	_enemy.enemy_defeated.connect(_on_enemy_defeated)
 	_combat_presentation.set_camera($Player/Camera2D)

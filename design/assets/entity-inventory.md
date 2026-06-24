@@ -45,10 +45,10 @@ All new visual assets in this inventory should be produced from image2 / image g
 
 | # | Name | Description | Source | Status |
 |---|------|-------------|--------|--------|
-| 1 | Claw Slash Trail | Cat-eye gold/white slash arc for default attacks, clear direction and timing. | design/gdd/feline-combat.md; design/art/art-bible.md | Needed |
+| 1 | Claw Slash Trail | Cat-eye gold/white slash arc for default attacks, clear direction and timing. | design/gdd/feline-combat.md; design/gdd/combat-presentation.md; design/art/art-bible.md; production/epics/combat-presentation/story-002-parry-flash-cat-claw-trail.md | Implemented |
 | 2 | Hit Spark | White flash and red threat spark for confirmed hits. | design/gdd/combat-presentation.md; design/gdd/health-death.md | Implemented |
 | 3 | Perfect Crit Spark | Cat-eye gold burst for perfect timing and rare reward feedback. | design/gdd/damage-calculation.md; design/art/art-bible.md | Needed |
-| 4 | Parry Flash | Brief white/gold defensive flash with safe-color readability. | design/gdd/feline-combat.md; design/gdd/health-death.md | Needed |
+| 4 | Parry Flash | Brief white/gold defensive flash with safe-color readability and radial parry spark burst. | design/gdd/feline-combat.md; design/gdd/combat-presentation.md; design/gdd/health-death.md; production/epics/combat-presentation/story-002-parry-flash-cat-claw-trail.md | Implemented |
 | 5 | Dodge Afterimage | 2-3 frame translucent player afterimage, gold variant for perfect dodge. | design/art/art-bible.md; design/gdd/feline-combat.md | Needed |
 | 6 | Enemy Telegraph Red Flash | Signal-red pre-attack marker with colorblind shape redundancy. | design/art/art-bible.md; design/gdd/health-death.md | Needed |
 | 7 | Door Dissolve Particles | Ability gate unlock dissolve, 0.5s effect. | design/gdd/exploration-ability-gating.md | Needed |

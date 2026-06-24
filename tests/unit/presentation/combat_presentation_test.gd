@@ -76,6 +76,47 @@ func test_kill_debris_uses_textured_sprite_vfx_not_color_rect_blocks() -> void:
 	assert_bool(_all_sprite_children_have_textures()).is_true()
 
 
+func test_perfect_parry_spawns_flash_and_radial_textured_sparks() -> void:
+	presentation.on_parry_event({
+		"parry_type": &"perfect",
+		"position": Vector2(220, 210),
+	})
+
+	assert_int(presentation.get_hitstop_frames_remaining()).is_equal(8)
+	assert_float(presentation.get_screen_shake_intensity()).is_equal_approx(8.0, 0.001)
+	assert_int(presentation.get_active_flash_count()).is_equal(1)
+	assert_float(presentation.get_last_flash_alpha()).is_equal_approx(0.8, 0.001)
+	assert_int(presentation.get_active_parry_spark_count()).is_between(20, 25)
+	assert_int(_count_children_of_type("Sprite2D")).is_greater_equal(
+		presentation.get_active_parry_spark_count()
+	)
+	assert_bool(_all_sprite_children_have_textures()).is_true()
+
+
+func test_cat_claw_attack_spawns_three_textured_slash_trails() -> void:
+	presentation.on_weapon_attack_event({
+		"weapon_id": &"cat_claw",
+		"attack_position": Vector2(100, 120),
+		"facing": -1,
+	})
+
+	assert_int(presentation.get_active_trail_count()).is_equal(3)
+	assert_int(_count_children_of_type("Sprite2D")).is_greater_equal(
+		presentation.get_active_trail_count()
+	)
+	assert_bool(_all_sprite_children_have_textures()).is_true()
+
+
+func test_non_cat_claw_attack_does_not_spawn_claw_trails() -> void:
+	presentation.on_weapon_attack_event({
+		"weapon_id": &"long_tail",
+		"attack_position": Vector2(100, 120),
+		"facing": 1,
+	})
+
+	assert_int(presentation.get_active_trail_count()).is_equal(0)
+
+
 func test_effects_expire_after_their_lifetime() -> void:
 	presentation.on_hit_event({
 		"damage": 7,
