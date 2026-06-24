@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 11 stories tracked
+> **Stories**: 12 stories tracked
 
 ## Overview
 
@@ -27,11 +27,11 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 |-------|-------------|--------------|
 | TR-combatfx-001 | Hitstop durations are selected by event type, and same-frame events take the maximum duration. | ADR-0002 partial |
 | TR-combatfx-002 | Screen shake intensity and duration are selected by event type, and same-frame events take the maximum intensity. | ADR-0002 partial |
-| TR-combatfx-003 | Particle system supports GDD particle types with a 200-particle performance cap. | Gap |
+| TR-combatfx-003 | Particle system supports GDD particle types with a 200-particle performance cap. | ADR-0002 partial, Story012 cap; remaining particle families gap |
 | TR-combatfx-004 | Dodge, dash, and perfect parry support afterimage feedback modes. | ADR-0002 partial |
 | TR-combatfx-005 | Damage number size, color, and animation communicate damage tier. | ADR-0002 partial |
 | TR-combatfx-006 | Perfect parry, character hit, and enemy crit flash effects use authored durations and alpha. | ADR-0002 partial |
-| TR-combatfx-007 | Combat presentation work stays within the 3ms frame budget. | Gap |
+| TR-combatfx-007 | Combat presentation work stays within the 3ms frame budget. | ADR-0002, Story012 |
 | TR-combatfx-008 | Colorblind mode remaps particle colors to the accessibility palette. | ADR-0002, Story011 |
 | TR-combatfx-009 | Low-HP focus mode reduces screen shake intensity by 30%. | ADR-0002, Story011 |
 | TR-combatfx-010 | Player runtime character art uses AnimatedSprite2D + SpriteFrames frame animation instead of static Sprite2D art. | ADR-0005 partial |
@@ -51,6 +51,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 009 | Boss Phase Transition Signal Contract | Integration | Complete | ADR-0002 |
 | 010 | Boss Phase Visual Feedback | Visual/Feel | Complete | ADR-0002 |
 | 011 | Colorblind Combat VFX + Focus Shake Accessibility | Accessibility/Integration | Complete | ADR-0002 |
+| 012 | Particle Budget + Performance Guardrails | Logic/Performance | Complete | ADR-0002 |
 
 ## Definition of Done
 
@@ -64,7 +65,7 @@ This epic is complete when:
 
 ## Next Step
 
-Continue with performance-budget checks, particle-count budget enforcement,
-boss phase audio/HUD follow-up, and remaining weapon presentation variants.
+Continue with boss phase audio/HUD follow-up and remaining weapon presentation
+variants, including long-tail, fish-bone, and electro-bell VFX families.
 The epic stays In Progress until all feedback modes satisfy
 `design/gdd/combat-presentation.md`.

@@ -1,10 +1,21 @@
 # Active Session State
 
 ## Current Task
-- 持续实现 Cinderpaw 垂直切片；最近完成 Combat Presentation Story 011
-  Colorblind Combat VFX + Focus Shake Accessibility
+- 持续实现 Cinderpaw 垂直切片；最近完成 Combat Presentation Story 012
+  Particle Budget + Performance Guardrails
 
 ## Last Completed Task
+- Combat Presentation Story 012: Particle Budget + Performance Guardrails —
+  `CombatPresentation` 现在对 hit sparks、kill debris、perfect parry sparks、
+  猫爪 trails、dodge afterimages、Boss phase debris 使用统一 FIFO 粒子注册表，
+  暴露 `get_particle_cap() == 200`、`get_active_particle_count()`、
+  `get_particle_eviction_count()`，超过 cap 时最旧粒子优先移除且 under-cap
+  单事件粒子数量保持不变；`capture_performance_budget_sample(sample_frames)`
+  返回 GDD 预算常量、平均采样耗时、`within_budget` 与状态保持结果，采样不会推进
+  粒子生命周期、hitstop 或 shake。通过 RED `report_374`、GREEN focused
+  `report_375` `27/27`、相关回归 `report_376` `43/43`、Godot headless
+  smoke、Godot MCP 运行态 230->200 压力 probe/log/screenshot 验证。截图：
+  `reports/visual/cinderpaw-mcp-combatfx-particle-budget-20260624.png`。
 - Combat Presentation Story 011: Colorblind Combat VFX + Focus Shake
   Accessibility — `CombatPresentation` 现在支持 `none` / `red_green` /
   `blue_yellow` 粒子 palette remap，普通/暴击 hit sparks、PERFECT parry
@@ -117,6 +128,19 @@
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `src/presentation/combat_presentation.gd` — Story012 particle budget cap、
+  FIFO eviction registry、active particle diagnostics 和 diagnostic performance
+  sample API。
+- `tests/unit/presentation/combat_presentation_test.gd` — Story012 TDD 覆盖
+  cap API、membership、oldest-first eviction、under-cap event counts、sample
+  frame clamp 和 sample no-mutation。
+- `production/epics/combat-presentation/story-012-particle-budget-performance-guardrails.md`,
+  `production/epics/combat-presentation/EPIC.md`,
+  `production/qa/evidence/particle-budget-performance-guardrails-2026-06-24.md` —
+  Story/Epic 状态、TR003 cap 部分覆盖、TR007 预算证据和 QA/MCP 证据。
+- `reports/combat_presentation_tr003_007_main_scene_smoke.log`,
+  `reports/visual/cinderpaw-mcp-combatfx-particle-budget-20260624.png` —
+  Story012 headless smoke 与 MCP runtime screenshot evidence。
 - `src/presentation/combat_presentation.gd` — Story011 colorblind particle
   palette remap、focus-mode screen shake `0.7` scaling、diagnostic color/shake
   getters。

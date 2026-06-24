@@ -28,6 +28,10 @@ const KILL_DEBRIS_COUNT: int = 18
 const PERFECT_PARRY_SPARK_COUNT: int = 22
 const CLAW_TRAIL_COUNT: int = 3
 const BOSS_PHASE_DEBRIS_COUNT: int = 32
+const MAX_ACTIVE_PARTICLES: int = 200
+const PARTICLE_FRAME_BUDGET_MS: float = 2.0
+const SHAKE_HITSTOP_FRAME_BUDGET_MS: float = 0.1
+const TOTAL_PRESENTATION_FRAME_BUDGET_MS: float = 3.0
 const DODGE_AFTERIMAGE_ALPHAS: Array[float] = [0.5, 0.3, 0.1]
 const PERFECT_PARRY_HITSTOP_FRAMES: int = 8
 const PERFECT_PARRY_FLASH_ALPHA: float = 0.8
@@ -86,6 +90,8 @@ var _flashes: Array[Dictionary] = []
 var _afterimages: Array[Dictionary] = []
 var _boss_phase_debris: Array[Dictionary] = []
 var _boss_phase_overlays: Array[Dictionary] = []
+var _particle_effect_order: Array[Dictionary] = []
+var _particle_eviction_count: int = 0
 var _last_damage_number_text: String = ""
 var _last_damage_number_color: Color = NORMAL_DAMAGE_COLOR
 var _last_damage_number_font_size: int = 12
@@ -260,6 +266,60 @@ func get_active_afterimage_count() -> int:
 	return _afterimages.size()
 
 
+func get_particle_cap() -> int:
+	return MAX_ACTIVE_PARTICLES
+
+
+func get_active_particle_count() -> int:
+	return (
+		_sparks.size()
+		+ _debris.size()
+		+ _parry_sparks.size()
+		+ _trails.size()
+		+ _afterimages.size()
+		+ _boss_phase_debris.size()
+	)
+
+
+func get_particle_eviction_count() -> int:
+	return _particle_eviction_count
+
+
+func capture_performance_budget_sample(sample_frames: int = 120) -> Dictionary:
+	var frames: int = maxi(1, sample_frames)
+	var particle_start_usec: int = Time.get_ticks_usec()
+	var sampled_particles: int = 0
+	for _frame: int in range(frames):
+		sampled_particles += _sample_particle_work()
+	var particle_frame_ms: float = _elapsed_frame_ms(particle_start_usec, frames)
+
+	var shake_start_usec: int = Time.get_ticks_usec()
+	var sampled_shake_state: float = 0.0
+	for _frame: int in range(frames):
+		sampled_shake_state += _sample_shake_hitstop_work()
+	var shake_hitstop_frame_ms: float = _elapsed_frame_ms(shake_start_usec, frames)
+	var total_frame_ms: float = particle_frame_ms + shake_hitstop_frame_ms
+
+	return {
+		"sample_frames": frames,
+		"active_particle_count": get_active_particle_count(),
+		"particle_cap": MAX_ACTIVE_PARTICLES,
+		"particle_budget_ms": PARTICLE_FRAME_BUDGET_MS,
+		"shake_hitstop_budget_ms": SHAKE_HITSTOP_FRAME_BUDGET_MS,
+		"total_budget_ms": TOTAL_PRESENTATION_FRAME_BUDGET_MS,
+		"particle_frame_ms": particle_frame_ms,
+		"shake_hitstop_frame_ms": shake_hitstop_frame_ms,
+		"total_frame_ms": total_frame_ms,
+		"sampled_particles": sampled_particles,
+		"sampled_shake_state": sampled_shake_state,
+		"within_budget": (
+			particle_frame_ms < PARTICLE_FRAME_BUDGET_MS
+			and shake_hitstop_frame_ms < SHAKE_HITSTOP_FRAME_BUDGET_MS
+			and total_frame_ms < TOTAL_PRESENTATION_FRAME_BUDGET_MS
+		),
+	}
+
+
 func get_active_boss_phase_debris_count() -> int:
 	return _boss_phase_debris.size()
 
@@ -407,9 +467,10 @@ func _spawn_sparks(world_position: Vector2, count: int, color: Color) -> void:
 		tween.tween_property(spark, "position", spark.position + Vector2((float(index) - float(count) / 2.0) * 4.0, -18.0), SPARK_LIFETIME_SEC)
 		tween.parallel().tween_property(spark, "modulate:a", 0.0, SPARK_LIFETIME_SEC)
 		tween.tween_callback(spark.queue_free)
-		_sparks.append({
+		_register_particle_effect(_sparks, {
 			"node": spark,
 			"remaining": SPARK_LIFETIME_SEC,
+			"tween": tween,
 		})
 
 
@@ -428,9 +489,10 @@ func _spawn_parry_sparks(world_position: Vector2, count: int) -> void:
 		tween.tween_property(spark, "position", spark.position + outward * 42.0, PARRY_SPARK_LIFETIME_SEC)
 		tween.parallel().tween_property(spark, "modulate:a", 0.0, PARRY_SPARK_LIFETIME_SEC)
 		tween.tween_callback(spark.queue_free)
-		_parry_sparks.append({
+		_register_particle_effect(_parry_sparks, {
 			"node": spark,
 			"remaining": PARRY_SPARK_LIFETIME_SEC,
+			"tween": tween,
 		})
 
 
@@ -477,9 +539,10 @@ func _spawn_claw_trails(world_position: Vector2, facing: float) -> void:
 		tween.tween_property(trail, "position", trail.position + Vector2(26.0 * facing_sign, -4.0), CLAW_TRAIL_LIFETIME_SEC)
 		tween.parallel().tween_property(trail, "modulate:a", 0.0, CLAW_TRAIL_LIFETIME_SEC)
 		tween.tween_callback(trail.queue_free)
-		_trails.append({
+		_register_particle_effect(_trails, {
 			"node": trail,
 			"remaining": CLAW_TRAIL_LIFETIME_SEC,
+			"tween": tween,
 		})
 
 
@@ -498,9 +561,10 @@ func _spawn_dodge_afterimages(texture: Texture2D, world_position: Vector2, facin
 		var tween: Tween = create_tween()
 		tween.tween_property(afterimage, "modulate:a", 0.0, DODGE_AFTERIMAGE_LIFETIME_SEC)
 		tween.tween_callback(afterimage.queue_free)
-		_afterimages.append({
+		_register_particle_effect(_afterimages, {
 			"node": afterimage,
 			"remaining": DODGE_AFTERIMAGE_LIFETIME_SEC,
+			"tween": tween,
 		})
 		_last_afterimage_alphas.append(alpha)
 		_last_afterimage_positions.append(afterimage.position)
@@ -519,9 +583,10 @@ func _spawn_debris(world_position: Vector2, count: int) -> void:
 		tween.tween_property(shard, "position", shard.position + Vector2((float(index) - float(count) / 2.0) * 3.0, 18.0), DEBRIS_LIFETIME_SEC)
 		tween.parallel().tween_property(shard, "modulate:a", 0.0, DEBRIS_LIFETIME_SEC)
 		tween.tween_callback(shard.queue_free)
-		_debris.append({
+		_register_particle_effect(_debris, {
 			"node": shard,
 			"remaining": DEBRIS_LIFETIME_SEC,
+			"tween": tween,
 		})
 
 
@@ -573,9 +638,10 @@ func _spawn_boss_phase_debris(world_position: Vector2, count: int, phase: int) -
 		tween.parallel().tween_property(shard, "rotation", shard.rotation + 0.85, BOSS_PHASE_DEBRIS_LIFETIME_SEC)
 		tween.parallel().tween_property(shard, "modulate:a", 0.0, BOSS_PHASE_DEBRIS_LIFETIME_SEC)
 		tween.tween_callback(shard.queue_free)
-		_boss_phase_debris.append({
+		_register_particle_effect(_boss_phase_debris, {
 			"node": shard,
 			"remaining": BOSS_PHASE_DEBRIS_LIFETIME_SEC,
+			"tween": tween,
 		})
 
 
@@ -594,14 +660,102 @@ func _tick_effects(effects: Array[Dictionary], delta_sec: float) -> void:
 		var effect: Dictionary = effects[index]
 		var remaining: float = float(effect.get("remaining", 0.0)) - delta_sec
 		if remaining <= 0.0:
-			var node: Node = effect.get("node", null)
-			if node != null and is_instance_valid(node):
-				node.queue_free()
+			_remove_effect_from_particle_order(effect)
+			_release_effect(effect, false)
 			effects.remove_at(index)
 		else:
 			effect["remaining"] = remaining
 			effects[index] = effect
 		index -= 1
+
+
+func _register_particle_effect(effects: Array[Dictionary], effect: Dictionary) -> void:
+	effect["is_particle"] = true
+	effects.append(effect)
+	_particle_effect_order.append(effect)
+	_enforce_particle_cap()
+
+
+func _enforce_particle_cap() -> void:
+	while get_active_particle_count() > MAX_ACTIVE_PARTICLES and not _particle_effect_order.is_empty():
+		var effect: Dictionary = _particle_effect_order.pop_front()
+		if _remove_effect_from_particle_buckets(effect):
+			_release_effect(effect, true)
+			_particle_eviction_count += 1
+
+
+func _remove_effect_from_particle_buckets(effect: Dictionary) -> bool:
+	var removed: bool = false
+	removed = _remove_effect_from_bucket(_sparks, effect) or removed
+	removed = _remove_effect_from_bucket(_debris, effect) or removed
+	removed = _remove_effect_from_bucket(_parry_sparks, effect) or removed
+	removed = _remove_effect_from_bucket(_trails, effect) or removed
+	removed = _remove_effect_from_bucket(_afterimages, effect) or removed
+	removed = _remove_effect_from_bucket(_boss_phase_debris, effect) or removed
+	return removed
+
+
+func _remove_effect_from_bucket(effects: Array[Dictionary], effect: Dictionary) -> bool:
+	var index: int = effects.find(effect)
+	if index < 0:
+		return false
+	effects.remove_at(index)
+	return true
+
+
+func _remove_effect_from_particle_order(effect: Dictionary) -> void:
+	if not bool(effect.get("is_particle", false)):
+		return
+	var index: int = _particle_effect_order.find(effect)
+	if index >= 0:
+		_particle_effect_order.remove_at(index)
+
+
+func _release_effect(effect: Dictionary, detach_immediately: bool) -> void:
+	var tween: Tween = effect.get("tween", null)
+	if tween != null and is_instance_valid(tween):
+		tween.kill()
+	var node: Node = effect.get("node", null)
+	if node == null or not is_instance_valid(node):
+		return
+	if detach_immediately and node.get_parent() != null:
+		node.get_parent().remove_child(node)
+	node.queue_free()
+
+
+func _sample_particle_work() -> int:
+	return (
+		_sample_particle_array(_sparks)
+		+ _sample_particle_array(_debris)
+		+ _sample_particle_array(_parry_sparks)
+		+ _sample_particle_array(_trails)
+		+ _sample_particle_array(_afterimages)
+		+ _sample_particle_array(_boss_phase_debris)
+	)
+
+
+func _sample_particle_array(effects: Array[Dictionary]) -> int:
+	var count: int = 0
+	for effect: Dictionary in effects:
+		var node: Node = effect.get("node", null)
+		if node != null and is_instance_valid(node) and node is Sprite2D:
+			var sprite: Sprite2D = node as Sprite2D
+			if sprite.visible and sprite.modulate.a >= 0.0:
+				count += 1
+	return count
+
+
+func _sample_shake_hitstop_work() -> float:
+	return (
+		float(_hitstop_frames_remaining)
+		+ float(_screen_shake_frames_remaining)
+		+ _screen_shake_intensity
+		+ _camera_base_offset.length_squared()
+	)
+
+
+func _elapsed_frame_ms(start_usec: int, frames: int) -> float:
+	return (float(Time.get_ticks_usec() - start_usec) / 1000.0) / float(maxi(1, frames))
 
 
 func _apply_camera_shake() -> void:

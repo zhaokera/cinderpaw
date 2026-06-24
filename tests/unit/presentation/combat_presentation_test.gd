@@ -547,6 +547,172 @@ func test_effects_expire_after_their_lifetime() -> void:
 	assert_int(presentation.get_active_damage_number_count()).is_equal(0)
 
 
+func test_particle_budget_caps_active_sprite_particles_and_evicts_oldest() -> void:
+	assert_bool(presentation.has_method("get_particle_cap")).is_true()
+	assert_bool(presentation.has_method("get_active_particle_count")).is_true()
+	assert_bool(presentation.has_method("get_particle_eviction_count")).is_true()
+	if (
+		not presentation.has_method("get_particle_cap")
+		or not presentation.has_method("get_active_particle_count")
+		or not presentation.has_method("get_particle_eviction_count")
+	):
+		return
+
+	assert_int(int(presentation.call("get_particle_cap"))).is_equal(200)
+	assert_int(int(presentation.call("get_active_particle_count"))).is_equal(0)
+
+	presentation.on_hit_event({
+		"damage": 12,
+		"hit_position": Vector2(80, 90),
+		"is_crit": false,
+		"show_damage_number": false,
+	})
+	assert_int(presentation.get_active_spark_count()).is_equal(6)
+
+	for index: int in range(7):
+		presentation.call("on_boss_phase_transition_started", 42, 2, _make_boss_phase_metadata(2 + index))
+
+	assert_int(int(presentation.call("get_active_particle_count"))).is_equal(200)
+	assert_int(presentation.get_active_spark_count()).is_equal(0)
+	assert_int(int(presentation.call("get_active_boss_phase_debris_count"))).is_equal(200)
+	assert_int(int(presentation.call("get_particle_eviction_count"))).is_equal(30)
+	assert_int(_count_children_of_type("Sprite2D")).is_equal(200)
+
+
+func test_particle_budget_counts_sprite_particles_without_overlays_or_damage_numbers() -> void:
+	assert_bool(presentation.has_method("get_active_particle_count")).is_true()
+	if not presentation.has_method("get_active_particle_count"):
+		return
+
+	presentation.on_hit_event({
+		"damage": 12,
+		"hit_position": Vector2(80, 90),
+		"is_crit": false,
+	})
+	presentation.on_parry_event({
+		"parry_type": &"perfect",
+		"position": Vector2(220, 210),
+	})
+	presentation.on_weapon_attack_event({
+		"weapon_id": &"cat_claw",
+		"attack_position": Vector2(100, 120),
+		"facing": -1,
+	})
+	presentation.on_dodge_event(CINDERPAW_IDLE_TEXTURE, Vector2(180, 220), -1.0)
+	presentation.call("on_boss_phase_transition_started", 42, 2, _make_boss_phase_metadata(2))
+
+	var expected_particle_count: int = (
+		presentation.get_active_spark_count()
+		+ presentation.get_active_parry_spark_count()
+		+ presentation.get_active_trail_count()
+		+ presentation.get_active_afterimage_count()
+		+ int(presentation.call("get_active_boss_phase_debris_count"))
+	)
+
+	assert_int(presentation.get_active_damage_number_count()).is_equal(1)
+	assert_int(presentation.get_active_flash_count()).is_equal(1)
+	assert_int(int(presentation.call("get_active_boss_phase_overlay_count"))).is_equal(1)
+	assert_int(int(presentation.call("get_active_particle_count"))).is_equal(expected_particle_count)
+
+
+func test_performance_budget_sample_reports_gdd_budget_without_mutating_state() -> void:
+	assert_bool(presentation.has_method("capture_performance_budget_sample")).is_true()
+	assert_bool(presentation.has_method("get_active_particle_count")).is_true()
+	if (
+		not presentation.has_method("capture_performance_budget_sample")
+		or not presentation.has_method("get_active_particle_count")
+	):
+		return
+
+	for index: int in range(7):
+		presentation.call("on_boss_phase_transition_started", 42, 2, _make_boss_phase_metadata(2 + index))
+	presentation.play_hitstop(6)
+	presentation.play_screen_shake(5.0, 6)
+	var before_particles: int = int(presentation.call("get_active_particle_count"))
+	var before_hitstop: int = presentation.get_hitstop_frames_remaining()
+	var before_shake: float = presentation.get_screen_shake_intensity()
+	var before_shake_frames: int = int(presentation.call("get_screen_shake_frames_remaining"))
+
+	var sample: Dictionary = Dictionary(presentation.call("capture_performance_budget_sample", 120))
+
+	assert_int(int(sample.get("sample_frames", 0))).is_equal(120)
+	assert_int(int(sample.get("active_particle_count", 0))).is_equal(before_particles)
+	assert_int(int(sample.get("particle_cap", 0))).is_equal(200)
+	assert_float(float(sample.get("particle_budget_ms", 0.0))).is_equal_approx(2.0, 0.001)
+	assert_float(float(sample.get("shake_hitstop_budget_ms", 0.0))).is_equal_approx(0.1, 0.001)
+	assert_float(float(sample.get("total_budget_ms", 0.0))).is_equal_approx(3.0, 0.001)
+	assert_bool(bool(sample.get("within_budget", false))).is_true()
+	assert_float(float(sample.get("particle_frame_ms", -1.0))).is_greater_equal(0.0)
+	assert_float(float(sample.get("shake_hitstop_frame_ms", -1.0))).is_greater_equal(0.0)
+	assert_float(float(sample.get("total_frame_ms", -1.0))).is_greater_equal(0.0)
+	assert_int(int(presentation.call("get_active_particle_count"))).is_equal(before_particles)
+	assert_int(presentation.get_hitstop_frames_remaining()).is_equal(before_hitstop)
+	assert_float(presentation.get_screen_shake_intensity()).is_equal_approx(before_shake, 0.001)
+	assert_int(int(presentation.call("get_screen_shake_frames_remaining"))).is_equal(before_shake_frames)
+
+
+func test_performance_budget_sample_clamps_non_positive_sample_frames() -> void:
+	assert_bool(presentation.has_method("capture_performance_budget_sample")).is_true()
+	if not presentation.has_method("capture_performance_budget_sample"):
+		return
+
+	var zero_sample: Dictionary = Dictionary(presentation.call("capture_performance_budget_sample", 0))
+	var negative_sample: Dictionary = Dictionary(presentation.call("capture_performance_budget_sample", -12))
+
+	assert_int(int(zero_sample.get("sample_frames", 0))).is_equal(1)
+	assert_int(int(negative_sample.get("sample_frames", 0))).is_equal(1)
+	assert_bool(zero_sample.has("within_budget")).is_true()
+	assert_bool(negative_sample.has("within_budget")).is_true()
+
+
+func test_particle_budget_preserves_event_counts_when_under_cap() -> void:
+	assert_bool(presentation.has_method("get_active_particle_count")).is_true()
+	if not presentation.has_method("get_active_particle_count"):
+		return
+
+	presentation.on_hit_event({
+		"damage": 12,
+		"hit_position": Vector2(80, 90),
+		"is_crit": false,
+		"show_damage_number": false,
+	})
+	assert_int(presentation.get_active_spark_count()).is_equal(6)
+	assert_int(int(presentation.call("get_active_particle_count"))).is_equal(6)
+	presentation.advance_time(2.0)
+
+	presentation.on_hit_event({
+		"damage": 36,
+		"hit_position": Vector2(80, 90),
+		"is_crit": true,
+		"show_damage_number": false,
+	})
+	assert_int(presentation.get_active_spark_count()).is_equal(12)
+	presentation.advance_time(2.0)
+
+	presentation.on_parry_event({
+		"parry_type": &"perfect",
+		"position": Vector2(220, 210),
+	})
+	assert_int(presentation.get_active_parry_spark_count()).is_equal(22)
+	presentation.advance_time(2.0)
+
+	presentation.on_weapon_attack_event({
+		"weapon_id": &"cat_claw",
+		"attack_position": Vector2(100, 120),
+		"facing": -1,
+	})
+	assert_int(presentation.get_active_trail_count()).is_equal(3)
+	presentation.advance_time(2.0)
+
+	presentation.on_kill_event(7, Vector2(180, 200))
+	assert_int(presentation.get_active_debris_count()).is_equal(18)
+	presentation.advance_time(2.0)
+
+	presentation.call("on_boss_phase_transition_started", 42, 2, _make_boss_phase_metadata(2))
+	assert_int(int(presentation.call("get_active_boss_phase_debris_count"))).is_equal(32)
+	assert_int(int(presentation.call("get_active_particle_count"))).is_equal(32)
+
+
 func _count_children_of_type(type_name: String) -> int:
 	var count: int = 0
 	for child: Node in presentation.get_children():
