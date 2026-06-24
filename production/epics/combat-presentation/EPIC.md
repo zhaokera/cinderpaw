@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 3 stories tracked
+> **Stories**: 4 stories tracked
 
 ## Overview
 
@@ -28,7 +28,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | TR-combatfx-001 | Hitstop durations are selected by event type, and same-frame events take the maximum duration. | ADR-0002 partial |
 | TR-combatfx-002 | Screen shake intensity and duration are selected by event type, and same-frame events take the maximum intensity. | ADR-0002 partial |
 | TR-combatfx-003 | Particle system supports GDD particle types with a 200-particle performance cap. | Gap |
-| TR-combatfx-004 | Dodge, dash, and perfect parry support afterimage feedback modes. | Gap |
+| TR-combatfx-004 | Dodge, dash, and perfect parry support afterimage feedback modes. | ADR-0002 partial |
 | TR-combatfx-005 | Damage number size, color, and animation communicate damage tier. | ADR-0002 partial |
 | TR-combatfx-006 | Perfect parry, character hit, and enemy crit flash effects use authored durations and alpha. | ADR-0002 partial |
 | TR-combatfx-007 | Combat presentation work stays within the 3ms frame budget. | Gap |
@@ -43,6 +43,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 001 | Textured Hit Spark + Enemy Debris Slice | Visual/Runtime | Complete | ADR-0001, ADR-0002 |
 | 002 | Parry Flash + Cat Claw Trail Slice | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0016 |
 | 003 | Cinderpaw Player Frame Animation Slice | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
+| 004 | Dodge Afterimage + Cinderpaw Dodge Animation Slice | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
 
 ## Definition of Done
 
@@ -56,6 +57,7 @@ This epic is complete when:
 
 ## Next Step
 
-Continue with dodge afterimages and remaining weapon/boss presentation slices.
-The epic stays In Progress until parry, dodge, weapon trail, boss phase, and
-damage-number feedback all satisfy `design/gdd/combat-presentation.md`.
+Continue with boss phase feedback, damage-number polish, colorblind remaps,
+performance-budget checks, and remaining weapon presentation variants. The epic
+stays In Progress until all feedback modes satisfy
+`design/gdd/combat-presentation.md`.

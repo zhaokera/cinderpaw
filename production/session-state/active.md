@@ -1331,3 +1331,44 @@
   remaining weapon presentation polish.
 - Next recommended: implement dodge afterimages and then expand Cinderpaw to
   jump/fall/dodge/hurt/death/revive frame sets under the same asset pipeline.
+
+## 2026-06-24 — Combat Presentation Story 004 Complete
+
+- Completed `production/epics/combat-presentation/story-004-dodge-afterimage-cinderpaw-dodge-animation.md`.
+- Player animation: Added `dodge` to
+  `assets/characters/cinderpaw/cinderpaw_sprite_frames.tres` with three
+  generated transparent 96x96 frames under `assets/characters/cinderpaw/dodge/`.
+- Asset pipeline: Generated a Cinderpaw dodge strip through image generation,
+  preserved the source at
+  `assets/characters/cinderpaw/source/cinderpaw_dodge_strip_imagegen_20260624.png`,
+  removed chroma-key background locally, exported
+  `cinderpaw_dodge_000.png` through `_002.png`, and imported them through Godot.
+- Runtime implementation: `PlayerController.request_dodge()` now plays `dodge`
+  and emits `dodge_started(texture, world_position, facing)`; MainScene routes
+  that signal to `CombatPresentation.on_dodge_event(texture, world_position,
+  facing)`.
+- Presentation implementation: CombatPresentation spawns three textured dodge
+  afterimages at 50%/30%/10% alpha and keeps the logic Presentation-only; Core
+  CombatComponent dodge iframe behavior was not changed.
+- TDD evidence: RED failed cleanly with missing dodge animation/API/afterimage
+  methods (`reports/report_346/`); GREEN passed 14/14
+  (`reports/report_347/`).
+- Regression evidence: focused dodge/player-animation/core-dodge/presentation
+  suite passed 23/23 (`reports/report_348/`).
+- Runtime evidence: Godot MCP session `cinderpaw@c1b2` ran
+  `res://scenes/main.tscn`; runtime probe confirmed `$Player/Sprite`
+  `AnimatedSprite2D`, `dodge` frame count 3, 96x96 texture size,
+  `request_dodge() == true`, afterimage count 3, alpha values
+  `[0.5, 0.3, 0.1]`, and first afterimage aligned to the sprite global
+  position.
+- Visual evidence:
+  `reports/visual/cinderpaw-mcp-dodge-afterimage-runtime-20260624.png`.
+- QA evidence:
+  `production/qa/evidence/dodge-afterimage-cinderpaw-dodge-animation-2026-06-24.md`.
+- Epic status: Combat Presentation Stories 001-004 are complete; Epic remains
+  In Progress for boss phase feedback, damage-number polish, colorblind remaps,
+  performance-budget checks, remaining weapon presentation variants, and
+  perfect-dodge gold afterimage styling.
+- Next recommended: implement boss phase presentation or damage-number polish;
+  expand Cinderpaw later with jump/fall/hurt/death/revive frame sets under the
+  same `AnimatedSprite2D + SpriteFrames` pipeline.

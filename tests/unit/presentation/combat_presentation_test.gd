@@ -2,6 +2,7 @@
 extends GdUnitTestSuite
 
 const COMBAT_PRESENTATION_SCRIPT: Script = preload("res://src/presentation/combat_presentation.gd")
+const CINDERPAW_IDLE_TEXTURE: Texture2D = preload("res://assets/characters/cinderpaw/idle/cinderpaw_idle_000.png")
 
 var presentation
 
@@ -115,6 +116,34 @@ func test_non_cat_claw_attack_does_not_spawn_claw_trails() -> void:
 	})
 
 	assert_int(presentation.get_active_trail_count()).is_equal(0)
+
+
+func test_dodge_event_spawns_three_textured_afterimages_with_gdd_alpha_steps() -> void:
+	assert_bool(presentation.has_method("on_dodge_event")).is_true()
+	assert_bool(presentation.has_method("get_active_afterimage_count")).is_true()
+	assert_bool(presentation.has_method("get_last_afterimage_alphas")).is_true()
+	assert_bool(presentation.has_method("get_last_afterimage_positions")).is_true()
+	if (
+		not presentation.has_method("on_dodge_event")
+		or not presentation.has_method("get_active_afterimage_count")
+		or not presentation.has_method("get_last_afterimage_alphas")
+		or not presentation.has_method("get_last_afterimage_positions")
+	):
+		return
+
+	presentation.on_dodge_event(CINDERPAW_IDLE_TEXTURE, Vector2(180, 220), -1.0)
+
+	assert_int(presentation.get_active_afterimage_count()).is_equal(3)
+	assert_array(presentation.get_last_afterimage_alphas()).is_equal([
+		0.5,
+		0.3,
+		0.1,
+	])
+	assert_vector(presentation.get_last_afterimage_positions()[0]).is_equal(Vector2(180, 220))
+	assert_int(_count_children_of_type("Sprite2D")).is_greater_equal(
+		presentation.get_active_afterimage_count()
+	)
+	assert_bool(_all_sprite_children_have_textures()).is_true()
 
 
 func test_effects_expire_after_their_lifetime() -> void:

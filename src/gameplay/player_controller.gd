@@ -9,6 +9,7 @@ signal player_health_changed(current_hp: int, max_hp: int)
 signal player_died(death_metadata: Dictionary)
 signal attack_landed(hit_data: Dictionary)
 signal attack_started(attack_data: Dictionary)
+signal dodge_started(texture: Texture2D, world_position: Vector2, facing: float)
 
 # ---------------------------------------------------------------------------
 # Constants — Movement
@@ -38,6 +39,7 @@ const DAMAGE_MODULATE: Color = Color(1.0, 0.25, 0.25, 1.0)
 const ANIMATION_IDLE: StringName = &"idle"
 const ANIMATION_RUN: StringName = &"run"
 const ANIMATION_ATTACK: StringName = &"attack"
+const ANIMATION_DODGE: StringName = &"dodge"
 const RUN_ANIMATION_MIN_SPEED: float = 5.0
 const PLAYER_ENTITY_ID: int = 1
 const PLAYER_MAX_HP: int = 100
@@ -172,8 +174,8 @@ func _handle_input() -> void:
 		request_attack()
 
 	# Dodge
-	if Input.is_action_just_pressed("dodge") and _state == State.IDLE and _dodge_cooldown_timer <= 0:
-		_start_dodge()
+	if Input.is_action_just_pressed("dodge"):
+		request_dodge()
 
 # ---------------------------------------------------------------------------
 # Physics Helpers
@@ -277,11 +279,21 @@ func _on_attack_hit_body(body: Node2D) -> void:
 # Dodge
 # ---------------------------------------------------------------------------
 
+## Requests a player dodge through the presentation-aware runtime controller.
+func request_dodge() -> bool:
+	if _control_locked or _state != State.IDLE or _dodge_cooldown_timer > 0:
+		return false
+	_start_dodge()
+	return true
+
+
 func _start_dodge() -> void:
 	_state = State.DODGING
 	_dodge_timer = DODGE_DURATION_FRAMES
 	_dodge_cooldown_timer = DODGE_COOLDOWN_FRAMES
 	_sprite.modulate = Color(1.0, 1.0, 1.0, 0.45)
+	_play_character_animation(ANIMATION_DODGE, true)
+	dodge_started.emit(_get_current_sprite_texture(), _sprite.global_position, _facing)
 
 
 # ---------------------------------------------------------------------------
@@ -457,6 +469,9 @@ func _update_character_animation() -> void:
 	if _state == State.ATTACKING:
 		_play_character_animation(ANIMATION_ATTACK)
 		return
+	if _state == State.DODGING:
+		_play_character_animation(ANIMATION_DODGE)
+		return
 	if absf(velocity.x) > RUN_ANIMATION_MIN_SPEED and is_on_floor():
 		_play_character_animation(ANIMATION_RUN)
 		return
@@ -473,3 +488,15 @@ func _play_character_animation(animation_name: StringName, restart: bool = false
 		_sprite.frame = 0
 		_sprite.frame_progress = 0.0
 	_sprite.play(animation_name)
+
+
+func _get_current_sprite_texture() -> Texture2D:
+	if _sprite == null or _sprite.sprite_frames == null:
+		return null
+	if not _sprite.sprite_frames.has_animation(_sprite.animation):
+		return null
+	var frame_count: int = _sprite.sprite_frames.get_frame_count(_sprite.animation)
+	if frame_count <= 0:
+		return null
+	var frame_index: int = clampi(_sprite.frame, 0, frame_count - 1)
+	return _sprite.sprite_frames.get_frame_texture(_sprite.animation, frame_index)

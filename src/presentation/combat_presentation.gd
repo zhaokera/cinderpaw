@@ -15,11 +15,13 @@ const DEBRIS_LIFETIME_SEC: float = 1.0
 const PARRY_SPARK_LIFETIME_SEC: float = 0.8
 const PARRY_FLASH_LIFETIME_SEC: float = 8.0 / 60.0
 const CLAW_TRAIL_LIFETIME_SEC: float = 0.4
+const DODGE_AFTERIMAGE_LIFETIME_SEC: float = 0.35
 const NORMAL_SPARK_COUNT: int = 6
 const CRIT_SPARK_COUNT: int = 12
 const KILL_DEBRIS_COUNT: int = 18
 const PERFECT_PARRY_SPARK_COUNT: int = 22
 const CLAW_TRAIL_COUNT: int = 3
+const DODGE_AFTERIMAGE_ALPHAS: Array[float] = [0.5, 0.3, 0.1]
 const PERFECT_PARRY_HITSTOP_FRAMES: int = 8
 const PERFECT_PARRY_FLASH_ALPHA: float = 0.8
 const NORMAL_DAMAGE_COLOR: Color = Color.WHITE
@@ -28,6 +30,7 @@ const SPARK_COLOR: Color = Color(1.0, 0.94, 0.76, 1.0)
 const DEBRIS_COLOR: Color = Color(0.78, 0.18, 0.16, 1.0)
 const PARRY_SPARK_COLOR: Color = Color(1.0, 0.96, 0.72, 1.0)
 const CLAW_TRAIL_COLOR: Color = Color(1.0, 0.9, 0.48, 1.0)
+const DODGE_AFTERIMAGE_COLOR: Color = Color.WHITE
 const HIT_SPARK_TEXTURE: Texture2D = preload("res://assets/generated/combat_hit_spark.png")
 const ENEMY_DEBRIS_TEXTURE: Texture2D = preload("res://assets/generated/combat_enemy_debris.png")
 const PARRY_SPARK_TEXTURE: Texture2D = preload("res://assets/generated/combat_parry_spark.png")
@@ -36,6 +39,7 @@ const SPARK_SPRITE_SCALE: Vector2 = Vector2(0.16, 0.16)
 const DEBRIS_SPRITE_SCALE: Vector2 = Vector2(0.12, 0.12)
 const PARRY_SPARK_SPRITE_SCALE: Vector2 = Vector2(0.18, 0.18)
 const CLAW_TRAIL_SPRITE_SCALE: Vector2 = Vector2(0.34, 0.34)
+const DODGE_AFTERIMAGE_OFFSET_PX: float = 14.0
 
 var _hitstop_frames_remaining: int = 0
 var _screen_shake_intensity: float = 0.0
@@ -48,9 +52,12 @@ var _debris: Array[Dictionary] = []
 var _parry_sparks: Array[Dictionary] = []
 var _trails: Array[Dictionary] = []
 var _flashes: Array[Dictionary] = []
+var _afterimages: Array[Dictionary] = []
 var _last_damage_number_text: String = ""
 var _last_damage_number_color: Color = NORMAL_DAMAGE_COLOR
 var _last_flash_alpha: float = 0.0
+var _last_afterimage_alphas: Array[float] = []
+var _last_afterimage_positions: Array[Vector2] = []
 
 
 func _process(delta: float) -> void:
@@ -114,6 +121,12 @@ func on_weapon_attack_event(attack_data: Dictionary) -> void:
 	_spawn_claw_trails(attack_position, facing)
 
 
+func on_dodge_event(texture: Texture2D, world_position: Vector2, facing: float) -> void:
+	if texture == null:
+		return
+	_spawn_dodge_afterimages(texture, world_position, facing)
+
+
 func play_hitstop(frames: int) -> void:
 	_hitstop_frames_remaining = maxi(_hitstop_frames_remaining, maxi(0, frames))
 
@@ -134,6 +147,7 @@ func advance_time(delta_sec: float) -> void:
 	_tick_effects(_parry_sparks, safe_delta)
 	_tick_effects(_trails, safe_delta)
 	_tick_effects(_flashes, safe_delta)
+	_tick_effects(_afterimages, safe_delta)
 
 
 func get_active_damage_number_count() -> int:
@@ -160,6 +174,10 @@ func get_active_flash_count() -> int:
 	return _flashes.size()
 
 
+func get_active_afterimage_count() -> int:
+	return _afterimages.size()
+
+
 func get_hitstop_frames_remaining() -> int:
 	return _hitstop_frames_remaining
 
@@ -178,6 +196,18 @@ func get_last_damage_number_color() -> Color:
 
 func get_last_flash_alpha() -> float:
 	return _last_flash_alpha
+
+
+func get_last_afterimage_alphas() -> Array[float]:
+	var result: Array[float] = []
+	result.assign(_last_afterimage_alphas)
+	return result
+
+
+func get_last_afterimage_positions() -> Array[Vector2]:
+	var result: Array[Vector2] = []
+	result.assign(_last_afterimage_positions)
+	return result
 
 
 func _spawn_damage_number(world_position: Vector2, damage: int, color: Color) -> void:
@@ -281,6 +311,29 @@ func _spawn_claw_trails(world_position: Vector2, facing: float) -> void:
 			"node": trail,
 			"remaining": CLAW_TRAIL_LIFETIME_SEC,
 		})
+
+
+func _spawn_dodge_afterimages(texture: Texture2D, world_position: Vector2, facing: float) -> void:
+	var facing_sign: float = -1.0 if facing < 0.0 else 1.0
+	_last_afterimage_alphas.clear()
+	_last_afterimage_positions.clear()
+	for index: int in range(DODGE_AFTERIMAGE_ALPHAS.size()):
+		var alpha: float = DODGE_AFTERIMAGE_ALPHAS[index]
+		var afterimage := _create_vfx_sprite(texture, DODGE_AFTERIMAGE_COLOR, Vector2.ONE)
+		afterimage.position = world_position - Vector2(facing_sign * DODGE_AFTERIMAGE_OFFSET_PX * float(index), 0.0)
+		afterimage.flip_h = facing_sign < 0.0
+		afterimage.modulate.a = alpha
+		afterimage.z_index = 78 - index
+		add_child(afterimage)
+		var tween: Tween = create_tween()
+		tween.tween_property(afterimage, "modulate:a", 0.0, DODGE_AFTERIMAGE_LIFETIME_SEC)
+		tween.tween_callback(afterimage.queue_free)
+		_afterimages.append({
+			"node": afterimage,
+			"remaining": DODGE_AFTERIMAGE_LIFETIME_SEC,
+		})
+		_last_afterimage_alphas.append(alpha)
+		_last_afterimage_positions.append(afterimage.position)
 
 
 func _spawn_debris(world_position: Vector2, count: int) -> void:
