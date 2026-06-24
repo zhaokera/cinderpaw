@@ -15,7 +15,7 @@ Engine: Godot 4.6.3
 | boss-config | Core | Boss Configuration | boss-config.md | 6 stories | Complete |
 | status-effects | Core | Status Effects | status-effects.md | 6 stories | Complete |
 | weapon-styles | Core | Weapon Styles | weapon-styles.md | 8 stories | In Progress |
-| save-system | Feature | Save System | save-system.md | 4 stories planned | In Progress |
+| save-system | Feature | Save System | save-system.md | 4 stories | In Progress |
 | death-respawn | Feature | Death & Respawn | death-respawn.md | 6 stories | In Progress |
 | hud-ui | Presentation | HUD/UI | hud-ui.md | 6 stories | In Progress |
 | combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 4 stories tracked | In Progress |

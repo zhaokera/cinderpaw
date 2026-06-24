@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/save-system.md
 > **Architecture Module**: SaveSystem
 > **Status**: In Progress
-> **Stories**: 4 stories planned
+> **Stories**: 4 stories
 
 ## Overview
 
@@ -40,7 +40,7 @@ on SaveSystem directly.
 |---|-------|------|--------|-----|
 | 001 | Save Slots + Backup JSON Pipeline | Integration | Complete | ADR-0008, ADR-0021 |
 | 002 | Version Migration + SaveInfo Metadata | Logic | Complete | ADR-0021 |
-| 003 | Autosave Trigger Adapters | Integration | Planned | ADR-0021 |
+| 003 | Autosave Trigger Adapters | Integration | Complete | ADR-0021 |
 | 004 | MainScene SaveSystem Runtime Handoff | Integration | Planned | ADR-0001, ADR-0021 |
 
 ## Definition of Done
@@ -57,5 +57,5 @@ This epic is complete when:
 
 ## Next Step
 
-Implement Story 003 Autosave Trigger Adapters, then connect runtime snapshot
-handoff through Story 004 and save/load presentation through HUD/UI Story 005.
+Implement Story 004 MainScene SaveSystem Runtime Handoff, then connect
+save/load presentation through HUD/UI Story 005.

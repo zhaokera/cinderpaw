@@ -1,10 +1,17 @@
 # Active Session State
 
 ## Current Task
-- 持续实现 Cinderpaw 垂直切片；最近完成 Save System Story 002
-  Version Migration + SaveInfo Metadata
+- 持续实现 Cinderpaw 垂直切片；最近完成 Save System Story 003
+  Autosave Trigger Adapters
 
 ## Last Completed Task
+- Save System Story 003: Autosave Trigger Adapters —
+  新增 `SaveTriggerAdapter` Feature 节点，将存档点、Boss 击败、关键事件、
+  场景切换信号接到 `SaveSystem.auto_save()`；支持 snapshot provider、
+  `autosave_reason`/`autosave_context` 写入 world_state、成功/失败信号，
+  且不依赖具体 SavePoint/Boss/Quest/Ability/SceneManager/HUD/MainScene 类；
+  通过 Story003 RED/GREEN、Save Story001-003 聚焦回归、Godot headless
+  main-scene smoke 与 Godot MCP runtime game_eval 验证
 - Save System Story 002: Version Migration + SaveInfo Metadata —
   新增 `SaveInfo` 元数据对象、`SaveSystem.get_save_info()`、
   `register_migration()` / `unregister_migration()`、`_meta.summary`
@@ -42,6 +49,17 @@
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `src/feature/save_trigger_adapter.gd` — Story003 autosave trigger adapter，
+  支持 savepoint/boss/key-event/scene-change 信号绑定、直接 autosave trigger、
+  snapshot provider、reason/context metadata 和成功/失败信号
+- `tests/unit/save/story_003_autosave_trigger_adapter_test.gd` — TDD 覆盖
+  savepoint slot 0 写入、boss/key/scene 共用 autosave path、失败降级与
+  mock-only 解耦验证
+- `production/epics/save-system/story-003-autosave-trigger-adapters.md`,
+  `production/epics/save-system/EPIC.md`,
+  `production/epics/index.md`,
+  `production/qa/evidence/autosave-trigger-adapters-2026-06-24.md` —
+  Story003 状态、Epic/索引追踪与 QA/MCP 证据
 - `src/feature/save_info.gd` — `SaveInfo` 元数据对象，提供 slot、autosave、
   exists、timestamp、play time、save point、version、summary、file size 与
   JSON-safe `to_dictionary()`
@@ -125,9 +143,9 @@
 - Consistency check: found 1 conflict + 1 stale reference, both fixed
 
 ## Next Steps
-1. Save System Story 003 — Autosave Trigger Adapters
-2. Save System Story 004 — MainScene SaveSystem Runtime Handoff
-3. HUD/UI Story 005 — Main Save/Load Menu Shell（SaveInfo 已解锁槽位展示）
+1. Save System Story 004 — MainScene SaveSystem Runtime Handoff
+2. HUD/UI Story 005 — Main Save/Load Menu Shell（SaveInfo 与 autosave trigger 已解锁槽位展示）
+3. Death & Respawn Story 004 — Savepoint Respawn Selection（仍需 SceneManagement/SaveSystem 后续接线）
 4. Gameplay runtime gap — advanced combat input wiring and Rat King runtime boss encounter
 
 ## Key Decisions Made (this session)
