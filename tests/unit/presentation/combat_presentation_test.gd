@@ -68,6 +68,20 @@ func test_hit_feedback_uses_textured_sprite_vfx_not_color_rect_blocks() -> void:
 	assert_bool(_all_sprite_children_have_textures()).is_true()
 
 
+func test_hit_event_can_disable_damage_number_without_suppressing_impact_feedback() -> void:
+	presentation.on_hit_event({
+		"damage": 12,
+		"hit_position": Vector2(80, 90),
+		"is_crit": false,
+		"show_damage_number": false,
+	})
+
+	assert_int(presentation.get_active_damage_number_count()).is_equal(0)
+	assert_int(presentation.get_active_spark_count()).is_between(5, 8)
+	assert_int(presentation.get_hitstop_frames_remaining()).is_equal(3)
+	assert_float(presentation.get_screen_shake_intensity()).is_equal_approx(2.0, 0.001)
+
+
 func test_kill_debris_uses_textured_sprite_vfx_not_color_rect_blocks() -> void:
 	presentation.on_kill_event(2, Vector2(300, 400))
 

@@ -7,7 +7,6 @@ extends Node2D
 @onready var _combat_presentation = $CombatPresentation
 @onready var _game_flow = $GameFlowController
 
-const BATTLE_SUMMARY_ENABLED: bool = false
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 const RUNTIME_DAMAGE_CALCULATOR_ADAPTER_SCRIPT: Script = preload("res://src/gameplay/runtime_damage_calculator_adapter.gd")
 
@@ -34,6 +33,7 @@ func _ready() -> void:
 	_hud.menu_pause_requested.connect(_on_menu_pause_requested)
 	_hud.menu_resume_requested.connect(_on_menu_resume_requested)
 	_hud.menu_retry_requested.connect(_on_menu_retry_requested)
+	_hud.menu_settings_requested.connect(_on_menu_settings_requested)
 	_player.player_health_changed.connect(_on_player_health_changed)
 	_player.player_died.connect(_on_player_died)
 	_player.attack_landed.connect(_on_player_attack_landed)
@@ -66,13 +66,14 @@ func _on_player_health_changed(current_hp: int, max_hp: int) -> void:
 
 func _on_player_died(death_metadata: Dictionary) -> void:
 	_game_flow.handle_player_death()
-	if BATTLE_SUMMARY_ENABLED:
+	if _hud.is_battle_summary_enabled():
 		_hud.show_battle_summary(_battle_summary_from_death_metadata(death_metadata))
 	_hud.show_notification("Cinderpaw falls - reviving", 1.5)
 
 
 func _on_player_attack_landed(hit_data: Dictionary) -> void:
 	var enriched_hit_data: Dictionary = _apply_weapon_effects_to_player_hit(hit_data)
+	enriched_hit_data["show_damage_number"] = _hud.are_damage_numbers_enabled()
 	_last_player_hit_metadata = enriched_hit_data.duplicate(true)
 	_combat_presentation.on_hit_event(enriched_hit_data)
 
@@ -83,6 +84,7 @@ func _on_enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool) 
 		"hit_position": hit_position,
 		"is_crit": is_crit,
 		"source": &"shadow_beast_bite",
+		"show_damage_number": _hud.are_damage_numbers_enabled(),
 	})
 
 
@@ -127,6 +129,10 @@ func _on_menu_retry_requested() -> void:
 	_pause_menu_active = false
 	get_tree().paused = false
 	get_tree().reload_current_scene()
+
+
+func _on_menu_settings_requested() -> void:
+	_hud.show_settings_menu(_hud.get_menu_mode())
 
 
 func _battle_summary_from_death_metadata(death_metadata: Dictionary) -> Dictionary:
@@ -223,6 +229,22 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 
 func get_runtime_progress_state() -> Dictionary:
 	return capture_no_loss_state()
+
+
+func set_battle_summary_enabled(enabled: bool) -> void:
+	_hud.set_battle_summary_enabled(enabled)
+
+
+func is_battle_summary_enabled() -> bool:
+	return _hud.is_battle_summary_enabled()
+
+
+func set_damage_numbers_enabled(enabled: bool) -> void:
+	_hud.set_damage_numbers_enabled(enabled)
+
+
+func are_damage_numbers_enabled() -> bool:
+	return _hud.are_damage_numbers_enabled()
 
 
 func request_weapon_swap() -> bool:

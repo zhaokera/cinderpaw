@@ -88,10 +88,12 @@ func on_hit_event(hit_data: Dictionary) -> void:
 	var spark_count: int = CRIT_SPARK_COUNT if is_crit else NORMAL_SPARK_COUNT
 	var damage_color: Color = CRIT_DAMAGE_COLOR if is_crit else _damage_color_for_amount(damage)
 	var spark_color: Color = CRIT_DAMAGE_COLOR if is_crit else SPARK_COLOR
+	var show_damage_number: bool = bool(hit_data.get("show_damage_number", true))
 
 	play_hitstop(hitstop_frames)
 	play_screen_shake(shake_intensity, hitstop_frames)
-	_spawn_damage_number(hit_position, damage, damage_color)
+	if show_damage_number:
+		_spawn_damage_number(hit_position, damage, damage_color)
 	_spawn_sparks(hit_position, spark_count, spark_color)
 
 

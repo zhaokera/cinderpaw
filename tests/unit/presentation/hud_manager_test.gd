@@ -6,6 +6,7 @@ const HUD_MANAGER_SCRIPT: Script = preload("res://src/presentation/hud_manager.g
 var hud
 var _resume_requests: int = 0
 var _retry_requests: int = 0
+var _settings_requests: int = 0
 
 
 func before_test() -> void:
@@ -13,8 +14,10 @@ func before_test() -> void:
 	add_child(hud)
 	_resume_requests = 0
 	_retry_requests = 0
+	_settings_requests = 0
 	hud.menu_resume_requested.connect(_on_menu_resume_requested)
 	hud.menu_retry_requested.connect(_on_menu_retry_requested)
+	hud.menu_settings_requested.connect(_on_menu_settings_requested)
 
 
 func after_test() -> void:
@@ -25,6 +28,7 @@ func after_test() -> void:
 	hud = null
 	_resume_requests = 0
 	_retry_requests = 0
+	_settings_requests = 0
 
 
 func test_update_hp_sets_ratio_label_and_healthy_color() -> void:
@@ -65,6 +69,7 @@ func test_show_pause_menu_displays_focusable_resume_and_retry_buttons() -> void:
 	assert_str(String(hud.get_menu_mode())).is_equal("pause")
 	assert_str(hud.get_menu_title()).is_equal("Paused")
 	assert_str(hud.get_resume_button_text()).is_equal("Resume")
+	assert_str(hud.get_settings_button_text()).is_equal("Settings")
 	assert_str(hud.get_retry_button_text()).is_equal("Retry Encounter")
 	assert_str(hud.get_focused_menu_button_text()).is_equal("Resume")
 	assert_bool(hud.are_menu_buttons_focusable()).is_true()
@@ -74,9 +79,11 @@ func test_menu_buttons_emit_resume_and_retry_requests() -> void:
 	hud.show_pause_menu()
 
 	hud.get_node("HudRoot/MenuOverlay/MenuPanel/MenuContent/MenuButtons/ResumeButton").pressed.emit()
+	hud.get_node("HudRoot/MenuOverlay/MenuPanel/MenuContent/MenuButtons/SettingsButton").pressed.emit()
 	hud.get_node("HudRoot/MenuOverlay/MenuPanel/MenuContent/MenuButtons/RetryButton").pressed.emit()
 
 	assert_int(_resume_requests).is_equal(1)
+	assert_int(_settings_requests).is_equal(1)
 	assert_int(_retry_requests).is_equal(1)
 
 
@@ -127,9 +134,64 @@ func test_show_battle_summary_generates_learning_tip_when_missing() -> void:
 	assert_str(hud.get_menu_subtitle()).contains("Dodge a little earlier")
 
 
+func test_show_settings_menu_exposes_required_groups_and_focusable_controls() -> void:
+	hud.show_settings_menu(&"pause")
+
+	assert_bool(hud.is_menu_visible()).is_true()
+	assert_str(String(hud.get_menu_mode())).is_equal("settings")
+	assert_str(hud.get_menu_title()).is_equal("Settings")
+	assert_array(hud.get_settings_group_names()).is_equal([
+		"Audio",
+		"Display",
+		"Controls",
+		"Gameplay",
+	])
+	assert_bool(hud.are_settings_controls_focusable()).is_true()
+	assert_str(hud.get_focused_menu_button_text()).is_equal("Back")
+
+
+func test_settings_toggles_hud_scale_and_colorblind_palette_update_runtime_state() -> void:
+	hud.set_battle_summary_enabled(true)
+	hud.set_damage_numbers_enabled(false)
+	hud.set_hud_scale(1.5)
+	hud.set_colorblind_mode(&"red_green")
+	hud.update_hp(20, 100)
+
+	assert_bool(hud.is_battle_summary_enabled()).is_true()
+	assert_bool(hud.are_damage_numbers_enabled()).is_false()
+	assert_float(hud.get_hud_scale()).is_equal_approx(1.5, 0.001)
+	assert_bool(hud.has_core_hud_overlap()).is_false()
+	assert_str(hud.get_hp_label_text()).is_equal("20 / 100")
+	assert_str(hud.get_hp_color().to_html(false)).is_equal("f6e05e")
+
+	hud.set_hud_scale(2.0)
+
+	assert_float(hud.get_hud_scale()).is_equal_approx(1.5, 0.001)
+
+	hud.set_hud_scale(0.25)
+
+	assert_float(hud.get_hud_scale()).is_equal_approx(0.5, 0.001)
+
+
+func test_close_settings_returns_to_invoking_pause_menu_focus() -> void:
+	hud.show_pause_menu()
+	hud.get_node("HudRoot/MenuOverlay/MenuPanel/MenuContent/MenuButtons/SettingsButton").grab_focus()
+
+	hud.show_settings_menu(&"pause")
+	hud.close_settings_menu()
+
+	assert_bool(hud.is_menu_visible()).is_true()
+	assert_str(String(hud.get_menu_mode())).is_equal("pause")
+	assert_str(hud.get_focused_menu_button_text()).is_equal("Settings")
+
+
 func _on_menu_resume_requested() -> void:
 	_resume_requests += 1
 
 
 func _on_menu_retry_requested() -> void:
 	_retry_requests += 1
+
+
+func _on_menu_settings_requested() -> void:
+	_settings_requests += 1

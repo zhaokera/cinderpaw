@@ -1,14 +1,34 @@
 # Active Session State
 
 ## Current Task
-- 持续实现 Cinderpaw 垂直切片；最近完成 Feline Combat Story 009 敌人攻击与 Shadow Beast 帧动画
+- 持续实现 Cinderpaw 垂直切片；最近完成 HUD/UI Story 004 设置与无障碍控制
 
 ## Last Completed Task
+- HUD/UI Story 004: Settings + Accessibility Controls — `HUDManager` 已提供
+  Settings 菜单、audio/display/controls/gameplay 分组、battle summary 与
+  damage number 运行时开关、HUD 50%-150% 缩放、红绿色盲 HP 调色，以及
+  settings 返回 pause menu 的焦点恢复；`MainScene` 已接入运行时开关，
+  `CombatPresentation` 支持 `show_damage_number=false` 且不抑制 hitstop/spark/shake；
+  通过 GdUnit、Godot headless smoke 与 Godot MCP 运行态验证
 - Feline Combat Story 009: Runtime Enemy Attack + Shadow Beast Frame Animation — `SimpleEnemy` 已接入 `AnimatedSprite2D + SpriteFrames`、Core enemy hitbox/Combat/Health 伤害链、MainScene 命中表现转发，并通过 GdUnit 与 Godot MCP 运行时验证
 - /architecture-review: 提取185条TR，构建可追溯性矩阵，生成3个文件（审查报告+traceability index+TR registry）
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `src/presentation/hud_manager.gd` — Settings 菜单、设置分组、运行时开关、
+  HUD scale、colorblind HP palette、settings focus return
+- `src/presentation/combat_presentation.gd` — `show_damage_number=false`
+  gate，只关闭数字，不关闭 hitstop/spark/shake
+- `src/gameplay/main_scene.gd` — battle summary 与 damage number 设置接入
+  death route 和 player/enemy hit presentation metadata
+- `tests/unit/presentation/hud_manager_test.gd`,
+  `tests/unit/presentation/combat_presentation_test.gd`,
+  `tests/unit/gameplay/main_scene_hud_settings_runtime_test.gd` — Story 004
+  TDD 与运行时接线覆盖
+- `production/epics/hud-ui/story-004-settings-accessibility-controls.md`,
+  `production/epics/hud-ui/EPIC.md`,
+  `production/qa/evidence/settings-accessibility-controls-2026-06-24.md` —
+  Story 状态、Epic 下一步与 QA 证据
 - `src/gameplay/simple_enemy.gd`, `src/gameplay/simple_enemy.tscn` — Shadow Beast 帧动画与敌人攻击状态机/Core hitbox
 - `src/gameplay/player_controller.gd`, `src/gameplay/main_scene.gd`, `src/core/combat_component.gd` — 敌人命中玩家的 Core 伤害链与表现转发
 - `assets/characters/shadow_beast/`, `scenes/characters/shadow_beast.tscn`, `src/characters/shadow_beast.gd` — image-generated Shadow Beast 角色资源管线

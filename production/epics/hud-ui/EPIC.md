@@ -42,7 +42,7 @@ systems without owning combat, save, scene, or economy rules.
 | 001 | Combat HUD Baseline | UI | Complete | ADR-0001, ADR-0002 |
 | 002 | Pause + Retry Menu Focus Loop | UI | Complete | ADR-0002, ADR-0011 |
 | 003 | Battle Summary Lesson Panel | UI | Complete | ADR-0002, ADR-0011 |
-| 004 | Settings + Accessibility Controls | UI | Ready | ADR-0011 |
+| 004 | Settings + Accessibility Controls | UI | Complete | ADR-0011 |
 | 005 | Main Menu + Save/Load Shell | Integration | Blocked by SaveSystem Epic | ADR-0011 |
 | 006 | HUD Scale + Colorblind Mode | UI | Ready | ADR-0011 |
 
@@ -57,6 +57,6 @@ This epic is complete when:
 
 ## Next Step
 
-Continue with Story 004, the settings/accessibility controls, because it unlocks
-the battle-summary toggle and HUD scale/colorblind work without depending on
-save slots.
+Continue with Story 006, the HUD scale/colorblind validation and persistence
+handoff, because Story 004 now provides the runtime settings controls and
+toggles.

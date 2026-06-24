@@ -1,7 +1,7 @@
 # Story 004: Settings + Accessibility Controls
 
 > **Epic**: HUD/UI
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Presentation
 > **Type**: UI
 > **Estimate**: L
@@ -15,16 +15,16 @@
 
 ## Acceptance Criteria
 
-- [ ] Settings menu exposes audio, display, controls, and gameplay groups.
-- [ ] Battle-summary and damage-number toggles update runtime HUD behavior.
-- [ ] HUD scale accepts 50%-150% and keeps core HUD elements non-overlapping.
-- [ ] Colorblind mode changes HP color palette without changing HP values.
-- [ ] Menu focus returns to the invoking menu after close.
+- [x] Settings menu exposes audio, display, controls, and gameplay groups.
+- [x] Battle-summary and damage-number toggles update runtime HUD behavior.
+- [x] HUD scale accepts 50%-150% and keeps core HUD elements non-overlapping.
+- [x] Colorblind mode changes HP color palette without changing HP values.
+- [x] Menu focus returns to the invoking menu after close.
 
 ## Test Evidence
 
 **Required evidence**: HUD interaction tests plus runtime screenshot evidence.
-**Status**: [ ] Not yet created
+**Status**: [x] `production/qa/evidence/settings-accessibility-controls-2026-06-24.md`
 
 ## Dependencies
 
