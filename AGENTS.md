@@ -32,14 +32,18 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 ## Parallel Agent Use
 
-- Prefer parallel Codex subagents for independent workstreams that do not write
-  the same files or depend on the same unresolved decision.
+- Prefer parallel Codex subagents by default whenever a slice contains two or
+  more independent workstreams that do not write the same files or depend on the
+  same unresolved decision.
 - Good parallel splits include: asset prompt/spec review, documentation/evidence
   updates, isolated test failure investigation, and scene/runtime verification.
 - Keep shared gameplay code, scene wiring, and resource ownership changes under
   one integrating agent unless the write sets are clearly disjoint.
 - The integrating agent must review subagent results, resolve conflicts, and run
   the final Godot/GdUnit/MCP verification before reporting completion.
+- Subagents should receive narrow, self-contained tasks and return findings,
+  proposed edits, or verification evidence; the integrating agent owns final
+  file edits unless a subagent write set is explicitly isolated.
 
 ## Language
 
@@ -60,6 +64,13 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 6. 如果 MCP 返回 Godot 报错，必须先修复报错并重新验证，不能继续新增功能。
 7. 如果 MCP 临时不可用，必须先诊断 MCP 连接；阻塞时可用 Godot CLI/headless
    作为临时验证，但后续仍要补 MCP 运行时检查。
+8. 动画资源必须映射到明确 gameplay state，例如 `idle`、`run`、`attack`、
+   `dodge`、`hurt`、`death`、`revive`、`jump`、`fall`；新增状态必须有
+   单元测试或运行时测试覆盖触发条件。
+9. 新增视觉素材优先通过 image2/image generation 生成；生成提示词、用途和
+   导入位置必须记录在资产规格、manifest 或 QA evidence 中。
+10. 不接受只有占位方块、纯色矩形或单帧静态图的新增角色验收，除非该文件明确
+    标记为临时测试 fixture 且不接入玩家可见 gameplay。
 
 ## Collaboration Protocol
 

@@ -40,7 +40,13 @@ const ANIMATION_IDLE: StringName = &"idle"
 const ANIMATION_RUN: StringName = &"run"
 const ANIMATION_ATTACK: StringName = &"attack"
 const ANIMATION_DODGE: StringName = &"dodge"
+const ANIMATION_HURT: StringName = &"hurt"
+const ANIMATION_DEATH: StringName = &"death"
+const ANIMATION_REVIVE: StringName = &"revive"
 const RUN_ANIMATION_MIN_SPEED: float = 5.0
+const HURT_ANIMATION_LOCK_FRAMES: int = 12
+const DEATH_ANIMATION_LOCK_FRAMES: int = 90
+const REVIVE_ANIMATION_LOCK_FRAMES: int = 24
 const PLAYER_ENTITY_ID: int = 1
 const PLAYER_MAX_HP: int = 100
 const CONTACT_DAMAGE: int = 20
@@ -69,6 +75,7 @@ var _dodge_cooldown_timer: int = 0
 var _control_locked: bool = false
 var _respawn_visual_remaining_frames: int = 0
 var _respawn_visual_elapsed_frames: int = 0
+var _presentation_animation_lock_frames: int = 0
 var _combat: CombatComponent = null
 var _collision: CollisionComponent = null
 var _weapon_component: Object = null
@@ -326,7 +333,11 @@ func apply_damage(final_damage: int, metadata: Dictionary = {}) -> void:
 	if final_damage <= 0:
 		return
 	_sprite.modulate = DAMAGE_MODULATE
+	var hp_before: int = _health.get_current_hp()
 	_health.apply_damage(final_damage, metadata)
+	var hp_after: int = _health.get_current_hp()
+	if hp_after > 0 and hp_after < hp_before:
+		_play_timed_character_animation(ANIMATION_HURT, HURT_ANIMATION_LOCK_FRAMES)
 
 
 func get_current_hp() -> int:
@@ -384,10 +395,10 @@ func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
 	_coyote_timer = 0
 	_hitbox_shape.disabled = true
 	_sprite.modulate = NORMAL_MODULATE
-	_play_character_animation(ANIMATION_IDLE, true)
 	_health.revive(revive_hp_percentage)
 	_health.grant_iframes(RESPAWN_INVINCIBILITY_FRAMES)
 	_start_respawn_visual_feedback()
+	_play_timed_character_animation(ANIMATION_REVIVE, REVIVE_ANIMATION_LOCK_FRAMES)
 
 
 ## Returns true while the respawn invincibility visual feedback is active.
@@ -405,6 +416,7 @@ func _on_health_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:
 
 
 func _on_death(_entity_id: int, metadata: Dictionary) -> void:
+	_play_timed_character_animation(ANIMATION_DEATH, DEATH_ANIMATION_LOCK_FRAMES)
 	player_died.emit(metadata.duplicate(true))
 
 
@@ -473,6 +485,9 @@ func _set_sprite_alpha(alpha: float) -> void:
 
 
 func _update_character_animation() -> void:
+	if _presentation_animation_lock_frames > 0:
+		_presentation_animation_lock_frames -= 1
+		return
 	if _state == State.ATTACKING:
 		_play_character_animation(ANIMATION_ATTACK)
 		return
@@ -495,6 +510,11 @@ func _play_character_animation(animation_name: StringName, restart: bool = false
 		_sprite.frame = 0
 		_sprite.frame_progress = 0.0
 	_sprite.play(animation_name)
+
+
+func _play_timed_character_animation(animation_name: StringName, lock_frames: int) -> void:
+	_presentation_animation_lock_frames = maxi(lock_frames, 0)
+	_play_character_animation(animation_name, true)
 
 
 func _get_current_sprite_texture() -> Texture2D:
