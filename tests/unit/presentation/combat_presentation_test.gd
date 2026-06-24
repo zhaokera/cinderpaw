@@ -47,6 +47,118 @@ func test_crit_hit_uses_larger_gold_feedback() -> void:
 	assert_str(presentation.get_last_damage_number_color().to_html(false)).is_equal("ecc94b")
 
 
+func test_damage_number_tiers_match_gdd_size_color_and_outline() -> void:
+	var cases: Array[Dictionary] = [
+		{"damage": 1, "font_size": 12, "color": "ffffff", "outline": 0},
+		{"damage": 6, "font_size": 16, "color": "ffffff", "outline": 0},
+		{"damage": 16, "font_size": 20, "color": "facc15", "outline": 0},
+		{"damage": 31, "font_size": 28, "color": "f59e0b", "outline": 0},
+		{"damage": 61, "font_size": 36, "color": "ecc94b", "outline": 0},
+		{"damage": 151, "font_size": 48, "color": "ecc94b", "outline": 2},
+	]
+
+	for damage_case: Dictionary in cases:
+		presentation.on_hit_event({
+			"damage": int(damage_case["damage"]),
+			"hit_position": Vector2(120, 80),
+			"is_crit": false,
+		})
+		var label := _latest_damage_label()
+
+		assert_object(label).is_not_null()
+		assert_int(label.get_theme_font_size("font_size")).is_equal(int(damage_case["font_size"]))
+		assert_str(label.get_theme_color("font_color").to_html(false)).is_equal(
+			String(damage_case["color"])
+		)
+		assert_int(label.get_theme_constant("outline_size")).is_equal(int(damage_case["outline"]))
+		if int(damage_case["outline"]) > 0:
+			assert_str(label.get_theme_color("font_outline_color").to_html(false)).is_equal("ffffff")
+		presentation.advance_time(2.0)
+
+
+func test_damage_number_records_gdd_float_distance_and_lifetime() -> void:
+	assert_bool(presentation.has_method("get_last_damage_number_float_distance")).is_true()
+	assert_bool(presentation.has_method("get_last_damage_number_lifetime_sec")).is_true()
+
+	presentation.on_hit_event({
+		"damage": 31,
+		"hit_position": Vector2(140, 120),
+		"is_crit": false,
+	})
+
+	assert_float(float(presentation.call("get_last_damage_number_float_distance"))).is_equal_approx(
+		30.0,
+		0.001
+	)
+	assert_float(float(presentation.call("get_last_damage_number_lifetime_sec"))).is_equal_approx(
+		1.5,
+		0.001
+	)
+
+	presentation.advance_time(1.49)
+	assert_int(presentation.get_active_damage_number_count()).is_equal(1)
+
+	presentation.advance_time(0.03)
+	assert_int(presentation.get_active_damage_number_count()).is_equal(0)
+
+
+func test_damage_number_boundary_values_clamp_to_valid_tiers() -> void:
+	presentation.on_hit_event({
+		"damage": 0,
+		"hit_position": Vector2(40, 50),
+		"is_crit": false,
+	})
+	var low_label := _latest_damage_label()
+
+	assert_object(low_label).is_not_null()
+	assert_str(presentation.get_last_damage_number_text()).is_equal("1")
+	assert_int(low_label.get_theme_font_size("font_size")).is_equal(12)
+	assert_str(low_label.get_theme_color("font_color").to_html(false)).is_equal("ffffff")
+
+	presentation.advance_time(2.0)
+	presentation.on_hit_event({
+		"damage": 1200,
+		"hit_position": Vector2(40, 50),
+		"is_crit": false,
+	})
+	var high_label := _latest_damage_label()
+
+	assert_object(high_label).is_not_null()
+	assert_str(presentation.get_last_damage_number_text()).is_equal("1200")
+	assert_int(high_label.get_theme_font_size("font_size")).is_equal(48)
+	assert_int(high_label.get_theme_constant("outline_size")).is_equal(2)
+
+
+func test_hit_event_prefers_final_damage_metadata_for_runtime_core_chain() -> void:
+	presentation.on_hit_event({
+		"damage": 1,
+		"final_damage": 151,
+		"hit_position": Vector2(40, 50),
+		"is_crit": false,
+	})
+	var label := _latest_damage_label()
+
+	assert_object(label).is_not_null()
+	assert_str(presentation.get_last_damage_number_text()).is_equal("151")
+	assert_int(label.get_theme_font_size("font_size")).is_equal(48)
+	assert_int(label.get_theme_constant("outline_size")).is_equal(2)
+
+
+func test_rapid_damage_numbers_cleanup_without_stale_active_entries() -> void:
+	for index: int in range(10):
+		presentation.on_hit_event({
+			"damage": 1 + index * 17,
+			"hit_position": Vector2(40 + index * 4, 50),
+			"is_crit": false,
+		})
+
+	assert_int(presentation.get_active_damage_number_count()).is_equal(10)
+
+	presentation.advance_time(1.6)
+
+	assert_int(presentation.get_active_damage_number_count()).is_equal(0)
+
+
 func test_kill_event_uses_stronger_hitstop_and_debris() -> void:
 	presentation.on_kill_event(2, Vector2(300, 400))
 
@@ -220,3 +332,14 @@ func _all_texture_rect_descendants_have_textures(root: Node) -> bool:
 		if not _all_texture_rect_descendants_have_textures(child):
 			return false
 	return true
+
+
+func _latest_damage_label() -> Label:
+	var labels: Array[Label] = []
+	for child: Node in presentation.get_children():
+		var label: Label = child as Label
+		if label != null:
+			labels.append(label)
+	if labels.is_empty():
+		return null
+	return labels[labels.size() - 1]

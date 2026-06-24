@@ -5,6 +5,14 @@
   Main Menu + Save/Load Shell
 
 ## Last Completed Task
+- Combat Presentation Story 008: Damage Number Tier Polish — damage numbers now
+  use all six GDD tiers (`12/16/20/28/36/48`), tier-specific colors, 151+
+  cat-eye gold with white outline, 30px float distance, 1.5s lifetime, safe
+  boundary handling, and `final_damage` metadata preference for the runtime Core
+  hit chain. Verified by RED/GREEN focused tests, related runtime/presentation
+  regression, headless main-scene smoke, and Godot MCP runtime probe/log/
+  screenshot evidence. No new image asset was required because the polish uses
+  Godot Label styling.
 - Combat Presentation Story 007: Textured Parry Flash + Main Scene Visual Contract —
   PERFECT parry full-screen flash now uses image-generated
   `combat_parry_flash_overlay.png` through a `TextureRect` overlay instead of a
@@ -1566,3 +1574,13 @@
 - Verification: RED failed on `ColorRect` parry flash (`reports/report_350/`); GREEN focused Story007 `14/14` (`reports/report_353/`); related visual regression `39/39` (`reports/report_354/`); headless main scene smoke clean; Godot MCP runtime probe/log/screenshot evidence captured
 - Blockers: None
 - Next: /code-review changed files then continue Combat Presentation boss phase feedback, damage-number polish, colorblind remaps, performance-budget checks, or Save System TR-save-007 async write hardening
+
+## Session Extract — /dev-story 2026-06-24
+
+- Story: `production/epics/combat-presentation/story-008-damage-number-tier-polish.md` — Damage Number Tier Polish
+- Files changed: `src/presentation/combat_presentation.gd`, `tests/unit/presentation/combat_presentation_test.gd`, `production/epics/combat-presentation/EPIC.md`, `production/epics/combat-presentation/story-008-damage-number-tier-polish.md`, `production/epics/index.md`, `production/qa/evidence/damage-number-tier-polish-2026-06-24.md`, `production/session-state/active.md`
+- Test written: `tests/unit/presentation/combat_presentation_test.gd` extended with six-tier damage-number style, lifetime, boundary, final-damage, and rapid-cleanup regressions
+- Verification: RED failed on incomplete `31/61/151` tier styling (`reports/report_355/`); GREEN focused presentation `17/17` (`reports/report_356/`); related runtime/presentation regression `26/26` (`reports/report_357/`); headless main-scene smoke clean; Godot MCP runtime probe/log/screenshot evidence captured
+- Asset note: no new project image asset was required for Story008; Label styling covers the visual requirement
+- Blockers: None
+- Next: /code-review changed files then continue Combat Presentation boss phase feedback, colorblind remaps, performance-budget checks, low-HP focus shake reduction, or Save System TR-save-007 async write hardening

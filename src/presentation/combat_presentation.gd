@@ -25,7 +25,12 @@ const DODGE_AFTERIMAGE_ALPHAS: Array[float] = [0.5, 0.3, 0.1]
 const PERFECT_PARRY_HITSTOP_FRAMES: int = 8
 const PERFECT_PARRY_FLASH_ALPHA: float = 0.8
 const NORMAL_DAMAGE_COLOR: Color = Color.WHITE
+const MID_DAMAGE_COLOR: Color = Color("#FACC15")
+const HEAVY_DAMAGE_COLOR: Color = Color("#F59E0B")
 const CRIT_DAMAGE_COLOR: Color = Color("#ECC94B")
+const LEGENDARY_DAMAGE_OUTLINE_COLOR: Color = Color.WHITE
+const LEGENDARY_DAMAGE_OUTLINE_SIZE: int = 2
+const DAMAGE_NUMBER_FLOAT_DISTANCE_PX: float = 30.0
 const SPARK_COLOR: Color = Color(1.0, 0.94, 0.76, 1.0)
 const DEBRIS_COLOR: Color = Color(0.78, 0.18, 0.16, 1.0)
 const PARRY_SPARK_COLOR: Color = Color(1.0, 0.96, 0.72, 1.0)
@@ -56,6 +61,10 @@ var _flashes: Array[Dictionary] = []
 var _afterimages: Array[Dictionary] = []
 var _last_damage_number_text: String = ""
 var _last_damage_number_color: Color = NORMAL_DAMAGE_COLOR
+var _last_damage_number_font_size: int = 12
+var _last_damage_number_outline_size: int = 0
+var _last_damage_number_float_distance: float = DAMAGE_NUMBER_FLOAT_DISTANCE_PX
+var _last_damage_number_lifetime_sec: float = DAMAGE_NUMBER_LIFETIME_SEC
 var _last_flash_alpha: float = 0.0
 var _last_afterimage_alphas: Array[float] = []
 var _last_afterimage_positions: Array[Vector2] = []
@@ -81,7 +90,7 @@ func set_camera(camera: Camera2D) -> void:
 
 
 func on_hit_event(hit_data: Dictionary) -> void:
-	var damage: int = maxi(1, int(hit_data.get("damage", 1)))
+	var damage: int = maxi(1, int(hit_data.get("final_damage", hit_data.get("damage", 1))))
 	var hit_position: Vector2 = _read_vector2(hit_data.get("hit_position", Vector2.ZERO))
 	var is_crit: bool = bool(hit_data.get("is_crit", false))
 	var hitstop_frames: int = CRIT_HITSTOP_FRAMES if is_crit else NORMAL_HITSTOP_FRAMES
@@ -197,6 +206,22 @@ func get_last_damage_number_color() -> Color:
 	return _last_damage_number_color
 
 
+func get_last_damage_number_font_size() -> int:
+	return _last_damage_number_font_size
+
+
+func get_last_damage_number_outline_size() -> int:
+	return _last_damage_number_outline_size
+
+
+func get_last_damage_number_float_distance() -> float:
+	return _last_damage_number_float_distance
+
+
+func get_last_damage_number_lifetime_sec() -> float:
+	return _last_damage_number_lifetime_sec
+
+
 func get_last_flash_alpha() -> float:
 	return _last_flash_alpha
 
@@ -216,17 +241,29 @@ func get_last_afterimage_positions() -> Array[Vector2]:
 func _spawn_damage_number(world_position: Vector2, damage: int, color: Color) -> void:
 	_last_damage_number_text = str(damage)
 	_last_damage_number_color = color
+	_last_damage_number_font_size = _damage_font_size(damage)
+	_last_damage_number_outline_size = _damage_outline_size(damage)
+	_last_damage_number_float_distance = DAMAGE_NUMBER_FLOAT_DISTANCE_PX
+	_last_damage_number_lifetime_sec = DAMAGE_NUMBER_LIFETIME_SEC
 
 	var label := Label.new()
 	label.text = _last_damage_number_text
 	label.position = world_position + Vector2(-12, -42)
 	label.add_theme_color_override("font_color", color)
-	label.add_theme_font_size_override("font_size", _damage_font_size(damage))
+	label.add_theme_font_size_override("font_size", _last_damage_number_font_size)
+	label.add_theme_constant_override("outline_size", _last_damage_number_outline_size)
+	if _last_damage_number_outline_size > 0:
+		label.add_theme_color_override("font_outline_color", LEGENDARY_DAMAGE_OUTLINE_COLOR)
 	label.z_index = 90
 	add_child(label)
 
 	var tween: Tween = create_tween()
-	tween.tween_property(label, "position", label.position + Vector2(0, -30), DAMAGE_NUMBER_LIFETIME_SEC)
+	tween.tween_property(
+		label,
+		"position",
+		label.position + Vector2(0, -_last_damage_number_float_distance),
+		DAMAGE_NUMBER_LIFETIME_SEC
+	)
 	tween.parallel().tween_property(label, "modulate:a", 0.0, DAMAGE_NUMBER_LIFETIME_SEC)
 	tween.tween_callback(label.queue_free)
 
@@ -404,12 +441,18 @@ func _read_float(value: Variant, fallback: float) -> float:
 
 
 func _damage_color_for_amount(damage: int) -> Color:
+	if damage >= 61:
+		return CRIT_DAMAGE_COLOR
+	if damage >= 31:
+		return HEAVY_DAMAGE_COLOR
 	if damage >= 16:
-		return Color("#FACC15")
+		return MID_DAMAGE_COLOR
 	return NORMAL_DAMAGE_COLOR
 
 
 func _damage_font_size(damage: int) -> int:
+	if damage >= 151:
+		return 48
 	if damage >= 61:
 		return 36
 	if damage >= 31:
@@ -419,3 +462,9 @@ func _damage_font_size(damage: int) -> int:
 	if damage >= 6:
 		return 16
 	return 12
+
+
+func _damage_outline_size(damage: int) -> int:
+	if damage >= 151:
+		return LEGENDARY_DAMAGE_OUTLINE_SIZE
+	return 0
