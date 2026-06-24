@@ -43,6 +43,8 @@ const ANIMATION_DODGE: StringName = &"dodge"
 const ANIMATION_HURT: StringName = &"hurt"
 const ANIMATION_DEATH: StringName = &"death"
 const ANIMATION_REVIVE: StringName = &"revive"
+const ANIMATION_JUMP: StringName = &"jump"
+const ANIMATION_FALL: StringName = &"fall"
 const RUN_ANIMATION_MIN_SPEED: float = 5.0
 const HURT_ANIMATION_LOCK_FRAMES: int = 12
 const DEATH_ANIMATION_LOCK_FRAMES: int = 90
@@ -494,10 +496,17 @@ func _update_character_animation() -> void:
 	if _state == State.DODGING:
 		_play_character_animation(ANIMATION_DODGE)
 		return
-	if absf(velocity.x) > RUN_ANIMATION_MIN_SPEED and is_on_floor():
-		_play_character_animation(ANIMATION_RUN)
-		return
-	_play_character_animation(ANIMATION_IDLE)
+	_play_character_animation(_get_locomotion_animation(is_on_floor(), velocity))
+
+
+func _get_locomotion_animation(is_grounded: bool, current_velocity: Vector2) -> StringName:
+	if current_velocity.y < 0.0:
+		return ANIMATION_JUMP
+	if not is_grounded:
+		return ANIMATION_FALL
+	if absf(current_velocity.x) > RUN_ANIMATION_MIN_SPEED:
+		return ANIMATION_RUN
+	return ANIMATION_IDLE
 
 
 func _play_character_animation(animation_name: StringName, restart: bool = false) -> void:

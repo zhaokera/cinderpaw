@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=22 format=3]
+[gd_resource type="SpriteFrames" load_steps=28 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/idle/cinderpaw_idle_000.png" id="1_idle0"]
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/idle/cinderpaw_idle_001.png" id="2_idle1"]
@@ -21,6 +21,12 @@
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/revive/cinderpaw_revive_000.png" id="19_revive0"]
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/revive/cinderpaw_revive_001.png" id="20_revive1"]
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/revive/cinderpaw_revive_002.png" id="21_revive2"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/jump/cinderpaw_jump_000.png" id="22_jump0"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/jump/cinderpaw_jump_001.png" id="23_jump1"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/jump/cinderpaw_jump_002.png" id="24_jump2"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/fall/cinderpaw_fall_000.png" id="25_fall0"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/fall/cinderpaw_fall_001.png" id="26_fall1"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/fall/cinderpaw_fall_002.png" id="27_fall2"]
 
 [resource]
 animations = [{
@@ -120,5 +126,33 @@ animations = [{
 }],
 "loop": false,
 "name": &"revive",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("22_jump0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_jump1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("24_jump2")
+}],
+"loop": true,
+"name": &"jump",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("25_fall0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("26_fall1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("27_fall2")
+}],
+"loop": true,
+"name": &"fall",
 "speed": 8.0
 }]

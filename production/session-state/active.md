@@ -1,9 +1,15 @@
 # Active Session State
 
 ## Current Task
-- 持续实现 Cinderpaw 垂直切片；最近完成 HUD/UI Story 004 设置与无障碍控制
+- 持续实现 Cinderpaw 垂直切片；最近完成 Combat Presentation Story 006
+  Cinderpaw Jump and Fall Animation
 
 ## Last Completed Task
+- Combat Presentation Story 006: Cinderpaw Jump and Fall Animation —
+  Cinderpaw 新增 image-generated `jump`/`fall` 透明帧动画，接入
+  `AnimatedSprite2D + SpriteFrames` 与 `PlayerController` 空中状态映射；
+  起跳优先处理 Godot floor-contact 缓存边界；通过 GdUnit 32/32、
+  Godot headless smoke 与 Godot MCP 运行态验证
 - HUD/UI Story 004: Settings + Accessibility Controls — `HUDManager` 已提供
   Settings 菜单、audio/display/controls/gameplay 分组、battle summary 与
   damage number 运行时开关、HUD 50%-150% 缩放、红绿色盲 HP 调色，以及
@@ -15,6 +21,21 @@
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `src/gameplay/player_controller.gd` — `jump`/`fall` 动画常量与空中
+  locomotion 映射，保持 hurt/death/revive、attack、dodge 优先级
+- `assets/characters/cinderpaw/jump/`,
+  `assets/characters/cinderpaw/fall/`,
+  `assets/characters/cinderpaw/source/`,
+  `assets/characters/cinderpaw/cinderpaw_sprite_frames.tres` —
+  image-generated jump/fall 源图、alpha 源图、96x96 透明帧与 SpriteFrames
+  导入
+- `tests/unit/gameplay/player_air_animation_test.gd` — Story 006 TDD 覆盖
+  资源路径、帧数/尺寸、起跳/下落触发和高优先级动画不被覆盖
+- `production/epics/combat-presentation/story-006-cinderpaw-jump-fall-animation.md`,
+  `production/epics/combat-presentation/EPIC.md`,
+  `production/qa/evidence/cinderpaw-jump-fall-animation-2026-06-24.md`,
+  `design/assets/asset-manifest.md`, `design/assets/entity-inventory.md` —
+  Story 状态、Epic 追踪、资产 manifest、实体清单与 QA 证据
 - `src/presentation/hud_manager.gd` — Settings 菜单、设置分组、运行时开关、
   HUD scale、colorblind HP palette、settings focus return
 - `src/presentation/combat_presentation.gd` — `show_damage_number=false`
