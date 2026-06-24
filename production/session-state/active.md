@@ -1,10 +1,25 @@
 # Active Session State
 
 ## Current Task
-- 持续实现 Cinderpaw 垂直切片；最近完成 Combat Presentation Story 010
-  Boss Phase Visual Feedback
+- 持续实现 Cinderpaw 垂直切片；最近完成 Combat Presentation Story 011
+  Colorblind Combat VFX + Focus Shake Accessibility
 
 ## Last Completed Task
+- Combat Presentation Story 011: Colorblind Combat VFX + Focus Shake
+  Accessibility — `CombatPresentation` 现在支持 `none` / `red_green` /
+  `blue_yellow` 粒子 palette remap，普通/暴击 hit sparks、PERFECT parry
+  sparks、猫爪 trails、击杀 debris、Boss phase 2/3 debris 均按当前 HUD
+  色盲模式生成；`HUDManager.colorblind_mode_changed` 由 `MainScene` 转发到
+  presentation，保存/恢复 settings 后也会 resync；`Player/HealthComponent`
+  的 `on_focus_mode_changed(entity_id, active, metadata)` 会路由到
+  `CombatPresentation`，focus active 时后续 screen shake 强度乘 `0.7`，
+  hitstop、duration、粒子数量和最大值聚合规则保持不变。通过 RED
+  `report_370`、GREEN focused `report_372` `27/27`、相关回归 `report_373`
+  `44/44`、Godot headless smoke、Godot MCP 运行态 palette/focus/日志/截图
+  验证。截图：`reports/visual/cinderpaw-mcp-combatfx-default-hit-20260624.png`,
+  `reports/visual/cinderpaw-mcp-combatfx-red-green-20260624.png`,
+  `reports/visual/cinderpaw-mcp-combatfx-blue-yellow-20260624.png`,
+  `reports/visual/cinderpaw-mcp-combatfx-focus-hit-20260624.png`。
 - Combat Presentation Story 010: Boss Phase Visual Feedback — `CombatPresentation`
   现在消费 `on_boss_phase_transition_started(entity_id, phase, metadata)`，
   播放 4 帧 hitstop、phase shake、image-generated
@@ -102,6 +117,23 @@
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `src/presentation/combat_presentation.gd` — Story011 colorblind particle
+  palette remap、focus-mode screen shake `0.7` scaling、diagnostic color/shake
+  getters。
+- `src/presentation/hud_manager.gd`, `src/gameplay/main_scene.gd` — Story011
+  HUD colorblind signal、MainScene palette resync、Health focus signal routing。
+- `tests/unit/presentation/combat_presentation_test.gd`,
+  `tests/unit/gameplay/main_scene_hud_settings_runtime_test.gd` — Story011 TDD
+  覆盖 palette、invalid fallback、focus shake、HUD/MainScene integration。
+- `production/epics/combat-presentation/story-011-colorblind-focus-accessibility.md`,
+  `production/epics/combat-presentation/EPIC.md`,
+  `production/qa/evidence/colorblind-focus-accessibility-2026-06-24.md` —
+  Story/Epic 状态、palette 固定与 QA/MCP 证据。
+- `reports/visual/cinderpaw-mcp-combatfx-default-hit-20260624.png`,
+  `reports/visual/cinderpaw-mcp-combatfx-red-green-20260624.png`,
+  `reports/visual/cinderpaw-mcp-combatfx-blue-yellow-20260624.png`,
+  `reports/visual/cinderpaw-mcp-combatfx-focus-hit-20260624.png` — Story011
+  MCP runtime screenshot evidence。
 - `AGENTS.md` — 补强并行 Agent 早期只读审查/验收规划要求，以及玩家可见
   gameplay state 默认至少 3 帧的 Godot 2D 帧动画规则。
 - `src/presentation/combat_presentation.gd` — Story010 Boss phase visual

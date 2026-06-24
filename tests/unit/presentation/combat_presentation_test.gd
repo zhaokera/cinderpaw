@@ -194,6 +194,182 @@ func test_hit_event_can_disable_damage_number_without_suppressing_impact_feedbac
 	assert_float(presentation.get_screen_shake_intensity()).is_equal_approx(2.0, 0.001)
 
 
+func test_colorblind_modes_remap_combat_particle_palette() -> void:
+	assert_bool(presentation.has_method("set_colorblind_mode")).is_true()
+	assert_bool(presentation.has_method("get_colorblind_mode")).is_true()
+	assert_bool(presentation.has_method("get_last_spark_color")).is_true()
+	assert_bool(presentation.has_method("get_last_debris_color")).is_true()
+	assert_bool(presentation.has_method("get_last_parry_spark_color")).is_true()
+	assert_bool(presentation.has_method("get_last_claw_trail_color")).is_true()
+	assert_bool(presentation.has_method("get_last_boss_phase_debris_color")).is_true()
+	if (
+		not presentation.has_method("set_colorblind_mode")
+		or not presentation.has_method("get_colorblind_mode")
+		or not presentation.has_method("get_last_spark_color")
+		or not presentation.has_method("get_last_debris_color")
+		or not presentation.has_method("get_last_parry_spark_color")
+		or not presentation.has_method("get_last_claw_trail_color")
+		or not presentation.has_method("get_last_boss_phase_debris_color")
+	):
+		return
+
+	presentation.call("set_colorblind_mode", &"red_green")
+	assert_str(String(presentation.call("get_colorblind_mode"))).is_equal("red_green")
+
+	presentation.on_hit_event({
+		"damage": 12,
+		"hit_position": Vector2(80, 90),
+		"is_crit": false,
+		"show_damage_number": false,
+	})
+	assert_str(_color_html(presentation.call("get_last_spark_color"))).is_equal("4299e1")
+
+	presentation.on_hit_event({
+		"damage": 36,
+		"hit_position": Vector2(80, 90),
+		"is_crit": true,
+		"show_damage_number": false,
+	})
+	assert_str(_color_html(presentation.call("get_last_spark_color"))).is_equal("f6e05e")
+
+	presentation.on_parry_event({
+		"parry_type": &"perfect",
+		"position": Vector2(220, 210),
+	})
+	assert_str(_color_html(presentation.call("get_last_parry_spark_color"))).is_equal("f6e05e")
+
+	presentation.on_weapon_attack_event({
+		"weapon_id": &"cat_claw",
+		"attack_position": Vector2(100, 120),
+		"facing": -1,
+	})
+	assert_str(_color_html(presentation.call("get_last_claw_trail_color"))).is_equal("f6e05e")
+
+	presentation.on_kill_event(2, Vector2(300, 400))
+	assert_str(_color_html(presentation.call("get_last_debris_color"))).is_equal("d69e2e")
+
+	presentation.call("on_boss_phase_transition_started", 42, 2, _make_boss_phase_metadata(2))
+	assert_str(_color_html(presentation.call("get_last_boss_phase_debris_color"))).is_equal("2b6cb0")
+
+	presentation.call("on_boss_phase_transition_started", 42, 3, _make_boss_phase_metadata(3))
+	assert_str(_color_html(presentation.call("get_last_boss_phase_debris_color"))).is_equal("f6e05e")
+
+	presentation.call("set_colorblind_mode", &"blue_yellow")
+	assert_str(String(presentation.call("get_colorblind_mode"))).is_equal("blue_yellow")
+
+	presentation.on_hit_event({
+		"damage": 12,
+		"hit_position": Vector2(80, 90),
+		"is_crit": false,
+		"show_damage_number": false,
+	})
+	assert_str(_color_html(presentation.call("get_last_spark_color"))).is_equal("fed7d7")
+
+	presentation.on_hit_event({
+		"damage": 36,
+		"hit_position": Vector2(80, 90),
+		"is_crit": true,
+		"show_damage_number": false,
+	})
+	assert_str(_color_html(presentation.call("get_last_spark_color"))).is_equal("f97316")
+
+	presentation.on_parry_event({
+		"parry_type": &"perfect",
+		"position": Vector2(220, 210),
+	})
+	assert_str(_color_html(presentation.call("get_last_parry_spark_color"))).is_equal("ffffff")
+
+	presentation.on_kill_event(2, Vector2(300, 400))
+	assert_str(_color_html(presentation.call("get_last_debris_color"))).is_equal("e53e3e")
+
+	presentation.call("on_boss_phase_transition_started", 42, 2, _make_boss_phase_metadata(2))
+	assert_str(_color_html(presentation.call("get_last_boss_phase_debris_color"))).is_equal("f97316")
+
+	presentation.call("on_boss_phase_transition_started", 42, 3, _make_boss_phase_metadata(3))
+	assert_str(_color_html(presentation.call("get_last_boss_phase_debris_color"))).is_equal("ffffff")
+
+	presentation.call("set_colorblind_mode", &"invalid")
+	assert_str(String(presentation.call("get_colorblind_mode"))).is_equal("none")
+	presentation.on_hit_event({
+		"damage": 12,
+		"hit_position": Vector2(80, 90),
+		"is_crit": false,
+		"show_damage_number": false,
+	})
+	assert_str(_color_html(presentation.call("get_last_spark_color"))).is_equal("fff0c2")
+
+
+func test_focus_mode_reduces_screen_shake_intensity_without_shortening_duration() -> void:
+	assert_bool(presentation.has_method("on_focus_mode_changed")).is_true()
+	assert_bool(presentation.has_method("is_focus_mode_active")).is_true()
+	assert_bool(presentation.has_method("get_screen_shake_frames_remaining")).is_true()
+	if (
+		not presentation.has_method("on_focus_mode_changed")
+		or not presentation.has_method("is_focus_mode_active")
+		or not presentation.has_method("get_screen_shake_frames_remaining")
+	):
+		return
+
+	presentation.call("on_focus_mode_changed", 1, true, {
+		"hp_percentage": 0.25,
+	})
+	assert_bool(bool(presentation.call("is_focus_mode_active"))).is_true()
+
+	presentation.on_hit_event({
+		"damage": 12,
+		"hit_position": Vector2(80, 90),
+		"is_crit": false,
+		"show_damage_number": false,
+	})
+
+	assert_float(presentation.get_screen_shake_intensity()).is_equal_approx(1.4, 0.001)
+	assert_int(int(presentation.call("get_screen_shake_frames_remaining"))).is_equal(3)
+	assert_int(presentation.get_hitstop_frames_remaining()).is_equal(3)
+
+	presentation.play_screen_shake(5.0, 6)
+	presentation.play_screen_shake(2.0, 3)
+
+	assert_float(presentation.get_screen_shake_intensity()).is_equal_approx(3.5, 0.001)
+	assert_int(int(presentation.call("get_screen_shake_frames_remaining"))).is_equal(6)
+
+
+func test_focus_mode_reduces_parry_boss_and_restores_after_exit() -> void:
+	assert_bool(presentation.has_method("on_focus_mode_changed")).is_true()
+	assert_bool(presentation.has_method("get_screen_shake_frames_remaining")).is_true()
+	if (
+		not presentation.has_method("on_focus_mode_changed")
+		or not presentation.has_method("get_screen_shake_frames_remaining")
+	):
+		return
+
+	presentation.call("on_focus_mode_changed", 1, true, {})
+	presentation.on_parry_event({
+		"parry_type": &"perfect",
+		"position": Vector2(220, 210),
+	})
+
+	assert_float(presentation.get_screen_shake_intensity()).is_equal_approx(5.6, 0.001)
+	assert_int(int(presentation.call("get_screen_shake_frames_remaining"))).is_equal(8)
+
+	_drain_screen_shake_frames()
+	presentation.call("on_focus_mode_changed", 1, true, {})
+	presentation.call("on_boss_phase_transition_started", 42, 2, _make_boss_phase_metadata(2))
+
+	assert_float(presentation.get_screen_shake_intensity()).is_equal_approx(4.2, 0.001)
+	assert_int(int(presentation.call("get_screen_shake_frames_remaining"))).is_equal(4)
+
+	_drain_screen_shake_frames()
+	presentation.call("on_focus_mode_changed", 1, false, {})
+	presentation.on_hit_event({
+		"damage": 12,
+		"hit_position": Vector2(80, 90),
+		"is_crit": false,
+		"show_damage_number": false,
+	})
+
+	assert_float(presentation.get_screen_shake_intensity()).is_equal_approx(2.0, 0.001)
+
+
 func test_kill_debris_uses_textured_sprite_vfx_not_color_rect_blocks() -> void:
 	presentation.on_kill_event(2, Vector2(300, 400))
 
@@ -415,6 +591,17 @@ func _latest_damage_label() -> Label:
 	if labels.is_empty():
 		return null
 	return labels[labels.size() - 1]
+
+
+func _color_html(value: Variant) -> String:
+	if value is Color:
+		return (value as Color).to_html(false)
+	return Color(value).to_html(false)
+
+
+func _drain_screen_shake_frames() -> void:
+	for _frame: int in range(12):
+		presentation.call("_physics_process", 0.0)
 
 
 func _make_boss_phase_metadata(phase: int) -> Dictionary:

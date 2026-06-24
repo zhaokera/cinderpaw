@@ -45,6 +45,19 @@ const CLAW_TRAIL_COLOR: Color = Color(1.0, 0.9, 0.48, 1.0)
 const DODGE_AFTERIMAGE_COLOR: Color = Color.WHITE
 const BOSS_PHASE_DEBRIS_COLOR: Color = Color("#6B8A9E")
 const BOSS_PHASE_OVERLOAD_DEBRIS_COLOR: Color = Color("#E53E3E")
+const COLORBLIND_NONE: StringName = &"none"
+const COLORBLIND_RED_GREEN: StringName = &"red_green"
+const COLORBLIND_BLUE_YELLOW: StringName = &"blue_yellow"
+const FOCUS_MODE_SHAKE_MULTIPLIER: float = 0.7
+const RG_NORMAL_SPARK_COLOR: Color = Color("#4299E1")
+const RG_EMPHASIS_COLOR: Color = Color("#F6E05E")
+const RG_DEBRIS_COLOR: Color = Color("#D69E2E")
+const RG_BOSS_METAL_COLOR: Color = Color("#2B6CB0")
+const BY_NORMAL_SPARK_COLOR: Color = Color("#FED7D7")
+const BY_EMPHASIS_COLOR: Color = Color("#F97316")
+const BY_PARRY_SPARK_COLOR: Color = Color("#FFFFFF")
+const BY_DEBRIS_COLOR: Color = Color("#E53E3E")
+const BY_BOSS_OVERLOAD_COLOR: Color = Color("#FFFFFF")
 const HIT_SPARK_TEXTURE: Texture2D = preload("res://assets/generated/combat_hit_spark.png")
 const ENEMY_DEBRIS_TEXTURE: Texture2D = preload("res://assets/generated/combat_enemy_debris.png")
 const PARRY_SPARK_TEXTURE: Texture2D = preload("res://assets/generated/combat_parry_spark.png")
@@ -86,6 +99,13 @@ var _last_boss_phase_entity_id: int = 0
 var _last_boss_phase: int = 0
 var _last_boss_phase_metadata: Dictionary = {}
 var _last_boss_phase_overlay_texture_path: String = ""
+var _colorblind_mode: StringName = COLORBLIND_NONE
+var _focus_mode_active: bool = false
+var _last_spark_color: Color = SPARK_COLOR
+var _last_debris_color: Color = DEBRIS_COLOR
+var _last_parry_spark_color: Color = PARRY_SPARK_COLOR
+var _last_claw_trail_color: Color = CLAW_TRAIL_COLOR
+var _last_boss_phase_debris_color: Color = BOSS_PHASE_DEBRIS_COLOR
 
 
 func _process(delta: float) -> void:
@@ -107,6 +127,24 @@ func set_camera(camera: Camera2D) -> void:
 	_camera_base_offset = camera.offset if camera != null else Vector2.ZERO
 
 
+## Selects the accessibility color palette used by newly spawned combat VFX.
+func set_colorblind_mode(mode: StringName) -> void:
+	_colorblind_mode = _normalize_colorblind_mode(mode)
+
+
+func get_colorblind_mode() -> StringName:
+	return _colorblind_mode
+
+
+## Consumes HealthComponent focus-mode changes without querying gameplay nodes.
+func on_focus_mode_changed(_entity_id: int, active: bool, _metadata: Dictionary) -> void:
+	_focus_mode_active = active
+
+
+func is_focus_mode_active() -> bool:
+	return _focus_mode_active
+
+
 func on_hit_event(hit_data: Dictionary) -> void:
 	var damage: int = maxi(1, int(hit_data.get("final_damage", hit_data.get("damage", 1))))
 	var hit_position: Vector2 = _read_vector2(hit_data.get("hit_position", Vector2.ZERO))
@@ -115,7 +153,7 @@ func on_hit_event(hit_data: Dictionary) -> void:
 	var shake_intensity: float = CRIT_SHAKE_INTENSITY if is_crit else NORMAL_SHAKE_INTENSITY
 	var spark_count: int = CRIT_SPARK_COUNT if is_crit else NORMAL_SPARK_COUNT
 	var damage_color: Color = CRIT_DAMAGE_COLOR if is_crit else _damage_color_for_amount(damage)
-	var spark_color: Color = CRIT_DAMAGE_COLOR if is_crit else SPARK_COLOR
+	var spark_color: Color = _spark_color_for_hit(is_crit)
 	var show_damage_number: bool = bool(hit_data.get("show_damage_number", true))
 
 	play_hitstop(hitstop_frames)
@@ -173,10 +211,11 @@ func play_hitstop(frames: int) -> void:
 
 
 func play_screen_shake(intensity: float, duration_frames: int, _direction: Vector2 = Vector2.ZERO) -> void:
-	if intensity <= 0.0 or duration_frames <= 0:
+	var effective_intensity: float = _effective_screen_shake_intensity(intensity)
+	if effective_intensity <= 0.0 or duration_frames <= 0:
 		return
-	if intensity >= _screen_shake_intensity:
-		_screen_shake_intensity = intensity
+	if effective_intensity >= _screen_shake_intensity:
+		_screen_shake_intensity = effective_intensity
 	_screen_shake_frames_remaining = maxi(_screen_shake_frames_remaining, duration_frames)
 
 
@@ -237,6 +276,10 @@ func get_screen_shake_intensity() -> float:
 	return _screen_shake_intensity
 
 
+func get_screen_shake_frames_remaining() -> int:
+	return _screen_shake_frames_remaining
+
+
 func get_last_damage_number_text() -> String:
 	return _last_damage_number_text
 
@@ -293,6 +336,26 @@ func get_last_boss_phase_overlay_texture_path() -> String:
 	return _last_boss_phase_overlay_texture_path
 
 
+func get_last_spark_color() -> Color:
+	return _last_spark_color
+
+
+func get_last_debris_color() -> Color:
+	return _last_debris_color
+
+
+func get_last_parry_spark_color() -> Color:
+	return _last_parry_spark_color
+
+
+func get_last_claw_trail_color() -> Color:
+	return _last_claw_trail_color
+
+
+func get_last_boss_phase_debris_color() -> Color:
+	return _last_boss_phase_debris_color
+
+
 func get_boss_phase_debris_lifetime_sec() -> float:
 	return BOSS_PHASE_DEBRIS_LIFETIME_SEC
 
@@ -333,6 +396,7 @@ func _spawn_damage_number(world_position: Vector2, damage: int, color: Color) ->
 
 
 func _spawn_sparks(world_position: Vector2, count: int, color: Color) -> void:
+	_last_spark_color = color
 	for index: int in range(maxi(0, count)):
 		var spark := _create_vfx_sprite(HIT_SPARK_TEXTURE, color, SPARK_SPRITE_SCALE)
 		spark.position = world_position + Vector2(float((index % 4) * 8 - 12), float(floori(float(index) / 4.0) * 7 - 10))
@@ -350,10 +414,12 @@ func _spawn_sparks(world_position: Vector2, count: int, color: Color) -> void:
 
 
 func _spawn_parry_sparks(world_position: Vector2, count: int) -> void:
+	var parry_color: Color = _parry_spark_color()
+	_last_parry_spark_color = parry_color
 	for index: int in range(maxi(0, count)):
 		var angle: float = (float(index) / float(maxi(1, count))) * TAU
 		var outward: Vector2 = Vector2.RIGHT.rotated(angle)
-		var spark := _create_vfx_sprite(PARRY_SPARK_TEXTURE, PARRY_SPARK_COLOR, PARRY_SPARK_SPRITE_SCALE)
+		var spark := _create_vfx_sprite(PARRY_SPARK_TEXTURE, parry_color, PARRY_SPARK_SPRITE_SCALE)
 		spark.position = world_position + outward * (6.0 + float(index % 3) * 2.0)
 		spark.rotation = angle
 		spark.z_index = 86
@@ -396,8 +462,10 @@ func _spawn_screen_flash(alpha: float, duration_sec: float) -> void:
 
 func _spawn_claw_trails(world_position: Vector2, facing: float) -> void:
 	var facing_sign: float = -1.0 if facing < 0.0 else 1.0
+	var trail_color: Color = _claw_trail_color()
+	_last_claw_trail_color = trail_color
 	for index: int in range(CLAW_TRAIL_COUNT):
-		var trail := _create_vfx_sprite(CLAW_TRAIL_TEXTURE, CLAW_TRAIL_COLOR, CLAW_TRAIL_SPRITE_SCALE)
+		var trail := _create_vfx_sprite(CLAW_TRAIL_TEXTURE, trail_color, CLAW_TRAIL_SPRITE_SCALE)
 		var row_offset: float = float(index - 1) * 8.0
 		trail.position = world_position + Vector2(float(index) * 5.0 * facing_sign, row_offset)
 		trail.flip_h = facing_sign < 0.0
@@ -439,8 +507,10 @@ func _spawn_dodge_afterimages(texture: Texture2D, world_position: Vector2, facin
 
 
 func _spawn_debris(world_position: Vector2, count: int) -> void:
+	var debris_color: Color = _debris_color()
+	_last_debris_color = debris_color
 	for index: int in range(maxi(0, count)):
-		var shard := _create_vfx_sprite(ENEMY_DEBRIS_TEXTURE, DEBRIS_COLOR, DEBRIS_SPRITE_SCALE)
+		var shard := _create_vfx_sprite(ENEMY_DEBRIS_TEXTURE, debris_color, DEBRIS_SPRITE_SCALE)
 		shard.position = world_position + Vector2(float((index % 6) * 7 - 20), float(floori(float(index) / 6.0) * 7 - 12))
 		shard.rotation = float(index) * 0.7
 		shard.z_index = 82
@@ -484,6 +554,7 @@ func _spawn_boss_phase_overlay(phase: int) -> void:
 
 func _spawn_boss_phase_debris(world_position: Vector2, count: int, phase: int) -> void:
 	var debris_color: Color = _boss_phase_debris_color(phase)
+	_last_boss_phase_debris_color = debris_color
 	for index: int in range(maxi(0, count)):
 		var angle: float = (float(index) / float(maxi(1, count))) * TAU
 		var outward: Vector2 = Vector2.RIGHT.rotated(angle)
@@ -551,9 +622,61 @@ func _boss_phase_world_position(metadata: Dictionary) -> Vector2:
 
 
 func _boss_phase_debris_color(phase: int) -> Color:
+	if _colorblind_mode == COLORBLIND_RED_GREEN:
+		if phase >= 3:
+			return RG_EMPHASIS_COLOR
+		return RG_BOSS_METAL_COLOR
+	if _colorblind_mode == COLORBLIND_BLUE_YELLOW:
+		if phase >= 3:
+			return BY_BOSS_OVERLOAD_COLOR
+		return BY_EMPHASIS_COLOR
 	if phase >= 3:
 		return BOSS_PHASE_OVERLOAD_DEBRIS_COLOR
 	return BOSS_PHASE_DEBRIS_COLOR
+
+
+func _normalize_colorblind_mode(mode: StringName) -> StringName:
+	if mode == COLORBLIND_RED_GREEN or mode == COLORBLIND_BLUE_YELLOW:
+		return mode
+	return COLORBLIND_NONE
+
+
+func _effective_screen_shake_intensity(intensity: float) -> float:
+	if _focus_mode_active:
+		return intensity * FOCUS_MODE_SHAKE_MULTIPLIER
+	return intensity
+
+
+func _spark_color_for_hit(is_crit: bool) -> Color:
+	if _colorblind_mode == COLORBLIND_RED_GREEN:
+		return RG_EMPHASIS_COLOR if is_crit else RG_NORMAL_SPARK_COLOR
+	if _colorblind_mode == COLORBLIND_BLUE_YELLOW:
+		return BY_EMPHASIS_COLOR if is_crit else BY_NORMAL_SPARK_COLOR
+	return CRIT_DAMAGE_COLOR if is_crit else SPARK_COLOR
+
+
+func _parry_spark_color() -> Color:
+	if _colorblind_mode == COLORBLIND_RED_GREEN:
+		return RG_EMPHASIS_COLOR
+	if _colorblind_mode == COLORBLIND_BLUE_YELLOW:
+		return BY_PARRY_SPARK_COLOR
+	return PARRY_SPARK_COLOR
+
+
+func _claw_trail_color() -> Color:
+	if _colorblind_mode == COLORBLIND_RED_GREEN:
+		return RG_EMPHASIS_COLOR
+	if _colorblind_mode == COLORBLIND_BLUE_YELLOW:
+		return BY_EMPHASIS_COLOR
+	return CLAW_TRAIL_COLOR
+
+
+func _debris_color() -> Color:
+	if _colorblind_mode == COLORBLIND_RED_GREEN:
+		return RG_DEBRIS_COLOR
+	if _colorblind_mode == COLORBLIND_BLUE_YELLOW:
+		return BY_DEBRIS_COLOR
+	return DEBRIS_COLOR
 
 
 func _read_vector2(value: Variant) -> Vector2:

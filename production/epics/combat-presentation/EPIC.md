@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 10 stories tracked
+> **Stories**: 11 stories tracked
 
 ## Overview
 
@@ -32,8 +32,8 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | TR-combatfx-005 | Damage number size, color, and animation communicate damage tier. | ADR-0002 partial |
 | TR-combatfx-006 | Perfect parry, character hit, and enemy crit flash effects use authored durations and alpha. | ADR-0002 partial |
 | TR-combatfx-007 | Combat presentation work stays within the 3ms frame budget. | Gap |
-| TR-combatfx-008 | Colorblind mode remaps particle colors to the accessibility palette. | Gap |
-| TR-combatfx-009 | Low-HP focus mode reduces screen shake intensity by 30%. | Gap |
+| TR-combatfx-008 | Colorblind mode remaps particle colors to the accessibility palette. | ADR-0002, Story011 |
+| TR-combatfx-009 | Low-HP focus mode reduces screen shake intensity by 30%. | ADR-0002, Story011 |
 | TR-combatfx-010 | Player runtime character art uses AnimatedSprite2D + SpriteFrames frame animation instead of static Sprite2D art. | ADR-0005 partial |
 
 ## Stories
@@ -50,6 +50,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 008 | Damage Number Tier Polish | Visual/Feel | Complete | ADR-0001, ADR-0002 |
 | 009 | Boss Phase Transition Signal Contract | Integration | Complete | ADR-0002 |
 | 010 | Boss Phase Visual Feedback | Visual/Feel | Complete | ADR-0002 |
+| 011 | Colorblind Combat VFX + Focus Shake Accessibility | Accessibility/Integration | Complete | ADR-0002 |
 
 ## Definition of Done
 
@@ -63,7 +64,7 @@ This epic is complete when:
 
 ## Next Step
 
-Continue with colorblind remaps, performance-budget checks, low-HP focus shake
-reduction, boss phase audio/HUD follow-up, and remaining weapon presentation
-variants. The epic stays In Progress until all feedback modes satisfy
+Continue with performance-budget checks, particle-count budget enforcement,
+boss phase audio/HUD follow-up, and remaining weapon presentation variants.
+The epic stays In Progress until all feedback modes satisfy
 `design/gdd/combat-presentation.md`.

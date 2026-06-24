@@ -13,6 +13,7 @@ signal menu_main_menu_requested
 signal menu_exit_requested
 signal menu_save_slot_requested(slot: int)
 signal menu_load_slot_requested(slot: int)
+signal colorblind_mode_changed(mode: StringName)
 
 const HP_HEALTHY_COLOR: Color = Color("#ECC94B")
 const HP_MID_COLOR: Color = Color("#D9B84A")
@@ -521,12 +522,15 @@ func get_hud_scale() -> float:
 func set_colorblind_mode(mode: StringName) -> void:
 	if mode != COLORBLIND_RED_GREEN and mode != COLORBLIND_BLUE_YELLOW:
 		mode = COLORBLIND_NONE
+	var previous_mode: StringName = _colorblind_mode
 	_colorblind_mode = mode
 	if _colorblind_option != null:
 		_colorblind_option.select(_colorblind_index_for_mode(mode))
 	_hp_color = _hp_color_for_ratio(_hp_ratio)
 	if _hp_bar != null:
 		_apply_progress_color(_hp_bar, _hp_color)
+	if _colorblind_mode != previous_mode:
+		colorblind_mode_changed.emit(_colorblind_mode)
 
 
 func get_colorblind_mode() -> StringName:

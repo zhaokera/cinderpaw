@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-24" name="report_373" tests="44" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="combat_presentation_test" package="tests/unit/presentation" timestamp="2026-06-24T15:23:34" hostname="localhost" tests="22" failures="0" errors="0" skipped="0" flaky="0" time="0.163">
+		<testcase name="test_normal_hit_spawns_damage_number_sparks_hitstop_and_shake" classname="combat_presentation_test" time="0.010">
+		</testcase>
+		<testcase name="test_crit_hit_uses_larger_gold_feedback" classname="combat_presentation_test" time="0.003">
+		</testcase>
+		<testcase name="test_damage_number_tiers_match_gdd_size_color_and_outline" classname="combat_presentation_test" time="0.009">
+		</testcase>
+		<testcase name="test_damage_number_records_gdd_float_distance_and_lifetime" classname="combat_presentation_test" time="0.002">
+		</testcase>
+		<testcase name="test_damage_number_boundary_values_clamp_to_valid_tiers" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_hit_event_prefers_final_damage_metadata_for_runtime_core_chain" classname="combat_presentation_test" time="0.007">
+		</testcase>
+		<testcase name="test_rapid_damage_numbers_cleanup_without_stale_active_entries" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_kill_event_uses_stronger_hitstop_and_debris" classname="combat_presentation_test" time="0.007">
+		</testcase>
+		<testcase name="test_hit_feedback_uses_textured_sprite_vfx_not_color_rect_blocks" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_hit_event_can_disable_damage_number_without_suppressing_impact_feedback" classname="combat_presentation_test" time="0.007">
+		</testcase>
+		<testcase name="test_colorblind_modes_remap_combat_particle_palette" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_focus_mode_reduces_screen_shake_intensity_without_shortening_duration" classname="combat_presentation_test" time="0.007">
+		</testcase>
+		<testcase name="test_focus_mode_reduces_parry_boss_and_restores_after_exit" classname="combat_presentation_test" time="0.005">
+		</testcase>
+		<testcase name="test_kill_debris_uses_textured_sprite_vfx_not_color_rect_blocks" classname="combat_presentation_test" time="0.008">
+		</testcase>
+		<testcase name="test_perfect_parry_spawns_flash_and_radial_textured_sparks" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_perfect_parry_flash_uses_textured_overlay_not_color_rect" classname="combat_presentation_test" time="0.007">
+		</testcase>
+		<testcase name="test_cat_claw_attack_spawns_three_textured_slash_trails" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_non_cat_claw_attack_does_not_spawn_claw_trails" classname="combat_presentation_test" time="0.007">
+		</testcase>
+		<testcase name="test_dodge_event_spawns_three_textured_afterimages_with_gdd_alpha_steps" classname="combat_presentation_test" time="0.007">
+		</testcase>
+		<testcase name="test_boss_phase_transition_spawns_textured_overlay_and_metal_debris" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_boss_phase_debris_expires_after_gdd_lifetime" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_effects_expire_after_their_lifetime" classname="combat_presentation_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="main_scene_hud_settings_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-24T15:23:34" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.057">
+		<testcase name="test_damage_number_toggle_controls_runtime_hit_numbers_without_muting_impact" classname="main_scene_hud_settings_runtime_test" time="0.028">
+		</testcase>
+		<testcase name="test_battle_summary_toggle_opens_lesson_panel_on_player_death" classname="main_scene_hud_settings_runtime_test" time="0.005">
+		</testcase>
+		<testcase name="test_runtime_progress_state_hands_off_hud_accessibility_settings" classname="main_scene_hud_settings_runtime_test" time="0.006">
+		</testcase>
+		<testcase name="test_hud_colorblind_mode_syncs_to_runtime_combat_particles" classname="main_scene_hud_settings_runtime_test" time="0.004">
+		</testcase>
+		<testcase name="test_player_focus_signal_reduces_runtime_combat_screen_shake" classname="main_scene_hud_settings_runtime_test" time="0.003">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="main_scene_player_attack_core_chain_test" package="tests/unit/gameplay" timestamp="2026-06-24T15:23:34" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.013">
+		<testcase name="test_player_light_attack_damages_enemy_through_core_chain_once" classname="main_scene_player_attack_core_chain_test" time="0.005">
+		</testcase>
+		<testcase name="test_electro_bell_runtime_hit_applies_slow_to_enemy_status_component" classname="main_scene_player_attack_core_chain_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="main_scene_enemy_attack_core_chain_test" package="tests/unit/gameplay" timestamp="2026-06-24T15:23:34" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.013">
+		<testcase name="test_enemy_attack_tell_then_active_hitbox_damages_player_once" classname="main_scene_enemy_attack_core_chain_test" time="0.004">
+		</testcase>
+		<testcase name="test_enemy_attack_rejects_reentry_during_tell_and_recovers" classname="main_scene_enemy_attack_core_chain_test" time="0.003">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="main_scene_visual_contract_test" package="tests/unit/gameplay" timestamp="2026-06-24T15:23:34" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.020">
+		<testcase name="test_runtime_characters_use_animated_sprite_frames" classname="main_scene_visual_contract_test" time="0.003">
+		</testcase>
+		<testcase name="test_main_scene_startup_has_no_visible_gameplay_color_rect_blocks" classname="main_scene_visual_contract_test" time="0.005">
+		</testcase>
+		<testcase name="test_main_scene_routes_boss_phase_transition_source_to_combat_presentation" classname="main_scene_visual_contract_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="story_004_focus_mode_signals_test" package="tests/unit/health" timestamp="2026-06-24T15:23:34" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.049">
+		<testcase name="test_focus_activates_at_25_percent_when_combat_is_active" classname="story_004_focus_mode_signals_test" time="0.002">
+		</testcase>
+		<testcase name="test_focus_does_not_activate_at_low_hp_without_active_combat" classname="story_004_focus_mode_signals_test" time="0.008">
+		</testcase>
+		<testcase name="test_focus_hysteresis_holds_at_28_percent_and_exits_above_it" classname="story_004_focus_mode_signals_test" time="0.005">
+		</testcase>
+		<testcase name="test_focus_exits_when_active_enemy_count_reaches_zero" classname="story_004_focus_mode_signals_test" time="0.006">
+		</testcase>
+		<testcase name="test_focus_signal_emits_only_on_state_transitions" classname="story_004_focus_mode_signals_test" time="0.006">
+		</testcase>
+		<testcase name="test_revive_resets_focus_mode_and_emits_false_transition" classname="story_004_focus_mode_signals_test" time="0.006">
+		</testcase>
+		<testcase name="test_apply_damage_emits_focus_after_milestones_and_before_death" classname="story_004_focus_mode_signals_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="6" name="story_007_phase_transition_start_signal_contract_test" package="tests/unit/boss" timestamp="2026-06-24T15:23:34" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.021">
+		<testcase name="test_transition_started_signal_waits_for_ai_idle_and_emits_metadata_once" classname="story_007_phase_transition_start_signal_contract_test" time="0.002">
+		</testcase>
+		<testcase name="test_health_threshold_ordinals_preserve_actual_phase_start_order" classname="story_007_phase_transition_start_signal_contract_test" time="0.007">
+		</testcase>
+		<testcase name="test_transition_started_signal_filters_foreign_entity_health_events" classname="story_007_phase_transition_start_signal_contract_test" time="0.005">
+		</testcase>
+	</testsuite>
+</testsuites>

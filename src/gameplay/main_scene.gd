@@ -49,14 +49,17 @@ func _ready() -> void:
 	_hud.menu_exit_requested.connect(_on_menu_exit_requested)
 	_hud.menu_save_slot_requested.connect(_on_menu_save_slot_requested)
 	_hud.menu_load_slot_requested.connect(_on_menu_load_slot_requested)
+	_hud.colorblind_mode_changed.connect(_on_hud_colorblind_mode_changed)
 	_player.player_health_changed.connect(_on_player_health_changed)
 	_player.player_died.connect(_on_player_died)
 	_player.attack_landed.connect(_on_player_attack_landed)
 	_player.attack_started.connect(_combat_presentation.on_weapon_attack_event)
 	_player.dodge_started.connect(_combat_presentation.on_dodge_event)
+	_connect_player_focus_mode_signal()
 	_enemy.enemy_health_changed.connect(_on_enemy_health_changed)
 	_enemy.enemy_defeated.connect(_on_enemy_defeated)
 	_combat_presentation.set_camera($Player/Camera2D)
+	_sync_combat_presentation_accessibility_settings()
 
 	_hud.update_hp(_player.get_current_hp(), _player.get_max_hp())
 	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), 1, "Shadow Beast")
@@ -276,6 +279,7 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_update_weapon_hud()
 	if snapshot.has("settings"):
 		_hud.restore_settings_state(Dictionary(snapshot.get("settings", {})))
+	_sync_combat_presentation_accessibility_settings()
 
 
 func grant_currency(amount: int) -> void:
@@ -415,6 +419,15 @@ func are_damage_numbers_enabled() -> bool:
 	return _hud.are_damage_numbers_enabled()
 
 
+func set_colorblind_mode(mode: StringName) -> void:
+	_hud.set_colorblind_mode(mode)
+	_sync_combat_presentation_accessibility_settings()
+
+
+func get_colorblind_mode() -> StringName:
+	return _hud.get_colorblind_mode()
+
+
 func request_weapon_swap() -> bool:
 	if _weapon_component == null:
 		return false
@@ -469,6 +482,10 @@ func _handle_boss_phase_transition_started(entity_id: int, phase: int, metadata:
 			String(enriched_metadata.get("display_name", "Shadow Beast"))
 		)
 	_combat_presentation.on_boss_phase_transition_started(entity_id, phase, enriched_metadata)
+
+
+func _on_hud_colorblind_mode_changed(mode: StringName) -> void:
+	_combat_presentation.set_colorblind_mode(mode)
 
 
 func _capture_player_state() -> Dictionary:
@@ -709,6 +726,20 @@ func _setup_enemy_attack_core_chain() -> void:
 		_enemy.set_attack_target(_player)
 	if not _enemy.enemy_attack_landed.is_connected(_on_enemy_attack_landed):
 		_enemy.enemy_attack_landed.connect(_on_enemy_attack_landed)
+
+
+func _connect_player_focus_mode_signal() -> void:
+	var health: Node = _player.get_node_or_null("HealthComponent")
+	if health == null or not health.has_signal("on_focus_mode_changed"):
+		return
+	var focus_signal: Signal = health.get("on_focus_mode_changed")
+	var focus_callback := Callable(_combat_presentation, "on_focus_mode_changed")
+	if not focus_signal.is_connected(focus_callback):
+		focus_signal.connect(focus_callback)
+
+
+func _sync_combat_presentation_accessibility_settings() -> void:
+	_combat_presentation.set_colorblind_mode(_hud.get_colorblind_mode())
 
 
 func _on_weapon_changed(weapon: Resource) -> void:
