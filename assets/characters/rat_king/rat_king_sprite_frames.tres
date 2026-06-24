@@ -1,0 +1,141 @@
+[gd_resource type="SpriteFrames" load_steps=25 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/idle/rat_king_idle_000.png" id="1_idle0"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/idle/rat_king_idle_001.png" id="2_idle1"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/idle/rat_king_idle_002.png" id="3_idle2"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/attack_tell/rat_king_attack_tell_000.png" id="4_tell0"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/attack_tell/rat_king_attack_tell_001.png" id="5_tell1"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/attack_tell/rat_king_attack_tell_002.png" id="6_tell2"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/attack/rat_king_attack_000.png" id="7_attack0"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/attack/rat_king_attack_001.png" id="8_attack1"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/attack/rat_king_attack_002.png" id="9_attack2"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/hurt/rat_king_hurt_000.png" id="10_hurt0"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/hurt/rat_king_hurt_001.png" id="11_hurt1"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/hurt/rat_king_hurt_002.png" id="12_hurt2"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/death/rat_king_death_000.png" id="13_death0"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/death/rat_king_death_001.png" id="14_death1"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/death/rat_king_death_002.png" id="15_death2"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/phase_1_intro/rat_king_phase_1_intro_000.png" id="16_phase10"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/phase_1_intro/rat_king_phase_1_intro_001.png" id="17_phase11"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/phase_1_intro/rat_king_phase_1_intro_002.png" id="18_phase12"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/phase_2_rebuild/rat_king_phase_2_rebuild_000.png" id="19_phase20"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/phase_2_rebuild/rat_king_phase_2_rebuild_001.png" id="20_phase21"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/phase_2_rebuild/rat_king_phase_2_rebuild_002.png" id="21_phase22"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/phase_3_overload/rat_king_phase_3_overload_000.png" id="22_phase30"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/phase_3_overload/rat_king_phase_3_overload_001.png" id="23_phase31"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/phase_3_overload/rat_king_phase_3_overload_002.png" id="24_phase32"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_idle0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_idle1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_idle2")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_tell0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_tell1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_tell2")
+}],
+"loop": true,
+"name": &"attack_tell",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_attack0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_attack1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_attack2")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("10_hurt0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_hurt1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_hurt2")
+}],
+"loop": false,
+"name": &"hurt",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("13_death0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_death1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_death2")
+}],
+"loop": false,
+"name": &"death",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("16_phase10")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_phase11")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_phase12")
+}],
+"loop": false,
+"name": &"phase_1_intro",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("19_phase20")
+}, {
+"duration": 1.0,
+"texture": ExtResource("20_phase21")
+}, {
+"duration": 1.0,
+"texture": ExtResource("21_phase22")
+}],
+"loop": false,
+"name": &"phase_2_rebuild",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("22_phase30")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_phase31")
+}, {
+"duration": 1.0,
+"texture": ExtResource("24_phase32")
+}],
+"loop": true,
+"name": &"phase_3_overload",
+"speed": 8.0
+}]

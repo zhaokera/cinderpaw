@@ -8,15 +8,30 @@
   SceneManagement Story006 deferred unload/cache eviction、
   SceneManagement Story007 fast travel preload/scene change、AudioSystem
   Story001 autoload bus/pool baseline、AudioSystem Story002 scene transition
-  audio fades、AudioSystem Story003 combat/health event audio adapters 已完成；
-  下一步按 GDD/架构/Epic 状态推进 SceneManager memory-budget verification、
-  UI menu audio、Boss music state transitions、same-SFX merge 和 real audio
-  asset import stories，以及
+  audio fades、AudioSystem Story003 combat/health event audio adapters、
+  CombatPresentation Story014 Rat King boss frame animation slice 已完成；
+  下一步按 GDD/架构/Epic 状态推进 RatKingBoss runtime scene/MainScene boss
+  replacement、SceneManager memory-budget verification、UI menu audio、Boss
+  music state transitions、same-SFX merge 和 real audio asset import stories，以及
   玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Combat Presentation Story 014: Rat King Boss Frame Animation Slice —
+  新增 image-generated Rat King boss sprite sheet，复制到
+  `assets/characters/rat_king/source/`，通过 chroma-key removal 生成 alpha
+  source，再切成 192x192 transparent runtime PNG 帧；`RatKingCharacter`
+  使用 `AnimatedSprite2D + SpriteFrames`，提供 `idle`、`attack_tell`、
+  `attack`、`hurt`、`death`、`phase_1_intro`、`phase_2_rebuild` 和
+  `phase_3_overload` 8 个动画状态，每个 3 帧。新增
+  `scenes/characters/rat_king.tscn`、`src/characters/rat_king.gd`、
+  `assets/characters/rat_king/rat_king_sprite_frames.tres` 和
+  `tests/unit/gameplay/rat_king_character_animation_test.gd`；更新
+  `design/assets/asset-manifest.md` 与 `design/assets/entity-inventory.md`，
+  Rat King 状态从 Needed 推进到 Partial。通过 RED `report_463`、import
+  correction `report_464`、GREEN `report_466` `2/2` 验证；MCP evidence 记录于
+  `production/qa/evidence/rat-king-boss-frame-animation-2026-06-25.md`。
 - Audio System Story 003: Combat + Health Event Audio Adapters —
   `AudioSystem` 现在提供 gameplay SFX event adapters：weapon attack
   (`sfx_claw_attack`/`sfx_blade_attack`/`sfx_bone_attack`/`sfx_bell_attack`)、

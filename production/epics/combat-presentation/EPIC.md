@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: Complete
-> **Stories**: 13 stories tracked
+> **Stories**: 14 stories tracked
 
 ## Overview
 
@@ -53,6 +53,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 011 | Colorblind Combat VFX + Focus Shake Accessibility | Accessibility/Integration | Complete | ADR-0002 |
 | 012 | Particle Budget + Performance Guardrails | Logic/Performance | Complete | ADR-0002 |
 | 013 | Weapon Style VFX Variants | Visual/Feel | Complete | ADR-0002, ADR-0016 |
+| 014 | Rat King Boss Frame Animation Slice | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
 
 ## Definition of Done
 
@@ -66,8 +67,8 @@ This epic is complete when:
 
 ## Completion Evidence
 
-Combat Presentation has all 13 tracked stories complete. Story013 closes the
-remaining weapon presentation variants for long-tail `trail_blade`, fish-bone
-`wave_bone`, and electro-bell `arc_bell`; final GdUnit, headless smoke, Godot
-MCP runtime probe, clean-log, and screenshot evidence is recorded in
-`production/qa/evidence/weapon-style-vfx-variants-2026-06-24.md`.
+Combat Presentation has all 14 tracked stories complete. Story014 adds the
+first Rat King boss frame-animation asset slice so the MVP boss no longer exists
+only as data. Full runtime BossConfig/AI scene integration remains downstream
+gameplay work; Story014 evidence is recorded in
+`production/qa/evidence/rat-king-boss-frame-animation-2026-06-25.md`.
