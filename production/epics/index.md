@@ -18,4 +18,4 @@ Engine: Godot 4.6.3
 | save-system | Feature | Save System | save-system.md | 4 stories | In Progress |
 | death-respawn | Feature | Death & Respawn | death-respawn.md | 6 stories | In Progress |
 | hud-ui | Presentation | HUD/UI | hud-ui.md | 6 stories | Complete |
-| combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 4 stories tracked | In Progress |
+| combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 7 stories tracked | In Progress |

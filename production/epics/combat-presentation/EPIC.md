@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 6 stories tracked
+> **Stories**: 7 stories tracked
 
 ## Overview
 
@@ -46,6 +46,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 004 | Dodge Afterimage + Cinderpaw Dodge Animation Slice | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
 | 005 | Cinderpaw Hurt, Death, and Revive Animation Slice | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005, ADR-0019 |
 | 006 | Cinderpaw Jump and Fall Animation Slice | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
+| 007 | Textured Parry Flash + Main Scene Visual Contract | Visual/Feel | Complete | ADR-0001, ADR-0002 |
 
 ## Definition of Done
 

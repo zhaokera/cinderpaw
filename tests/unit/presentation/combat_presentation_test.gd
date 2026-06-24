@@ -108,6 +108,18 @@ func test_perfect_parry_spawns_flash_and_radial_textured_sparks() -> void:
 	assert_bool(_all_sprite_children_have_textures()).is_true()
 
 
+func test_perfect_parry_flash_uses_textured_overlay_not_color_rect() -> void:
+	presentation.on_parry_event({
+		"parry_type": &"perfect",
+		"position": Vector2(220, 210),
+	})
+
+	assert_int(presentation.get_active_flash_count()).is_equal(1)
+	assert_int(_count_descendants_of_type(presentation, "ColorRect")).is_equal(0)
+	assert_int(_count_descendants_of_type(presentation, "TextureRect")).is_greater_equal(1)
+	assert_bool(_all_texture_rect_descendants_have_textures(presentation)).is_true()
+
+
 func test_cat_claw_attack_spawns_three_textured_slash_trails() -> void:
 	presentation.on_weapon_attack_event({
 		"weapon_id": &"cat_claw",
@@ -183,9 +195,28 @@ func _count_children_of_type(type_name: String) -> int:
 	return count
 
 
+func _count_descendants_of_type(root: Node, type_name: String) -> int:
+	var count: int = 0
+	for child: Node in root.get_children():
+		if child.is_class(type_name):
+			count += 1
+		count += _count_descendants_of_type(child, type_name)
+	return count
+
+
 func _all_sprite_children_have_textures() -> bool:
 	for child: Node in presentation.get_children():
 		var sprite: Sprite2D = child as Sprite2D
 		if sprite != null and sprite.texture == null:
+			return false
+	return true
+
+
+func _all_texture_rect_descendants_have_textures(root: Node) -> bool:
+	for child: Node in root.get_children():
+		var texture_rect: TextureRect = child as TextureRect
+		if texture_rect != null and texture_rect.texture == null:
+			return false
+		if not _all_texture_rect_descendants_have_textures(child):
 			return false
 	return true

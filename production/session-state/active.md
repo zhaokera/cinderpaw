@@ -5,6 +5,14 @@
   Main Menu + Save/Load Shell
 
 ## Last Completed Task
+- Combat Presentation Story 007: Textured Parry Flash + Main Scene Visual Contract —
+  PERFECT parry full-screen flash now uses image-generated
+  `combat_parry_flash_overlay.png` through a `TextureRect` overlay instead of a
+  visible `ColorRect`; `main_scene_visual_contract_test.gd` locks Player and
+  Enemy runtime visuals to `AnimatedSprite2D + SpriteFrames` and verifies no
+  visible gameplay `ColorRect` blocks at startup. Verified by RED/GREEN,
+  focused Story007 14/14, related visual regression 39/39, Godot headless
+  smoke, and Godot MCP runtime probe/log/screenshot evidence.
 - HUD/UI Story 005: Main Menu + Save/Load Shell — `HUDManager` 现在提供
   main menu 与 save/load shell，按钮只发 typed signals；`MainScene` 作为薄
   adapter 收集 `SaveInfo` 风格槽位快照、调用既有 runtime save/load API，
@@ -1549,3 +1557,12 @@
 - Next recommended: implement boss phase presentation or damage-number polish;
   expand Cinderpaw later with jump/fall/hurt/death/revive frame sets under the
   same `AnimatedSprite2D + SpriteFrames` pipeline.
+
+## Session Extract — /dev-story 2026-06-24
+
+- Story: `production/epics/combat-presentation/story-007-textured-parry-flash-visual-contract.md` — Textured Parry Flash + Main Scene Visual Contract
+- Files changed: `src/presentation/combat_presentation.gd`, `tests/unit/presentation/combat_presentation_test.gd`, `tests/unit/gameplay/main_scene_visual_contract_test.gd`, `assets/generated/combat_parry_flash_overlay.png`, `design/assets/asset-manifest.md`, `production/epics/combat-presentation/EPIC.md`, `production/epics/combat-presentation/story-007-textured-parry-flash-visual-contract.md`, `production/epics/index.md`, `production/qa/evidence/textured-parry-flash-visual-contract-2026-06-24.md`, `AGENTS.md`
+- Test written: `tests/unit/gameplay/main_scene_visual_contract_test.gd`; `tests/unit/presentation/combat_presentation_test.gd` extended with textured parry flash regression
+- Verification: RED failed on `ColorRect` parry flash (`reports/report_350/`); GREEN focused Story007 `14/14` (`reports/report_353/`); related visual regression `39/39` (`reports/report_354/`); headless main scene smoke clean; Godot MCP runtime probe/log/screenshot evidence captured
+- Blockers: None
+- Next: /code-review changed files then continue Combat Presentation boss phase feedback, damage-number polish, colorblind remaps, performance-budget checks, or Save System TR-save-007 async write hardening

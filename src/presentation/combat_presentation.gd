@@ -34,6 +34,7 @@ const DODGE_AFTERIMAGE_COLOR: Color = Color.WHITE
 const HIT_SPARK_TEXTURE: Texture2D = preload("res://assets/generated/combat_hit_spark.png")
 const ENEMY_DEBRIS_TEXTURE: Texture2D = preload("res://assets/generated/combat_enemy_debris.png")
 const PARRY_SPARK_TEXTURE: Texture2D = preload("res://assets/generated/combat_parry_spark.png")
+const PARRY_FLASH_TEXTURE: Texture2D = preload("res://assets/generated/combat_parry_flash_overlay.png")
 const CLAW_TRAIL_TEXTURE: Texture2D = preload("res://assets/generated/combat_claw_trail.png")
 const SPARK_SPRITE_SCALE: Vector2 = Vector2(0.16, 0.16)
 const DEBRIS_SPRITE_SCALE: Vector2 = Vector2(0.12, 0.12)
@@ -275,8 +276,11 @@ func _spawn_screen_flash(alpha: float, duration_sec: float) -> void:
 	_last_flash_alpha = clampf(alpha, 0.0, 1.0)
 	var layer := CanvasLayer.new()
 	layer.layer = 100
-	var flash := ColorRect.new()
-	flash.color = Color(1.0, 1.0, 1.0, _last_flash_alpha)
+	var flash := TextureRect.new()
+	flash.texture = PARRY_FLASH_TEXTURE
+	flash.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	flash.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	flash.modulate = Color(1.0, 1.0, 1.0, _last_flash_alpha)
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
 	flash.offset_left = 0.0
