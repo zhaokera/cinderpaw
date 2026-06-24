@@ -1,6 +1,8 @@
 ## Feature-layer SaveSystem for JSON slot persistence.
 extends Node
 
+const SaveInfoResource: Script = preload("res://src/feature/save_info.gd")
+
 signal on_save_written(slot: int)
 signal on_save_loaded(slot: int)
 signal on_save_corrupted(slot: int, reason: String)
@@ -13,10 +15,12 @@ const DEFAULT_SAVE_DIRECTORY: String = "user://saves/"
 
 var _save_directory: String = DEFAULT_SAVE_DIRECTORY
 var _serializables: Array[Dictionary] = []
+var _migrations: Dictionary = {}
 var _last_loaded_data: Dictionary = {}
 var _last_load_from_backup: bool = false
 
 
+## Configures the save directory used by this SaveSystem instance.
 func configure_save_directory(save_directory: String) -> void:
 	if save_directory.is_empty():
 		_save_directory = DEFAULT_SAVE_DIRECTORY
@@ -27,6 +31,7 @@ func configure_save_directory(save_directory: String) -> void:
 	_ensure_save_directory()
 
 
+## Registers a serializable system under a unique save key.
 func register_serializable(system: Object, save_key: StringName) -> bool:
 	if system == null or save_key == &"":
 		return false
@@ -40,6 +45,7 @@ func register_serializable(system: Object, save_key: StringName) -> bool:
 	return true
 
 
+## Unregisters a serializable system by save key.
 func unregister_serializable(save_key: StringName) -> bool:
 	for index: int in range(_serializables.size()):
 		if _serializables[index]["key"] == save_key:
@@ -48,20 +54,42 @@ func unregister_serializable(save_key: StringName) -> bool:
 	return false
 
 
+## Registers a migration callback from one save format version to the next.
+func register_migration(from_version: int, migration: Callable) -> bool:
+	if from_version < 0 or from_version >= CURRENT_SAVE_VERSION:
+		return false
+	if not migration.is_valid() or _migrations.has(from_version):
+		return false
+	_migrations[from_version] = migration
+	return true
+
+
+## Unregisters a previously registered migration callback.
+func unregister_migration(from_version: int) -> bool:
+	if not _migrations.has(from_version):
+		return false
+	_migrations.erase(from_version)
+	return true
+
+
+## Writes a manual save to slots 1-3. Slot 0 is reserved for autosave.
 func manual_save(slot: int, player_state: Dictionary = {}, world_state: Dictionary = {}, settings: Dictionary = {}) -> bool:
 	if slot == AUTOSAVE_SLOT:
 		return false
 	return _execute_save(slot, false, player_state, world_state, settings)
 
 
+## Writes the reserved autosave slot.
 func auto_save(player_state: Dictionary = {}, world_state: Dictionary = {}, settings: Dictionary = {}) -> bool:
 	return _execute_save(AUTOSAVE_SLOT, true, player_state, world_state, settings)
 
 
+## Compatibility wrapper for manual save callers.
 func save_game(slot: int, player_state: Dictionary = {}, world_state: Dictionary = {}, settings: Dictionary = {}) -> bool:
 	return manual_save(slot, player_state, world_state, settings)
 
 
+## Loads one save slot and deserializes all registered systems.
 func load_game(slot: int) -> bool:
 	_last_loaded_data = {}
 	_last_load_from_backup = false
@@ -78,27 +106,66 @@ func load_game(slot: int) -> bool:
 		_last_load_from_backup = true
 		on_save_corrupted.emit(slot, "main_save_recovered_from_backup")
 
-	var version: int = int(Dictionary(loaded.get("_meta", {})).get("version", CURRENT_SAVE_VERSION))
-	_deserialize_registered_systems(Dictionary(loaded.get("systems", {})), version)
-	_last_loaded_data = loaded.duplicate(true)
+	var original_version: int = int(Dictionary(loaded.get("_meta", {})).get("version", CURRENT_SAVE_VERSION))
+	var migrated: Dictionary = _migrate_save_data(loaded, original_version)
+	if migrated.is_empty():
+		on_save_load_failed.emit(slot, "migration_failed")
+		return false
+
+	if original_version < CURRENT_SAVE_VERSION:
+		if not _write_slot_file(slot, migrated):
+			on_save_load_failed.emit(slot, "migration_write_failed")
+			return false
+
+	_deserialize_registered_systems(Dictionary(migrated.get("systems", {})), original_version)
+	_last_loaded_data = migrated.duplicate(true)
 	on_save_loaded.emit(slot)
 	return true
 
 
+## Returns whether a valid slot file exists.
 func has_save(slot: int) -> bool:
 	if not _is_valid_slot(slot):
 		return false
 	return FileAccess.file_exists(_slot_path(slot))
 
 
+## Returns UI-safe metadata for one slot without owning save-file rules in UI.
+func get_save_info(slot: int) -> RefCounted:
+	var info: RefCounted = SaveInfoResource.new(slot)
+	if not _is_valid_slot(slot):
+		return info
+
+	var path: String = _slot_path(slot)
+	var data: Dictionary = _read_valid_save(path)
+	if data.is_empty():
+		path = _backup_path(slot)
+		data = _read_valid_save(path)
+	if data.is_empty():
+		return info
+
+	var meta: Dictionary = Dictionary(data.get("_meta", {}))
+	info.exists = true
+	info.timestamp = String(meta.get("timestamp", ""))
+	info.play_time_sec = float(meta.get("play_time_sec", 0.0))
+	info.save_point_name = String(meta.get("save_point_name", ""))
+	info.version = int(meta.get("version", 0))
+	info.summary = Dictionary(meta.get("summary", {})).duplicate(true)
+	info.file_size_bytes = _get_file_size_bytes(path)
+	return info
+
+
+## Returns the last successfully loaded save data.
 func get_last_loaded_data() -> Dictionary:
 	return _last_loaded_data.duplicate(true)
 
 
+## Returns whether the last load used a backup file.
 func was_last_load_from_backup() -> bool:
 	return _last_load_from_backup
 
 
+## Returns the currently configured save directory.
 func get_save_directory() -> String:
 	return _save_directory
 
@@ -130,6 +197,7 @@ func _build_save_data(slot: int, is_auto: bool, player_state: Dictionary, world_
 			"is_auto": is_auto,
 			"save_point_name": "Autosave" if is_auto else "Manual Save",
 			"engine_version": Engine.get_version_info().get("string", ""),
+			"summary": _build_summary(player_state, world_state),
 		},
 		"player_state": player_state.duplicate(true),
 		"world_state": world_state.duplicate(true),
@@ -149,6 +217,27 @@ func _serialize_registered_systems() -> Dictionary:
 		if payload is Dictionary:
 			systems_data[String(key)] = Dictionary(payload).duplicate(true)
 	return systems_data
+
+
+func _migrate_save_data(data: Dictionary, from_version: int) -> Dictionary:
+	if from_version > CURRENT_SAVE_VERSION:
+		return {}
+
+	var current: Dictionary = data.duplicate(true)
+	var version: int = from_version
+	while version < CURRENT_SAVE_VERSION:
+		if not _migrations.has(version):
+			return {}
+		var migrated: Variant = Callable(_migrations[version]).call(current.duplicate(true))
+		if not migrated is Dictionary:
+			return {}
+		current = Dictionary(migrated).duplicate(true)
+		if not current.has("_meta") or not current["_meta"] is Dictionary:
+			return {}
+		current["_meta"]["version"] = version + 1
+		version += 1
+	current["_meta"]["version"] = CURRENT_SAVE_VERSION
+	return current
 
 
 func _deserialize_registered_systems(systems_data: Dictionary, version: int) -> void:
@@ -202,6 +291,16 @@ func _validate_save_structure(data: Dictionary) -> bool:
 	return data.has("player_state") and data.has("world_state") and data.has("settings") and data.has("systems")
 
 
+func _build_summary(player_state: Dictionary, world_state: Dictionary) -> Dictionary:
+	var summary: Dictionary = {}
+	for key: String in ["current_hp", "max_hp", "current_weapon", "currency", "scene_id"]:
+		if player_state.has(key):
+			summary[key] = player_state[key]
+	if world_state.has("defeated_bosses"):
+		summary["defeated_bosses"] = world_state["defeated_bosses"]
+	return summary
+
+
 func _write_text_file(path: String, content: String) -> bool:
 	var dir_path: String = path.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir_path):
@@ -214,6 +313,17 @@ func _write_text_file(path: String, content: String) -> bool:
 	file.store_string(content)
 	file.close()
 	return FileAccess.file_exists(path)
+
+
+func _get_file_size_bytes(path: String) -> int:
+	if not FileAccess.file_exists(path):
+		return 0
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return 0
+	var size: int = int(file.get_length())
+	file.close()
+	return size
 
 
 func _ensure_save_directory() -> void:

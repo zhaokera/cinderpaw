@@ -1,10 +1,16 @@
 # Active Session State
 
 ## Current Task
-- 持续实现 Cinderpaw 垂直切片；最近完成 Save System Story 001
-  Save Slots + Backup JSON Pipeline
+- 持续实现 Cinderpaw 垂直切片；最近完成 Save System Story 002
+  Version Migration + SaveInfo Metadata
 
 ## Last Completed Task
+- Save System Story 002: Version Migration + SaveInfo Metadata —
+  新增 `SaveInfo` 元数据对象、`SaveSystem.get_save_info()`、
+  `register_migration()` / `unregister_migration()`、`_meta.summary`
+  UI 摘要、旧版本迁移写回、缺失迁移/未来版本安全失败；通过 Story002
+  RED/GREEN、Save Story001+Story002 聚焦回归、Godot headless main-scene
+  smoke 与 Godot MCP 运行态验证
 - Save System Story 001: Save Slots + Backup JSON Pipeline —
   新增 `SaveSystem` Autoload，支持可配置存档目录、0 号自动存档槽、
   手动槽位保护、JSON `_meta/player_state/world_state/settings/systems`
@@ -36,6 +42,18 @@
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `src/feature/save_info.gd` — `SaveInfo` 元数据对象，提供 slot、autosave、
+  exists、timestamp、play time、save point、version、summary、file size 与
+  JSON-safe `to_dictionary()`
+- `src/feature/save_system.gd` — Story002 version migration pipeline、
+  SaveInfo metadata read API、summary builder、migration registration and
+  current-version write-back
+- `tests/unit/save/story_002_version_migration_save_info_metadata_test.gd` —
+  TDD 覆盖空/已保存槽位元数据、旧版本迁移、迁移写回、缺失迁移和未来版本失败
+- `production/epics/save-system/story-002-version-migration-save-info-metadata.md`,
+  `production/epics/save-system/EPIC.md`,
+  `production/qa/evidence/version-migration-save-info-metadata-2026-06-24.md` —
+  Story 状态、Epic 下一步与 QA/MCP 证据
 - `src/feature/save_system.gd` — SaveSystem Autoload/testable Node，提供
   autosave/manual save/load、slot validation、registered system order、
   JSON read/write、backup fallback 和 runtime state inspection API
@@ -107,10 +125,10 @@
 - Consistency check: found 1 conflict + 1 stale reference, both fixed
 
 ## Next Steps
-1. Save System Story 002 — Version Migration + SaveInfo Metadata
-2. HUD/UI Story 005 — Main Save/Load Menu Shell（已被 SaveSystem Story 001 解锁）
-3. Death & Respawn Story 004 — Savepoint Respawn Selection（仍需 SceneManager/SaveSystem 后续接线）
-4. `/design-review design/gdd/health-death.md` — 在新会话中验证修复后的 GDD
+1. Save System Story 003 — Autosave Trigger Adapters
+2. Save System Story 004 — MainScene SaveSystem Runtime Handoff
+3. HUD/UI Story 005 — Main Save/Load Menu Shell（SaveInfo 已解锁槽位展示）
+4. Gameplay runtime gap — advanced combat input wiring and Rat King runtime boss encounter
 
 ## Key Decisions Made (this session)
 - HP恢复：存档点回满+道具回复，无被动回复（维持紧张感）
