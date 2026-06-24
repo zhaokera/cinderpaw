@@ -152,3 +152,87 @@ func test_music_and_ambient_requests_are_safe_without_assets() -> void:
 	audio_system.stop_ambient(2.0)
 	assert_str(String(audio_system.get_current_ambient_id())).is_equal("")
 	assert_float(audio_system.get_ambient_fade_out_sec()).is_equal(2.0)
+
+
+func test_scene_load_start_forces_music_and_ambient_to_fade_out_over_two_seconds() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+
+	audio_system.play_music(&"mus_street", 3.0)
+	audio_system.play_ambient(&"amb_street", 3.0)
+
+	audio_system.on_scene_load_started(&"hub", &"clan_base", {
+		"display_name": "Clan Base",
+		"transition_duration_sec": 1.5,
+	})
+
+	assert_bool(bool(audio_system.is_scene_transition_audio_active())).is_true()
+	assert_str(String(audio_system.get_current_music_id())).is_equal("")
+	assert_str(String(audio_system.get_current_ambient_id())).is_equal("")
+	assert_float(audio_system.get_music_fade_out_sec()).is_equal(2.0)
+	assert_float(audio_system.get_ambient_fade_out_sec()).is_equal(2.0)
+
+	var transition_state: Dictionary = Dictionary(audio_system.get_scene_transition_audio_state())
+	assert_str(String(transition_state.get("target_scene_id", &""))).is_equal("hub")
+	assert_str(String(transition_state.get("spawn_point", &""))).is_equal("clan_base")
+	assert_dict(Dictionary(transition_state.get("metadata", {}))).contains_keys("display_name")
+
+
+func test_scene_change_crossfades_default_area_music_and_ambient_cues() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+
+	audio_system.on_scene_load_started(&"main", &"default", {})
+	audio_system.on_scene_changed(&"hub", &"main")
+
+	assert_bool(bool(audio_system.is_scene_transition_audio_active())).is_false()
+	assert_str(String(audio_system.get_current_music_id())).is_equal("mus_street")
+	assert_str(String(audio_system.get_current_ambient_id())).is_equal("amb_street")
+	assert_float(audio_system.get_music_fade_in_sec()).is_equal(3.0)
+	assert_float(audio_system.get_ambient_fade_in_sec()).is_equal(3.0)
+
+
+func test_scene_audio_cues_can_be_overridden_and_unknown_scene_stays_silent() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+
+	audio_system.configure_scene_audio_cues({
+		"factory": {
+			"music_id": &"mus_factory",
+			"ambient_id": &"amb_factory",
+			"crossfade_sec": 4.0,
+		},
+	})
+
+	audio_system.on_scene_changed(&"main", &"factory")
+
+	assert_str(String(audio_system.get_current_music_id())).is_equal("mus_factory")
+	assert_str(String(audio_system.get_current_ambient_id())).is_equal("amb_factory")
+	assert_float(audio_system.get_music_fade_in_sec()).is_equal(4.0)
+	assert_float(audio_system.get_ambient_fade_in_sec()).is_equal(4.0)
+
+	audio_system.stop_music(0.0)
+	audio_system.stop_ambient(0.0)
+	audio_system.on_scene_changed(&"factory", &"missing")
+
+	assert_str(String(audio_system.get_current_music_id())).is_equal("")
+	assert_str(String(audio_system.get_current_ambient_id())).is_equal("")
+
+
+func test_scene_load_failed_clears_transition_state_without_starting_new_cues() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+
+	audio_system.on_scene_load_started(&"main", &"default", {})
+	audio_system.on_scene_load_failed(&"main", &"timeout")
+
+	assert_bool(bool(audio_system.is_scene_transition_audio_active())).is_false()
+	assert_str(String(audio_system.get_current_music_id())).is_equal("")
+	assert_str(String(audio_system.get_current_ambient_id())).is_equal("")
+	var transition_state: Dictionary = Dictionary(audio_system.get_scene_transition_audio_state())
+	assert_str(String(transition_state.get("failed_scene_id", &""))).is_equal("main")
+	assert_str(String(transition_state.get("failed_reason", &""))).is_equal("timeout")

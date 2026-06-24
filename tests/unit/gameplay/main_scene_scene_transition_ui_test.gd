@@ -59,6 +59,37 @@ class FakeAsyncSceneManager:
 		on_scene_load_failed.emit(scene_id, reason)
 
 
+class FakeAudioSystem:
+	extends RefCounted
+
+	var load_started_calls: Array[Dictionary] = []
+	var changed_calls: Array[Dictionary] = []
+	var failed_calls: Array[Dictionary] = []
+
+	func on_scene_load_started(
+		scene_id: StringName,
+		spawn_point: StringName,
+		metadata: Dictionary
+	) -> void:
+		load_started_calls.append({
+			"scene_id": String(scene_id),
+			"spawn_point": String(spawn_point),
+			"metadata": metadata.duplicate(true),
+		})
+
+	func on_scene_changed(old_scene: StringName, new_scene: StringName) -> void:
+		changed_calls.append({
+			"old_scene": String(old_scene),
+			"new_scene": String(new_scene),
+		})
+
+	func on_scene_load_failed(scene_id: StringName, reason: StringName) -> void:
+		failed_calls.append({
+			"scene_id": String(scene_id),
+			"reason": String(reason),
+		})
+
+
 func before_test() -> void:
 	scene = MAIN_SCENE.instantiate() as Node2D
 	add_child(scene)
@@ -77,6 +108,8 @@ func after_test() -> void:
 func test_new_game_prefers_async_scene_request_and_shows_transition_shell() -> void:
 	var scene_manager := FakeAsyncSceneManager.new()
 	assert_bool(bool(scene.call("configure_scene_manager_runtime", scene_manager))).is_true()
+	var audio_system := FakeAudioSystem.new()
+	assert_bool(bool(scene.call("configure_audio_system_runtime", audio_system))).is_true()
 	var hud: Node = scene.get_node("HUD")
 	hud.call("show_main_menu", [])
 	scene.get_tree().paused = true
@@ -85,6 +118,9 @@ func test_new_game_prefers_async_scene_request_and_shows_transition_shell() -> v
 
 	assert_int(scene_manager.request_calls.size()).is_equal(1)
 	assert_int(scene_manager.change_calls.size()).is_equal(0)
+	assert_int(audio_system.load_started_calls.size()).is_equal(1)
+	assert_str(String(audio_system.load_started_calls[0].get("scene_id", ""))).is_equal("main")
+	assert_str(String(audio_system.load_started_calls[0].get("spawn_point", ""))).is_equal("default")
 	assert_bool(hud.call("is_menu_visible")).is_false()
 	assert_bool(bool(hud.call("is_scene_transition_visible"))).is_true()
 	assert_str(String(hud.call("get_scene_transition_label_text"))).is_equal("Scrap Alley")
@@ -93,11 +129,15 @@ func test_new_game_prefers_async_scene_request_and_shows_transition_shell() -> v
 	scene_manager.emit_changed()
 
 	assert_bool(bool(hud.call("is_scene_transition_visible"))).is_false()
+	assert_int(audio_system.changed_calls.size()).is_equal(1)
+	assert_str(String(audio_system.changed_calls[0].get("new_scene", ""))).is_equal("main")
 
 
 func test_async_scene_failure_hides_transition_and_reports_failure() -> void:
 	var scene_manager := FakeAsyncSceneManager.new()
 	assert_bool(bool(scene.call("configure_scene_manager_runtime", scene_manager))).is_true()
+	var audio_system := FakeAudioSystem.new()
+	assert_bool(bool(scene.call("configure_audio_system_runtime", audio_system))).is_true()
 	var hud: Node = scene.get_node("HUD")
 	hud.call("show_main_menu", [])
 
@@ -108,3 +148,6 @@ func test_async_scene_failure_hides_transition_and_reports_failure() -> void:
 
 	assert_bool(bool(hud.call("is_scene_transition_visible"))).is_false()
 	assert_str(String(hud.call("get_notification_text"))).is_equal("Load failed")
+	assert_int(audio_system.failed_calls.size()).is_equal(1)
+	assert_str(String(audio_system.failed_calls[0].get("scene_id", ""))).is_equal("main")
+	assert_str(String(audio_system.failed_calls[0].get("reason", ""))).is_equal("timeout")

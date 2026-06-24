@@ -9,6 +9,9 @@ signal sfx_requested(sfx_id: StringName, metadata: Dictionary)
 signal music_requested(music_id: StringName, metadata: Dictionary)
 signal ambient_requested(ambient_id: StringName, metadata: Dictionary)
 signal bus_volume_changed(bus_name: StringName, volume_percent: int)
+signal scene_transition_audio_started(scene_id: StringName, metadata: Dictionary)
+signal scene_transition_audio_completed(scene_id: StringName, metadata: Dictionary)
+signal scene_transition_audio_failed(scene_id: StringName, reason: StringName)
 
 const BUS_NAMES: Array[StringName] = [&"Master", &"Music", &"SFX", &"Ambient", &"UI"]
 const BUS_VOLUME_DEFAULTS: Dictionary = {
@@ -20,9 +23,24 @@ const BUS_VOLUME_DEFAULTS: Dictionary = {
 }
 const MAX_CONCURRENT_SFX: int = 16
 const MAX_SFX_DISTANCE_PX: float = 600.0
+const SCENE_TRANSITION_FORCE_FADE_SEC: float = 2.0
+const DEFAULT_SCENE_CROSSFADE_SEC: float = 3.0
+const DEFAULT_SCENE_AUDIO_CUES: Dictionary = {
+	"hub": {
+		"music_id": &"mus_hub",
+		"ambient_id": &"amb_hub",
+		"crossfade_sec": DEFAULT_SCENE_CROSSFADE_SEC,
+	},
+	"main": {
+		"music_id": &"mus_street",
+		"ambient_id": &"amb_street",
+		"crossfade_sec": DEFAULT_SCENE_CROSSFADE_SEC,
+	},
+}
 
 var _bus_volume_percent: Dictionary = {}
 var _audio_streams: Dictionary = {}
+var _scene_audio_cues: Dictionary = {}
 var _sfx_players: Array[AudioStreamPlayer2D] = []
 var _music_player: AudioStreamPlayer
 var _ambient_player: AudioStreamPlayer
@@ -35,9 +53,16 @@ var _music_fade_in_sec: float = 0.0
 var _music_fade_out_sec: float = 0.0
 var _ambient_fade_in_sec: float = 0.0
 var _ambient_fade_out_sec: float = 0.0
+var _scene_transition_audio_active: bool = false
+var _scene_transition_target_scene_id: StringName = &""
+var _scene_transition_spawn_point: StringName = &""
+var _scene_transition_metadata: Dictionary = {}
+var _scene_transition_failed_scene_id: StringName = &""
+var _scene_transition_failed_reason: StringName = &""
 
 
 func _ready() -> void:
+	configure_scene_audio_cues(DEFAULT_SCENE_AUDIO_CUES)
 	_initialize_buses()
 	_initialize_audio_players()
 
@@ -226,6 +251,74 @@ func get_ambient_fade_out_sec() -> float:
 	return _ambient_fade_out_sec
 
 
+func configure_scene_audio_cues(scene_audio_cues: Dictionary) -> void:
+	_scene_audio_cues.clear()
+	for scene_key: Variant in scene_audio_cues.keys():
+		var cue: Variant = scene_audio_cues.get(scene_key)
+		if not cue is Dictionary:
+			continue
+		_scene_audio_cues[String(scene_key)] = _normalize_scene_audio_cue(Dictionary(cue))
+
+
+func get_scene_audio_cue(scene_id: StringName) -> Dictionary:
+	return Dictionary(_scene_audio_cues.get(String(scene_id), {})).duplicate(true)
+
+
+func is_scene_transition_audio_active() -> bool:
+	return _scene_transition_audio_active
+
+
+func get_scene_transition_audio_state() -> Dictionary:
+	return {
+		"active": _scene_transition_audio_active,
+		"target_scene_id": _scene_transition_target_scene_id,
+		"spawn_point": _scene_transition_spawn_point,
+		"metadata": _scene_transition_metadata.duplicate(true),
+		"failed_scene_id": _scene_transition_failed_scene_id,
+		"failed_reason": _scene_transition_failed_reason,
+	}
+
+
+func on_scene_load_started(
+	scene_id: StringName,
+	spawn_point: StringName,
+	metadata: Dictionary
+) -> void:
+	_scene_transition_audio_active = true
+	_scene_transition_target_scene_id = scene_id
+	_scene_transition_spawn_point = spawn_point
+	_scene_transition_metadata = metadata.duplicate(true)
+	_scene_transition_failed_scene_id = &""
+	_scene_transition_failed_reason = &""
+	stop_music(SCENE_TRANSITION_FORCE_FADE_SEC)
+	stop_ambient(SCENE_TRANSITION_FORCE_FADE_SEC)
+	scene_transition_audio_started.emit(scene_id, get_scene_transition_audio_state())
+
+
+func on_scene_changed(_old_scene: StringName, new_scene: StringName) -> void:
+	_scene_transition_audio_active = false
+	_scene_transition_target_scene_id = new_scene
+	var cue: Dictionary = get_scene_audio_cue(new_scene)
+	var crossfade_sec: float = maxf(
+		0.0,
+		float(cue.get("crossfade_sec", DEFAULT_SCENE_CROSSFADE_SEC))
+	)
+	var music_id: StringName = StringName(String(cue.get("music_id", "")))
+	var ambient_id: StringName = StringName(String(cue.get("ambient_id", "")))
+	if music_id != &"":
+		play_music(music_id, crossfade_sec)
+	if ambient_id != &"":
+		play_ambient(ambient_id, crossfade_sec)
+	scene_transition_audio_completed.emit(new_scene, get_scene_transition_audio_state())
+
+
+func on_scene_load_failed(scene_id: StringName, reason: StringName) -> void:
+	_scene_transition_audio_active = false
+	_scene_transition_failed_scene_id = scene_id
+	_scene_transition_failed_reason = reason
+	scene_transition_audio_failed.emit(scene_id, reason)
+
+
 func _initialize_buses() -> void:
 	for bus_name: StringName in BUS_NAMES:
 		var default_volume: int = int(BUS_VOLUME_DEFAULTS[bus_name])
@@ -342,3 +435,14 @@ func _lowest_priority_request_index() -> int:
 
 func _is_managed_bus(bus_name: StringName) -> bool:
 	return BUS_VOLUME_DEFAULTS.has(bus_name)
+
+
+func _normalize_scene_audio_cue(cue: Dictionary) -> Dictionary:
+	return {
+		"music_id": StringName(String(cue.get("music_id", ""))),
+		"ambient_id": StringName(String(cue.get("ambient_id", ""))),
+		"crossfade_sec": maxf(
+			0.0,
+			float(cue.get("crossfade_sec", DEFAULT_SCENE_CROSSFADE_SEC))
+		),
+	}

@@ -4,7 +4,7 @@
 定义音频系统的技术架构：5 条音频总线（Master/Music/SFX/Ambient/UI），音效池化（max 16 并发），空间音频（AudioStreamPlayer2D），音乐状态机（区域主题+Boss战斗切换）。
 
 ## Status
-Proposed
+Accepted
 
 ## Date
 2026-06-22

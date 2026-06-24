@@ -70,6 +70,24 @@ func test_runtime_characters_use_animated_sprite_frames() -> void:
 	_assert_required_animations(enemy_sprite, ENEMY_REQUIRED_ANIMATIONS)
 
 
+func test_runtime_characters_do_not_use_legacy_single_image_textures() -> void:
+	assert_bool(_scene_file_text_contains("assets/generated/cinderpaw_player.png")).is_false()
+	assert_bool(_scene_file_text_contains("assets/generated/shadow_beast_enemy.png")).is_false()
+	var player_sprite := _animated_sprite_or_fail("Player/Sprite")
+	var enemy_sprite := _animated_sprite_or_fail("Enemy/Sprite")
+	if player_sprite == null or enemy_sprite == null:
+		return
+
+	assert_bool(_sprite_frames_use_texture_path(
+		player_sprite.sprite_frames,
+		"res://assets/generated/cinderpaw_player.png"
+	)).is_false()
+	assert_bool(_sprite_frames_use_texture_path(
+		enemy_sprite.sprite_frames,
+		"res://assets/generated/shadow_beast_enemy.png"
+	)).is_false()
+
+
 func test_main_scene_startup_has_no_visible_gameplay_color_rect_blocks() -> void:
 	var visible_color_rect_paths := _collect_visible_color_rect_paths(main_scene)
 
@@ -141,3 +159,18 @@ func _collect_visible_color_rect_paths(root: Node) -> Array[String]:
 			result.append(str(root.get_path_to(color_rect)))
 		result.append_array(_collect_visible_color_rect_paths(child))
 	return result
+
+
+func _scene_file_text_contains(needle: String) -> bool:
+	return FileAccess.get_file_as_string("res://scenes/main.tscn").contains(needle)
+
+
+func _sprite_frames_use_texture_path(sprite_frames: SpriteFrames, texture_path: String) -> bool:
+	if sprite_frames == null:
+		return false
+	for animation_name: StringName in sprite_frames.get_animation_names():
+		for frame_index: int in range(sprite_frames.get_frame_count(animation_name)):
+			var texture := sprite_frames.get_frame_texture(animation_name, frame_index)
+			if texture != null and texture.resource_path == texture_path:
+				return true
+	return false

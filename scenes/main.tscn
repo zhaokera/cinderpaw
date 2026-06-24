@@ -1,14 +1,14 @@
-[gd_scene load_steps=15 format=3 uid="uid://main001"]
+[gd_scene format=3 uid="uid://main001"]
 
-[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
-[ext_resource type="PackedScene" path="res://src/gameplay/simple_enemy.tscn" id="2_enemy"]
-[ext_resource type="Texture2D" path="res://assets/generated/wasteland_alley_bg.png" id="3_bg"]
-[ext_resource type="Texture2D" path="res://assets/generated/wasteland_ground_1280.png" id="4_ground"]
-[ext_resource type="Texture2D" path="res://assets/generated/wasteland_platform_360.png" id="5_platform"]
-[ext_resource type="Script" path="res://src/gameplay/main_scene.gd" id="6_main"]
-[ext_resource type="Script" path="res://src/presentation/hud_manager.gd" id="7_hud"]
-[ext_resource type="Script" path="res://src/presentation/combat_presentation.gd" id="8_combat_presentation"]
-[ext_resource type="Script" path="res://src/gameplay/game_flow_controller.gd" id="9_game_flow"]
+[ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" uid="uid://enemy001" path="res://src/gameplay/simple_enemy.tscn" id="2_enemy"]
+[ext_resource type="Texture2D" uid="uid://4j2ise5khuss" path="res://assets/generated/wasteland_alley_bg.png" id="3_bg"]
+[ext_resource type="Texture2D" uid="uid://dkevbdaim2qje" path="res://assets/generated/wasteland_ground_1280.png" id="4_ground"]
+[ext_resource type="Texture2D" uid="uid://c0gn4h7xmd8a3" path="res://assets/generated/wasteland_platform_360.png" id="5_platform"]
+[ext_resource type="Script" uid="uid://65roojyvug5w" path="res://src/gameplay/main_scene.gd" id="6_main"]
+[ext_resource type="Script" uid="uid://r85oy8dxfgs" path="res://src/presentation/hud_manager.gd" id="7_hud"]
+[ext_resource type="Script" uid="uid://dk5c1kutnlall" path="res://src/presentation/combat_presentation.gd" id="8_combat_presentation"]
+[ext_resource type="Script" uid="uid://dg1hownpawbt" path="res://src/gameplay/game_flow_controller.gd" id="9_game_flow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -19,10 +19,10 @@ size = Vector2(40, 720)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_platform"]
 size = Vector2(360, 20)
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" unique_id=596361816]
 script = ExtResource("6_main")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=620508149]
 z_index = -100
 offset_right = 1280.0
 offset_bottom = 720.0
@@ -30,28 +30,28 @@ texture = ExtResource("3_bg")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Ground" type="StaticBody2D" parent="."]
+[node name="Ground" type="StaticBody2D" parent="." unique_id=1590714999]
 z_index = 10
 position = Vector2(640, 500)
 collision_layer = 16
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground" unique_id=400057350]
 shape = SubResource("RectangleShape2D_ground")
 
-[node name="GroundVisual" type="Sprite2D" parent="Ground"]
+[node name="GroundVisual" type="Sprite2D" parent="Ground" unique_id=398154409]
 position = Vector2(0, 40)
 texture = ExtResource("4_ground")
 
-[node name="LeftWall" type="StaticBody2D" parent="."]
+[node name="LeftWall" type="StaticBody2D" parent="." unique_id=1425429599]
 position = Vector2(20, 360)
 collision_layer = 16
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall" unique_id=1464125668]
 shape = SubResource("RectangleShape2D_wall")
 
-[node name="WallVisual" type="ColorRect" parent="LeftWall"]
+[node name="WallVisual" type="ColorRect" parent="LeftWall" unique_id=1866328118]
 visible = false
 offset_left = -20.0
 offset_top = -360.0
@@ -59,15 +59,15 @@ offset_right = 20.0
 offset_bottom = 360.0
 color = Color(0.35, 0.45, 0.53, 1)
 
-[node name="RightWall" type="StaticBody2D" parent="."]
+[node name="RightWall" type="StaticBody2D" parent="." unique_id=1922875540]
 position = Vector2(1260, 360)
 collision_layer = 16
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall" unique_id=1790238631]
 shape = SubResource("RectangleShape2D_wall")
 
-[node name="WallVisual" type="ColorRect" parent="RightWall"]
+[node name="WallVisual" type="ColorRect" parent="RightWall" unique_id=2073790586]
 visible = false
 offset_left = -20.0
 offset_top = -360.0
@@ -75,24 +75,24 @@ offset_right = 20.0
 offset_bottom = 360.0
 color = Color(0.35, 0.45, 0.53, 1)
 
-[node name="RaisedPlatform" type="StaticBody2D" parent="."]
+[node name="RaisedPlatform" type="StaticBody2D" parent="." unique_id=207683078]
 z_index = 10
 position = Vector2(820, 410)
 collision_layer = 16
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RaisedPlatform"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RaisedPlatform" unique_id=1811400989]
 shape = SubResource("RectangleShape2D_platform")
 
-[node name="PlatformVisual" type="Sprite2D" parent="RaisedPlatform"]
+[node name="PlatformVisual" type="Sprite2D" parent="RaisedPlatform" unique_id=457105820]
 position = Vector2(0, 30)
 texture = ExtResource("5_platform")
 
-[node name="Player" parent="." instance=ExtResource("1_player")]
+[node name="Player" parent="." unique_id=1203527687 instance=ExtResource("1_player")]
 z_index = 20
 position = Vector2(300, 456)
 
-[node name="Camera2D" type="Camera2D" parent="Player"]
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=2101109457]
 limit_left = 0
 limit_top = 0
 limit_right = 1280
@@ -100,16 +100,16 @@ limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
 
-[node name="Enemy" parent="." instance=ExtResource("2_enemy")]
-z_index = 20
-position = Vector2(560, 456)
-
-[node name="CombatPresentation" type="Node2D" parent="."]
+[node name="CombatPresentation" type="Node2D" parent="." unique_id=1804926472]
 z_index = 60
 script = ExtResource("8_combat_presentation")
 
-[node name="GameFlowController" type="Node" parent="."]
+[node name="GameFlowController" type="Node" parent="." unique_id=432459499]
 script = ExtResource("9_game_flow")
 
-[node name="HUD" type="CanvasLayer" parent="."]
+[node name="HUD" type="CanvasLayer" parent="." unique_id=859908319]
 script = ExtResource("7_hud")
+
+[node name="Enemy" parent="." unique_id=340317880 instance=ExtResource("2_enemy")]
+z_index = 20
+position = Vector2(560, 456)

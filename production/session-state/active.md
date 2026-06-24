@@ -6,13 +6,30 @@
   fallback、SceneManagement Story004 transition loading UI shell、
   SceneManagement Story005 runtime scene-tree swap ownership、
   SceneManagement Story006 deferred unload/cache eviction、
-  SceneManagement Story007 fast travel preload/scene change 已完成；下一步按
-  GDD/架构/Epic 状态推进 SceneManager loading audio fades、memory-budget
-  verification，以及玩家可见角色/敌人帧动画持续审计。
+  SceneManagement Story007 fast travel preload/scene change、AudioSystem
+  Story001 autoload bus/pool baseline、AudioSystem Story002 scene transition
+  audio fades 已完成；下一步按 GDD/架构/Epic 状态推进 SceneManager
+  memory-budget verification、combat/health/boss/UI audio event adapters，以及
+  玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Audio System Story 002: Scene Transition Audio Fades —
+  `AudioSystem` 现在消费场景过渡事件：load-start 会把当前 music/ambient
+  记录为 2.0 秒强制淡出并标记 transition audio active；scene changed 会根据
+  默认 cue map（`main -> mus_street + amb_street`，`hub -> mus_hub + amb_hub`）
+  记录 3.0 秒场景音乐/环境声淡入；load failed 会清理 active 状态并记录 failure
+  diagnostics，不启动新 cue。`MainScene` 新增 `configure_audio_system_runtime()`
+  并在现有 SceneManager load-start/changed/failed 回调中转发给 AudioSystem，
+  SceneManager 本身不依赖 AudioSystem。通过 RED `report_452`、GREEN focused
+  `report_453`、focused regression `report_455` `19/19`、相关回归 `report_456`
+  `122/122`、headless smoke、Godot MCP runtime probe/log/screenshot 验证。MCP
+  期间发现并修复了编辑器内存态中 Enemy 仍显示旧 `Sprite2D`
+  `shadow_beast_enemy.png` 的漂移：重新从 `src/gameplay/simple_enemy.tscn`
+  实例化 `/Main/Enemy` 后保存，MCP 确认 Player/Enemy 都是
+  `AnimatedSprite2D`。QA evidence:
+  `production/qa/evidence/audio-scene-transition-fades-2026-06-25.md`。
 - Scene Management Story 007: Fast Travel Preload + Scene Change —
   `SceneManager` 新增 `request_fast_travel_scene_change(scene_id, spawn_point)`
   一步式 fast-travel async 请求路径，沿用 Story003 `ResourceLoader` seam、

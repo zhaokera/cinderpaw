@@ -33,6 +33,7 @@ var _boss_phase_transition_source: Object = null
 var _pending_manual_save_slot: int = -1
 var _scene_manager: Object = null
 var _connected_scene_manager: Object = null
+var _audio_system: Object = null
 var _last_discovered_savepoint: Dictionary = {}
 
 
@@ -80,6 +81,7 @@ func _ready() -> void:
 	_update_weapon_hud()
 	configure_save_system_runtime(get_node_or_null("/root/SaveSystem"))
 	configure_scene_manager_runtime(get_node_or_null("/root/SceneManager"))
+	configure_audio_system_runtime(get_node_or_null("/root/AudioSystem"))
 	_hud.show_notification("Hunt the shadow beast", 2.0)
 
 
@@ -365,6 +367,11 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 	return _is_valid_scene_manager(_scene_manager)
 
 
+func configure_audio_system_runtime(audio_system: Object) -> bool:
+	_audio_system = audio_system
+	return _is_valid_audio_system(_audio_system)
+
+
 func _request_scene_manager_transition(scene_id: StringName, spawn_point: StringName) -> bool:
 	if scene_id == &"" or spawn_point == &"":
 		return false
@@ -440,6 +447,24 @@ func _is_valid_scene_manager(scene_manager: Object) -> bool:
 	)
 
 
+func _resolve_audio_system_for_runtime() -> Object:
+	if _is_valid_audio_system(_audio_system):
+		return _audio_system
+	if is_inside_tree() and configure_audio_system_runtime(get_node_or_null("/root/AudioSystem")):
+		return _audio_system
+	return null
+
+
+func _is_valid_audio_system(audio_system: Object) -> bool:
+	return (
+		audio_system != null
+		and is_instance_valid(audio_system)
+		and audio_system.has_method("on_scene_load_started")
+		and audio_system.has_method("on_scene_changed")
+		and audio_system.has_method("on_scene_load_failed")
+	)
+
+
 func _connect_scene_manager_signals(scene_manager: Object) -> void:
 	if scene_manager == null or not is_instance_valid(scene_manager):
 		return
@@ -505,12 +530,15 @@ func _disconnect_scene_manager_signal(scene_manager: Object, signal_name: String
 
 func _on_scene_manager_load_started(
 	scene_id: StringName,
-	_spawn_point: StringName,
+	spawn_point: StringName,
 	metadata: Dictionary
 ) -> void:
 	var display_name: String = String(metadata.get("display_name", "")).strip_edges()
 	if display_name == "":
 		display_name = _display_name_for_scene_id(scene_id)
+	var audio_system: Object = _resolve_audio_system_for_runtime()
+	if audio_system != null:
+		audio_system.call("on_scene_load_started", scene_id, spawn_point, metadata)
 	_hud.show_scene_transition(
 		scene_id,
 		display_name,
@@ -518,11 +546,17 @@ func _on_scene_manager_load_started(
 	)
 
 
-func _on_scene_manager_changed(_old_scene: StringName, _new_scene: StringName) -> void:
+func _on_scene_manager_changed(old_scene: StringName, new_scene: StringName) -> void:
+	var audio_system: Object = _resolve_audio_system_for_runtime()
+	if audio_system != null:
+		audio_system.call("on_scene_changed", old_scene, new_scene)
 	_hud.hide_scene_transition()
 
 
-func _on_scene_manager_load_failed(_scene_id: StringName, _reason: StringName) -> void:
+func _on_scene_manager_load_failed(scene_id: StringName, reason: StringName) -> void:
+	var audio_system: Object = _resolve_audio_system_for_runtime()
+	if audio_system != null:
+		audio_system.call("on_scene_load_failed", scene_id, reason)
 	_hud.hide_scene_transition()
 	_hud.show_notification("Load failed", 2.0)
 
