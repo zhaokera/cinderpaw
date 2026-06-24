@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://cinderpawcharacter001"]
+
+[ext_resource type="Script" path="res://src/characters/cinderpaw.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://assets/characters/cinderpaw/cinderpaw_sprite_frames.tres" id="2_frames"]
+
+[node name="Cinderpaw" type="AnimatedSprite2D"]
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+autoplay = "idle"
+script = ExtResource("1_script")

@@ -1,0 +1,56 @@
+[gd_resource type="SpriteFrames" load_steps=10 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/idle/cinderpaw_idle_000.png" id="1_idle0"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/idle/cinderpaw_idle_001.png" id="2_idle1"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/idle/cinderpaw_idle_002.png" id="3_idle2"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/run/cinderpaw_run_000.png" id="4_run0"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/run/cinderpaw_run_001.png" id="5_run1"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/run/cinderpaw_run_002.png" id="6_run2"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/attack/cinderpaw_attack_000.png" id="7_attack0"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/attack/cinderpaw_attack_001.png" id="8_attack1"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/attack/cinderpaw_attack_002.png" id="9_attack2"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_idle0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_idle1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_idle2")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_run0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_run1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_run2")
+}],
+"loop": true,
+"name": &"run",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_attack0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_attack1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_attack2")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 12.0
+}]

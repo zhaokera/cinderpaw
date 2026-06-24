@@ -35,6 +35,10 @@ const DODGE_SPEED: float = 400.0
 const NORMAL_MODULATE: Color = Color.WHITE
 const ATTACK_MODULATE: Color = Color(1.0, 0.55, 0.45, 1.0)
 const DAMAGE_MODULATE: Color = Color(1.0, 0.25, 0.25, 1.0)
+const ANIMATION_IDLE: StringName = &"idle"
+const ANIMATION_RUN: StringName = &"run"
+const ANIMATION_ATTACK: StringName = &"attack"
+const RUN_ANIMATION_MIN_SPEED: float = 5.0
 const PLAYER_ENTITY_ID: int = 1
 const PLAYER_MAX_HP: int = 100
 const CONTACT_DAMAGE: int = 20
@@ -72,7 +76,7 @@ var _damage_calculator_adapter: Object = null
 # Node References
 # ---------------------------------------------------------------------------
 
-@onready var _sprite: Sprite2D = $Sprite
+@onready var _sprite: AnimatedSprite2D = $Sprite
 @onready var _hitbox_area: Area2D = $AttackHitbox
 @onready var _hitbox_shape: CollisionShape2D = $AttackHitbox/CollisionShape2D
 @onready var _health: HealthComponent = $HealthComponent
@@ -89,6 +93,7 @@ func _ready() -> void:
 	_health.on_hp_changed.connect(_on_health_changed)
 	_health.on_death.connect(_on_death)
 	_setup_core_combat_chain()
+	_play_character_animation(ANIMATION_IDLE)
 	player_health_changed.emit(_health.get_current_hp(), _health.get_max_hp())
 
 
@@ -126,6 +131,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		_coyote_timer = maxi(_coyote_timer - 1, 0)
 	_advance_respawn_visual()
+	_update_character_animation()
 
 # ---------------------------------------------------------------------------
 # Input Handling
@@ -209,6 +215,7 @@ func _start_attack_visual() -> void:
 	_hitbox_shape.disabled = false
 	# Position hitbox in front of player
 	_hitbox_area.position.x = _facing * 20.0
+	_play_character_animation(ANIMATION_ATTACK, true)
 
 
 func _activate_weapon_hitbox(combo_index: int) -> bool:
@@ -358,6 +365,7 @@ func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
 	_coyote_timer = 0
 	_hitbox_shape.disabled = true
 	_sprite.modulate = NORMAL_MODULATE
+	_play_character_animation(ANIMATION_IDLE, true)
 	_health.revive(revive_hp_percentage)
 	_health.grant_iframes(RESPAWN_INVINCIBILITY_FRAMES)
 	_start_respawn_visual_feedback()
@@ -443,3 +451,25 @@ func _set_sprite_alpha(alpha: float) -> void:
 	var current_modulate: Color = _sprite.modulate
 	current_modulate.a = clampf(alpha, 0.0, 1.0)
 	_sprite.modulate = current_modulate
+
+
+func _update_character_animation() -> void:
+	if _state == State.ATTACKING:
+		_play_character_animation(ANIMATION_ATTACK)
+		return
+	if absf(velocity.x) > RUN_ANIMATION_MIN_SPEED and is_on_floor():
+		_play_character_animation(ANIMATION_RUN)
+		return
+	_play_character_animation(ANIMATION_IDLE)
+
+
+func _play_character_animation(animation_name: StringName, restart: bool = false) -> void:
+	if _sprite == null or _sprite.sprite_frames == null:
+		return
+	if not _sprite.sprite_frames.has_animation(animation_name):
+		return
+	if restart:
+		_sprite.animation = animation_name
+		_sprite.frame = 0
+		_sprite.frame_progress = 0.0
+	_sprite.play(animation_name)

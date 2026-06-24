@@ -82,6 +82,12 @@
 - **角色闪白**：受击闪白3帧
 - **敌人闪白**：被暴击命中闪白5帧
 
+#### 规则7：玩家角色帧动画
+- 玩家角色运行时视觉统一使用 `AnimatedSprite2D + SpriteFrames`。
+- 角色帧素材放在 `assets/characters/<角色名>/<动画名>/`，PNG帧必须透明背景、尺寸一致、锚点一致、连续命名。
+- 玩家垂直切片至少提供 `idle`、`run`、`attack` 三组多帧动画；完整角色集后续扩展 `jump`、`fall`、`dodge`、`hurt`、`death`、`revive`。
+- 表现层动画只负责视觉状态；CombatComponent、CollisionComponent 和 PlayerController 的帧计数仍是战斗规则权威。
+
 ### States and Transitions
 
 战斗表现系统无状态机——事件驱动的纯表现层。每个特效独立、自管理、播放完自动销毁。
@@ -187,6 +193,7 @@ spawn_particles(type, position, config) → void
 - **GIVEN** 同帧多个帧停，**WHEN** 处理，**THEN** 取最大值
 - **GIVEN** Boss阶段转换，**WHEN** 触发，**THEN** 震屏+金属碎片+暗角
 - **GIVEN** 敌人被击杀，**WHEN** HP≤0，**THEN** 6帧帧停+碎裂粒子+击杀音效
+- **GIVEN** 玩家移动或攻击，**WHEN** PlayerController状态变化，**THEN** 玩家视觉通过 `AnimatedSprite2D + SpriteFrames` 播放对应多帧动画，而不是静态 `Sprite2D` 单图
 
 ## Open Questions
 

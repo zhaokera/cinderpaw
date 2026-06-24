@@ -31,7 +31,7 @@ func after_test() -> void:
 func test_respawn_starts_visible_transparent_flash_for_invincibility_window() -> void:
 	player.respawn_at(Vector2(32, 48), 0.5)
 
-	var sprite := player.get_node("Sprite") as Sprite2D
+	var sprite := player.get_node("Sprite") as AnimatedSprite2D
 
 	assert_bool(player.is_respawn_visual_active()).is_true()
 	assert_int(player.get_respawn_visual_remaining_frames()).is_equal(120)
@@ -52,7 +52,7 @@ func test_respawn_visual_stops_when_game_flow_unlocks() -> void:
 	_advance_player_frames(1)
 	flow.advance_time(2.0)
 
-	var sprite := player.get_node("Sprite") as Sprite2D
+	var sprite := player.get_node("Sprite") as AnimatedSprite2D
 	assert_bool(player.is_respawn_visual_active()).is_false()
 	assert_bool(flow.is_player_control_locked()).is_false()
 	assert_float(sprite.modulate.a).is_equal_approx(1.0, 0.001)
@@ -65,7 +65,7 @@ func test_respawn_visual_does_not_override_damage_color_after_window() -> void:
 	player.take_damage()
 	player.call("_physics_process", 1.0 / 60.0)
 
-	var sprite := player.get_node("Sprite") as Sprite2D
+	var sprite := player.get_node("Sprite") as AnimatedSprite2D
 	assert_str(sprite.modulate.to_html(false)).is_equal("ff4040")
 
 

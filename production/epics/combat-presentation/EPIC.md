@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 2 stories tracked
+> **Stories**: 3 stories tracked
 
 ## Overview
 
@@ -25,15 +25,16 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 
 | TR-ID | Requirement | ADR Coverage |
 |-------|-------------|--------------|
-| TR-combatfx-001 | Normal hits produce hitstop, light shake, and 5-8 white sparks. | ADR-0002 partial |
-| TR-combatfx-002 | Crit hits produce stronger hitstop, shake, gold particles, and gold damage text. | ADR-0002 partial |
+| TR-combatfx-001 | Hitstop durations are selected by event type, and same-frame events take the maximum duration. | ADR-0002 partial |
+| TR-combatfx-002 | Screen shake intensity and duration are selected by event type, and same-frame events take the maximum intensity. | ADR-0002 partial |
 | TR-combatfx-003 | Particle system supports GDD particle types with a 200-particle performance cap. | Gap |
-| TR-combatfx-004 | Perfect parry triggers hitstop, flash, shake, and radial particles. | Gap |
-| TR-combatfx-005 | Dodge and fast movement support afterimage feedback. | Gap |
-| TR-combatfx-006 | Boss phase changes trigger shake, metal debris, and vignette. | Gap |
-| TR-combatfx-007 | Enemy death triggers hitstop and 15-20 debris particles. | ADR-0002 partial |
-| TR-combatfx-008 | Damage number size, color, and animation communicate damage tier. | ADR-0002 partial |
-| TR-combatfx-009 | Combat presentation work stays within the 3ms frame budget. | Gap |
+| TR-combatfx-004 | Dodge, dash, and perfect parry support afterimage feedback modes. | Gap |
+| TR-combatfx-005 | Damage number size, color, and animation communicate damage tier. | ADR-0002 partial |
+| TR-combatfx-006 | Perfect parry, character hit, and enemy crit flash effects use authored durations and alpha. | ADR-0002 partial |
+| TR-combatfx-007 | Combat presentation work stays within the 3ms frame budget. | Gap |
+| TR-combatfx-008 | Colorblind mode remaps particle colors to the accessibility palette. | Gap |
+| TR-combatfx-009 | Low-HP focus mode reduces screen shake intensity by 30%. | Gap |
+| TR-combatfx-010 | Player runtime character art uses AnimatedSprite2D + SpriteFrames frame animation instead of static Sprite2D art. | ADR-0005 partial |
 
 ## Stories
 
@@ -41,6 +42,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 |---|-------|------|--------|-----|
 | 001 | Textured Hit Spark + Enemy Debris Slice | Visual/Runtime | Complete | ADR-0001, ADR-0002 |
 | 002 | Parry Flash + Cat Claw Trail Slice | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0016 |
+| 003 | Cinderpaw Player Frame Animation Slice | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
 
 ## Definition of Done
 

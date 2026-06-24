@@ -1,7 +1,7 @@
 [gd_scene load_steps=12 format=3 uid="uid://player001"]
 
 [ext_resource type="Script" path="res://src/gameplay/player_controller.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/generated/cinderpaw_player.png" id="2_sprite"]
+[ext_resource type="PackedScene" path="res://scenes/characters/cinderpaw.tscn" id="2_character"]
 [ext_resource type="Script" path="res://src/core/health_component.gd" id="3_health"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
@@ -21,10 +21,8 @@ script = ExtResource("1_script")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_body")
 
-[node name="Sprite" type="Sprite2D" parent="."]
+[node name="Sprite" parent="." instance=ExtResource("2_character")]
 position = Vector2(0, -40)
-scale = Vector2(0.1, 0.1)
-texture = ExtResource("2_sprite")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("3_health")

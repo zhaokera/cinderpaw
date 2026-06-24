@@ -1292,3 +1292,42 @@
 - Next recommended: implement dodge afterimage feedback using image-generated
   sprite assets and then start converting the player/enemy from static sprites
   to `AnimatedSprite2D` + `SpriteFrames` per `AGENTS.md`.
+
+## Session Extract — Cinderpaw Player Frame Animation 2026-06-24
+- Scope: Implement Combat Presentation Story 003, covering `TR-combatfx-010`
+  and the AGENTS.md Godot 2D frame-animation rule for the playable Cinderpaw
+  character.
+- Files changed: `src/characters/cinderpaw.gd`,
+  `scenes/characters/cinderpaw.tscn`, `scenes/player.tscn`,
+  `src/gameplay/player_controller.gd`,
+  `tests/unit/gameplay/player_character_animation_test.gd`,
+  `tests/unit/gameplay/player_respawn_visual_feedback_test.gd`, Cinderpaw
+  animation frames under `assets/characters/cinderpaw/`, Combat Presentation
+  GDD/TR/Epic/story docs, asset tracking, and QA evidence.
+- Implementation: Replaced the player visual from static `Sprite2D` art with a
+  `Sprite` child instance of `scenes/characters/cinderpaw.tscn`, backed by
+  `AnimatedSprite2D + SpriteFrames`. PlayerController now plays idle/run/attack
+  animations while preserving flip, tint, dodge transparency, damage flash, and
+  respawn invincibility alpha feedback.
+- Asset pipeline: Generated a 3x3 Cinderpaw sprite sheet with image generation,
+  copied the source into `assets/characters/cinderpaw/source/`, removed
+  chroma-key background locally, sliced 9 transparent 96x96 PNG runtime frames
+  into `idle`, `run`, and `attack` folders, and imported them through Godot.
+- TDD evidence: RED first failed because `$Sprite` was not `AnimatedSprite2D`
+  (`reports/report_345/`); GREEN player animation suite passed 3/3
+  (`reports/report_346/`).
+- Regression evidence: final focused gameplay/presentation regression passed
+  17/17 (`reports/report_344/`); headless main-scene smoke exited 0 and log
+  scan found no error/warning lines.
+- Runtime evidence: Godot MCP session `cinderpaw@c1b2` ran
+  `res://scenes/main.tscn`; runtime probe returned `$Player/Sprite`
+  `AnimatedSprite2D`, script class `CinderpawCharacter`, animations
+  `attack/idle/run`, 3 frames each, 96x96 frame size, and attack request
+  switching animation to `attack`.
+- Visual evidence:
+  `reports/visual/cinderpaw-mcp-player-frame-animation-runtime-20260624.png`.
+- Epic status: Combat Presentation Stories 001-003 are complete; Epic remains
+  In Progress for dodge afterimages, boss phase feedback, damage numbers, and
+  remaining weapon presentation polish.
+- Next recommended: implement dodge afterimages and then expand Cinderpaw to
+  jump/fall/dodge/hurt/death/revive frame sets under the same asset pipeline.

@@ -11,7 +11,7 @@
 ## Context
 
 **GDD**: `design/gdd/combat-presentation.md`
-**Requirements**: `TR-combatfx-003`, `TR-combatfx-004`
+**Requirements**: `TR-combatfx-003`, `TR-combatfx-006`
 **ADR Governing Implementation**: ADR-0001: Autoload architecture; ADR-0002: Signal communication; ADR-0016: Weapon styles architecture
 
 Story 001 replaced square hit sparks and death debris. The next visible combat

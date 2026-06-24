@@ -435,6 +435,14 @@ requirements:
   revised: ""
   status: active
 
+- id: TR-combatfx-010
+  system: combatfx
+  gdd: design/gdd/combat-presentation.md
+  requirement: "玩家角色运行时视觉必须使用AnimatedSprite2D + SpriteFrames帧动画，角色帧素材放在assets/characters/<角色名>/<动画名>/，至少覆盖idle/run/attack垂直切片并禁止继续依赖静态单图表现"
+  created: 2026-06-24
+  revised: ""
+  status: active
+
 # === Damage Calculation (damage-calculation.md) ===
 - id: TR-damage-001
   system: damage
