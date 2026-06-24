@@ -284,6 +284,78 @@ func test_dodge_event_spawns_three_textured_afterimages_with_gdd_alpha_steps() -
 	assert_bool(_all_sprite_children_have_textures()).is_true()
 
 
+func test_boss_phase_transition_spawns_textured_overlay_and_metal_debris() -> void:
+	assert_bool(presentation.has_method("on_boss_phase_transition_started")).is_true()
+	assert_bool(presentation.has_method("get_active_boss_phase_debris_count")).is_true()
+	assert_bool(presentation.has_method("get_active_boss_phase_overlay_count")).is_true()
+	assert_bool(presentation.has_method("get_last_boss_phase_entity_id")).is_true()
+	assert_bool(presentation.has_method("get_last_boss_phase")).is_true()
+	assert_bool(presentation.has_method("get_last_boss_phase_metadata")).is_true()
+	assert_bool(presentation.has_method("get_last_boss_phase_overlay_texture_path")).is_true()
+	if (
+		not presentation.has_method("on_boss_phase_transition_started")
+		or not presentation.has_method("get_active_boss_phase_debris_count")
+		or not presentation.has_method("get_active_boss_phase_overlay_count")
+		or not presentation.has_method("get_last_boss_phase_entity_id")
+		or not presentation.has_method("get_last_boss_phase")
+		or not presentation.has_method("get_last_boss_phase_metadata")
+		or not presentation.has_method("get_last_boss_phase_overlay_texture_path")
+	):
+		return
+
+	presentation.call("on_boss_phase_transition_started", 42, 2, _make_boss_phase_metadata(2))
+
+	assert_int(presentation.get_hitstop_frames_remaining()).is_equal(4)
+	assert_float(presentation.get_screen_shake_intensity()).is_equal_approx(6.0, 0.001)
+	assert_int(int(presentation.call("get_active_boss_phase_overlay_count"))).is_equal(1)
+	assert_int(int(presentation.call("get_active_boss_phase_debris_count"))).is_greater_equal(30)
+	assert_int(int(presentation.call("get_last_boss_phase_entity_id"))).is_equal(42)
+	assert_int(int(presentation.call("get_last_boss_phase"))).is_equal(2)
+	assert_str(String(presentation.call("get_last_boss_phase_overlay_texture_path"))).is_equal(
+		"res://assets/generated/combat_boss_phase_overlay.png"
+	)
+
+	var metadata: Dictionary = Dictionary(presentation.call("get_last_boss_phase_metadata"))
+	assert_str(String(metadata.get("boss_id", ""))).is_equal("shadow_beast")
+	assert_float(float(metadata.get("trigger_hp_percentage", 0.0))).is_equal_approx(0.65, 0.001)
+	assert_str(String(metadata.get("transition_animation", ""))).is_equal("phase_2_rebuild")
+	assert_int(_count_descendants_of_type(presentation, "ColorRect")).is_equal(0)
+	assert_int(_count_descendants_of_type(presentation, "TextureRect")).is_greater_equal(1)
+	assert_bool(_all_texture_rect_descendants_have_textures(presentation)).is_true()
+	assert_int(_count_children_of_type("Sprite2D")).is_greater_equal(
+		int(presentation.call("get_active_boss_phase_debris_count"))
+	)
+	assert_bool(_all_sprite_children_have_textures()).is_true()
+
+
+func test_boss_phase_debris_expires_after_gdd_lifetime() -> void:
+	assert_bool(presentation.has_method("on_boss_phase_transition_started")).is_true()
+	assert_bool(presentation.has_method("get_active_boss_phase_debris_count")).is_true()
+	assert_bool(presentation.has_method("get_boss_phase_debris_lifetime_sec")).is_true()
+	if (
+		not presentation.has_method("on_boss_phase_transition_started")
+		or not presentation.has_method("get_active_boss_phase_debris_count")
+		or not presentation.has_method("get_boss_phase_debris_lifetime_sec")
+	):
+		return
+
+	presentation.call("on_boss_phase_transition_started", 42, 3, _make_boss_phase_metadata(3))
+
+	assert_float(float(presentation.call("get_boss_phase_debris_lifetime_sec"))).is_equal_approx(
+		1.5,
+		0.001
+	)
+	assert_int(int(presentation.call("get_active_boss_phase_debris_count"))).is_greater_equal(30)
+
+	presentation.advance_time(1.49)
+
+	assert_int(int(presentation.call("get_active_boss_phase_debris_count"))).is_greater_equal(30)
+
+	presentation.advance_time(0.03)
+
+	assert_int(int(presentation.call("get_active_boss_phase_debris_count"))).is_equal(0)
+
+
 func test_effects_expire_after_their_lifetime() -> void:
 	presentation.on_hit_event({
 		"damage": 7,
@@ -343,3 +415,24 @@ func _latest_damage_label() -> Label:
 	if labels.is_empty():
 		return null
 	return labels[labels.size() - 1]
+
+
+func _make_boss_phase_metadata(phase: int) -> Dictionary:
+	var threshold: float = 0.66 if phase == 2 else 0.33
+	var trigger_hp: float = 0.65 if phase == 2 else 0.32
+	return {
+		"boss_id": "shadow_beast",
+		"display_name": "Shadow Beast",
+		"previous_phase": phase - 1,
+		"hp_threshold": threshold,
+		"trigger_hp_percentage": trigger_hp,
+		"transition_duration_sec": 2.5,
+		"transition_animation": "phase_%d_rebuild" % phase,
+		"attack_patterns": PackedStringArray(["bite", "lunge"]),
+		"attack_speed_modifier": 1.15,
+		"special_attacks": PackedStringArray(["overload_pounce"]),
+		"arena_changes": {
+			"debris_density": "high",
+		},
+		"world_position": Vector2(420, 260),
+	}

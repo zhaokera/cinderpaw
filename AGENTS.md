@@ -37,6 +37,9 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
   same unresolved decision.
 - Good parallel splits include: asset prompt/spec review, documentation/evidence
   updates, isolated test failure investigation, and scene/runtime verification.
+- Start read-only review or validation-planning subagents early for sizable
+  slices; do not wait until implementation is finished if art direction,
+  acceptance criteria, test scope, or MCP validation can be checked in parallel.
 - Keep shared gameplay code, scene wiring, and resource ownership changes under
   one integrating agent unless the write sets are clearly disjoint.
 - Use read-only subagents aggressively for GDD/ADR/story traceability checks,
@@ -65,19 +68,21 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
    `<character_name>_<animation_name>_000.png`。
 4. 新增角色必须同时创建 `scenes/characters/<character_name>.tscn` 和
    `src/characters/<character_name>.gd`，并将动画资源接入场景。
-5. 修改 Godot 场景、`SpriteFrames`、角色脚本或动画资源后，必须通过
+5. 玩家可见动作状态默认必须是多帧动画；除非 Story 明确豁免并标记为临时
+   fixture，每个 gameplay state 至少 3 帧，不能用单帧贴图伪装动画。
+6. 修改 Godot 场景、`SpriteFrames`、角色脚本或动画资源后，必须通过
    Godot MCP 检查场景加载、脚本错误、运行时日志和关键节点可见性；不能只凭文件内容判断场景可用。
-6. 如果 MCP 返回 Godot 报错，必须先修复报错并重新验证，不能继续新增功能。
-7. 如果 MCP 临时不可用，必须先诊断 MCP 连接；阻塞时可用 Godot CLI/headless
+7. 如果 MCP 返回 Godot 报错，必须先修复报错并重新验证，不能继续新增功能。
+8. 如果 MCP 临时不可用，必须先诊断 MCP 连接；阻塞时可用 Godot CLI/headless
    作为临时验证，但后续仍要补 MCP 运行时检查。
-8. 动画资源必须映射到明确 gameplay state，例如 `idle`、`run`、`attack`、
+9. 动画资源必须映射到明确 gameplay state，例如 `idle`、`run`、`attack`、
    `dodge`、`hurt`、`death`、`revive`、`jump`、`fall`；新增状态必须有
    单元测试或运行时测试覆盖触发条件。
-9. MCP 验收至少要覆盖目标场景打开成功、`AnimatedSprite2D` 实例存在、
+10. MCP 验收至少要覆盖目标场景打开成功、`AnimatedSprite2D` 实例存在、
    `SpriteFrames` 动画名和帧数符合 Story 验收、游戏运行日志无新增错误、截图非空且能看到目标角色。
-10. 新增视觉素材优先通过 image2/image generation 生成；生成提示词、用途和
+11. 新增视觉素材优先通过 image2/image generation 生成；生成提示词、用途和
    导入位置必须记录在资产规格、manifest 或 QA evidence 中。
-11. 不接受只有占位方块、纯色矩形或单帧静态图的新增角色验收，除非该文件明确
+12. 不接受只有占位方块、纯色矩形或单帧静态图的新增角色验收，除非该文件明确
     标记为临时测试 fixture 且不接入玩家可见 gameplay。
 
 ## Collaboration Protocol

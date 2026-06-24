@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 9 stories tracked
+> **Stories**: 10 stories tracked
 
 ## Overview
 
@@ -49,6 +49,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 007 | Textured Parry Flash + Main Scene Visual Contract | Visual/Feel | Complete | ADR-0001, ADR-0002 |
 | 008 | Damage Number Tier Polish | Visual/Feel | Complete | ADR-0001, ADR-0002 |
 | 009 | Boss Phase Transition Signal Contract | Integration | Complete | ADR-0002 |
+| 010 | Boss Phase Visual Feedback | Visual/Feel | Complete | ADR-0002 |
 
 ## Definition of Done
 
@@ -62,7 +63,7 @@ This epic is complete when:
 
 ## Next Step
 
-Continue with boss phase feedback, colorblind remaps, performance-budget checks,
-low-HP focus shake reduction, and remaining weapon presentation variants. The
-epic stays In Progress until all feedback modes satisfy
+Continue with colorblind remaps, performance-budget checks, low-HP focus shake
+reduction, boss phase audio/HUD follow-up, and remaining weapon presentation
+variants. The epic stays In Progress until all feedback modes satisfy
 `design/gdd/combat-presentation.md`.

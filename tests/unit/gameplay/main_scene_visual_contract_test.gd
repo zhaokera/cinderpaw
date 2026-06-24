@@ -1,4 +1,4 @@
-## Story 007: Main scene visual contract for non-placeholder runtime characters.
+## Main scene visual contract for non-placeholder runtime characters and VFX routing.
 extends GdUnitTestSuite
 
 const MAIN_SCENE: PackedScene = preload("res://scenes/main.tscn")
@@ -21,6 +21,28 @@ const ENEMY_REQUIRED_ANIMATIONS: Array[StringName] = [
 	&"hurt",
 	&"death",
 ]
+
+class FakeBossPhaseSource:
+	extends Node
+
+	signal on_boss_phase_transition_started(entity_id: int, phase: int, metadata: Dictionary)
+
+	func emit_transition_started() -> void:
+		on_boss_phase_transition_started.emit(42, 2, {
+			"boss_id": "shadow_beast",
+			"display_name": "Shadow Beast",
+			"previous_phase": 1,
+			"hp_threshold": 0.66,
+			"trigger_hp_percentage": 0.65,
+			"transition_duration_sec": 2.5,
+			"transition_animation": "phase_2_rebuild",
+			"attack_patterns": PackedStringArray(["bite", "lunge"]),
+			"attack_speed_modifier": 1.15,
+			"special_attacks": PackedStringArray(["overload_pounce"]),
+			"arena_changes": {
+				"debris_density": "high",
+			},
+		})
 
 var main_scene: Node2D
 
@@ -54,6 +76,25 @@ func test_main_scene_startup_has_no_visible_gameplay_color_rect_blocks() -> void
 	assert_array(visible_color_rect_paths).is_empty()
 
 
+func test_main_scene_routes_boss_phase_transition_source_to_combat_presentation() -> void:
+	assert_bool(main_scene.has_method("register_boss_phase_transition_source")).is_true()
+	if not main_scene.has_method("register_boss_phase_transition_source"):
+		return
+
+	var source := FakeBossPhaseSource.new()
+	main_scene.add_child(source)
+	var presentation := main_scene.get_node("CombatPresentation")
+
+	assert_bool(bool(main_scene.call("register_boss_phase_transition_source", source))).is_true()
+
+	source.emit_transition_started()
+
+	assert_int(presentation.get_hitstop_frames_remaining()).is_equal(4)
+	assert_float(presentation.get_screen_shake_intensity()).is_equal_approx(6.0, 0.001)
+	assert_int(int(presentation.call("get_active_boss_phase_debris_count"))).is_greater_equal(30)
+	assert_int(int(presentation.call("get_last_boss_phase"))).is_equal(2)
+
+
 func _animated_sprite_or_fail(node_path: NodePath) -> AnimatedSprite2D:
 	var node := main_scene.get_node_or_null(node_path)
 	assert_bool(node is AnimatedSprite2D).is_true()
@@ -68,7 +109,7 @@ func _assert_required_animations(sprite: AnimatedSprite2D, required_animations: 
 		assert_bool(sprite.sprite_frames.has_animation(animation_name)).is_true()
 		if not sprite.sprite_frames.has_animation(animation_name):
 			continue
-		assert_int(sprite.sprite_frames.get_frame_count(animation_name)).is_greater_equal(2)
+		assert_int(sprite.sprite_frames.get_frame_count(animation_name)).is_greater_equal(3)
 		assert_bool(_animation_frames_are_textured_and_same_size(
 			sprite.sprite_frames,
 			animation_name

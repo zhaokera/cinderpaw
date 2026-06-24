@@ -1,10 +1,27 @@
 # Active Session State
 
 ## Current Task
-- 持续实现 Cinderpaw 垂直切片；最近完成 HUD/UI Story 005
-  Main Menu + Save/Load Shell
+- 持续实现 Cinderpaw 垂直切片；最近完成 Combat Presentation Story 010
+  Boss Phase Visual Feedback
 
 ## Last Completed Task
+- Combat Presentation Story 010: Boss Phase Visual Feedback — `CombatPresentation`
+  现在消费 `on_boss_phase_transition_started(entity_id, phase, metadata)`，
+  播放 4 帧 hitstop、phase shake、image-generated
+  `combat_boss_phase_overlay.png` 全屏暗角/金属裂片 overlay，并生成 32 个
+  textured Boss phase debris sprite，生命周期 1.5s；`MainScene` 新增
+  BossConfig-style signal source registration 并转发 phase metadata 到
+  presentation/HUD。通过 RED `report_361`、GREEN focused `report_368`
+  `22/22`、相关回归 `report_369` `52/52`、Godot headless smoke、Godot MCP
+  运行态 probe/log/screenshot 验证。截图：
+  `reports/visual/cinderpaw-mcp-boss-phase-visual-feedback-20260624.png`。
+- Combat Presentation Story 009: Boss Phase Transition Signal Contract —
+  `BossConfigComponent` emits
+  `on_boss_phase_transition_started(entity_id, phase, metadata)` when queued
+  phase transitions actually start, maps Health threshold ordinals to actual
+  Boss phase IDs, preserves trigger HP metadata, and filters foreign entity
+  Health events. Verified by RED/GREEN focused tests, related regression,
+  headless smoke, and Godot MCP runtime probe/log evidence.
 - Combat Presentation Story 008: Damage Number Tier Polish — damage numbers now
   use all six GDD tiers (`12/16/20/28/36/48`), tier-specific colors, 151+
   cat-eye gold with white outline, 30px float distance, 1.5s lifetime, safe
@@ -85,6 +102,26 @@
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `AGENTS.md` — 补强并行 Agent 早期只读审查/验收规划要求，以及玩家可见
+  gameplay state 默认至少 3 帧的 Godot 2D 帧动画规则。
+- `src/presentation/combat_presentation.gd` — Story010 Boss phase visual
+  feedback，新增 phase API/getters、textured overlay、32 个 metal debris、
+  1.5s 生命周期和 metadata 记录。
+- `src/gameplay/main_scene.gd` — Story010 BossConfig-style transition source
+  registration、signal disconnect 和 phase metadata/HUD 转发。
+- `tests/unit/presentation/combat_presentation_test.gd`,
+  `tests/unit/gameplay/main_scene_visual_contract_test.gd` — Story010 TDD 覆盖
+  overlay/debris/hitstop/shake/lifetime、MainScene registration，以及角色动画
+  至少 3 帧 contract。
+- `assets/generated/combat_boss_phase_overlay.png`,
+  `assets/generated/combat_boss_phase_overlay_alpha_raw.png`,
+  `assets/generated/source/combat_boss_phase_overlay_imagegen_20260624.png` —
+  image-generated Boss phase overlay 源图、alpha audit 和 Godot runtime PNG。
+- `design/assets/asset-manifest.md`,
+  `production/epics/combat-presentation/story-010-boss-phase-visual-feedback.md`,
+  `production/epics/combat-presentation/EPIC.md`,
+  `production/qa/evidence/boss-phase-visual-feedback-2026-06-24.md` —
+  Story/Epic 状态、资产 manifest 和 QA/MCP 证据。
 - `src/presentation/hud_manager.gd` — Story005 main menu/save-load shell、
   typed menu signals、slot label formatting、disabled reasons、focus fallback
   与内容驱动 menu sizing
@@ -1595,3 +1632,14 @@
 - Asset note: no image-generated visual asset was required for this signal contract slice.
 - Blockers: None
 - Next: implement Combat Presentation boss phase visual/audio feedback using this BossConfig signal, or continue colorblind remaps/performance-budget checks.
+
+## Session Extract — /dev-story 2026-06-24
+
+- Story: `production/epics/combat-presentation/story-010-boss-phase-visual-feedback.md` — Boss Phase Visual Feedback
+- Files changed: `AGENTS.md`, `src/presentation/combat_presentation.gd`, `src/gameplay/main_scene.gd`, `tests/unit/presentation/combat_presentation_test.gd`, `tests/unit/gameplay/main_scene_visual_contract_test.gd`, `assets/generated/combat_boss_phase_overlay.png`, `assets/generated/combat_boss_phase_overlay_alpha_raw.png`, `assets/generated/source/combat_boss_phase_overlay_imagegen_20260624.png`, `design/assets/asset-manifest.md`, `production/epics/combat-presentation/EPIC.md`, `production/epics/index.md`, `production/epics/combat-presentation/story-010-boss-phase-visual-feedback.md`, `production/qa/evidence/boss-phase-visual-feedback-2026-06-24.md`, `production/session-state/active.md`
+- Implementation: `CombatPresentation.on_boss_phase_transition_started(entity_id, phase, metadata)` now records metadata, plays 4-frame hitstop, phase shake, an image-generated textured overlay, and 32 textured metal debris sprites for 1.5s; `MainScene` can register a BossConfig-style signal source and forwards transition metadata to presentation/HUD.
+- Test written: `tests/unit/presentation/combat_presentation_test.gd` and `tests/unit/gameplay/main_scene_visual_contract_test.gd`
+- Verification: RED failed on missing presentation/MainScene phase API (`reports/report_361/`); GREEN focused Story010 `22/22` (`reports/report_368/`); related presentation/Boss/MainScene/animation regression `52/52` (`reports/report_369/`); headless main-scene smoke clean; Godot MCP runtime probe/log/screenshot evidence captured.
+- Asset note: generated `combat_boss_phase_overlay.png` through image generation, copied source into `assets/generated/source/`, removed `#00FF00` chroma key to alpha, and imported through Godot.
+- Blockers: None
+- Next: continue Combat Presentation colorblind remaps, performance-budget checks, low-HP focus shake reduction, boss phase audio/HUD follow-up, or real BossConfig scene integration.

@@ -27,6 +27,7 @@ var _last_player_hit_metadata: Dictionary = {}
 var _save_system: Object = null
 var _registered_save_system: Object = null
 var _save_trigger_adapter: SaveTriggerAdapter = null
+var _boss_phase_transition_source: Object = null
 
 
 func _ready() -> void:
@@ -66,6 +67,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	_disconnect_boss_phase_transition_source()
 	_unregister_main_scene_from_save_system()
 
 
@@ -435,6 +437,40 @@ func get_last_player_hit_metadata() -> Dictionary:
 	return _last_player_hit_metadata.duplicate(true)
 
 
+func register_boss_phase_transition_source(source: Object) -> bool:
+	_disconnect_boss_phase_transition_source()
+	if source == null or not source.has_signal("on_boss_phase_transition_started"):
+		return false
+	var transition_signal: Signal = source.get("on_boss_phase_transition_started")
+	if not transition_signal.is_connected(_handle_boss_phase_transition_started):
+		transition_signal.connect(_handle_boss_phase_transition_started)
+	_boss_phase_transition_source = source
+	return true
+
+
+func is_boss_phase_transition_source_connected() -> bool:
+	if _boss_phase_transition_source == null or not is_instance_valid(_boss_phase_transition_source):
+		return false
+	if not _boss_phase_transition_source.has_signal("on_boss_phase_transition_started"):
+		return false
+	var transition_signal: Signal = _boss_phase_transition_source.get("on_boss_phase_transition_started")
+	return transition_signal.is_connected(_handle_boss_phase_transition_started)
+
+
+func _handle_boss_phase_transition_started(entity_id: int, phase: int, metadata: Dictionary) -> void:
+	var enriched_metadata: Dictionary = metadata.duplicate(true)
+	if not enriched_metadata.has("world_position") and is_instance_valid(_enemy):
+		enriched_metadata["world_position"] = _enemy.global_position + Vector2(0, -24)
+	if is_instance_valid(_hud) and is_instance_valid(_enemy):
+		_hud.update_boss_hp(
+			_enemy.get_current_hp(),
+			_enemy.get_max_hp(),
+			phase,
+			String(enriched_metadata.get("display_name", "Shadow Beast"))
+		)
+	_combat_presentation.on_boss_phase_transition_started(entity_id, phase, enriched_metadata)
+
+
 func _capture_player_state() -> Dictionary:
 	var progress: Dictionary = capture_no_loss_state()
 	var weapon_state: Dictionary = Dictionary(progress.get("weapons", {}))
@@ -601,6 +637,17 @@ func _unregister_main_scene_from_save_system() -> void:
 	if _registered_save_system.has_method("unregister_serializable"):
 		_registered_save_system.call("unregister_serializable", MAIN_SCENE_SAVE_KEY)
 	_registered_save_system = null
+
+
+func _disconnect_boss_phase_transition_source() -> void:
+	if _boss_phase_transition_source == null or not is_instance_valid(_boss_phase_transition_source):
+		_boss_phase_transition_source = null
+		return
+	if _boss_phase_transition_source.has_signal("on_boss_phase_transition_started"):
+		var transition_signal: Signal = _boss_phase_transition_source.get("on_boss_phase_transition_started")
+		if transition_signal.is_connected(_handle_boss_phase_transition_started):
+			transition_signal.disconnect(_handle_boss_phase_transition_started)
+	_boss_phase_transition_source = null
 
 
 func _get_defeated_bosses() -> Array[String]:
