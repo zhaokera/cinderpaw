@@ -44,7 +44,7 @@ systems without owning combat, save, scene, or economy rules.
 | 003 | Battle Summary Lesson Panel | UI | Complete | ADR-0002, ADR-0011 |
 | 004 | Settings + Accessibility Controls | UI | Complete | ADR-0011 |
 | 005 | Main Menu + Save/Load Shell | Integration | Blocked by SaveSystem Epic | ADR-0011 |
-| 006 | HUD Scale + Colorblind Mode | UI | Ready | ADR-0011 |
+| 006 | HUD Scale + Colorblind Mode | UI | Complete | ADR-0011 |
 
 ## Definition of Done
 
@@ -52,11 +52,11 @@ This epic is complete when:
 - All six stories are implemented and closed with evidence.
 - Combat HUD and menus are usable by keyboard/gamepad through Godot 4.6 focus.
 - Colorblind and scale settings are persisted or explicitly handed off to
-  SaveSystem.
+  SaveSystem. Story 006 now provides the explicit runtime state handoff.
 - Runtime smoke is captured through Godot MCP when available.
 
 ## Next Step
 
-Continue with Story 006, the HUD scale/colorblind validation and persistence
-handoff, because Story 004 now provides the runtime settings controls and
-toggles.
+HUD Scale + Colorblind Mode is complete. Story 005 remains blocked until the
+SaveSystem Epic provides the required save/load contract for the main menu
+shell.

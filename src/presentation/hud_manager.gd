@@ -40,6 +40,9 @@ const PLAYER_PANEL_BASE_SIZE: Vector2 = Vector2(250, 56)
 const WEAPON_PANEL_BASE_SIZE: Vector2 = Vector2(194, 66)
 const CURRENCY_PANEL_BASE_SIZE: Vector2 = Vector2(160, 38)
 const BOSS_PANEL_BASE_SIZE: Vector2 = Vector2(440, 54)
+const MENU_TITLE_BASE_FONT_SIZE: int = 28
+const MENU_BODY_BASE_FONT_SIZE: int = 16
+const MENU_CONTROL_BASE_FONT_SIZE: int = 16
 
 var _hp_ratio: float = 1.0
 var _hp_color: Color = HP_HEALTHY_COLOR
@@ -50,6 +53,7 @@ var _battle_summary_enabled: bool = false
 var _damage_numbers_enabled: bool = true
 var _hud_scale: float = 1.0
 var _colorblind_mode: StringName = COLORBLIND_NONE
+var _boss_phase_marker_text: String = "I"
 
 var _root: Control
 var _player_panel: PanelContainer
@@ -122,6 +126,7 @@ func update_hp(current_hp: int, max_hp: int) -> void:
 func update_boss_hp(current_hp: int, max_hp: int, phase: int = 1, display_name: String = "Target") -> void:
 	var safe_max_hp: int = maxi(1, max_hp)
 	var safe_current_hp: int = clampi(current_hp, 0, safe_max_hp)
+	_boss_phase_marker_text = _phase_marker_for_phase(maxi(1, phase))
 	if _boss_panel != null:
 		_boss_panel.visible = safe_current_hp > 0
 	if _boss_bar != null:
@@ -129,9 +134,9 @@ func update_boss_hp(current_hp: int, max_hp: int, phase: int = 1, display_name: 
 		_boss_bar.value = safe_current_hp
 		_apply_progress_color(_boss_bar, HP_CRITICAL_COLOR)
 	if _boss_label != null:
-		_boss_label.text = "%s  Phase %d  %d/%d" % [
+		_boss_label.text = "%s  Phase %s  %d/%d" % [
 			display_name,
-			maxi(1, phase),
+			_boss_phase_marker_text,
 			safe_current_hp,
 			safe_max_hp,
 		]
@@ -274,6 +279,16 @@ func get_weapon_label_text() -> String:
 	return _weapon_label.text
 
 
+func get_boss_label_text() -> String:
+	if _boss_label == null:
+		return ""
+	return _boss_label.text
+
+
+func get_boss_phase_marker_text() -> String:
+	return _boss_phase_marker_text
+
+
 ## Returns whether a pause/retry menu overlay is currently visible.
 func is_menu_visible() -> bool:
 	return _menu_overlay != null and _menu_overlay.visible
@@ -393,6 +408,8 @@ func set_hud_scale(hud_scale_value: float) -> void:
 	if _hud_scale_slider != null:
 		_hud_scale_slider.set_value_no_signal(_hud_scale * 100.0)
 	_apply_hud_scale_layout()
+	if is_menu_visible():
+		_resize_menu_panel(_menu_mode == MENU_SETTINGS)
 
 
 func get_hud_scale() -> float:
@@ -414,6 +431,31 @@ func get_colorblind_mode() -> StringName:
 	return _colorblind_mode
 
 
+func capture_settings_state() -> Dictionary:
+	return {
+		"hud_scale": _hud_scale,
+		"colorblind_mode": String(_colorblind_mode),
+		"battle_summary_enabled": _battle_summary_enabled,
+		"damage_numbers_enabled": _damage_numbers_enabled,
+	}
+
+
+func restore_settings_state(settings_state: Dictionary) -> void:
+	set_hud_scale(float(settings_state.get("hud_scale", _hud_scale)))
+	set_colorblind_mode(StringName(String(settings_state.get(
+		"colorblind_mode",
+		String(_colorblind_mode)
+	))))
+	set_battle_summary_enabled(bool(settings_state.get(
+		"battle_summary_enabled",
+		_battle_summary_enabled
+	)))
+	set_damage_numbers_enabled(bool(settings_state.get(
+		"damage_numbers_enabled",
+		_damage_numbers_enabled
+	)))
+
+
 func has_core_hud_overlap() -> bool:
 	var rects: Array[Rect2] = get_core_hud_rects()
 	for left_index: int in range(rects.size()):
@@ -429,6 +471,33 @@ func get_core_hud_rects() -> Array[Rect2]:
 		if panel != null and panel.visible:
 			rects.append(Rect2(panel.position, panel.size))
 	return rects
+
+
+func has_menu_text_overlap() -> bool:
+	if _menu_panel == null or not is_menu_visible():
+		return false
+	var required_height: float = 0.0
+	var visible_blocks: int = 0
+	for block: Control in [_menu_title_label, _menu_subtitle_label, _settings_box]:
+		if block != null and block.visible:
+			required_height += block.custom_minimum_size.y
+			visible_blocks += 1
+	var buttons_height: float = _visible_menu_buttons_height()
+	if buttons_height > 0.0:
+		required_height += buttons_height
+		visible_blocks += 1
+	var separation: float = 0.0
+	if _menu_content != null:
+		separation = float(_menu_content.get_theme_constant("separation"))
+	required_height += maxf(0.0, float(visible_blocks - 1)) * separation
+	var usable_height: float = maxf(0.0, _menu_panel.size.y - 32.0)
+	return required_height > usable_height
+
+
+func get_menu_title_font_size() -> int:
+	if _menu_title_label == null:
+		return 0
+	return _menu_title_label.get_theme_font_size("font_size")
 
 
 func _build_layout() -> void:
@@ -561,7 +630,7 @@ func _build_menu_overlay() -> void:
 	_menu_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_menu_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_menu_title_label.add_theme_color_override("font_color", HP_HEALTHY_COLOR)
-	_menu_title_label.add_theme_font_size_override("font_size", 28)
+	_menu_title_label.add_theme_font_size_override("font_size", MENU_TITLE_BASE_FONT_SIZE)
 	_menu_content.add_child(_menu_title_label)
 
 	_menu_subtitle_label = Label.new()
@@ -571,6 +640,7 @@ func _build_menu_overlay() -> void:
 	_menu_subtitle_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_menu_subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_menu_subtitle_label.add_theme_color_override("font_color", TEXT_COLOR)
+	_menu_subtitle_label.add_theme_font_size_override("font_size", MENU_BODY_BASE_FONT_SIZE)
 	_menu_content.add_child(_menu_subtitle_label)
 
 	_settings_box = VBoxContainer.new()
@@ -808,20 +878,35 @@ func _sync_settings_controls() -> void:
 func _resize_menu_panel(is_settings: bool) -> void:
 	if _menu_panel == null:
 		return
+	var menu_scale: float = _menu_text_scale()
 	if is_settings:
-		_menu_panel.position = Vector2(392, 102)
-		_menu_panel.size = Vector2(496, 516)
+		_menu_panel.size = Vector2(
+			496.0 + 72.0 * (menu_scale - 1.0),
+			516.0 + 64.0 * (menu_scale - 1.0)
+		)
+		_menu_panel.position = Vector2(
+			(HUD_VIEWPORT_SIZE.x - _menu_panel.size.x) * 0.5,
+			maxf(48.0, (HUD_VIEWPORT_SIZE.y - _menu_panel.size.y) * 0.5)
+		)
 		if _menu_title_label != null:
-			_menu_title_label.custom_minimum_size = Vector2(456, 42)
+			_menu_title_label.custom_minimum_size = Vector2(456, 42) * menu_scale
 		if _menu_subtitle_label != null:
-			_menu_subtitle_label.custom_minimum_size = Vector2(456, 46)
+			_menu_subtitle_label.custom_minimum_size = Vector2(456, 46) * menu_scale
+		_apply_menu_scale_layout()
 		return
-	_menu_panel.position = Vector2(424, 188)
-	_menu_panel.size = Vector2(432, 340)
+	_menu_panel.size = Vector2(
+		432.0 + 88.0 * (menu_scale - 1.0),
+		340.0 + 250.0 * (menu_scale - 1.0)
+	)
+	_menu_panel.position = Vector2(
+		(HUD_VIEWPORT_SIZE.x - _menu_panel.size.x) * 0.5,
+		(HUD_VIEWPORT_SIZE.y - _menu_panel.size.y) * 0.5
+	)
 	if _menu_title_label != null:
-		_menu_title_label.custom_minimum_size = Vector2(392, 44)
+		_menu_title_label.custom_minimum_size = Vector2(392, 44) * menu_scale
 	if _menu_subtitle_label != null:
-		_menu_subtitle_label.custom_minimum_size = Vector2(392, 118)
+		_menu_subtitle_label.custom_minimum_size = Vector2(392, 118) * menu_scale
+	_apply_menu_scale_layout()
 
 
 func _apply_hud_scale_layout() -> void:
@@ -850,6 +935,77 @@ func _apply_hud_scale_layout() -> void:
 		_notification_label.position = Vector2((HUD_VIEWPORT_SIZE.x - 500.0 * hud_scale_value) * 0.5, 92.0 * hud_scale_value)
 		_notification_label.size = Vector2(500, 44) * hud_scale_value
 		_notification_label.add_theme_font_size_override("font_size", int(roundf(24.0 * hud_scale_value)))
+	_apply_menu_scale_layout()
+
+
+func _apply_menu_scale_layout() -> void:
+	var menu_scale: float = _menu_text_scale()
+	if _menu_title_label != null:
+		_menu_title_label.add_theme_font_size_override(
+			"font_size",
+			int(roundf(MENU_TITLE_BASE_FONT_SIZE * menu_scale))
+		)
+	if _menu_subtitle_label != null:
+		_menu_subtitle_label.add_theme_font_size_override(
+			"font_size",
+			int(roundf(MENU_BODY_BASE_FONT_SIZE * menu_scale))
+		)
+	for button: Button in [_resume_button, _settings_button, _retry_button, _controls_remap_button]:
+		if button != null:
+			button.add_theme_font_size_override(
+				"font_size",
+				int(roundf(MENU_CONTROL_BASE_FONT_SIZE * menu_scale))
+			)
+	for check_box: CheckBox in [_battle_summary_checkbox, _damage_numbers_checkbox]:
+		if check_box != null:
+			check_box.add_theme_font_size_override(
+				"font_size",
+				int(roundf(MENU_CONTROL_BASE_FONT_SIZE * menu_scale))
+			)
+	for label: Label in _get_settings_row_labels():
+		label.add_theme_font_size_override(
+			"font_size",
+			int(roundf(MENU_BODY_BASE_FONT_SIZE * menu_scale))
+		)
+
+
+func _menu_text_scale() -> float:
+	return clampf(_hud_scale, 0.5, 1.5)
+
+
+func _visible_menu_buttons_height() -> float:
+	var height: float = 0.0
+	var visible_count: int = 0
+	for button: Button in [_resume_button, _settings_button, _retry_button]:
+		if button != null and button.visible:
+			height += button.custom_minimum_size.y
+			visible_count += 1
+	if visible_count <= 1:
+		return height
+	return height + float(visible_count - 1) * 14.0
+
+
+func _get_settings_row_labels() -> Array[Label]:
+	var labels: Array[Label] = []
+	if _settings_box == null:
+		return labels
+	for row: Node in _settings_box.get_children():
+		for child: Node in row.get_children():
+			if child is Label:
+				labels.append(child as Label)
+	return labels
+
+
+func _phase_marker_for_phase(phase: int) -> String:
+	match maxi(1, phase):
+		1:
+			return "I"
+		2:
+			return "II"
+		3:
+			return "III"
+		_:
+			return str(maxi(1, phase))
 
 
 func _colorblind_index_for_mode(mode: StringName) -> int:

@@ -177,6 +177,7 @@ func capture_no_loss_state() -> Dictionary:
 			"acquired": _string_names_to_strings(_acquired_weapons),
 			"levels": _weapon_levels.duplicate(true),
 		},
+		"settings": _hud.capture_settings_state(),
 		"world_flags": _world_progress_flags.duplicate(true),
 	}
 
@@ -192,6 +193,8 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_sync_weapon_component_from_runtime_state()
 	_hud.update_currency(_currency_amount)
 	_update_weapon_hud()
+	if snapshot.has("settings"):
+		_hud.restore_settings_state(Dictionary(snapshot.get("settings", {})))
 
 
 func grant_currency(amount: int) -> void:

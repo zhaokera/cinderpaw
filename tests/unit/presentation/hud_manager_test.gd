@@ -173,6 +173,127 @@ func test_settings_toggles_hud_scale_and_colorblind_palette_update_runtime_state
 	assert_float(hud.get_hud_scale()).is_equal_approx(0.5, 0.001)
 
 
+func test_blue_yellow_colorblind_palette_uses_red_to_white_hp_mapping() -> void:
+	hud.set_colorblind_mode(&"blue_yellow")
+	hud.update_hp(100, 100)
+
+	assert_str(hud.get_hp_color().to_html(false)).is_equal("e53e3e")
+
+	hud.update_hp(20, 100)
+
+	assert_str(hud.get_hp_color().to_html(false)).is_equal("ffffff")
+
+
+func test_scaled_settings_menu_text_does_not_overlap_at_max_hud_scale() -> void:
+	assert_bool(hud.has_method("has_menu_text_overlap")).is_true()
+	assert_bool(hud.has_method("get_menu_title_font_size")).is_true()
+	if not hud.has_method("has_menu_text_overlap"):
+		return
+	if not hud.has_method("get_menu_title_font_size"):
+		return
+
+	hud.set_hud_scale(1.5)
+	hud.show_settings_menu(&"pause")
+
+	assert_int(int(hud.call("get_menu_title_font_size"))).is_greater_equal(42)
+	assert_bool(bool(hud.call("has_menu_text_overlap"))).is_false()
+
+
+func test_runtime_hud_scale_change_resizes_visible_settings_menu() -> void:
+	hud.show_settings_menu(&"pause")
+	var menu_panel: PanelContainer = hud.get_node("HudRoot/MenuOverlay/MenuPanel") as PanelContainer
+	var base_size: Vector2 = menu_panel.size
+
+	hud.set_hud_scale(1.5)
+
+	assert_bool(menu_panel.size.x > base_size.x).is_true()
+	assert_bool(menu_panel.size.y > base_size.y).is_true()
+	assert_bool(bool(hud.call("has_menu_text_overlap"))).is_false()
+
+
+func test_all_menu_modes_keep_text_non_overlapping_at_max_hud_scale() -> void:
+	hud.set_hud_scale(1.5)
+
+	hud.show_pause_menu()
+	assert_bool(bool(hud.call("has_menu_text_overlap"))).is_false()
+
+	hud.show_retry_menu("Shadow beast defeated", "Retry the encounter or stay with your prize.")
+	assert_bool(bool(hud.call("has_menu_text_overlap"))).is_false()
+
+	hud.show_battle_summary({
+		"duration_sec": 18.4,
+		"damage_dealt": 36,
+		"damage_received": 80,
+		"dodge_success_rate": 0.25,
+		"parry_success_rate": 0.0,
+		"tip": "Dodge earlier when the beast crouches.",
+	})
+	assert_bool(bool(hud.call("has_menu_text_overlap"))).is_false()
+
+	hud.show_settings_menu(&"pause")
+	assert_bool(bool(hud.call("has_menu_text_overlap"))).is_false()
+
+
+func test_boss_phase_marker_uses_text_shape_not_only_color() -> void:
+	assert_bool(hud.has_method("get_boss_phase_marker_text")).is_true()
+	if not hud.has_method("get_boss_phase_marker_text"):
+		return
+
+	hud.update_boss_hp(90, 100, 1, "Shadow Beast")
+	assert_str(String(hud.call("get_boss_phase_marker_text"))).is_equal("I")
+
+	hud.update_boss_hp(50, 100, 2, "Shadow Beast")
+	assert_str(String(hud.call("get_boss_phase_marker_text"))).is_equal("II")
+	assert_str(hud.get_boss_label_text()).contains("Phase II")
+
+	hud.update_boss_hp(30, 100, 3, "Shadow Beast")
+	assert_str(String(hud.call("get_boss_phase_marker_text"))).is_equal("III")
+
+	hud.update_boss_hp(10, 100, 4, "Shadow Beast")
+	assert_str(String(hud.call("get_boss_phase_marker_text"))).is_equal("4")
+
+
+func test_hud_settings_state_round_trip_hands_off_to_save_system() -> void:
+	assert_bool(hud.has_method("capture_settings_state")).is_true()
+	assert_bool(hud.has_method("restore_settings_state")).is_true()
+	if not hud.has_method("capture_settings_state") or not hud.has_method("restore_settings_state"):
+		return
+
+	hud.set_hud_scale(1.5)
+	hud.set_colorblind_mode(&"blue_yellow")
+	hud.set_battle_summary_enabled(true)
+	hud.set_damage_numbers_enabled(false)
+	var snapshot: Dictionary = hud.call("capture_settings_state")
+	var serialized: String = JSON.stringify(snapshot)
+
+	assert_float(float(snapshot.get("hud_scale", 0.0))).is_equal_approx(1.5, 0.001)
+	assert_str(String(snapshot.get("colorblind_mode", ""))).is_equal("blue_yellow")
+	assert_bool(bool(snapshot.get("battle_summary_enabled", false))).is_true()
+	assert_bool(bool(snapshot.get("damage_numbers_enabled", true))).is_false()
+	assert_bool(serialized.contains("\"hud_scale\"")).is_true()
+
+	var restored = HUD_MANAGER_SCRIPT.new()
+	add_child(restored)
+	restored.call("restore_settings_state", {
+		"hud_scale": 9.0,
+		"colorblind_mode": "invalid",
+		"battle_summary_enabled": true,
+		"damage_numbers_enabled": false,
+	})
+
+	assert_float(restored.get_hud_scale()).is_equal_approx(1.5, 0.001)
+	assert_str(String(restored.get_colorblind_mode())).is_equal("none")
+
+	restored.call("restore_settings_state", snapshot)
+
+	assert_float(restored.get_hud_scale()).is_equal_approx(1.5, 0.001)
+	assert_str(String(restored.get_colorblind_mode())).is_equal("blue_yellow")
+	assert_bool(restored.is_battle_summary_enabled()).is_true()
+	assert_bool(restored.are_damage_numbers_enabled()).is_false()
+
+	restored.queue_free()
+
+
 func test_close_settings_returns_to_invoking_pause_menu_focus() -> void:
 	hud.show_pause_menu()
 	hud.get_node("HudRoot/MenuOverlay/MenuPanel/MenuContent/MenuButtons/SettingsButton").grab_focus()

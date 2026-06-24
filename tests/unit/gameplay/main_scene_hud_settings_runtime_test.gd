@@ -68,6 +68,40 @@ func test_battle_summary_toggle_opens_lesson_panel_on_player_death() -> void:
 	assert_str(String(hud.call("get_menu_title"))).is_equal("Hunter's Lesson")
 
 
+func test_runtime_progress_state_hands_off_hud_accessibility_settings() -> void:
+	var hud: Node = scene.get_node("HUD")
+	assert_bool(hud.has_method("capture_settings_state")).is_true()
+	assert_bool(hud.has_method("restore_settings_state")).is_true()
+	if not hud.has_method("capture_settings_state") or not hud.has_method("restore_settings_state"):
+		return
+
+	hud.call("set_hud_scale", 1.5)
+	hud.call("set_colorblind_mode", &"blue_yellow")
+	hud.call("set_battle_summary_enabled", true)
+	hud.call("set_damage_numbers_enabled", false)
+
+	var snapshot: Dictionary = scene.call("capture_no_loss_state")
+
+	assert_bool(snapshot.has("settings")).is_true()
+	var settings: Dictionary = Dictionary(snapshot.get("settings", {}))
+	assert_float(float(settings.get("hud_scale", 0.0))).is_equal_approx(1.5, 0.001)
+	assert_str(String(settings.get("colorblind_mode", ""))).is_equal("blue_yellow")
+	assert_bool(bool(settings.get("battle_summary_enabled", false))).is_true()
+	assert_bool(bool(settings.get("damage_numbers_enabled", true))).is_false()
+
+	hud.call("set_hud_scale", 0.5)
+	hud.call("set_colorblind_mode", &"none")
+	hud.call("set_battle_summary_enabled", false)
+	hud.call("set_damage_numbers_enabled", true)
+
+	scene.call("restore_no_loss_state", snapshot)
+
+	assert_float(float(hud.call("get_hud_scale"))).is_equal_approx(1.5, 0.001)
+	assert_str(String(hud.call("get_colorblind_mode"))).is_equal("blue_yellow")
+	assert_bool(bool(hud.call("is_battle_summary_enabled"))).is_true()
+	assert_bool(bool(hud.call("are_damage_numbers_enabled"))).is_false()
+
+
 func _land_enemy_attack(enemy: Node, player: Node) -> void:
 	assert_bool(bool(enemy.call("request_attack"))).is_true()
 	enemy.call("advance_attack_frames", ATTACK_TELL_FRAMES)

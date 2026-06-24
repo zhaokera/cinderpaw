@@ -1,10 +1,19 @@
 # Active Session State
 
 ## Current Task
-- 持续实现 Cinderpaw 垂直切片；最近完成 Combat Presentation Story 006
-  Cinderpaw Jump and Fall Animation
+- 持续实现 Cinderpaw 垂直切片；最近完成 HUD/UI Story 006
+  HUD Scale + Colorblind Mode
 
 ## Last Completed Task
+- HUD/UI Story 006: HUD Scale + Colorblind Mode — `HUDManager` 完成 HUD
+  50%-150% 运行时缩放、菜单文本防重叠检查、红绿色盲蓝到黄 HP 映射、
+  蓝黄色盲红到白 HP 映射、Boss Phase 罗马数字文本标记，以及
+  SaveSystem-ready settings state handoff；`MainScene` no-loss snapshot 已包含
+  HUD accessibility settings；通过 GdUnit 20/20、Focused regression 39/39、
+  Godot headless smoke 与 Godot MCP 运行态验证
+- AGENTS.md: 已补强并行 Agent 使用边界与 Godot 2D 帧动画/MCP 验收规则，
+  包括 `AnimatedSprite2D + SpriteFrames`、`assets/characters/<character>/<animation>/`
+  管线、MCP 场景/脚本/运行时日志/关键节点检查，以及禁止玩家可见角色只用方块或单帧占位验收
 - Combat Presentation Story 006: Cinderpaw Jump and Fall Animation —
   Cinderpaw 新增 image-generated `jump`/`fall` 透明帧动画，接入
   `AnimatedSprite2D + SpriteFrames` 与 `PlayerController` 空中状态映射；
@@ -21,6 +30,21 @@
 - /gate-check pre-production: FAIL → 2 blocker（已修复），可重新提交
 
 ## Files Modified This Session
+- `AGENTS.md` — 并行 Codex subagent 分工边界，以及 Godot 2D frame animation
+  与 MCP runtime validation 验收规则
+- `src/presentation/hud_manager.gd` — Story 006 HUD scale runtime relayout、
+  menu overlap diagnostics、colorblind HP palettes、Boss Phase text marker、
+  JSON-safe settings state capture/restore
+- `src/gameplay/main_scene.gd` — no-loss runtime state handoff now includes
+  HUD accessibility settings
+- `tests/unit/presentation/hud_manager_test.gd`,
+  `tests/unit/gameplay/main_scene_hud_settings_runtime_test.gd` — Story 006
+  TDD and runtime handoff coverage
+- `production/epics/hud-ui/story-006-hud-scale-colorblind-mode.md`,
+  `production/epics/hud-ui/EPIC.md`,
+  `production/qa/evidence/hud-scale-colorblind-mode-2026-06-24.md`,
+  `reports/visual/cinderpaw-mcp-hud-story006-*.png` — Story state, Epic
+  tracking, QA evidence, and MCP screenshot artifacts
 - `src/gameplay/player_controller.gd` — `jump`/`fall` 动画常量与空中
   locomotion 映射，保持 hurt/death/revive、attack、dodge 优先级
 - `assets/characters/cinderpaw/jump/`,
