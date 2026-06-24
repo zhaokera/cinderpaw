@@ -1,0 +1,24 @@
+{
+	"entries": {
+		"hub": {
+			"required": ["scene_id", "path", "type", "preload", "default_spawn"],
+			"fields": {
+				"scene_id": {"type": "String", "enum": ["hub"]},
+				"path": {"type": "String"},
+				"type": {"type": "String", "enum": ["hub"]},
+				"preload": {"type": "bool"},
+				"default_spawn": {"type": "String"}
+			}
+		},
+		"main": {
+			"required": ["scene_id", "path", "type", "preload", "default_spawn"],
+			"fields": {
+				"scene_id": {"type": "String", "enum": ["main"]},
+				"path": {"type": "String"},
+				"type": {"type": "String", "enum": ["area"]},
+				"preload": {"type": "bool"},
+				"default_spawn": {"type": "String"}
+			}
+		}
+	}
+}

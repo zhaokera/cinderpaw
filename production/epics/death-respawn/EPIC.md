@@ -41,7 +41,7 @@ surface a learning-focused battle summary.
 | 001 | Runtime Death + Quick Respawn Loop | Integration | Complete | ADR-0001, ADR-0002, ADR-0019 |
 | 002 | Respawn Invincibility Visual Feedback | Visual/Feel | Complete | ADR-0019 |
 | 003 | Boss Arena Respawn Reset | Integration | Complete | ADR-0007 |
-| 004 | Savepoint Respawn Selection | Integration | Blocked by SaveSystem/SceneManagement | ADR-0007 |
+| 004 | Savepoint Respawn Selection | Integration | Ready | ADR-0007 |
 | 005 | Battle Summary Handoff | Integration | Complete | ADR-0002, ADR-0019 |
 | 006 | No-Loss Respawn State Contract | Integration | Complete | ADR-0007 |
 
@@ -57,6 +57,5 @@ This epic is complete when:
 
 ## Next Step
 
-Continue with HUD/UI Story 004 settings/accessibility controls, or Death &
-Respawn Story 004 once SaveSystem and SceneManagement are ready for savepoint
-priority.
+Continue with Death & Respawn Story 004 now that SaveSystem and the logical
+SceneManager baseline are available for savepoint priority.

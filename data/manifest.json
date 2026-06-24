@@ -6,6 +6,7 @@
 		{"name": "boss_configs", "path": "combat/boss_configs.json", "preload": false},
 		{"name": "weapon_configs", "path": "weapons/weapon_configs.json", "preload": true},
 		{"name": "input_config", "path": "input/input_config.json", "preload": false},
+		{"name": "scene_registry", "path": "scene_registry.json", "preload": true},
 		{"name": "tuning_knobs", "path": "tuning_knobs.json", "preload": true}
 	]
 }

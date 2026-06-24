@@ -1,12 +1,12 @@
 # Story 004: Savepoint Respawn Selection
 
 > **Epic**: Death & Respawn
-> **Status**: Blocked
+> **Status**: Ready
 > **Layer**: Feature
 > **Type**: Integration
 > **Estimate**: L
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-06-24
+> **Last Updated**: 2026-06-25
 
 ## Context
 
@@ -25,12 +25,15 @@
 ## Test Evidence
 
 **Required evidence**: SaveSystem/SceneManagement integration tests.
-**Status**: [ ] Blocked
+**Status**: [ ] Ready
 
-## Blocker
+## Readiness
 
-SaveSystem and SceneManagement production epics are not yet formalized.
+SaveSystem is complete and SceneManagement Story 001 provides the logical
+SceneManager interface needed for deterministic scene/spawn transition tests.
+Full async scene-tree replacement remains a future SceneManagement story and is
+not required for this respawn-selection slice.
 
 ## Dependencies
 
-- Depends on: SaveSystem Epic, SceneManagement Epic.
+- Depends on: SaveSystem Epic, SceneManagement Story 001.

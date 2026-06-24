@@ -1,0 +1,19 @@
+{
+	"_meta": {"version": "1.0", "domain": "scene_registry"},
+	"entries": {
+		"hub": {
+			"scene_id": "hub",
+			"path": "res://scenes/main.tscn",
+			"type": "hub",
+			"preload": true,
+			"default_spawn": "clan_base"
+		},
+		"main": {
+			"scene_id": "main",
+			"path": "res://scenes/main.tscn",
+			"type": "area",
+			"preload": true,
+			"default_spawn": "default"
+		}
+	}
+}

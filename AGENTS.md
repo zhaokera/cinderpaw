@@ -32,9 +32,10 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 ## Parallel Agent Use
 
-- Prefer parallel Codex subagents by default whenever a slice contains two or
-  more independent workstreams that do not write the same files or depend on the
-  same unresolved decision.
+- Parallel Codex subagents are the default for sizable slices. Whenever a slice
+  contains two or more independent workstreams that do not write the same files
+  or depend on the same unresolved decision, split the work instead of running it
+  serially in one agent.
 - Good parallel splits include: asset prompt/spec review, documentation/evidence
   updates, isolated test failure investigation, and scene/runtime verification.
 - Start read-only review or validation-planning subagents early for sizable
@@ -49,7 +50,8 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
   gameplay controller, or asset manifest in parallel unless a prior split assigns
   non-overlapping files and one agent owns final integration.
 - The integrating agent must review subagent results, resolve conflicts, and run
-  the final Godot/GdUnit/MCP verification before reporting completion.
+  the final Godot/GdUnit/MCP verification before reporting completion. Passing
+  subagent output is advisory until the integrating agent verifies it.
 - Subagents should receive narrow, self-contained tasks and return findings,
   proposed edits, or verification evidence; the integrating agent owns final
   file edits unless a subagent write set is explicitly isolated.
@@ -58,9 +60,10 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 所有对话、审查报告、问题描述、修订说明均使用**中文**与用户交流。代码注释、变量命名、文件命名仍按 Coding Standards 执行（英文）。GDD 文档正文使用中文，技术术语可保留英文原文。
 
-## Godot 2D Frame Animation Rules
+## Godot 帧动画规则 / Godot 2D Frame Animation Rules
 
-动作类角色不能长期停留在静态方块或单张占位图表现。新增或重做 2D 角色动画时遵守以下规则：
+动作类游戏必须把玩家可见角色推进到帧动画表现，不能长期停留在静态方块、
+纯色矩形或单张占位图。新增或重做 2D 角色动画时遵守以下规则：
 
 1. 所有 2D 角色帧动画统一使用 `AnimatedSprite2D` + `SpriteFrames`。
 2. 角色动画素材必须放在 `assets/characters/<character_name>/<animation_name>/`。
