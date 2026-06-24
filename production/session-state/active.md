@@ -3,13 +3,24 @@
 ## Current Task
 - Save System、Death & Respawn、SceneManagement Story002 title/continue/load
   handoff、SceneManagement Story003 async load request lifecycle + timeout
-  fallback 已完成；下一步按 GDD/架构/Epic 状态推进 SceneManager real
-  scene-tree swap、deferred unload/cache、fast travel、transition visuals/loading
-  UI/audio、memory-budget verification，以及玩家可见角色/敌人帧动画持续审计。
-  继续执行 TDD + Godot MCP 运行态验证，玩家可见动作角色必须遵守
-  `AnimatedSprite2D + SpriteFrames` 规则。
+  fallback、SceneManagement Story004 transition loading UI shell 已完成；下一步按
+  GDD/架构/Epic 状态推进 SceneManager real scene-tree swap、deferred
+  unload/cache、fast travel、loading audio fades、memory-budget verification，
+  以及玩家可见角色/敌人帧动画持续审计。继续执行 TDD + Godot MCP 运行态验证，
+  玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Scene Management Story 004: Transition Loading UI Shell — `SceneManager`
+  现在在 async request accepted 后 emits
+  `on_scene_load_started(scene_id, spawn_point, metadata)`；`HUDManager`
+  新增 `SceneTransitionOverlay`，使用 image-generated
+  `scene_transition_tunnel_overlay.png` 和透明 `scene_transition_paw_spinner.png`
+  的 `TextureRect` 分层，显示动态 scene label 并旋转猫爪 spinner；
+  `MainScene` 连接 SceneManager load-start/changed/failed 信号，菜单驱动路径优先
+  `request_scene_change()`，失败时关闭过渡层并显示 `Load failed`。通过 RED
+  `report_421`、GREEN focused `report_422` `28/28`；相关回归、headless smoke
+  与 Godot MCP 证据记录在
+  `production/qa/evidence/scene-transition-loading-ui-shell-2026-06-25.md`。
 - Scene Management Story 003: Async Load Request Lifecycle + Timeout Fallback —
   `SceneManager` 新增 `request_scene_change()` async request API、loader
   adapter seam、`advance_loading()` 确定性推进、1.5 秒 transition gate、真实

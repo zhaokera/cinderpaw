@@ -72,7 +72,7 @@ All new visual assets in this inventory should be produced from image2 / image g
 | 7 | Fast Travel Menu | Unlocked save-point list with thumbnails and locked-state icons. | design/gdd/scene-management.md | Needed |
 | 8 | Dialogue Box | Cat-ear decorated dialogue frame with NPC portrait slot and response choices. | design/gdd/npc-dialogue.md; design/art/art-bible.md | Needed |
 | 9 | Death Screen | Grayscale death panel, learning hint, recent save point name, optional combat summary. | design/gdd/death-respawn.md | Needed |
-| 10 | Loading / Transition Screen | Cat paw loading spinner and scene transition overlay. | design/gdd/scene-management.md | Needed |
+| 10 | Loading / Transition Screen | SceneManager-driven loading shell with image-generated tunnel overlay, transparent cat paw spinner, and dynamic scene label; fast travel and full scene-tree transition variants remain pending. | design/gdd/scene-management.md; production/epics/scene-management/story-004-transition-loading-ui-shell.md | Partial |
 | 11 | Save / Load Screen | Save slot list and autosave indicator. | design/gdd/save-system.md | Needed |
 
 ## HUD Elements

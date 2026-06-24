@@ -80,6 +80,64 @@ func test_show_notification_expires_after_duration() -> void:
 	assert_bool(hud.is_notification_visible()).is_false()
 
 
+func test_scene_transition_shell_uses_generated_textures_and_scene_label() -> void:
+	assert_bool(hud.has_method("show_scene_transition")).is_true()
+	assert_bool(hud.has_method("is_scene_transition_visible")).is_true()
+	assert_bool(hud.has_method("get_scene_transition_label_text")).is_true()
+	assert_bool(hud.has_method("get_scene_transition_background_texture_path")).is_true()
+	assert_bool(hud.has_method("get_scene_transition_spinner_texture_path")).is_true()
+	if (
+		not hud.has_method("show_scene_transition")
+		or not hud.has_method("is_scene_transition_visible")
+		or not hud.has_method("get_scene_transition_label_text")
+		or not hud.has_method("get_scene_transition_background_texture_path")
+		or not hud.has_method("get_scene_transition_spinner_texture_path")
+	):
+		return
+
+	hud.call("show_scene_transition", &"main", "Scrap Alley")
+
+	assert_bool(bool(hud.call("is_scene_transition_visible"))).is_true()
+	assert_str(String(hud.call("get_scene_transition_label_text"))).is_equal("Scrap Alley")
+	assert_str(String(hud.call("get_scene_transition_background_texture_path"))).is_equal(
+		"res://assets/generated/scene_transition_tunnel_overlay.png"
+	)
+	assert_str(String(hud.call("get_scene_transition_spinner_texture_path"))).is_equal(
+		"res://assets/generated/scene_transition_paw_spinner.png"
+	)
+	assert_bool(hud.get_node("HudRoot/SceneTransitionOverlay/TransitionBackground") is TextureRect).is_true()
+	assert_bool(hud.get_node("HudRoot/SceneTransitionOverlay/PawSpinner") is TextureRect).is_true()
+
+
+func test_scene_transition_spinner_advances_and_hides_without_menu_state_change() -> void:
+	assert_bool(hud.has_method("show_scene_transition")).is_true()
+	assert_bool(hud.has_method("hide_scene_transition")).is_true()
+	assert_bool(hud.has_method("get_scene_transition_spinner_rotation")).is_true()
+	if (
+		not hud.has_method("show_scene_transition")
+		or not hud.has_method("hide_scene_transition")
+		or not hud.has_method("get_scene_transition_spinner_rotation")
+	):
+		return
+	hud.call("show_main_menu", [])
+	var menu_mode_before: StringName = hud.get_menu_mode()
+
+	hud.call("show_scene_transition", &"main", "Scrap Alley")
+	var rotation_before: float = float(hud.call("get_scene_transition_spinner_rotation"))
+	hud.advance_time(0.25)
+	var rotation_after: float = float(hud.call("get_scene_transition_spinner_rotation"))
+
+	assert_bool(bool(hud.call("is_scene_transition_visible"))).is_true()
+	assert_bool(rotation_after != rotation_before).is_true()
+	assert_str(String(hud.get_menu_mode())).is_equal(String(menu_mode_before))
+
+	hud.call("hide_scene_transition")
+
+	assert_bool(bool(hud.call("is_scene_transition_visible"))).is_false()
+	assert_bool(hud.is_menu_visible()).is_true()
+	assert_str(String(hud.get_menu_mode())).is_equal(String(menu_mode_before))
+
+
 func test_show_pause_menu_displays_focusable_resume_and_retry_buttons() -> void:
 	hud.show_pause_menu()
 

@@ -53,6 +53,12 @@ const BOSS_PANEL_BASE_SIZE: Vector2 = Vector2(440, 54)
 const MENU_TITLE_BASE_FONT_SIZE: int = 28
 const MENU_BODY_BASE_FONT_SIZE: int = 16
 const MENU_CONTROL_BASE_FONT_SIZE: int = 16
+const SCENE_TRANSITION_BACKGROUND_TEXTURE_PATH: String = "res://assets/generated/scene_transition_tunnel_overlay.png"
+const SCENE_TRANSITION_SPINNER_TEXTURE_PATH: String = "res://assets/generated/scene_transition_paw_spinner.png"
+const SCENE_TRANSITION_BACKGROUND_TEXTURE: Texture2D = preload("res://assets/generated/scene_transition_tunnel_overlay.png")
+const SCENE_TRANSITION_SPINNER_TEXTURE: Texture2D = preload("res://assets/generated/scene_transition_paw_spinner.png")
+const SCENE_TRANSITION_SPINNER_SIZE: Vector2 = Vector2(96, 96)
+const SCENE_TRANSITION_SPINNER_ROTATION_SPEED: float = TAU * 0.75
 
 var _hp_ratio: float = 1.0
 var _hp_color: Color = HP_HEALTHY_COLOR
@@ -66,6 +72,8 @@ var _damage_numbers_enabled: bool = true
 var _hud_scale: float = 1.0
 var _colorblind_mode: StringName = COLORBLIND_NONE
 var _boss_phase_marker_text: String = "I"
+var _scene_transition_scene_id: StringName = &""
+var _scene_transition_label_text: String = ""
 
 var _root: Control
 var _player_panel: PanelContainer
@@ -100,6 +108,10 @@ var _colorblind_option: OptionButton
 var _controls_remap_button: Button
 var _battle_summary_checkbox: CheckBox
 var _damage_numbers_checkbox: CheckBox
+var _scene_transition_overlay: Control
+var _scene_transition_background: TextureRect
+var _scene_transition_spinner: TextureRect
+var _scene_transition_label: Label
 
 
 func _ready() -> void:
@@ -321,11 +333,73 @@ func hide_menu() -> void:
 
 
 func advance_time(delta_sec: float) -> void:
+	_advance_scene_transition(delta_sec)
 	if _notification_remaining_sec <= 0.0:
 		return
 	_notification_remaining_sec = maxf(0.0, _notification_remaining_sec - maxf(0.0, delta_sec))
 	if _notification_remaining_sec <= 0.0 and _notification_label != null:
 		_notification_label.visible = false
+
+
+func show_scene_transition(
+	scene_id: StringName,
+	display_name: String = "",
+	_transition_duration_sec: float = 1.5
+) -> void:
+	_scene_transition_scene_id = scene_id
+	_scene_transition_label_text = display_name.strip_edges()
+	if _scene_transition_label_text == "":
+		_scene_transition_label_text = _display_name_for_scene_id(scene_id)
+	if _scene_transition_label != null:
+		_scene_transition_label.text = _scene_transition_label_text
+	if _scene_transition_spinner != null:
+		_scene_transition_spinner.rotation = 0.0
+	if _scene_transition_overlay != null:
+		_scene_transition_overlay.visible = true
+
+
+func hide_scene_transition() -> void:
+	_scene_transition_scene_id = &""
+	_scene_transition_label_text = ""
+	if _scene_transition_overlay != null:
+		_scene_transition_overlay.visible = false
+
+
+func is_scene_transition_visible() -> bool:
+	return _scene_transition_overlay != null and _scene_transition_overlay.visible
+
+
+func get_scene_transition_label_text() -> String:
+	if _scene_transition_label == null:
+		return _scene_transition_label_text
+	return _scene_transition_label.text
+
+
+func get_scene_transition_background_texture_path() -> String:
+	return SCENE_TRANSITION_BACKGROUND_TEXTURE_PATH
+
+
+func get_scene_transition_spinner_texture_path() -> String:
+	return SCENE_TRANSITION_SPINNER_TEXTURE_PATH
+
+
+func get_scene_transition_spinner_rotation() -> float:
+	if _scene_transition_spinner == null:
+		return 0.0
+	return _scene_transition_spinner.rotation
+
+
+func has_scene_transition_text_overlap() -> bool:
+	if (
+		_scene_transition_label == null
+		or _scene_transition_spinner == null
+		or not is_scene_transition_visible()
+	):
+		return false
+	return Rect2(_scene_transition_label.position, _scene_transition_label.size).intersects(
+		Rect2(_scene_transition_spinner.position, _scene_transition_spinner.size),
+		false
+	)
 
 
 func get_hp_ratio() -> float:
@@ -606,6 +680,7 @@ func _build_layout() -> void:
 	_build_boss_panel()
 	_build_notification_label()
 	_build_menu_overlay()
+	_build_scene_transition_overlay()
 	_apply_hud_scale_layout()
 
 
@@ -786,6 +861,49 @@ func _build_menu_overlay() -> void:
 	_exit_button.pressed.connect(_on_exit_button_pressed)
 	button_box.add_child(_exit_button)
 	_hide_menu_buttons()
+
+
+func _build_scene_transition_overlay() -> void:
+	_scene_transition_overlay = Control.new()
+	_scene_transition_overlay.name = "SceneTransitionOverlay"
+	_scene_transition_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_scene_transition_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_scene_transition_overlay.visible = false
+	_root.add_child(_scene_transition_overlay)
+
+	_scene_transition_background = TextureRect.new()
+	_scene_transition_background.name = "TransitionBackground"
+	_scene_transition_background.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_scene_transition_background.texture = SCENE_TRANSITION_BACKGROUND_TEXTURE
+	_scene_transition_background.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_scene_transition_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_scene_transition_background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_scene_transition_background.modulate = Color(1, 1, 1, 0.92)
+	_scene_transition_overlay.add_child(_scene_transition_background)
+
+	_scene_transition_spinner = TextureRect.new()
+	_scene_transition_spinner.name = "PawSpinner"
+	_scene_transition_spinner.texture = SCENE_TRANSITION_SPINNER_TEXTURE
+	_scene_transition_spinner.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_scene_transition_spinner.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_scene_transition_spinner.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_scene_transition_spinner.size = SCENE_TRANSITION_SPINNER_SIZE
+	_scene_transition_spinner.pivot_offset = SCENE_TRANSITION_SPINNER_SIZE * 0.5
+	_scene_transition_spinner.position = Vector2(
+		(HUD_VIEWPORT_SIZE.x - SCENE_TRANSITION_SPINNER_SIZE.x) * 0.5,
+		462.0
+	)
+	_scene_transition_overlay.add_child(_scene_transition_spinner)
+
+	_scene_transition_label = Label.new()
+	_scene_transition_label.name = "TransitionSceneLabel"
+	_scene_transition_label.position = Vector2(390, 582)
+	_scene_transition_label.size = Vector2(500, 48)
+	_scene_transition_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_scene_transition_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_scene_transition_label.add_theme_color_override("font_color", TEXT_COLOR)
+	_scene_transition_label.add_theme_font_size_override("font_size", 24)
+	_scene_transition_overlay.add_child(_scene_transition_label)
 
 
 func _new_menu_button(node_name: String, button_text: String) -> Button:
@@ -1086,6 +1204,25 @@ func _generate_battle_tip(dodge_rate: float, parry_rate: float) -> String:
 	return "Keep the rhythm: punish after the enemy's final swing."
 
 
+func _advance_scene_transition(delta_sec: float) -> void:
+	if _scene_transition_spinner == null or not is_scene_transition_visible():
+		return
+	_scene_transition_spinner.rotation += maxf(0.0, delta_sec) * SCENE_TRANSITION_SPINNER_ROTATION_SPEED
+
+
+func _display_name_for_scene_id(scene_id: StringName) -> String:
+	match scene_id:
+		&"hub":
+			return "Clan Base"
+		&"main":
+			return "Scrap Alley"
+		_:
+			var words: PackedStringArray = String(scene_id).replace("_", " ").split(" ", false)
+			for index: int in range(words.size()):
+				words[index] = words[index].capitalize()
+			return " ".join(words)
+
+
 func _sync_settings_controls() -> void:
 	if _master_volume_slider != null:
 		_master_volume_slider.set_value_no_signal(100.0)
@@ -1164,6 +1301,23 @@ func _apply_hud_scale_layout() -> void:
 		_notification_label.position = Vector2((HUD_VIEWPORT_SIZE.x - 500.0 * hud_scale_value) * 0.5, 92.0 * hud_scale_value)
 		_notification_label.size = Vector2(500, 44) * hud_scale_value
 		_notification_label.add_theme_font_size_override("font_size", int(roundf(24.0 * hud_scale_value)))
+	if _scene_transition_spinner != null:
+		var spinner_size: Vector2 = SCENE_TRANSITION_SPINNER_SIZE * hud_scale_value
+		_scene_transition_spinner.size = spinner_size
+		_scene_transition_spinner.pivot_offset = spinner_size * 0.5
+		_scene_transition_spinner.position = Vector2(
+			(HUD_VIEWPORT_SIZE.x - spinner_size.x) * 0.5,
+			510.0 - spinner_size.y * 0.5
+		)
+	if _scene_transition_label != null:
+		var label_size: Vector2 = Vector2(500, 48) * hud_scale_value
+		var label_y: float = 510.0 + SCENE_TRANSITION_SPINNER_SIZE.y * hud_scale_value * 0.5 + 24.0
+		_scene_transition_label.position = Vector2(
+			(HUD_VIEWPORT_SIZE.x - label_size.x) * 0.5,
+			label_y
+		)
+		_scene_transition_label.size = label_size
+		_scene_transition_label.add_theme_font_size_override("font_size", int(roundf(24.0 * hud_scale_value)))
 	_apply_menu_scale_layout()
 
 

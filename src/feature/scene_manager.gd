@@ -7,6 +7,7 @@
 extends Node
 
 signal on_scene_loaded(scene_id: StringName)
+signal on_scene_load_started(scene_id: StringName, spawn_point: StringName, metadata: Dictionary)
 signal on_scene_changed(old_scene: StringName, new_scene: StringName)
 signal on_scene_load_failed(scene_id: StringName, reason: StringName)
 
@@ -165,6 +166,11 @@ func request_scene_change(
 	if error != OK:
 		_fail_pending_load(&"request_failed")
 		return false
+	on_scene_load_started.emit(scene_id, _pending_spawn_point, {
+		"path": _pending_scene_path,
+		"display_name": _display_name_for_scene(scene_id),
+		"transition_duration_sec": MIN_TRANSITION_SECONDS,
+	})
 	return true
 
 
@@ -412,6 +418,19 @@ func _get_default_spawn(scene_id: StringName) -> StringName:
 		"default_spawn",
 		String(DEFAULT_SPAWN_POINT)
 	))
+
+
+func _display_name_for_scene(scene_id: StringName) -> String:
+	match scene_id:
+		&"hub":
+			return "Clan Base"
+		&"main":
+			return "Scrap Alley"
+		_:
+			var words: PackedStringArray = String(scene_id).replace("_", " ").split(" ", false)
+			for index: int in range(words.size()):
+				words[index] = words[index].capitalize()
+			return " ".join(words)
 
 
 func _register_with_root_save_system() -> void:

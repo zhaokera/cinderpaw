@@ -32,6 +32,7 @@ var _save_trigger_adapter: SaveTriggerAdapter = null
 var _boss_phase_transition_source: Object = null
 var _pending_manual_save_slot: int = -1
 var _scene_manager: Object = null
+var _connected_scene_manager: Object = null
 var _last_discovered_savepoint: Dictionary = {}
 
 
@@ -83,6 +84,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	_disconnect_scene_manager_signals()
 	_disconnect_boss_phase_transition_source()
 	_unregister_main_scene_from_save_system()
 
@@ -356,9 +358,11 @@ func get_runtime_progress_state() -> Dictionary:
 
 
 func configure_scene_manager_runtime(scene_manager: Object) -> bool:
+	_disconnect_scene_manager_signals()
 	_scene_manager = scene_manager
 	_game_flow.set_scene_transition_adapter(_scene_manager)
-	return _scene_manager != null and _scene_manager.has_method("change_scene")
+	_connect_scene_manager_signals(_scene_manager)
+	return _is_valid_scene_manager(_scene_manager)
 
 
 func _request_scene_manager_transition(scene_id: StringName, spawn_point: StringName) -> bool:
@@ -370,6 +374,10 @@ func _request_scene_manager_transition(scene_id: StringName, spawn_point: String
 	if scene_manager.has_method("has_scene") and not bool(scene_manager.call("has_scene", scene_id)):
 		return false
 	if scene_manager.has_method("is_scene_locked") and bool(scene_manager.call("is_scene_locked")):
+		return false
+	if scene_manager.has_method("request_scene_change"):
+		return bool(scene_manager.call("request_scene_change", scene_id, spawn_point))
+	if not scene_manager.has_method("change_scene"):
 		return false
 	return bool(scene_manager.call("change_scene", scene_id, spawn_point))
 
@@ -422,7 +430,101 @@ func _resolve_scene_manager_for_runtime() -> Object:
 
 
 func _is_valid_scene_manager(scene_manager: Object) -> bool:
-	return scene_manager != null and is_instance_valid(scene_manager) and scene_manager.has_method("change_scene")
+	return (
+		scene_manager != null
+		and is_instance_valid(scene_manager)
+		and (
+			scene_manager.has_method("change_scene")
+			or scene_manager.has_method("request_scene_change")
+		)
+	)
+
+
+func _connect_scene_manager_signals(scene_manager: Object) -> void:
+	if scene_manager == null or not is_instance_valid(scene_manager):
+		return
+	_connected_scene_manager = scene_manager
+	_connect_scene_manager_signal(
+		scene_manager,
+		"on_scene_load_started",
+		Callable(self, "_on_scene_manager_load_started")
+	)
+	_connect_scene_manager_signal(
+		scene_manager,
+		"on_scene_changed",
+		Callable(self, "_on_scene_manager_changed")
+	)
+	_connect_scene_manager_signal(
+		scene_manager,
+		"on_scene_load_failed",
+		Callable(self, "_on_scene_manager_load_failed")
+	)
+
+
+func _connect_scene_manager_signal(scene_manager: Object, signal_name: String, callback: Callable) -> void:
+	if scene_manager == null or not is_instance_valid(scene_manager):
+		return
+	if not scene_manager.has_signal(signal_name):
+		return
+	var scene_signal: Signal = scene_manager.get(signal_name)
+	if not scene_signal.is_connected(callback):
+		scene_signal.connect(callback)
+
+
+func _disconnect_scene_manager_signals() -> void:
+	if _connected_scene_manager == null or not is_instance_valid(_connected_scene_manager):
+		_connected_scene_manager = null
+		return
+	_disconnect_scene_manager_signal(
+		_connected_scene_manager,
+		"on_scene_load_started",
+		Callable(self, "_on_scene_manager_load_started")
+	)
+	_disconnect_scene_manager_signal(
+		_connected_scene_manager,
+		"on_scene_changed",
+		Callable(self, "_on_scene_manager_changed")
+	)
+	_disconnect_scene_manager_signal(
+		_connected_scene_manager,
+		"on_scene_load_failed",
+		Callable(self, "_on_scene_manager_load_failed")
+	)
+	_connected_scene_manager = null
+
+
+func _disconnect_scene_manager_signal(scene_manager: Object, signal_name: String, callback: Callable) -> void:
+	if scene_manager == null or not is_instance_valid(scene_manager):
+		return
+	if not scene_manager.has_signal(signal_name):
+		return
+	var scene_signal: Signal = scene_manager.get(signal_name)
+	if scene_signal.is_connected(callback):
+		scene_signal.disconnect(callback)
+
+
+func _on_scene_manager_load_started(
+	scene_id: StringName,
+	_spawn_point: StringName,
+	metadata: Dictionary
+) -> void:
+	var display_name: String = String(metadata.get("display_name", "")).strip_edges()
+	if display_name == "":
+		display_name = _display_name_for_scene_id(scene_id)
+	_hud.show_scene_transition(
+		scene_id,
+		display_name,
+		float(metadata.get("transition_duration_sec", 1.5))
+	)
+
+
+func _on_scene_manager_changed(_old_scene: StringName, _new_scene: StringName) -> void:
+	_hud.hide_scene_transition()
+
+
+func _on_scene_manager_load_failed(_scene_id: StringName, _reason: StringName) -> void:
+	_hud.hide_scene_transition()
+	_hud.show_notification("Load failed", 2.0)
 
 
 func discover_savepoint(
@@ -1094,3 +1196,23 @@ func _display_name_for_weapon(weapon_id: StringName) -> StringName:
 			return &"Electro Bell"
 		_:
 			return &"Cat Claw"
+
+
+func _display_name_for_scene_id(scene_id: StringName) -> String:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if scene_manager != null and scene_manager.has_method("get_scene_config"):
+		var config_variant: Variant = scene_manager.call("get_scene_config", scene_id)
+		if config_variant is Dictionary:
+			var display_name: String = String(Dictionary(config_variant).get("display_name", "")).strip_edges()
+			if display_name != "":
+				return display_name
+	match scene_id:
+		&"hub":
+			return "Clan Base"
+		&"main":
+			return "Scrap Alley"
+		_:
+			var words: PackedStringArray = String(scene_id).replace("_", " ").split(" ", false)
+			for index: int in range(words.size()):
+				words[index] = words[index].capitalize()
+			return " ".join(words)

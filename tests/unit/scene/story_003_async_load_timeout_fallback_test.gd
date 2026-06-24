@@ -49,6 +49,19 @@ func test_request_scene_change_starts_threaded_request_without_committing_curren
 		return
 	var loader := FakeLoaderAdapter.new()
 	scene_manager.call("set_loader_adapter", loader)
+	assert_bool(scene_manager.has_signal("on_scene_load_started")).is_true()
+	if not scene_manager.has_signal("on_scene_load_started"):
+		return
+	var started_events: Array[Dictionary] = []
+	scene_manager.connect(
+		"on_scene_load_started",
+		func(scene_id: StringName, spawn_point: StringName, metadata: Dictionary) -> void:
+			started_events.append({
+				"scene_id": String(scene_id),
+				"spawn_point": String(spawn_point),
+				"metadata": metadata.duplicate(true),
+			})
+	)
 
 	assert_bool(bool(scene_manager.call("request_scene_change", &"main", &"east_gate"))).is_true()
 
@@ -61,6 +74,13 @@ func test_request_scene_change_starts_threaded_request_without_committing_curren
 	if not loader.request_calls.is_empty():
 		assert_str(String(loader.request_calls[0]["path"])).is_equal("res://scenes/main.tscn")
 		assert_str(String(loader.request_calls[0]["type_hint"])).is_equal("PackedScene")
+	assert_int(started_events.size()).is_equal(1)
+	if not started_events.is_empty():
+		assert_str(String(started_events[0]["scene_id"])).is_equal("main")
+		assert_str(String(started_events[0]["spawn_point"])).is_equal("east_gate")
+		var metadata: Dictionary = Dictionary(started_events[0]["metadata"])
+		assert_str(String(metadata.get("path", ""))).is_equal("res://scenes/main.tscn")
+		assert_float(float(metadata.get("transition_duration_sec", 0.0))).is_equal_approx(1.5, 0.001)
 
 
 func test_loaded_scene_waits_for_transition_gate_before_logical_commit() -> void:
