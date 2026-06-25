@@ -1,0 +1,89 @@
+{
+  "generated_on": "2026-06-25",
+  "generator": "deterministic procedural PCM synthesis via Python wave module",
+  "sample_rate_hz": 44100,
+  "format": "16-bit mono WAV",
+  "purpose": "AudioSystem Story005 core combat SFX baseline; replaceable authored assets with stable cue ids.",
+  "assets": [
+    {
+      "cue_id": "sfx_claw_attack",
+      "path": "res://assets/audio/sfx/sfx_claw_attack.wav",
+      "duration_sec": 0.18,
+      "category": "SFX",
+      "description": "short high-frequency claw slash with air noise transient",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_hit_normal",
+      "path": "res://assets/audio/sfx/sfx_hit_normal.wav",
+      "duration_sec": 0.16,
+      "category": "SFX",
+      "description": "compact body hit thump with gritty impact noise",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_hit_crit",
+      "path": "res://assets/audio/sfx/sfx_hit_crit.wav",
+      "duration_sec": 0.26,
+      "category": "SFX",
+      "description": "brighter critical hit crack with short ringing tail",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_parry_perfect",
+      "path": "res://assets/audio/sfx/sfx_parry_perfect.wav",
+      "duration_sec": 0.3,
+      "category": "SFX",
+      "description": "clear metallic perfect parry ping with fast attack",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_dodge",
+      "path": "res://assets/audio/sfx/sfx_dodge.wav",
+      "duration_sec": 0.2,
+      "category": "SFX",
+      "description": "soft lateral whoosh for dodge start",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_damage_taken",
+      "path": "res://assets/audio/sfx/sfx_damage_taken.wav",
+      "duration_sec": 0.22,
+      "category": "SFX",
+      "description": "dull low-mid player damage impact",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_damage_taken_lowhp",
+      "path": "res://assets/audio/sfx/sfx_damage_taken_lowhp.wav",
+      "duration_sec": 0.34,
+      "category": "SFX",
+      "description": "low-hp damage impact with darker resonant tail",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_enemy_death",
+      "path": "res://assets/audio/sfx/sfx_enemy_death.wav",
+      "duration_sec": 0.48,
+      "category": "SFX",
+      "description": "enemy collapse with downward crumble and grit",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_boss_phase",
+      "path": "res://assets/audio/sfx/sfx_boss_phase.wav",
+      "duration_sec": 0.7,
+      "category": "SFX",
+      "description": "Rat King phase transition boom with rising overload tone",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_focus_mode_activate",
+      "path": "res://assets/audio/sfx/sfx_focus_mode_activate.wav",
+      "duration_sec": 0.42,
+      "category": "SFX",
+      "description": "focus mode activation rising pulse and shimmer",
+      "status": "procedural_baseline_replaceable"
+    }
+  ]
+}

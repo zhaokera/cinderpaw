@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/audio-system.md
 > **Architecture Module**: AudioSystem
 > **Status**: In Progress
-> **Stories**: 4 stories tracked
+> **Stories**: 5 stories tracked
 
 ## Overview
 
@@ -43,6 +43,7 @@ calls without pushing logic back into Core.
 | 002 | Scene Transition Audio Fades | Integration | Complete | ADR-0007, ADR-0010 |
 | 003 | Combat + Health Event Audio Adapters | Integration | Complete | ADR-0010 |
 | 004 | Rat King Boss Music State Transitions | Integration | Complete | ADR-0010 |
+| 005 | Core Combat SFX Asset Import Baseline | Integration | Complete | ADR-0010 |
 
 ## Definition of Done
 
@@ -54,11 +55,14 @@ This epic is complete when:
 - Music and ambience request APIs record fade state and become ready for
   SceneManager and boss-transition integration.
 - Missing or unloaded audio assets fail safely without blocking gameplay.
+- The first core combat SFX batch is imported through Godot and loaded by
+  AudioSystem by default.
 - Combat, health, scene, UI, and boss event adapters are wired and covered.
 - Godot CLI/GdUnit and Godot MCP verify runtime autoload, bus state, public API,
   and clean logs.
 
 ## Next Step
 
-Audio System Story 004 is complete. Next recommended work is UI menu audio,
-same-SFX merge, and real audio asset import stories.
+Audio System Story 005 is complete. Next recommended work is UI menu audio,
+same-SFX merge, authored/final audio replacement, and non-claw weapon SFX
+expansion.

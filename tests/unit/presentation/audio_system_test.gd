@@ -3,6 +3,18 @@ extends GdUnitTestSuite
 
 const AUDIO_SYSTEM_PATH: String = "res://src/presentation/audio_system.gd"
 const PROJECT_PATH: String = "res://project.godot"
+const DEFAULT_CORE_COMBAT_SFX: Dictionary = {
+	&"sfx_claw_attack": "res://assets/audio/sfx/sfx_claw_attack.wav",
+	&"sfx_hit_normal": "res://assets/audio/sfx/sfx_hit_normal.wav",
+	&"sfx_hit_crit": "res://assets/audio/sfx/sfx_hit_crit.wav",
+	&"sfx_parry_perfect": "res://assets/audio/sfx/sfx_parry_perfect.wav",
+	&"sfx_dodge": "res://assets/audio/sfx/sfx_dodge.wav",
+	&"sfx_damage_taken": "res://assets/audio/sfx/sfx_damage_taken.wav",
+	&"sfx_damage_taken_lowhp": "res://assets/audio/sfx/sfx_damage_taken_lowhp.wav",
+	&"sfx_enemy_death": "res://assets/audio/sfx/sfx_enemy_death.wav",
+	&"sfx_boss_phase": "res://assets/audio/sfx/sfx_boss_phase.wav",
+	&"sfx_focus_mode_activate": "res://assets/audio/sfx/sfx_focus_mode_activate.wav",
+}
 
 var audio_system = null
 
@@ -133,6 +145,35 @@ func test_missing_sfx_asset_does_not_consume_pool_voice() -> void:
 	assert_int(audio_system.get_dropped_sfx_count()).is_equal(0)
 
 
+func test_default_core_combat_sfx_assets_load_and_play_from_imported_wav_files() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	assert_bool(audio_system.has_method("get_registered_audio_stream_ids")).is_true()
+	assert_bool(audio_system.has_method("get_audio_stream_path")).is_true()
+	if (
+		not audio_system.has_method("get_registered_audio_stream_ids")
+		or not audio_system.has_method("get_audio_stream_path")
+	):
+		return
+
+	var registered_ids: Array = audio_system.call("get_registered_audio_stream_ids")
+	for sfx_id: StringName in DEFAULT_CORE_COMBAT_SFX.keys():
+		var expected_path: String = String(DEFAULT_CORE_COMBAT_SFX[sfx_id])
+		assert_bool(FileAccess.file_exists(expected_path)).is_true()
+		assert_array(registered_ids).contains([sfx_id])
+		assert_str(String(audio_system.call("get_audio_stream_path", sfx_id))).is_equal(expected_path)
+
+		assert_bool(audio_system.play_sfx(sfx_id, Vector2(72, 96), -2.0, 0.0, 80)).is_true()
+		var request: Dictionary = audio_system.get_last_sfx_request()
+		assert_str(String(request.get("sfx_id", &""))).is_equal(String(sfx_id))
+		assert_bool(bool(request.get("stream_found", false))).is_true()
+		assert_int(int(request.get("player_index", -1))).is_greater_equal(0)
+		var player := audio_system.get_node("SFXPlayer%02d" % int(request.get("player_index", -1))) as AudioStreamPlayer2D
+		assert_object(player).is_not_null()
+		assert_object(player.stream).is_not_null()
+
+
 func test_music_and_ambient_requests_are_safe_without_assets() -> void:
 	assert_object(audio_system).is_not_null()
 	if audio_system == null:
@@ -249,19 +290,21 @@ func test_hit_event_routes_normal_and_crit_sfx_with_priority() -> void:
 	assert_bool(bool(audio_system.call("on_hit_event", {
 		"hit_position": Vector2(24, 48),
 		"is_crit": false,
-	}))).is_false()
+	}))).is_true()
 	var normal_request: Dictionary = audio_system.get_last_sfx_request()
 	assert_str(String(normal_request.get("sfx_id", &""))).is_equal("sfx_hit_normal")
 	assert_vector(normal_request.get("position", Vector2.ZERO)).is_equal(Vector2(24, 48))
+	assert_bool(bool(normal_request.get("stream_found", false))).is_true()
 	var normal_priority: int = int(normal_request.get("priority", 0))
 
 	assert_bool(bool(audio_system.call("on_hit_event", {
 		"hit_position": Vector2(32, 56),
 		"is_crit": true,
-	}))).is_false()
+	}))).is_true()
 	var crit_request: Dictionary = audio_system.get_last_sfx_request()
 	assert_str(String(crit_request.get("sfx_id", &""))).is_equal("sfx_hit_crit")
 	assert_vector(crit_request.get("position", Vector2.ZERO)).is_equal(Vector2(32, 56))
+	assert_bool(bool(crit_request.get("stream_found", false))).is_true()
 	assert_bool(int(crit_request.get("priority", 0)) > normal_priority).is_true()
 
 
@@ -283,10 +326,11 @@ func test_parry_dodge_enemy_death_and_boss_phase_events_route_to_expected_sfx() 
 	assert_bool(bool(audio_system.call("on_parry_event", {
 		"parry_type": &"perfect",
 		"position": Vector2(10, 12),
-	}))).is_false()
+	}))).is_true()
 	var parry_request: Dictionary = audio_system.get_last_sfx_request()
 	assert_str(String(parry_request.get("sfx_id", &""))).is_equal("sfx_parry_perfect")
 	assert_vector(parry_request.get("position", Vector2.ZERO)).is_equal(Vector2(10, 12))
+	assert_bool(bool(parry_request.get("stream_found", false))).is_true()
 
 	assert_bool(bool(audio_system.call("on_parry_event", {
 		"parry_type": &"miss",
@@ -294,24 +338,27 @@ func test_parry_dodge_enemy_death_and_boss_phase_events_route_to_expected_sfx() 
 	}))).is_false()
 	assert_str(String(audio_system.get_last_sfx_request().get("sfx_id", &""))).is_equal("sfx_parry_perfect")
 
-	assert_bool(bool(audio_system.call("on_dodge_event", null, Vector2(40, 50), -1.0))).is_false()
+	assert_bool(bool(audio_system.call("on_dodge_event", null, Vector2(40, 50), -1.0))).is_true()
 	var dodge_request: Dictionary = audio_system.get_last_sfx_request()
 	assert_str(String(dodge_request.get("sfx_id", &""))).is_equal("sfx_dodge")
 	assert_vector(dodge_request.get("position", Vector2.ZERO)).is_equal(Vector2(40, 50))
+	assert_bool(bool(dodge_request.get("stream_found", false))).is_true()
 
 	assert_bool(bool(audio_system.call("on_enemy_defeated", {
 		"position": Vector2(80, 90),
-	}))).is_false()
+	}))).is_true()
 	var death_request: Dictionary = audio_system.get_last_sfx_request()
 	assert_str(String(death_request.get("sfx_id", &""))).is_equal("sfx_enemy_death")
 	assert_vector(death_request.get("position", Vector2.ZERO)).is_equal(Vector2(80, 90))
+	assert_bool(bool(death_request.get("stream_found", false))).is_true()
 
 	assert_bool(bool(audio_system.call("on_boss_phase_transition_started", 2, 3, {
 		"world_position": Vector2(120, 140),
-	}))).is_false()
+	}))).is_true()
 	var boss_request: Dictionary = audio_system.get_last_sfx_request()
 	assert_str(String(boss_request.get("sfx_id", &""))).is_equal("sfx_boss_phase")
 	assert_vector(boss_request.get("position", Vector2.ZERO)).is_equal(Vector2(120, 140))
+	assert_bool(bool(boss_request.get("stream_found", false))).is_true()
 	assert_str(String(audio_system.call("get_audio_state"))).is_equal("BOSS_FIGHT")
 
 
@@ -345,7 +392,7 @@ func test_boss_music_state_hard_cuts_phase_transitions_and_ends_cleanly() -> voi
 	assert_bool(bool(audio_system.call("on_boss_phase_transition_started", 2, 2, {
 		"boss_id": "boss_01_rat_king",
 		"world_position": Vector2(320, 360),
-	}))).is_false()
+	}))).is_true()
 	var phase_two_state: Dictionary = Dictionary(audio_system.call("get_boss_music_state"))
 	assert_bool(bool(phase_two_state.get("active", false))).is_true()
 	assert_int(int(phase_two_state.get("phase", 0))).is_equal(2)
@@ -356,7 +403,7 @@ func test_boss_music_state_hard_cuts_phase_transitions_and_ends_cleanly() -> voi
 	assert_bool(bool(audio_system.call("on_boss_phase_transition_started", 2, 3, {
 		"boss_id": "boss_01_rat_king",
 		"world_position": Vector2(340, 380),
-	}))).is_false()
+	}))).is_true()
 	var phase_three_state: Dictionary = Dictionary(audio_system.call("get_boss_music_state"))
 	assert_int(int(phase_three_state.get("phase", 0))).is_equal(3)
 	assert_str(String(phase_three_state.get("music_id", &""))).is_equal("mus_boss_rat_p3")
@@ -393,23 +440,26 @@ func test_focus_mode_switches_damage_taken_to_low_hp_cue() -> void:
 	assert_bool(bool(audio_system.call("on_damage_taken_event", {
 		"position": Vector2(5, 6),
 		"damage": 12,
-	}))).is_false()
+	}))).is_true()
 	assert_str(String(audio_system.get_last_sfx_request().get("sfx_id", &""))).is_equal("sfx_damage_taken")
+	assert_bool(bool(audio_system.get_last_sfx_request().get("stream_found", false))).is_true()
 
 	assert_bool(bool(audio_system.call("on_focus_mode_changed", 1, true, {
 		"hp_percentage": 0.25,
-	}))).is_false()
+	}))).is_true()
 	assert_bool(bool(audio_system.call("is_focus_mode_audio_active"))).is_true()
 	assert_str(String(audio_system.call("get_audio_state"))).is_equal("LOW_HP")
 	assert_str(String(audio_system.get_last_sfx_request().get("sfx_id", &""))).is_equal("sfx_focus_mode_activate")
+	assert_bool(bool(audio_system.get_last_sfx_request().get("stream_found", false))).is_true()
 
 	assert_bool(bool(audio_system.call("on_damage_taken_event", {
 		"hit_position": Vector2(7, 8),
 		"damage": 16,
-	}))).is_false()
+	}))).is_true()
 	var low_hp_request: Dictionary = audio_system.get_last_sfx_request()
 	assert_str(String(low_hp_request.get("sfx_id", &""))).is_equal("sfx_damage_taken_lowhp")
 	assert_vector(low_hp_request.get("position", Vector2.ZERO)).is_equal(Vector2(7, 8))
+	assert_bool(bool(low_hp_request.get("stream_found", false))).is_true()
 
 	assert_bool(bool(audio_system.call("on_focus_mode_changed", 1, false, {}))).is_true()
 	assert_bool(bool(audio_system.call("is_focus_mode_audio_active"))).is_false()

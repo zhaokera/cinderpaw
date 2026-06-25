@@ -61,9 +61,22 @@ const DEFAULT_BOSS_MUSIC_CUES: Dictionary = {
 		3: &"mus_boss_rat_p3",
 	},
 }
+const DEFAULT_CORE_COMBAT_SFX_STREAMS: Dictionary = {
+	&"sfx_claw_attack": "res://assets/audio/sfx/sfx_claw_attack.wav",
+	&"sfx_hit_normal": "res://assets/audio/sfx/sfx_hit_normal.wav",
+	&"sfx_hit_crit": "res://assets/audio/sfx/sfx_hit_crit.wav",
+	&"sfx_parry_perfect": "res://assets/audio/sfx/sfx_parry_perfect.wav",
+	&"sfx_dodge": "res://assets/audio/sfx/sfx_dodge.wav",
+	&"sfx_damage_taken": "res://assets/audio/sfx/sfx_damage_taken.wav",
+	&"sfx_damage_taken_lowhp": "res://assets/audio/sfx/sfx_damage_taken_lowhp.wav",
+	&"sfx_enemy_death": "res://assets/audio/sfx/sfx_enemy_death.wav",
+	&"sfx_boss_phase": "res://assets/audio/sfx/sfx_boss_phase.wav",
+	&"sfx_focus_mode_activate": "res://assets/audio/sfx/sfx_focus_mode_activate.wav",
+}
 
 var _bus_volume_percent: Dictionary = {}
 var _audio_streams: Dictionary = {}
+var _audio_stream_paths: Dictionary = {}
 var _scene_audio_cues: Dictionary = {}
 var _boss_music_cues: Dictionary = {}
 var _sfx_players: Array[AudioStreamPlayer2D] = []
@@ -97,6 +110,7 @@ var _last_boss_music_event: Dictionary = {}
 func _ready() -> void:
 	configure_scene_audio_cues(DEFAULT_SCENE_AUDIO_CUES)
 	configure_boss_music_cues(DEFAULT_BOSS_MUSIC_CUES)
+	load_audio_streams_from_paths(DEFAULT_CORE_COMBAT_SFX_STREAMS)
 	_initialize_buses()
 	_initialize_audio_players()
 
@@ -136,9 +150,44 @@ func set_bus_volume(bus_name: StringName, volume_percent: int) -> bool:
 
 ## Registers an AudioStream by id for tests, tools, and later asset manifests.
 func register_audio_stream(audio_id: StringName, stream: AudioStream) -> bool:
+	return _register_audio_stream(audio_id, stream, "")
+
+
+## Loads AudioStream resources from a cue-id to res:// path manifest.
+func load_audio_streams_from_paths(audio_stream_paths: Dictionary) -> int:
+	var loaded_count: int = 0
+	for audio_key: Variant in audio_stream_paths.keys():
+		var audio_id: StringName = StringName(String(audio_key))
+		var stream_path: String = String(audio_stream_paths.get(audio_key, ""))
+		if audio_id == &"" or stream_path.is_empty():
+			continue
+		var resource: Resource = load(stream_path)
+		if not resource is AudioStream:
+			continue
+		if _register_audio_stream(audio_id, resource as AudioStream, stream_path):
+			loaded_count += 1
+	return loaded_count
+
+
+func get_registered_audio_stream_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	for audio_id: Variant in _audio_streams.keys():
+		ids.append(StringName(String(audio_id)))
+	return ids
+
+
+func get_audio_stream_path(audio_id: StringName) -> String:
+	return String(_audio_stream_paths.get(audio_id, ""))
+
+
+func _register_audio_stream(audio_id: StringName, stream: AudioStream, source_path: String) -> bool:
 	if audio_id == &"" or stream == null:
 		return false
 	_audio_streams[audio_id] = stream
+	if source_path.is_empty():
+		_audio_stream_paths.erase(audio_id)
+	else:
+		_audio_stream_paths[audio_id] = source_path
 	return true
 
 
@@ -146,6 +195,7 @@ func unregister_audio_stream(audio_id: StringName) -> bool:
 	if not _audio_streams.has(audio_id):
 		return false
 	_audio_streams.erase(audio_id)
+	_audio_stream_paths.erase(audio_id)
 	return true
 
 

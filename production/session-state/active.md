@@ -17,15 +17,34 @@
   SceneManagement Story008 boss arena mutation runtime、
   SceneManagement Story009 electric leak contact damage、
   SceneManagement Story010 scene memory budget diagnostics、AudioSystem
-  Story004 Rat King boss music state transitions 已完成；
-  下一步推进 final arena VFX、boss arena mutation save-state persistence、
-  real platform profiler evidence、low-memory UI prompt routing、UI menu audio、
-  same-SFX merge 和 real audio asset import stories，以及玩家可见角色/敌人帧动画
-  持续审计。
+  Story004 Rat King boss music state transitions、AudioSystem Story005 core
+  combat SFX asset import baseline 已完成；
+  下一步推进 boss arena mutation save-state persistence、real platform
+  profiler evidence、low-memory UI prompt routing、UI menu audio、same-SFX
+  merge、authored/final audio replacement、non-claw weapon SFX expansion，
+  以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Audio System Story 005: Core Combat SFX Asset Import Baseline —
+  新增 10 个程序化 baseline WAV：`sfx_claw_attack`、`sfx_hit_normal`、
+  `sfx_hit_crit`、`sfx_parry_perfect`、`sfx_dodge`、
+  `sfx_damage_taken`、`sfx_damage_taken_lowhp`、`sfx_enemy_death`、
+  `sfx_boss_phase`、`sfx_focus_mode_activate`，放入
+  `assets/audio/sfx/` 并通过 Godot import pipeline 生成 `.import` /
+  `.sample`。生成配方记录在
+  `assets/audio/source/core_combat_sfx_generation_20260625.json`。
+  `AudioSystem` 新增默认核心战斗 SFX stream manifest、`load_audio_streams_from_paths()`、
+  `get_registered_audio_stream_ids()` 和 `get_audio_stream_path()`；
+  `_ready()` 默认加载这批 stream。现有 hit/parry/dodge/damage/focus/death/boss phase
+  adapters 对入批 cue 返回真实播放成功并记录 `stream_found=true`，missing cue
+  仍 silent-safe 且不消耗 pool voice。通过 RED `report_539`、import failure
+  checkpoint `report_540`、Godot import、GREEN focused `report_542` `15/15`、
+  related `report_543` `20/20`、headless smoke、Godot MCP runtime stream/playback
+  probe、clean logs 和 `reports/visual/cinderpaw-mcp-core-combat-sfx-20260625.png`
+  验证。QA evidence:
+  `production/qa/evidence/audio-core-combat-sfx-asset-import-2026-06-25.md`。
 - Audio System Story 004: Rat King Boss Music State Transitions —
   `AudioSystem` 新增 Rat King boss music cue map 与
   `on_boss_encounter_started()`、`on_boss_encounter_ended()`、
