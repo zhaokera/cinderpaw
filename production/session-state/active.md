@@ -21,15 +21,34 @@
   SceneManagement Story012 boss arena mutation save-state persistence、AudioSystem
   Story004 Rat King boss music state transitions、AudioSystem Story005 core
   combat SFX asset import baseline、AudioSystem Story006 weapon-style SFX asset
-  expansion、AudioSystem Story007 UI menu audio + same-SFX merge 已完成；
+  expansion、AudioSystem Story007 UI menu audio + same-SFX merge、AudioSystem
+  Story008 music + ambience asset import baseline 已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
   routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
-  music/ambience asset import、broader audio mix polish，以及玩家可见角色/敌人
-  帧动画持续审计。
+  area cue expansion、broader audio mix polish，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Audio System Story 008: Music + Ambience Asset Import Baseline —
+  新增 15 个程序化 baseline 音乐/环境音 WAV，覆盖 GDD 全量 baseline cue：
+  `mus_hub`、`mus_street`、`mus_sewer`、`mus_factory`、`mus_rooftop`、
+  `mus_tower`、`mus_boss_rat_p1`、`mus_boss_rat_p2`、`mus_boss_rat_p3`、
+  `amb_hub`、`amb_street`、`amb_sewer`、`amb_factory`、`amb_rooftop`、
+  `amb_tower`。资产放入 `assets/audio/music/` 与 `assets/audio/ambient/`，
+  并通过 Godot import pipeline 生成 `.wav.import`。生成配方记录在
+  `assets/audio/source/music_ambience_generation_20260625.json`。`AudioSystem`
+  新增默认 music/ambient stream manifest 并在 `_ready()` 加载，现有 scene cue
+  和 Rat King boss music cue 现在能返回真实 `AudioStream` 播放；unknown
+  music/ambient cue 仍 silent-safe。通过 RED `report_585`、GREEN focused
+  `report_586` `19/19`、related regression `report_587` `32/32`、Godot import、
+  headless smoke `reports/audio_music_ambience_main_scene_smoke.log`、Godot MCP
+  runtime 15 cue registration / scene `mus_street+amb_street` / Rat King
+  `mus_boss_rat_p1/p2/p3` stream probe、clean game/editor logs 和
+  `reports/visual/cinderpaw-mcp-music-ambience-baseline-20260625.png` 验证。
+  `report_587` 在 Godot process exit 处仍出现既有 GdUnit resource cleanup
+  warning；focused Story008、headless smoke 和 MCP logs clean。QA evidence:
+  `production/qa/evidence/audio-music-ambience-asset-import-baseline-2026-06-25.md`。
 - Audio System Story 007: UI Menu Audio + Same-SFX Merge —
   新增 7 个程序化 baseline UI WAV：`ui_menu_open`、`ui_menu_close`、
   `ui_navigate`、`ui_confirm`、`ui_cancel`、`ui_save`、`ui_load`，放入
@@ -2162,3 +2181,14 @@
 - Asset note: no image-generated visual asset was required for this audio state slice.
 - Blockers: None
 - Next: continue UI menu audio, same-SFX merge, real audio asset import, boss arena persistence, platform profiler evidence, or player-visible frame animation audit slices.
+
+## Session Extract — /dev-story 2026-06-25
+
+- Story: `production/epics/audio-system/story-008-music-ambience-asset-import-baseline.md` — Music + Ambience Asset Import Baseline
+- Files changed: `src/presentation/audio_system.gd`, `tests/unit/presentation/audio_system_test.gd`, `assets/audio/music/*.wav`, `assets/audio/music/*.wav.import`, `assets/audio/ambient/*.wav`, `assets/audio/ambient/*.wav.import`, `assets/audio/source/music_ambience_generation_20260625.json`, `production/epics/audio-system/EPIC.md`, `production/epics/index.md`, `production/epics/audio-system/story-008-music-ambience-asset-import-baseline.md`, `production/qa/evidence/audio-music-ambience-asset-import-baseline-2026-06-25.md`, `production/session-state/active.md`
+- Implementation: Generated 15 replaceable procedural baseline WAVs for all GDD music/ambience cues, imported them through Godot, and added `DEFAULT_MUSIC_AMBIENT_STREAMS` so AudioSystem registers them on `_ready()`. Scene cues now play real `mus_street` / `amb_street` streams, and Rat King boss start/phase 2/phase 3 music now returns true with `mus_boss_rat_p1/p2/p3` stream playback while unknown music/ambient ids remain silent-safe.
+- Test written: `tests/unit/presentation/audio_system_test.gd` extended with full 15-cue registration/path checks, music/ambient player stream assertions, unknown cue safety, scene cue playback, and boss music `stream_found=true` checks.
+- Verification: RED failed on missing music/ambience assets/default registration (`reports/report_585/`); GREEN focused AudioSystem `19/19` (`reports/report_586/`); related AudioSystem/MainScene scene/boss regression `32/32` (`reports/report_587/`); Godot import; headless main-scene smoke clean; Godot MCP runtime cue registration/scene playback/boss music probe, clean logs, and screenshot evidence captured.
+- Asset note: no image-generated visual asset was required for this audio-only slice. Audio source recipes are recorded in `assets/audio/source/music_ambience_generation_20260625.json`.
+- Blockers: None
+- Next: continue authored/final audio replacement, DEATH/CUTSCENE audio states, area cue expansion for sewer/factory/rooftop/tower scene ids, broader audio mix polish, platform profiler evidence, low-memory UI prompt routing, or a player-visible ACT frame animation slice.

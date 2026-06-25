@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/audio-system.md
 > **Architecture Module**: AudioSystem
 > **Status**: In Progress
-> **Stories**: 7 stories tracked
+> **Stories**: 8 stories tracked
 
 ## Overview
 
@@ -46,6 +46,7 @@ calls without pushing logic back into Core.
 | 005 | Core Combat SFX Asset Import Baseline | Integration | Complete | ADR-0010 |
 | 006 | Weapon Style SFX Asset Expansion | Integration | Complete | ADR-0010 |
 | 007 | UI Menu Audio + Same-SFX Merge | Integration | Complete | ADR-0010, ADR-0011 |
+| 008 | Music + Ambience Asset Import Baseline | Integration | Complete | ADR-0010 |
 
 ## Definition of Done
 
@@ -63,6 +64,9 @@ This epic is complete when:
   and loaded by AudioSystem by default.
 - UI menu cue streams are imported through Godot, loaded by AudioSystem by
   default, and played on the UI bus.
+- Music and ambience cue streams from the GDD baseline list are imported through
+  Godot, loaded by AudioSystem by default, and played by scene and boss music
+  request APIs.
 - Same-SFX requests within 100ms merge into the active voice with a 20% linear
   volume boost.
 - Combat, health, scene, UI, and boss event adapters are wired and covered.
@@ -71,6 +75,6 @@ This epic is complete when:
 
 ## Next Step
 
-Audio System Story 007 is complete. Next recommended work is authored/final
-audio replacement, DEATH/CUTSCENE state completion, music/ambience asset import,
-and broader mix polish.
+Audio System Story 008 is complete. Next recommended work is authored/final
+audio replacement, DEATH/CUTSCENE state completion, area cue expansion, and
+broader mix polish.

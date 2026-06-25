@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-25" name="report_585" tests="19" failures="25" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="audio_system_test" package="tests/unit/presentation" timestamp="2026-06-25T09:34:17" hostname="localhost" tests="19" failures="25" errors="0" skipped="0" flaky="0" time="0.080">
+		<testcase name="test_project_registers_audio_system_between_input_and_save_system" classname="audio_system_test" time="0.006">
+		</testcase>
+		<testcase name="test_audio_system_initializes_default_buses_and_player_pool" classname="audio_system_test" time="0.003">
+		</testcase>
+		<testcase name="test_set_bus_volume_clamps_values_and_rejects_unknown_bus" classname="audio_system_test" time="0.002">
+		</testcase>
+		<testcase name="test_play_sfx_records_pitch_spatial_metadata_and_enforces_voice_cap" classname="audio_system_test" time="0.004">
+		</testcase>
+		<testcase name="test_same_sfx_within_merge_window_reuses_voice_and_boosts_volume" classname="audio_system_test" time="0.007">
+		</testcase>
+		<testcase name="test_missing_sfx_asset_does_not_consume_pool_voice" classname="audio_system_test" time="0.005">
+		</testcase>
+		<testcase name="test_default_core_combat_sfx_assets_load_and_play_from_imported_wav_files" classname="audio_system_test" time="0.006">
+		</testcase>
+		<testcase name="test_default_ui_audio_assets_load_and_play_on_ui_bus" classname="audio_system_test" time="0.006">
+		</testcase>
+		<testcase name="test_menu_audio_state_ducks_music_and_restores_previous_state" classname="audio_system_test" time="0.006">
+		</testcase>
+		<testcase name="test_default_music_and_ambient_assets_load_and_play_from_imported_wav_files" classname="audio_system_test" time="0.005">
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:320" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:321" type="FAILURE">
+<![CDATA[
+Expecting contains elements:
+ '[&"sfx_claw_attack", &"sfx_blade_attack", &"sfx_bone_attack", &"sfx_bell_attack", &"sfx_hit_normal", &"sfx_hit_crit", &"sfx_parry_perfect", &"sfx_parry_good", &"sfx_dodge", &"sfx_damage_taken", &"sfx_damage_taken_lowhp", &"sfx_enemy_death", &"sfx_boss_phase", &"sfx_focus_mode_activate", &"ui_menu_open", &"ui_menu_close", &"ui_navigate", &"ui_confirm", &"ui_cancel", &"ui_save", &"ui_load"]'
+ do contains (in any order)
+ '[&"mus_hub"]'
+but could not find elements:
+ '[&"mus_hub"]'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:322" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'res://assets/audio/music/mus_hub.wav'
+ but was
+ 'res://assets/audio/music/mus_hub.wav'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:320" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:321" type="FAILURE">
+<![CDATA[
+Expecting contains elements:
+ '[&"sfx_claw_attack", &"sfx_blade_attack", &"sfx_bone_attack", &"sfx_bell_attack", &"sfx_hit_normal", &"sfx_hit_crit", &"sfx_parry_perfect", &"sfx_parry_good", &"sfx_dodge", &"sfx_damage_taken", &"sfx_damage_taken_lowhp", &"sfx_enemy_death", &"sfx_boss_phase", &"sfx_focus_mode_activate", &"ui_menu_open", &"ui_menu_close", &"ui_navigate", &"ui_confirm", &"ui_cancel", &"ui_save", &"ui_load"]'
+ do contains (in any order)
+ '[&"mus_street"]'
+but could not find elements:
+ '[&"mus_street"]'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:322" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'res://assets/audio/music/mus_street.wav'
+ but was
+ 'res://assets/audio/music/mus_street.wav'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:320" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:321" type="FAILURE">
+<![CDATA[
+Expecting contains elements:
+ '[&"sfx_claw_attack", &"sfx_blade_attack", &"sfx_bone_attack", &"sfx_bell_attack", &"sfx_hit_normal", &"sfx_hit_crit", &"sfx_parry_perfect", &"sfx_parry_good", &"sfx_dodge", &"sfx_damage_taken", &"sfx_damage_taken_lowhp", &"sfx_enemy_death", &"sfx_boss_phase", &"sfx_focus_mode_activate", &"ui_menu_open", &"ui_menu_close", &"ui_navigate", &"ui_confirm", &"ui_cancel", &"ui_save", &"ui_load"]'
+ do contains (in any order)
+ '[&"mus_boss_rat_p1"]'
+but could not find elements:
+ '[&"mus_boss_rat_p1"]'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:322" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'res://assets/audio/music/mus_boss_rat_p1.wav'
+ but was
+ 'res://assets/audio/music/mus_boss_rat_p1.wav'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:320" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:321" type="FAILURE">
+<![CDATA[
+Expecting contains elements:
+ '[&"sfx_claw_attack", &"sfx_blade_attack", &"sfx_bone_attack", &"sfx_bell_attack", &"sfx_hit_normal", &"sfx_hit_crit", &"sfx_parry_perfect", &"sfx_parry_good", &"sfx_dodge", &"sfx_damage_taken", &"sfx_damage_taken_lowhp", &"sfx_enemy_death", &"sfx_boss_phase", &"sfx_focus_mode_activate", &"ui_menu_open", &"ui_menu_close", &"ui_navigate", &"ui_confirm", &"ui_cancel", &"ui_save", &"ui_load"]'
+ do contains (in any order)
+ '[&"mus_boss_rat_p2"]'
+but could not find elements:
+ '[&"mus_boss_rat_p2"]'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:322" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'res://assets/audio/music/mus_boss_rat_p2.wav'
+ but was
+ 'res://assets/audio/music/mus_boss_rat_p2.wav'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:320" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:321" type="FAILURE">
+<![CDATA[
+Expecting contains elements:
+ '[&"sfx_claw_attack", &"sfx_blade_attack", &"sfx_bone_attack", &"sfx_bell_attack", &"sfx_hit_normal", &"sfx_hit_crit", &"sfx_parry_perfect", &"sfx_parry_good", &"sfx_dodge", &"sfx_damage_taken", &"sfx_damage_taken_lowhp", &"sfx_enemy_death", &"sfx_boss_phase", &"sfx_focus_mode_activate", &"ui_menu_open", &"ui_menu_close", &"ui_navigate", &"ui_confirm", &"ui_cancel", &"ui_save", &"ui_load"]'
+ do contains (in any order)
+ '[&"mus_boss_rat_p3"]'
+but could not find elements:
+ '[&"mus_boss_rat_p3"]'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:322" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'res://assets/audio/music/mus_boss_rat_p3.wav'
+ but was
+ 'res://assets/audio/music/mus_boss_rat_p3.wav'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:320" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:321" type="FAILURE">
+<![CDATA[
+Expecting contains elements:
+ '[&"sfx_claw_attack", &"sfx_blade_attack", &"sfx_bone_attack", &"sfx_bell_attack", &"sfx_hit_normal", &"sfx_hit_crit", &"sfx_parry_perfect", &"sfx_parry_good", &"sfx_dodge", &"sfx_damage_taken", &"sfx_damage_taken_lowhp", &"sfx_enemy_death", &"sfx_boss_phase", &"sfx_focus_mode_activate", &"ui_menu_open", &"ui_menu_close", &"ui_navigate", &"ui_confirm", &"ui_cancel", &"ui_save", &"ui_load"]'
+ do contains (in any order)
+ '[&"amb_hub"]'
+but could not find elements:
+ '[&"amb_hub"]'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:322" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'res://assets/audio/ambient/amb_hub.wav'
+ but was
+ 'res://assets/audio/ambient/amb_hub.wav'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:320" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:321" type="FAILURE">
+<![CDATA[
+Expecting contains elements:
+ '[&"sfx_claw_attack", &"sfx_blade_attack", &"sfx_bone_attack", &"sfx_bell_attack", &"sfx_hit_normal", &"sfx_hit_crit", &"sfx_parry_perfect", &"sfx_parry_good", &"sfx_dodge", &"sfx_damage_taken", &"sfx_damage_taken_lowhp", &"sfx_enemy_death", &"sfx_boss_phase", &"sfx_focus_mode_activate", &"ui_menu_open", &"ui_menu_close", &"ui_navigate", &"ui_confirm", &"ui_cancel", &"ui_save", &"ui_load"]'
+ do contains (in any order)
+ '[&"amb_street"]'
+but could not find elements:
+ '[&"amb_street"]'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:322" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'res://assets/audio/ambient/amb_street.wav'
+ but was
+ 'res://assets/audio/ambient/amb_street.wav'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:324" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:331" type="FAILURE">
+<![CDATA[
+Expecting: not to be '<null>'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:337" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:344" type="FAILURE">
+<![CDATA[
+Expecting: not to be '<null>'
+]]>
+			</failure>
+		</testcase>
+	</testsuite>
+</testsuites>

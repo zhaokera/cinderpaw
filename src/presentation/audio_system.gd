@@ -92,6 +92,23 @@ const DEFAULT_UI_AUDIO_STREAMS: Dictionary = {
 	&"ui_save": "res://assets/audio/ui/ui_save.wav",
 	&"ui_load": "res://assets/audio/ui/ui_load.wav",
 }
+const DEFAULT_MUSIC_AMBIENT_STREAMS: Dictionary = {
+	&"mus_hub": "res://assets/audio/music/mus_hub.wav",
+	&"mus_street": "res://assets/audio/music/mus_street.wav",
+	&"mus_sewer": "res://assets/audio/music/mus_sewer.wav",
+	&"mus_factory": "res://assets/audio/music/mus_factory.wav",
+	&"mus_rooftop": "res://assets/audio/music/mus_rooftop.wav",
+	&"mus_tower": "res://assets/audio/music/mus_tower.wav",
+	&"mus_boss_rat_p1": "res://assets/audio/music/mus_boss_rat_p1.wav",
+	&"mus_boss_rat_p2": "res://assets/audio/music/mus_boss_rat_p2.wav",
+	&"mus_boss_rat_p3": "res://assets/audio/music/mus_boss_rat_p3.wav",
+	&"amb_hub": "res://assets/audio/ambient/amb_hub.wav",
+	&"amb_street": "res://assets/audio/ambient/amb_street.wav",
+	&"amb_sewer": "res://assets/audio/ambient/amb_sewer.wav",
+	&"amb_factory": "res://assets/audio/ambient/amb_factory.wav",
+	&"amb_rooftop": "res://assets/audio/ambient/amb_rooftop.wav",
+	&"amb_tower": "res://assets/audio/ambient/amb_tower.wav",
+}
 
 var _bus_volume_percent: Dictionary = {}
 var _audio_streams: Dictionary = {}
@@ -138,6 +155,7 @@ func _ready() -> void:
 	configure_boss_music_cues(DEFAULT_BOSS_MUSIC_CUES)
 	load_audio_streams_from_paths(DEFAULT_CORE_COMBAT_SFX_STREAMS)
 	load_audio_streams_from_paths(DEFAULT_UI_AUDIO_STREAMS)
+	load_audio_streams_from_paths(DEFAULT_MUSIC_AMBIENT_STREAMS)
 	_initialize_buses()
 	_initialize_audio_players()
 

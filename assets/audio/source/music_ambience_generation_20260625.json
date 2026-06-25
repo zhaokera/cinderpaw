@@ -1,0 +1,160 @@
+{
+  "generated_at": "2026-06-25",
+  "generator": "python3 wave module deterministic additive/noise synthesis",
+  "story": "Audio System Story 008 - Music + Ambience Asset Import Baseline",
+  "asset_scope": "full GDD baseline music and ambience cue list for hub, street, sewer, factory, rooftop, tower, and Rat King boss phases",
+  "visual_asset_note": "No image2/image generation asset is required for this audio-only slice.",
+  "import_pipeline": "Godot import system; run headless import after generation",
+  "cues": {
+    "mus_hub": {
+      "path": "res://assets/audio/music/mus_hub.wav",
+      "duration_sec": 3.5,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3376,
+      "intent": "warm guitar-like refuge loop baseline for clan hub",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "mus_street": {
+      "path": "res://assets/audio/music/mus_street.wav",
+      "duration_sec": 3.5,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.316,
+      "intent": "lonely piano/wind baseline for abandoned shopping street",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "mus_sewer": {
+      "path": "res://assets/audio/music/mus_sewer.wav",
+      "duration_sec": 3.5,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3206,
+      "intent": "slow low synth and drip baseline for sewer area",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "mus_factory": {
+      "path": "res://assets/audio/music/mus_factory.wav",
+      "duration_sec": 3.5,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3728,
+      "intent": "mechanical metal rhythm baseline for old factory",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "mus_rooftop": {
+      "path": "res://assets/audio/music/mus_rooftop.wav",
+      "duration_sec": 3.5,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3544,
+      "intent": "neon synthwave and wind baseline for rooftop",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "mus_tower": {
+      "path": "res://assets/audio/music/mus_tower.wav",
+      "duration_sec": 3.5,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3419,
+      "intent": "electronic orchestral pulse baseline for central tower",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "mus_boss_rat_p1": {
+      "path": "res://assets/audio/music/mus_boss_rat_p1.wav",
+      "duration_sec": 3.2,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3093,
+      "intent": "tense percussion baseline for Rat King phase 1",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "mus_boss_rat_p2": {
+      "path": "res://assets/audio/music/mus_boss_rat_p2.wav",
+      "duration_sec": 3.2,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3539,
+      "intent": "deeper brass-like boss layer baseline for Rat King phase 2",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "mus_boss_rat_p3": {
+      "path": "res://assets/audio/music/mus_boss_rat_p3.wav",
+      "duration_sec": 3.2,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3453,
+      "intent": "full-intensity orchestral/synthetic boss baseline for Rat King phase 3",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "amb_hub": {
+      "path": "res://assets/audio/ambient/amb_hub.wav",
+      "duration_sec": 3.0,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.2799,
+      "intent": "soft shelter room tone with cat-like high texture baseline",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "amb_street": {
+      "path": "res://assets/audio/ambient/amb_street.wav",
+      "duration_sec": 3.0,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3333,
+      "intent": "wind and broken-glass texture baseline for street area",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "amb_sewer": {
+      "path": "res://assets/audio/ambient/amb_sewer.wav",
+      "duration_sec": 3.0,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3366,
+      "intent": "water drip and low pressure baseline for sewer area",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "amb_factory": {
+      "path": "res://assets/audio/ambient/amb_factory.wav",
+      "duration_sec": 3.0,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3106,
+      "intent": "machinery and metal resonance baseline for factory area",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "amb_rooftop": {
+      "path": "res://assets/audio/ambient/amb_rooftop.wav",
+      "duration_sec": 3.0,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3148,
+      "intent": "high wind and neon electrical texture baseline for rooftop area",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    },
+    "amb_tower": {
+      "path": "res://assets/audio/ambient/amb_tower.wav",
+      "duration_sec": 3.0,
+      "sample_rate_hz": 22050,
+      "channels": 2,
+      "peak_linear": 0.3379,
+      "intent": "electronic pulse and high tower air baseline",
+      "source_type": "procedural_baseline",
+      "replace_with_final_audio": true
+    }
+  }
+}

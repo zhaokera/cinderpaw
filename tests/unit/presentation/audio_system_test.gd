@@ -28,6 +28,23 @@ const DEFAULT_UI_AUDIO_STREAMS: Dictionary = {
 	&"ui_save": "res://assets/audio/ui/ui_save.wav",
 	&"ui_load": "res://assets/audio/ui/ui_load.wav",
 }
+const DEFAULT_MUSIC_AMBIENT_STREAMS: Dictionary = {
+	&"mus_hub": "res://assets/audio/music/mus_hub.wav",
+	&"mus_street": "res://assets/audio/music/mus_street.wav",
+	&"mus_sewer": "res://assets/audio/music/mus_sewer.wav",
+	&"mus_factory": "res://assets/audio/music/mus_factory.wav",
+	&"mus_rooftop": "res://assets/audio/music/mus_rooftop.wav",
+	&"mus_tower": "res://assets/audio/music/mus_tower.wav",
+	&"mus_boss_rat_p1": "res://assets/audio/music/mus_boss_rat_p1.wav",
+	&"mus_boss_rat_p2": "res://assets/audio/music/mus_boss_rat_p2.wav",
+	&"mus_boss_rat_p3": "res://assets/audio/music/mus_boss_rat_p3.wav",
+	&"amb_hub": "res://assets/audio/ambient/amb_hub.wav",
+	&"amb_street": "res://assets/audio/ambient/amb_street.wav",
+	&"amb_sewer": "res://assets/audio/ambient/amb_sewer.wav",
+	&"amb_factory": "res://assets/audio/ambient/amb_factory.wav",
+	&"amb_rooftop": "res://assets/audio/ambient/amb_rooftop.wav",
+	&"amb_tower": "res://assets/audio/ambient/amb_tower.wav",
+}
 
 var audio_system = null
 
@@ -293,25 +310,60 @@ func test_menu_audio_state_ducks_music_and_restores_previous_state() -> void:
 	assert_str(String(audio_system.call("get_last_ui_sfx_request").get("ui_sfx_id", &""))).is_equal("ui_menu_close")
 
 
-func test_music_and_ambient_requests_are_safe_without_assets() -> void:
+func test_default_music_and_ambient_assets_load_and_play_from_imported_wav_files() -> void:
 	assert_object(audio_system).is_not_null()
 	if audio_system == null:
 		return
+	assert_bool(audio_system.has_method("get_registered_audio_stream_ids")).is_true()
+	assert_bool(audio_system.has_method("get_audio_stream_path")).is_true()
+	if (
+		not audio_system.has_method("get_registered_audio_stream_ids")
+		or not audio_system.has_method("get_audio_stream_path")
+	):
+		return
 
-	assert_bool(audio_system.play_music(&"mus_street", 3.0)).is_false()
+	var registered_ids: Array = audio_system.call("get_registered_audio_stream_ids")
+	for audio_id: StringName in DEFAULT_MUSIC_AMBIENT_STREAMS.keys():
+		var expected_path: String = String(DEFAULT_MUSIC_AMBIENT_STREAMS[audio_id])
+		assert_bool(FileAccess.file_exists(expected_path)).is_true()
+		assert_array(registered_ids).contains([audio_id])
+		assert_str(String(audio_system.call("get_audio_stream_path", audio_id))).is_equal(expected_path)
+
+	assert_bool(audio_system.play_music(&"mus_street", 3.0)).is_true()
 	assert_str(String(audio_system.get_current_music_id())).is_equal("mus_street")
 	assert_float(audio_system.get_music_fade_in_sec()).is_equal(3.0)
+	var music_player := audio_system.get_node("MusicPlayer") as AudioStreamPlayer
+	assert_object(music_player).is_not_null()
+	if music_player != null:
+		assert_str(String(music_player.bus)).is_equal("Music")
+		assert_object(music_player.stream).is_not_null()
 
 	audio_system.stop_music(2.0)
 	assert_str(String(audio_system.get_current_music_id())).is_equal("")
 	assert_float(audio_system.get_music_fade_out_sec()).is_equal(2.0)
 
-	assert_bool(audio_system.play_ambient(&"amb_street")).is_false()
+	assert_bool(audio_system.play_ambient(&"amb_street", 3.0)).is_true()
 	assert_str(String(audio_system.get_current_ambient_id())).is_equal("amb_street")
+	assert_float(audio_system.get_ambient_fade_in_sec()).is_equal(3.0)
+	var ambient_player := audio_system.get_node("AmbientPlayer") as AudioStreamPlayer
+	assert_object(ambient_player).is_not_null()
+	if ambient_player != null:
+		assert_str(String(ambient_player.bus)).is_equal("Ambient")
+		assert_object(ambient_player.stream).is_not_null()
 
 	audio_system.stop_ambient(2.0)
 	assert_str(String(audio_system.get_current_ambient_id())).is_equal("")
 	assert_float(audio_system.get_ambient_fade_out_sec()).is_equal(2.0)
+
+	assert_bool(audio_system.play_music(&"missing_music", 0.5)).is_false()
+	assert_str(String(audio_system.get_current_music_id())).is_equal("missing_music")
+	assert_float(audio_system.get_music_fade_in_sec()).is_equal(0.5)
+	audio_system.stop_music(0.0)
+
+	assert_bool(audio_system.play_ambient(&"missing_ambient", 0.5)).is_false()
+	assert_str(String(audio_system.get_current_ambient_id())).is_equal("missing_ambient")
+	assert_float(audio_system.get_ambient_fade_in_sec()).is_equal(0.5)
+	audio_system.stop_ambient(0.0)
 
 
 func test_scene_load_start_forces_music_and_ambient_to_fade_out_over_two_seconds() -> void:
@@ -352,6 +404,20 @@ func test_scene_change_crossfades_default_area_music_and_ambient_cues() -> void:
 	assert_str(String(audio_system.get_current_ambient_id())).is_equal("amb_street")
 	assert_float(audio_system.get_music_fade_in_sec()).is_equal(3.0)
 	assert_float(audio_system.get_ambient_fade_in_sec()).is_equal(3.0)
+	assert_str(String(audio_system.call("get_audio_stream_path", &"mus_street"))).is_equal(
+		"res://assets/audio/music/mus_street.wav"
+	)
+	assert_str(String(audio_system.call("get_audio_stream_path", &"amb_street"))).is_equal(
+		"res://assets/audio/ambient/amb_street.wav"
+	)
+	var music_player := audio_system.get_node("MusicPlayer") as AudioStreamPlayer
+	var ambient_player := audio_system.get_node("AmbientPlayer") as AudioStreamPlayer
+	assert_object(music_player).is_not_null()
+	assert_object(ambient_player).is_not_null()
+	if music_player != null:
+		assert_object(music_player.stream).is_not_null()
+	if ambient_player != null:
+		assert_object(ambient_player.stream).is_not_null()
 
 
 func test_scene_audio_cues_can_be_overridden_and_unknown_scene_stays_silent() -> void:
@@ -532,7 +598,7 @@ func test_boss_music_state_hard_cuts_phase_transitions_and_ends_cleanly() -> voi
 	assert_bool(bool(audio_system.call("on_boss_encounter_started", &"boss_01_rat_king", {
 		"display_name": "垃圾桶鼠王",
 		"world_position": Vector2(300, 420),
-	}))).is_false()
+	}))).is_true()
 	var started_state: Dictionary = Dictionary(audio_system.call("get_boss_music_state"))
 	assert_bool(bool(started_state.get("active", false))).is_true()
 	assert_str(String(started_state.get("boss_id", &""))).is_equal("boss_01_rat_king")
@@ -541,6 +607,12 @@ func test_boss_music_state_hard_cuts_phase_transitions_and_ends_cleanly() -> voi
 	assert_str(String(audio_system.get_current_music_id())).is_equal("mus_boss_rat_p1")
 	assert_float(audio_system.get_music_fade_in_sec()).is_equal(1.0)
 	assert_str(String(audio_system.call("get_audio_state"))).is_equal("BOSS_FIGHT")
+	var started_event: Dictionary = Dictionary(started_state.get("last_event", {}))
+	assert_bool(bool(started_event.get("stream_found", false))).is_true()
+	var music_player := audio_system.get_node("MusicPlayer") as AudioStreamPlayer
+	assert_object(music_player).is_not_null()
+	if music_player != null:
+		assert_object(music_player.stream).is_not_null()
 
 	assert_bool(bool(audio_system.call("on_boss_phase_transition_started", 2, 2, {
 		"boss_id": "boss_01_rat_king",
@@ -552,6 +624,9 @@ func test_boss_music_state_hard_cuts_phase_transitions_and_ends_cleanly() -> voi
 	assert_str(String(phase_two_state.get("music_id", &""))).is_equal("mus_boss_rat_p2")
 	assert_str(String(audio_system.get_current_music_id())).is_equal("mus_boss_rat_p2")
 	assert_float(audio_system.get_music_fade_in_sec()).is_equal(2.0)
+	assert_bool(bool(Dictionary(phase_two_state.get("last_event", {})).get("stream_found", false))).is_true()
+	if music_player != null:
+		assert_object(music_player.stream).is_not_null()
 
 	assert_bool(bool(audio_system.call("on_boss_phase_transition_started", 2, 3, {
 		"boss_id": "boss_01_rat_king",
@@ -562,6 +637,9 @@ func test_boss_music_state_hard_cuts_phase_transitions_and_ends_cleanly() -> voi
 	assert_str(String(phase_three_state.get("music_id", &""))).is_equal("mus_boss_rat_p3")
 	assert_str(String(audio_system.get_current_music_id())).is_equal("mus_boss_rat_p3")
 	assert_float(audio_system.get_music_fade_in_sec()).is_equal(2.0)
+	assert_bool(bool(Dictionary(phase_three_state.get("last_event", {})).get("stream_found", false))).is_true()
+	if music_player != null:
+		assert_object(music_player.stream).is_not_null()
 
 	audio_system.call("on_boss_encounter_ended", &"boss_01_rat_king", {
 		"reason": &"defeated",
