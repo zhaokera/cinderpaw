@@ -1,10 +1,12 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_entrance_combat/old_factory_entrance_room_backdrop.png" id="3_backdrop"]
 [ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="4_player"]
 [ext_resource type="PackedScene" path="res://src/gameplay/rat_minion.tscn" id="5_rat_minion"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_combat_cache/factory_combat_cache.png" id="6_cache_texture"]
+[ext_resource type="Script" path="res://src/feature/factory_combat_cache.gd" id="7_cache_script"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -14,6 +16,12 @@ size = Vector2(40, 720)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_platform"]
 size = Vector2(260, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cache_platform"]
+size = Vector2(260, 20)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cache_interaction"]
+radius = 96.0
 
 [node name="FactoryRouteTransitionShellScene" type="Node2D"]
 script = ExtResource("1_scene")
@@ -61,6 +69,15 @@ collision_mask = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="EntryPlatform"]
 shape = SubResource("RectangleShape2D_platform")
 
+[node name="FactoryCachePlatform" type="StaticBody2D" parent="."]
+z_index = 9
+position = Vector2(1040, 330)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryCachePlatform"]
+shape = SubResource("RectangleShape2D_cache_platform")
+
 [node name="RouteShellVisual" type="Sprite2D" parent="."]
 z_index = 20
 position = Vector2(150, 350)
@@ -80,6 +97,42 @@ position = Vector2(136, 456)
 [node name="FactoryRatMinion" parent="." instance=ExtResource("5_rat_minion")]
 z_index = 20
 position = Vector2(900, 482)
+
+[node name="FactoryCombatCache" type="Node2D" parent="."]
+z_index = 22
+position = Vector2(1040, 286)
+script = ExtResource("7_cache_script")
+cache_id = &"old_factory_entrance_cache"
+reward_gears = 10
+claim_radius_px = 96.0
+locked_prompt_text = "Clear room"
+available_prompt_text = "+10 Gears"
+claimed_prompt_text = "Claimed"
+
+[node name="Visual" type="Sprite2D" parent="FactoryCombatCache"]
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("6_cache_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryCombatCache"]
+z_index = 4
+offset_left = -76.0
+offset_top = -92.0
+offset_right = 76.0
+offset_bottom = -66.0
+theme_override_colors/font_color = Color(1, 0.86, 0.24, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "Clear room"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="FactoryCombatCache"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryCombatCache/InteractionArea"]
+shape = SubResource("CircleShape2D_cache_interaction")
 
 [node name="RouteLabel" type="Label" parent="."]
 visible = false
