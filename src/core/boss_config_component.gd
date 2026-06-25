@@ -484,6 +484,8 @@ func _dispatch_defeat_rewards_once() -> void:
 	if _boss_id == &"" or _defeat_rewards.is_empty():
 		return
 	_rewards_dispatched = true
+	if _reward_adapter.has_method("begin_boss_defeat_rewards"):
+		_reward_adapter.call("begin_boss_defeat_rewards", _boss_id, _defeat_rewards.duplicate(true))
 	var ability_id: StringName = StringName(String(_defeat_rewards.get("ability_unlock", "")))
 	var currency: int = _read_int(_defeat_rewards.get("currency", 0))
 	var skill_points: int = _read_int(_defeat_rewards.get("skill_points", 0))
@@ -493,6 +495,8 @@ func _dispatch_defeat_rewards_once() -> void:
 		_reward_adapter.call("grant_currency", currency)
 	if skill_points > 0 and _reward_adapter.has_method("grant_skill_points"):
 		_reward_adapter.call("grant_skill_points", skill_points)
+	if _reward_adapter.has_method("finish_boss_defeat_rewards"):
+		_reward_adapter.call("finish_boss_defeat_rewards", _boss_id)
 
 
 func _reset_summon_timer() -> void:

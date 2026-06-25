@@ -107,6 +107,8 @@ const ARENA_MUTATION_LAYOUTS: Dictionary = {
 
 var _pause_menu_active: bool = false
 var _currency_amount: int = 0
+var _skill_points: int = 0
+var _unlocked_abilities: Array[StringName] = []
 var _inventory_items: Array[StringName] = []
 var _acquired_weapons: Array[StringName] = [&"cat_claw"]
 var _current_weapon_id: StringName = &"cat_claw"
@@ -133,6 +135,8 @@ var _applied_arena_mutation_keys: Dictionary = {}
 var _arena_hazard_elapsed_sec: float = 0.0
 var _arena_hazard_contact_cooldowns: Dictionary = {}
 var _boss_scene_locked: bool = false
+var _boss_reward_collection_active: bool = false
+var _last_boss_reward_summary: Dictionary = {}
 
 
 func _ready() -> void:
@@ -293,9 +297,7 @@ func _on_respawn_requested(respawn_position: Vector2, revive_hp_percentage: floa
 
 func _on_victory_reached() -> void:
 	_hud.hide_boss_hp()
-	grant_currency(25)
-	_hud.show_notification("Rat King defeated", 3.0)
-	_hud.show_retry_menu("Rat King defeated", "Retry the encounter or stay with your prize.")
+	_show_victory_reward_feedback()
 
 
 func _on_menu_pause_requested() -> void:
@@ -751,6 +753,8 @@ func clear_combat_adapters() -> void:
 func capture_no_loss_state() -> Dictionary:
 	return {
 		"currency": _currency_amount,
+		"skill_points": _skill_points,
+		"unlocked_abilities": _string_names_to_strings(_unlocked_abilities),
 		"inventory": _string_names_to_strings(_inventory_items),
 		"weapons": {
 			"current_weapon": String(_current_weapon_id),
@@ -765,6 +769,10 @@ func capture_no_loss_state() -> Dictionary:
 
 func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_currency_amount = maxi(0, _read_int(snapshot.get("currency", _currency_amount), _currency_amount))
+	_skill_points = maxi(0, _read_int(snapshot.get("skill_points", _skill_points), _skill_points))
+	_unlocked_abilities = _read_string_name_array(
+		snapshot.get("unlocked_abilities", _unlocked_abilities)
+	)
 	_inventory_items = _read_string_name_array(snapshot.get("inventory", _inventory_items))
 	var weapon_state: Dictionary = Dictionary(snapshot.get("weapons", {}))
 	_current_weapon_id = StringName(String(weapon_state.get("current_weapon", String(_current_weapon_id))))
@@ -781,8 +789,51 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 
 
 func grant_currency(amount: int) -> void:
-	_currency_amount = maxi(0, _currency_amount + maxi(0, amount))
+	var safe_amount: int = maxi(0, amount)
+	if safe_amount <= 0:
+		return
+	_currency_amount = maxi(0, _currency_amount + safe_amount)
+	_record_boss_reward_currency(safe_amount)
 	_hud.update_currency(_currency_amount)
+	_refresh_victory_reward_feedback_if_needed()
+
+
+func grant_skill_points(amount: int) -> void:
+	var safe_amount: int = maxi(0, amount)
+	if safe_amount <= 0:
+		return
+	_skill_points += safe_amount
+	_record_boss_reward_skill_points(safe_amount)
+	_refresh_victory_reward_feedback_if_needed()
+
+
+func unlock_ability(ability_id: StringName) -> void:
+	if ability_id == &"":
+		return
+	if not _unlocked_abilities.has(ability_id):
+		_unlocked_abilities.append(ability_id)
+		_record_boss_reward_ability(ability_id)
+	_refresh_victory_reward_feedback_if_needed()
+
+
+func has_unlocked_ability(ability_id: StringName) -> bool:
+	return _unlocked_abilities.has(ability_id)
+
+
+func get_skill_points() -> int:
+	return _skill_points
+
+
+func begin_boss_defeat_rewards(boss_id: StringName, _rewards: Dictionary = {}) -> void:
+	if String(boss_id) != RAT_KING_BOSS_ID:
+		return
+	_begin_boss_reward_summary_if_needed()
+
+
+func finish_boss_defeat_rewards(boss_id: StringName) -> void:
+	if String(boss_id) != RAT_KING_BOSS_ID:
+		return
+	_boss_reward_collection_active = false
 
 
 func add_inventory_item(item_id: StringName) -> void:
@@ -1350,6 +1401,10 @@ func _capture_player_state() -> Dictionary:
 		).duplicate(true),
 		"weapon_levels": Dictionary(weapon_state.get("levels", _weapon_levels)).duplicate(true),
 		"currency": int(progress.get("currency", _currency_amount)),
+		"skill_points": int(progress.get("skill_points", _skill_points)),
+		"unlocked_abilities": Array(
+			progress.get("unlocked_abilities", _string_names_to_strings(_unlocked_abilities))
+		).duplicate(true),
 		"inventory": Array(progress.get("inventory", _string_names_to_strings(_inventory_items))).duplicate(true),
 	}
 
@@ -1398,6 +1453,10 @@ func _restore_player_state(player_state: Dictionary) -> void:
 func _restore_runtime_progress_state(player_state: Dictionary, world_state: Dictionary, settings: Dictionary) -> void:
 	restore_no_loss_state({
 		"currency": _read_int(player_state.get("currency", _currency_amount), _currency_amount),
+		"skill_points": _read_int(player_state.get("skill_points", _skill_points), _skill_points),
+		"unlocked_abilities": Array(
+			player_state.get("unlocked_abilities", _string_names_to_strings(_unlocked_abilities))
+		).duplicate(true),
 		"inventory": Array(player_state.get("inventory", _string_names_to_strings(_inventory_items))).duplicate(true),
 		"weapons": {
 			"current_weapon": String(player_state.get("current_weapon", String(_current_weapon_id))),
@@ -1428,6 +1487,79 @@ func _trigger_runtime_autosave(reason: StringName, context: Dictionary) -> bool:
 	if _save_trigger_adapter == null:
 		return false
 	return _save_trigger_adapter.trigger_auto_save(reason, context)
+
+
+func _record_boss_reward_ability(ability_id: StringName) -> void:
+	if not _boss_reward_collection_active:
+		return
+	var abilities: Array[String] = []
+	for ability_value: Variant in Array(_last_boss_reward_summary.get("abilities", [])):
+		var existing_ability_id: String = String(ability_value)
+		if not abilities.has(existing_ability_id):
+			abilities.append(existing_ability_id)
+	var ability_text: String = String(ability_id)
+	if not abilities.has(ability_text):
+		abilities.append(ability_text)
+	_last_boss_reward_summary["abilities"] = abilities
+
+
+func _record_boss_reward_currency(amount: int) -> void:
+	if not _boss_reward_collection_active:
+		return
+	_last_boss_reward_summary["currency"] = (
+		int(_last_boss_reward_summary.get("currency", 0)) + maxi(0, amount)
+	)
+
+
+func _record_boss_reward_skill_points(amount: int) -> void:
+	if not _boss_reward_collection_active:
+		return
+	_last_boss_reward_summary["skill_points"] = (
+		int(_last_boss_reward_summary.get("skill_points", 0)) + maxi(0, amount)
+	)
+
+
+func _begin_boss_reward_summary_if_needed() -> void:
+	if _boss_reward_collection_active:
+		return
+	_boss_reward_collection_active = true
+	_last_boss_reward_summary.clear()
+
+
+func _format_boss_reward_summary() -> String:
+	var parts: Array[String] = []
+	for ability_value: Variant in Array(_last_boss_reward_summary.get("abilities", [])):
+		var ability_id: StringName = StringName(String(ability_value))
+		if ability_id != &"":
+			parts.append("%s unlocked" % _display_name_for_ability(ability_id))
+	var currency: int = int(_last_boss_reward_summary.get("currency", 0))
+	if currency > 0:
+		parts.append("+%d Gears" % currency)
+	var skill_points: int = int(_last_boss_reward_summary.get("skill_points", 0))
+	if skill_points > 0:
+		parts.append("+%d SP" % skill_points)
+	return " ".join(parts)
+
+
+func _show_victory_reward_feedback() -> void:
+	var reward_text: String = _format_boss_reward_summary()
+	if reward_text.is_empty():
+		_hud.show_notification("Rat King defeated", 3.0)
+		_hud.show_retry_menu("Rat King defeated", "Retry the encounter or stay with your prize.")
+		_boss_reward_collection_active = false
+		return
+	_hud.show_notification(reward_text, 3.0)
+	_hud.show_retry_menu(
+		"Rat King defeated",
+		"Rewards claimed: %s. Retry the encounter or stay with your prize." % reward_text
+	)
+	_boss_reward_collection_active = false
+
+
+func _refresh_victory_reward_feedback_if_needed() -> void:
+	if _game_flow.get_flow_state() != &"victory":
+		return
+	_show_victory_reward_feedback()
 
 
 func _collect_save_slot_infos() -> Array[Dictionary]:
@@ -1710,6 +1842,8 @@ func _setup_enemy_attack_core_chain() -> void:
 		_enemy.set_damage_calculator_adapter(_damage_calculator_adapter)
 	if _enemy.has_method("set_attack_target"):
 		_enemy.set_attack_target(_player)
+	if _enemy.has_method("set_reward_adapter"):
+		_enemy.set_reward_adapter(self)
 	if _enemy.has_method("set_summon_adapter"):
 		_enemy.set_summon_adapter(self)
 	if _enemy.has_method("set_scene_adapter"):
@@ -2138,6 +2272,14 @@ func _display_name_for_weapon(weapon_id: StringName) -> StringName:
 			return &"Electro Bell"
 		_:
 			return &"Cat Claw"
+
+
+func _display_name_for_ability(ability_id: StringName) -> String:
+	match ability_id:
+		&"dash":
+			return "Dash"
+		_:
+			return String(ability_id).capitalize()
 
 
 func _display_name_for_scene_id(scene_id: StringName) -> String:

@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/boss-config.md
 > **Architecture Module**: BossConfigComponent
 > **Status**: Complete
-> **Stories**: 9 stories
+> **Stories**: 10 stories
 
 ## Overview
 
@@ -14,6 +14,8 @@ the Rat King runtime shell. Story008 connects that shell to data-driven Rat King
 AI attack scheduling for phase-specific attack pools. Story009 connects the
 phase 2 summon adapter to live Rat Minion runtime enemies with frame-animation
 visuals, player damage routing, summon cap enforcement, and boss-death cleanup.
+Story010 connects the defeat reward adapter to playable MainScene progression,
+HUD reward feedback, and SaveSystem persistence.
 
 ## Governing ADRs
 
@@ -35,7 +37,7 @@ visuals, player damage routing, summon cap enforcement, and boss-death cleanup.
 | TR-boss-004 | Phase transitions alter arena layout with obstacles or damage areas through scene coordination. | ADR-0007 |
 | TR-boss-005 | Boss parry outcome deals 5.0x damage without entering STUN. | ADR-0005, ADR-0003 |
 | TR-boss-006 | Boss HP below 10% applies a -30% defense modifier. | ADR-0003, damage/health integration |
-| TR-boss-007 | Boss defeat rewards unlock dash, grant 50 gear coins, and grant 5 skill points. | ADR-0002, pending Ability/Progression integration |
+| TR-boss-007 | Boss defeat rewards unlock dash, grant 50 gear coins, and grant 5 skill points. | ADR-0002, MainScene progression/save integration |
 
 ## Stories
 
@@ -50,6 +52,7 @@ visuals, player damage routing, summon cap enforcement, and boss-death cleanup.
 | 007 | Rat King Runtime MainScene Replacement | Integration + Visual/Feel | Complete | ADR-0001/0002/0006 |
 | 008 | Rat King AI Attack Scheduler MainScene Runtime Integration | Integration + Gameplay Runtime | Complete | ADR-0003/0005/0006 |
 | 009 | Rat King Live Phase Two Summon Runtime Integration | Integration + Gameplay Runtime + Visual | Complete | ADR-0002/0003/0005/0006 |
+| 010 | Rat King Defeat Reward Runtime Consumption | Integration + Gameplay Runtime + UI | Complete | ADR-0002/0003/0021 |
 
 ## Definition of Done
 
@@ -65,6 +68,8 @@ This epic is complete when:
 - RatKingBoss phase 2 spawns live Rat Minion runtime enemies through the
   BossConfig summon adapter, caps active summons at 2, routes player damage to
   live summon entity ids, and cleans summons on boss death.
+- Rat King defeat rewards are consumed by `MainScene`, displayed in HUD victory
+  feedback, and persisted through SaveSystem snapshots.
 - Logic and Integration stories have passing automated tests.
 - Visual/audio/UI follow-up work is routed to Combat Presentation, Audio, and HUD/UI epics instead of being implemented here.
 
@@ -72,7 +77,9 @@ This epic is complete when:
 
 Boss Configuration Core scope is complete through the playable Rat King runtime
 shell, data-driven Rat King AI attack scheduler slice, and live phase 2 Rat
-Minion summon runtime. Specialized attack animation expansion is covered by
-Combat Presentation Story015. Move to downstream consumer stories for arena
-mutation runtime, boss music/SFX, HUD polish, ability unlock presentation, and
-progression reward consumption.
+Minion summon runtime. Rat King defeat reward runtime consumption is complete
+through MainScene progression, HUD presentation, and save persistence.
+Specialized attack animation expansion is covered by Combat Presentation
+Story015. Move to downstream consumer stories for remaining ability-system
+gating, skill-tree spending UI, boss cutscene polish, and broader encounter
+completion.

@@ -73,6 +73,7 @@ var _ai: AIComponent = null
 var _damage_calculator_adapter: Object = null
 var _summon_adapter: Object = null
 var _scene_adapter: Object = null
+var _reward_adapter: Object = null
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
 
@@ -212,6 +213,12 @@ func set_scene_adapter(scene_adapter: Object) -> void:
 	_scene_adapter = scene_adapter
 	if _boss_config != null:
 		_boss_config.set_scene_adapter(_scene_adapter)
+
+
+func set_reward_adapter(reward_adapter: Object) -> void:
+	_reward_adapter = reward_adapter
+	if _boss_config != null:
+		_boss_config.set_reward_adapter(_reward_adapter)
 
 
 func apply_boss_phase(
@@ -550,6 +557,15 @@ func _setup_core_components() -> void:
 	var max_hp: int = _resolved_max_hp()
 	_health.configure(BOSS_ENTITY_ID, max_hp, max_hp, 0, 0, false)
 	_health.configure_boss_phases(_resolved_phase_thresholds())
+	_boss_config.set_entity_id(BOSS_ENTITY_ID)
+	_boss_config.set_health_adapter(_health)
+	_boss_config.set_ai_adapter(self)
+	if _summon_adapter != null:
+		_boss_config.set_summon_adapter(_summon_adapter)
+	if _scene_adapter != null:
+		_boss_config.set_scene_adapter(_scene_adapter)
+	if _reward_adapter != null:
+		_boss_config.set_reward_adapter(_reward_adapter)
 	if not _health.on_hp_changed.is_connected(_on_core_hp_changed):
 		_health.on_hp_changed.connect(_on_core_hp_changed)
 	if not _health.on_death.is_connected(_on_core_death):
@@ -566,13 +582,6 @@ func _setup_core_components() -> void:
 		_combat.on_attack_hit.connect(_on_core_attack_hit)
 	_status_effects.configure_entity(BOSS_ENTITY_ID, false)
 	_status_effects.set_health_adapter(_health)
-	_boss_config.set_entity_id(BOSS_ENTITY_ID)
-	_boss_config.set_health_adapter(_health)
-	_boss_config.set_ai_adapter(self)
-	if _summon_adapter != null:
-		_boss_config.set_summon_adapter(_summon_adapter)
-	if _scene_adapter != null:
-		_boss_config.set_scene_adapter(_scene_adapter)
 	if not _boss_config.on_boss_phase_transition_started.is_connected(_on_boss_phase_transition_started):
 		_boss_config.on_boss_phase_transition_started.connect(_on_boss_phase_transition_started)
 	_setup_ai_component()

@@ -22,7 +22,8 @@
   Story004 Rat King boss music state transitions、AudioSystem Story005 core
   combat SFX asset import baseline、AudioSystem Story006 weapon-style SFX asset
   expansion、AudioSystem Story007 UI menu audio + same-SFX merge、AudioSystem
-  Story008 music + ambience asset import baseline 已完成；
+  Story008 music + ambience asset import baseline、BossConfig Story010 Rat King
+  defeat reward runtime consumption 已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
   routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
   area cue expansion、broader audio mix polish，以及玩家可见角色/敌人帧动画持续审计。
@@ -30,6 +31,24 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Boss Configuration Story 010: Rat King Defeat Reward Runtime Consumption —
+  `BossConfigComponent` optionally brackets defeat reward dispatch with
+  `begin_boss_defeat_rewards()` / `finish_boss_defeat_rewards()` adapter hooks;
+  `RatKingBoss` forwards the reward adapter into its mounted BossConfig
+  component; `MainScene` consumes configured Rat King defeat rewards into
+  runtime progression (`dash`, `50` Gears, `5` skill points), removes the old
+  hard-coded `25` Gears victory reward, displays the claimed reward in HUD
+  notification/retry menu, and persists reward fields through no-loss state,
+  save snapshots, and boss-defeat autosave. Through RED `report_588`, GREEN
+  focused `report_589` `1/1`, final related regression `report_595` `13/13`,
+  headless smoke, and Godot MCP runtime reward probe/log/screenshot evidence,
+  the slice verifies `currency=50`, `skill_points=5`,
+  `unlocked_abilities=["dash"]`, HUD `Gears 50`, reward menu text, save fields,
+  clean game/editor logs, and screenshot
+  `reports/visual/cinderpaw-mcp-rat-king-reward-runtime-20260625.png`.
+  Residual ObjectDB/resource cleanup warnings still appear at process exit in
+  GdUnit/headless runs; runtime logs are clean. QA evidence:
+  `production/qa/evidence/rat-king-defeat-reward-runtime-2026-06-25.md`。
 - Audio System Story 008: Music + Ambience Asset Import Baseline —
   新增 15 个程序化 baseline 音乐/环境音 WAV，覆盖 GDD 全量 baseline cue：
   `mus_hub`、`mus_street`、`mus_sewer`、`mus_factory`、`mus_rooftop`、
@@ -2192,3 +2211,14 @@
 - Asset note: no image-generated visual asset was required for this audio-only slice. Audio source recipes are recorded in `assets/audio/source/music_ambience_generation_20260625.json`.
 - Blockers: None
 - Next: continue authored/final audio replacement, DEATH/CUTSCENE audio states, area cue expansion for sewer/factory/rooftop/tower scene ids, broader audio mix polish, platform profiler evidence, low-memory UI prompt routing, or a player-visible ACT frame animation slice.
+
+## Session Extract — /dev-story 2026-06-25
+
+- Story: `production/epics/boss-config/story-010-rat-king-defeat-reward-runtime-consumption.md` — Rat King Defeat Reward Runtime Consumption
+- Files changed: `src/core/boss_config_component.gd`, `src/gameplay/main_scene.gd`, `src/gameplay/rat_king_boss.gd`, `tests/unit/gameplay/rat_king_defeat_reward_runtime_test.gd`, `tests/unit/save/story_004_main_scene_save_system_runtime_handoff_test.gd`, `production/epics/boss-config/EPIC.md`, `production/epics/index.md`, `production/epics/boss-config/story-010-rat-king-defeat-reward-runtime-consumption.md`, `production/qa/evidence/rat-king-defeat-reward-runtime-2026-06-25.md`, `production/session-state/active.md`
+- Implementation: `BossConfigComponent` now optionally brackets defeat reward dispatch with `begin_boss_defeat_rewards()` / `finish_boss_defeat_rewards()` reward-adapter hooks; `RatKingBoss` forwards a reward adapter to `BossConfigComponent`; `MainScene` consumes Rat King defeat rewards into runtime progression (`dash`, `50` Gears, `5` skill points), removes the old hard-coded `25` Gears victory reward, displays only the claimed boss reward in HUD victory notification/retry menu, and persists reward fields through runtime progress, no-loss state, save snapshots, and boss-defeat autosave. Health death signal ordering now dispatches BossConfig rewards before `enemy_defeated`, so autosave captures the claimed reward state.
+- Test written: `tests/unit/gameplay/rat_king_defeat_reward_runtime_test.gd`; SaveSystem Story004 autosave assertions updated for configured reward persistence.
+- Verification: RED focused reward runtime failed as expected (`reports/report_588/`); GREEN focused reward runtime passed `1/1` (`reports/report_589/`); related reward/BossConfig/RatKingBoss/SaveSystem regression passed `13/13` (`reports/report_595/`); headless main-scene smoke log had no script-error/warning/resource-load matches; Godot MCP runtime defeated Rat King and verified `currency=50`, `skill_points=5`, `unlocked_abilities=["dash"]`, reward HUD text, save snapshot reward fields, clean game/editor logs, and nonblank screenshot `reports/visual/cinderpaw-mcp-rat-king-reward-runtime-20260625.png`.
+- Asset note: no new image-generated visual asset was required for this reward-runtime slice.
+- Blockers: None. Residual Godot cleanup-time ObjectDB/resource warnings still appear at process exit in mixed GdUnit/headless runs; runtime logs and tests are clean.
+- Next: continue remaining ACT-visible slices: player ability gating/skill-tree spending UI, boss cutscene/death polish, authored/final audio replacement, DEATH/CUTSCENE audio states, broader encounter polish, or frame-animation audit.

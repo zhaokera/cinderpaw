@@ -112,7 +112,9 @@ func test_boss_defeat_autosaves_slot_zero_through_runtime_trigger_adapter() -> v
 	assert_str(String(saved["world_state"]["autosave_reason"])).is_equal("boss_defeat")
 	assert_str(String(saved["world_state"]["autosave_context"]["boss_id"])).is_equal("boss_01_rat_king")
 	assert_bool(Array(saved["world_state"]["defeated_bosses"]).has("boss_01_rat_king")).is_true()
-	assert_int(int(saved["player_state"]["currency"])).is_equal(25)
+	assert_int(int(saved["player_state"]["currency"])).is_equal(50)
+	assert_int(int(saved["player_state"]["skill_points"])).is_equal(5)
+	assert_bool(Array(saved["player_state"]["unlocked_abilities"]).has("dash")).is_true()
 
 
 func _prepare_saved_runtime_state() -> void:
