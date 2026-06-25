@@ -420,6 +420,17 @@ func test_scene_change_crossfades_default_area_music_and_ambient_cues() -> void:
 	if ambient_player != null:
 		assert_object(ambient_player.stream).is_not_null()
 
+	audio_system.on_scene_changed(&"main", &"area_03_factory")
+
+	assert_str(String(audio_system.get_current_music_id())).is_equal("mus_factory")
+	assert_str(String(audio_system.get_current_ambient_id())).is_equal("amb_factory")
+	assert_str(String(audio_system.call("get_audio_stream_path", &"mus_factory"))).is_equal(
+		"res://assets/audio/music/mus_factory.wav"
+	)
+	assert_str(String(audio_system.call("get_audio_stream_path", &"amb_factory"))).is_equal(
+		"res://assets/audio/ambient/amb_factory.wav"
+	)
+
 
 func test_scene_audio_cues_can_be_overridden_and_unknown_scene_stays_silent() -> void:
 	assert_object(audio_system).is_not_null()

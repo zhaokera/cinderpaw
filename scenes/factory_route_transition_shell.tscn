@@ -1,20 +1,88 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=9 format=3]
 
-[ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="1_factory_shell"]
+[ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
+[ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_entrance_combat/old_factory_entrance_room_backdrop.png" id="3_backdrop"]
+[ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="4_player"]
+[ext_resource type="PackedScene" path="res://src/gameplay/rat_minion.tscn" id="5_rat_minion"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(1280, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(40, 720)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_platform"]
+size = Vector2(260, 20)
 
 [node name="FactoryRouteTransitionShellScene" type="Node2D"]
+script = ExtResource("1_scene")
 metadata/scene_id = "area_03_factory"
+
+[node name="Background" type="TextureRect" parent="."]
+z_index = -100
+offset_right = 1280.0
+offset_bottom = 720.0
+texture = ExtResource("3_backdrop")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Ground" type="StaticBody2D" parent="."]
+z_index = 10
+position = Vector2(640, 500)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_ground")
+
+[node name="LeftWall" type="StaticBody2D" parent="."]
+position = Vector2(20, 360)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="RightWall" type="StaticBody2D" parent="."]
+position = Vector2(1260, 360)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="EntryPlatform" type="StaticBody2D" parent="."]
+z_index = 9
+position = Vector2(232, 420)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="EntryPlatform"]
+shape = SubResource("RectangleShape2D_platform")
 
 [node name="RouteShellVisual" type="Sprite2D" parent="."]
 z_index = 20
-position = Vector2(160, 352)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("1_factory_shell")
+position = Vector2(150, 350)
+scale = Vector2(0.68, 0.68)
+texture = ExtResource("2_factory_shell")
 
 [node name="FactoryGateEntrySpawn" type="Marker2D" parent="."]
-position = Vector2(96, 432)
+position = Vector2(136, 456)
+
+[node name="CombatEnemySpawnMarker" type="Marker2D" parent="."]
+position = Vector2(900, 482)
+
+[node name="Player" parent="." instance=ExtResource("4_player")]
+z_index = 20
+position = Vector2(136, 456)
+
+[node name="FactoryRatMinion" parent="." instance=ExtResource("5_rat_minion")]
+z_index = 20
+position = Vector2(900, 482)
 
 [node name="RouteLabel" type="Label" parent="."]
+visible = false
 offset_left = 70.0
 offset_top = 224.0
 offset_right = 250.0

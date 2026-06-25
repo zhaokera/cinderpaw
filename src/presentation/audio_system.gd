@@ -59,6 +59,11 @@ const DEFAULT_SCENE_AUDIO_CUES: Dictionary = {
 		"ambient_id": &"amb_street",
 		"crossfade_sec": DEFAULT_SCENE_CROSSFADE_SEC,
 	},
+	"area_03_factory": {
+		"music_id": &"mus_factory",
+		"ambient_id": &"amb_factory",
+		"crossfade_sec": DEFAULT_SCENE_CROSSFADE_SEC,
+	},
 }
 const DEFAULT_BOSS_MUSIC_CUES: Dictionary = {
 	"boss_01_rat_king": {
