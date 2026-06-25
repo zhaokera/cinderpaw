@@ -18,6 +18,7 @@ const DEFAULT_CORE_COMBAT_SFX: Dictionary = {
 	&"sfx_enemy_death": "res://assets/audio/sfx/sfx_enemy_death.wav",
 	&"sfx_boss_phase": "res://assets/audio/sfx/sfx_boss_phase.wav",
 	&"sfx_focus_mode_activate": "res://assets/audio/sfx/sfx_focus_mode_activate.wav",
+	&"sfx_double_jump": "res://assets/audio/sfx/sfx_double_jump.wav",
 }
 const DEFAULT_UI_AUDIO_STREAMS: Dictionary = {
 	&"ui_menu_open": "res://assets/audio/ui/ui_menu_open.wav",
@@ -579,6 +580,30 @@ func test_parry_dodge_enemy_death_and_boss_phase_events_route_to_expected_sfx() 
 	assert_vector(boss_request.get("position", Vector2.ZERO)).is_equal(Vector2(120, 140))
 	assert_bool(bool(boss_request.get("stream_found", false))).is_true()
 	assert_str(String(audio_system.call("get_audio_state"))).is_equal("BOSS_FIGHT")
+
+
+func test_double_jump_event_routes_bounce_sfx_with_spatial_metadata() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	assert_bool(audio_system.has_method("on_double_jump_event")).is_true()
+	if not audio_system.has_method("on_double_jump_event"):
+		return
+
+	assert_bool(bool(audio_system.call(
+		"on_double_jump_event",
+		null,
+		Vector2(104, 128),
+		-1.0
+	))).is_true()
+
+	var request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(request.get("sfx_id", &""))).is_equal("sfx_double_jump")
+	assert_vector(request.get("position", Vector2.ZERO)).is_equal(Vector2(104, 128))
+	assert_bool(bool(request.get("stream_found", false))).is_true()
+	var gameplay_event: Dictionary = audio_system.call("get_last_gameplay_audio_event")
+	assert_str(String(gameplay_event.get("event_id", &""))).is_equal("double_jump")
+	assert_str(String(gameplay_event.get("sfx_id", &""))).is_equal("sfx_double_jump")
 
 
 func test_boss_music_state_hard_cuts_phase_transitions_and_ends_cleanly() -> void:

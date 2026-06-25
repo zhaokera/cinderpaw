@@ -175,6 +175,8 @@ func _ready() -> void:
 	_player.dodge_started.connect(_on_player_dodge_started)
 	if _player.has_signal("dash_started"):
 		_player.dash_started.connect(_on_player_dash_started)
+	if _player.has_signal("double_jump_started"):
+		_player.double_jump_started.connect(_on_player_double_jump_started)
 	_connect_player_focus_mode_signal()
 	_enemy.enemy_health_changed.connect(_on_enemy_health_changed)
 	_enemy.enemy_defeated.connect(_on_enemy_defeated)
@@ -245,6 +247,11 @@ func _on_player_dodge_started(texture: Texture2D, world_position: Vector2, facin
 func _on_player_dash_started(texture: Texture2D, world_position: Vector2, facing: float) -> void:
 	_combat_presentation.on_dodge_event(texture, world_position, facing)
 	_dispatch_audio_event(&"on_dodge_event", [texture, world_position, facing])
+
+
+func _on_player_double_jump_started(texture: Texture2D, world_position: Vector2, facing: float) -> void:
+	_combat_presentation.on_double_jump_event(texture, world_position, facing)
+	_dispatch_audio_event(&"on_double_jump_event", [texture, world_position, facing])
 
 
 func _on_enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool) -> void:

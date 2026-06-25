@@ -60,6 +60,7 @@ All new visual assets in this inventory should be produced from image2 / image g
 | 12 | Damage Numbers | Pixel numeric popups with crit and normal variants. | design/gdd/damage-calculation.md; design/gdd/combat-presentation.md | Needed |
 | 13 | Enemy Death Debris | Enemy-color fragment burst for kill feedback. | design/gdd/combat-presentation.md; design/art/art-bible.md | Implemented |
 | 14 | Rat King Arena Mutation VFX | Image-generated debris dust, electric hazard glow, and electric spark Sprite2D VFX layers attached to Rat King phase 2/3 arena mutations; Story013 removes the remaining visible placeholder shape so generated prop sprites and VFX are the only player-facing arena mutation visuals. | design/gdd/boss-config.md; design/gdd/combat-presentation.md; design/art/art-bible.md; production/epics/scene-management/story-011-rat-king-final-arena-vfx.md; production/epics/scene-management/story-013-rat-king-arena-placeholder-visual-removal.md | Implemented |
+| 15 | Double Jump Foot Vortex | Image-generated transparent 256x256 foot-level air vortex with cat-eye gold core, pale spiral, blue upward motion strokes, and sparklets. Story004 spawns three textured `Sprite2D` particles for successful Double Jump activation and routes the paired `sfx_double_jump` cue. | design/gdd/player-abilities.md; design/gdd/audio-system.md; production/epics/player-abilities/story-004-double-jump-activation-feedback.md | Implemented |
 
 ## UI Screens
 
@@ -105,3 +106,4 @@ All new visual assets in this inventory should be produced from image2 / image g
 | 7 | Boss Theme | Music | Cold, high-pressure boss music with phase escalation. | design/gdd/boss-config.md; design/art/art-bible.md | Needed |
 | 8 | Hub Ambience | Ambient / Music | Warm safe hub ambience, layered light feeling. | design/art/art-bible.md | Needed |
 | 9 | Death / Respawn | SFX | Heavy fall, dissolve, soft cat-call revive, ambience fade-in. | design/gdd/death-respawn.md | Needed |
+| 10 | Double Jump Activation | SFX | Replaceable baseline bounce/vortex cue imported as `res://assets/audio/sfx/sfx_double_jump.wav` and routed by `AudioSystem.on_double_jump_event`. | design/gdd/player-abilities.md; design/gdd/audio-system.md; production/epics/player-abilities/story-004-double-jump-activation-feedback.md | Implemented baseline |

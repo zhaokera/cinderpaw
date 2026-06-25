@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 3 stories tracked
+> **Stories**: 4 stories tracked
 
 ## Overview
 
@@ -41,6 +41,7 @@ recording the reward in progression state.
 | 001 | Dash Runtime Ability Gate | Integration + Gameplay Runtime + Visual | Complete | ADR-0003/0005/0018/0021 |
 | 002 | Dash Exploration Gate Runtime | Integration + Gameplay Runtime + Visual | Complete | ADR-0007/0018/0021 |
 | 003 | Double Jump Runtime + High Platform Gate | Integration + Gameplay Runtime + Visual | Complete | ADR-0007/0018/0021 |
+| 004 | Double Jump Activation Feedback | Integration + Visual/Feel + Audio | Complete | ADR-0002/0010/0018 |
 
 ## Definition of Done
 
@@ -60,6 +61,6 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-003 are complete. Continue skill-tree spending UI, later
-boss/hidden-boss Double Jump reward sources, additional ExplorationGate ability
-doors, and other player-visible ability consumers.
+Stories001-004 are complete. Continue skill-tree spending UI, later boss/hidden
+boss Double Jump reward sources, additional ExplorationGate ability doors, and
+other player-visible ability consumers.

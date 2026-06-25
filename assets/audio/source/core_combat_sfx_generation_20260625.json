@@ -84,6 +84,14 @@
       "category": "SFX",
       "description": "focus mode activation rising pulse and shimmer",
       "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_double_jump",
+      "path": "res://assets/audio/sfx/sfx_double_jump.wav",
+      "duration_sec": 0.24,
+      "category": "SFX",
+      "description": "double jump activation bounce with short upward chirp and airy vortex transient",
+      "status": "procedural_baseline_replaceable"
     }
   ]
 }

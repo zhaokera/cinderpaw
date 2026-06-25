@@ -546,6 +546,42 @@ func test_dodge_event_spawns_three_textured_afterimages_with_gdd_alpha_steps() -
 	assert_bool(_all_sprite_children_have_textures()).is_true()
 
 
+func test_double_jump_event_spawns_textured_vortex_feedback() -> void:
+	assert_bool(presentation.has_method("on_double_jump_event")).is_true()
+	assert_bool(presentation.has_method("get_active_double_jump_vfx_count")).is_true()
+	assert_bool(presentation.has_method("get_last_double_jump_vfx_texture_path")).is_true()
+	assert_bool(presentation.has_method("get_double_jump_vfx_lifetime_sec")).is_true()
+	if (
+		not presentation.has_method("on_double_jump_event")
+		or not presentation.has_method("get_active_double_jump_vfx_count")
+		or not presentation.has_method("get_last_double_jump_vfx_texture_path")
+		or not presentation.has_method("get_double_jump_vfx_lifetime_sec")
+	):
+		return
+
+	presentation.call("on_double_jump_event", CINDERPAW_IDLE_TEXTURE, Vector2(180, 220), -1.0)
+
+	assert_int(int(presentation.call("get_active_double_jump_vfx_count"))).is_equal(3)
+	assert_str(String(presentation.call("get_last_double_jump_vfx_texture_path"))).is_equal(
+		"res://assets/generated/player_double_jump_vortex_runtime.png"
+	)
+	assert_float(float(presentation.call("get_double_jump_vfx_lifetime_sec"))).is_equal_approx(
+		0.32,
+		0.001
+	)
+	assert_int(_count_children_of_type("Sprite2D")).is_greater_equal(
+		int(presentation.call("get_active_double_jump_vfx_count"))
+	)
+	assert_int(_count_descendants_of_type(presentation, "ColorRect")).is_equal(0)
+	assert_bool(_all_sprite_children_have_textures()).is_true()
+
+	presentation.advance_time(0.31)
+	assert_int(int(presentation.call("get_active_double_jump_vfx_count"))).is_equal(3)
+
+	presentation.advance_time(0.03)
+	assert_int(int(presentation.call("get_active_double_jump_vfx_count"))).is_equal(0)
+
+
 func test_boss_phase_transition_spawns_textured_overlay_and_metal_debris() -> void:
 	assert_bool(presentation.has_method("on_boss_phase_transition_started")).is_true()
 	assert_bool(presentation.has_method("get_active_boss_phase_debris_count")).is_true()

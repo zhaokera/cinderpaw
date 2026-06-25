@@ -19,6 +19,7 @@ const LONG_TAIL_ARC_LIFETIME_SEC: float = 0.5
 const FISH_BONE_WAVE_LIFETIME_SEC: float = 0.3
 const ELECTRO_BELL_ARC_LIFETIME_SEC: float = 0.4
 const DODGE_AFTERIMAGE_LIFETIME_SEC: float = 0.35
+const DOUBLE_JUMP_VFX_LIFETIME_SEC: float = 0.32
 const BOSS_PHASE_HITSTOP_FRAMES: int = 4
 const BOSS_PHASE_SHAKE_INTENSITY: float = 6.0
 const BOSS_PHASE_SHAKE_FRAMES: int = 4
@@ -33,6 +34,7 @@ const CLAW_TRAIL_COUNT: int = 3
 const LONG_TAIL_ARC_COUNT: int = 1
 const FISH_BONE_WAVE_COUNT: int = 1
 const ELECTRO_BELL_ARC_COUNT: int = 6
+const DOUBLE_JUMP_VORTEX_COUNT: int = 3
 const BOSS_PHASE_DEBRIS_COUNT: int = 32
 const MAX_ACTIVE_PARTICLES: int = 200
 const PARTICLE_FRAME_BUDGET_MS: float = 2.0
@@ -83,6 +85,8 @@ const FISH_BONE_WAVE_TEXTURE_PATH: String = "res://assets/generated/combat_fish_
 const FISH_BONE_WAVE_TEXTURE: Texture2D = preload("res://assets/generated/combat_fish_bone_wave_runtime.png")
 const ELECTRO_BELL_ARC_TEXTURE_PATH: String = "res://assets/generated/combat_electro_bell_arc_runtime.png"
 const ELECTRO_BELL_ARC_TEXTURE: Texture2D = preload("res://assets/generated/combat_electro_bell_arc_runtime.png")
+const DOUBLE_JUMP_VORTEX_TEXTURE_PATH: String = "res://assets/generated/player_double_jump_vortex_runtime.png"
+const DOUBLE_JUMP_VORTEX_TEXTURE: Texture2D = preload("res://assets/generated/player_double_jump_vortex_runtime.png")
 const BOSS_PHASE_OVERLAY_TEXTURE_PATH: String = "res://assets/generated/combat_boss_phase_overlay.png"
 const BOSS_PHASE_OVERLAY_TEXTURE: Texture2D = preload("res://assets/generated/combat_boss_phase_overlay.png")
 const SPARK_SPRITE_SCALE: Vector2 = Vector2(0.16, 0.16)
@@ -92,6 +96,7 @@ const CLAW_TRAIL_SPRITE_SCALE: Vector2 = Vector2(0.34, 0.34)
 const LONG_TAIL_ARC_SPRITE_SCALE: Vector2 = Vector2(0.44, 0.44)
 const FISH_BONE_WAVE_SPRITE_SCALE: Vector2 = Vector2(0.40, 0.40)
 const ELECTRO_BELL_ARC_SPRITE_SCALE: Vector2 = Vector2(0.24, 0.24)
+const DOUBLE_JUMP_VORTEX_SPRITE_SCALE: Vector2 = Vector2(0.32, 0.32)
 const BOSS_PHASE_DEBRIS_SPRITE_SCALE: Vector2 = Vector2(0.14, 0.14)
 const DODGE_AFTERIMAGE_OFFSET_PX: float = 14.0
 
@@ -107,6 +112,7 @@ var _parry_sparks: Array[Dictionary] = []
 var _trails: Array[Dictionary] = []
 var _flashes: Array[Dictionary] = []
 var _afterimages: Array[Dictionary] = []
+var _double_jump_vfx: Array[Dictionary] = []
 var _boss_phase_debris: Array[Dictionary] = []
 var _boss_phase_overlays: Array[Dictionary] = []
 var _particle_effect_order: Array[Dictionary] = []
@@ -120,6 +126,7 @@ var _last_damage_number_lifetime_sec: float = DAMAGE_NUMBER_LIFETIME_SEC
 var _last_flash_alpha: float = 0.0
 var _last_afterimage_alphas: Array[float] = []
 var _last_afterimage_positions: Array[Vector2] = []
+var _last_double_jump_vfx_texture_path: String = ""
 var _last_boss_phase_entity_id: int = 0
 var _last_boss_phase: int = 0
 var _last_boss_phase_metadata: Dictionary = {}
@@ -240,6 +247,10 @@ func on_dodge_event(texture: Texture2D, world_position: Vector2, facing: float) 
 	_spawn_dodge_afterimages(texture, world_position, facing)
 
 
+func on_double_jump_event(_texture: Texture2D, world_position: Vector2, facing: float) -> void:
+	_spawn_double_jump_vortex(world_position, facing)
+
+
 func play_hitstop(frames: int) -> void:
 	_hitstop_frames_remaining = maxi(_hitstop_frames_remaining, maxi(0, frames))
 
@@ -262,6 +273,7 @@ func advance_time(delta_sec: float) -> void:
 	_tick_effects(_trails, safe_delta)
 	_tick_effects(_flashes, safe_delta)
 	_tick_effects(_afterimages, safe_delta)
+	_tick_effects(_double_jump_vfx, safe_delta)
 	_tick_effects(_boss_phase_debris, safe_delta)
 	_tick_effects(_boss_phase_overlays, safe_delta)
 
@@ -294,6 +306,10 @@ func get_active_afterimage_count() -> int:
 	return _afterimages.size()
 
 
+func get_active_double_jump_vfx_count() -> int:
+	return _double_jump_vfx.size()
+
+
 func get_particle_cap() -> int:
 	return MAX_ACTIVE_PARTICLES
 
@@ -305,6 +321,7 @@ func get_active_particle_count() -> int:
 		+ _parry_sparks.size()
 		+ _trails.size()
 		+ _afterimages.size()
+		+ _double_jump_vfx.size()
 		+ _boss_phase_debris.size()
 	)
 
@@ -406,6 +423,14 @@ func get_last_afterimage_positions() -> Array[Vector2]:
 	var result: Array[Vector2] = []
 	result.assign(_last_afterimage_positions)
 	return result
+
+
+func get_last_double_jump_vfx_texture_path() -> String:
+	return _last_double_jump_vfx_texture_path
+
+
+func get_double_jump_vfx_lifetime_sec() -> float:
+	return DOUBLE_JUMP_VFX_LIFETIME_SEC
 
 
 func get_last_boss_phase_entity_id() -> int:
@@ -709,6 +734,46 @@ func _spawn_dodge_afterimages(texture: Texture2D, world_position: Vector2, facin
 		_last_afterimage_positions.append(afterimage.position)
 
 
+func _spawn_double_jump_vortex(world_position: Vector2, facing: float) -> void:
+	var facing_sign: float = -1.0 if facing < 0.0 else 1.0
+	_last_double_jump_vfx_texture_path = DOUBLE_JUMP_VORTEX_TEXTURE_PATH
+	for index: int in range(DOUBLE_JUMP_VORTEX_COUNT):
+		var vortex := _create_vfx_sprite(
+			DOUBLE_JUMP_VORTEX_TEXTURE,
+			Color.WHITE,
+			DOUBLE_JUMP_VORTEX_SPRITE_SCALE * (1.0 + float(index) * 0.08)
+		)
+		vortex.position = world_position + Vector2(
+			facing_sign * float(index - 1) * 4.0,
+			30.0 - float(index) * 6.0
+		)
+		vortex.flip_h = facing_sign < 0.0
+		vortex.rotation = float(index - 1) * 0.08 * facing_sign
+		vortex.modulate.a = 0.9 - float(index) * 0.16
+		vortex.z_index = 83 + index
+		add_child(vortex)
+		var tween: Tween = create_tween()
+		tween.tween_property(
+			vortex,
+			"position",
+			vortex.position + Vector2(facing_sign * (6.0 + float(index) * 2.0), -26.0),
+			DOUBLE_JUMP_VFX_LIFETIME_SEC
+		)
+		tween.parallel().tween_property(
+			vortex,
+			"scale",
+			DOUBLE_JUMP_VORTEX_SPRITE_SCALE * (1.18 + float(index) * 0.12),
+			DOUBLE_JUMP_VFX_LIFETIME_SEC
+		)
+		tween.parallel().tween_property(vortex, "modulate:a", 0.0, DOUBLE_JUMP_VFX_LIFETIME_SEC)
+		tween.tween_callback(vortex.queue_free)
+		_register_particle_effect(_double_jump_vfx, {
+			"node": vortex,
+			"remaining": DOUBLE_JUMP_VFX_LIFETIME_SEC,
+			"tween": tween,
+		})
+
+
 func _spawn_debris(world_position: Vector2, count: int) -> void:
 	var debris_color: Color = _debris_color()
 	_last_debris_color = debris_color
@@ -850,6 +915,7 @@ func _remove_effect_from_particle_buckets(effect: Dictionary) -> bool:
 	removed = _remove_effect_from_bucket(_parry_sparks, effect) or removed
 	removed = _remove_effect_from_bucket(_trails, effect) or removed
 	removed = _remove_effect_from_bucket(_afterimages, effect) or removed
+	removed = _remove_effect_from_bucket(_double_jump_vfx, effect) or removed
 	removed = _remove_effect_from_bucket(_boss_phase_debris, effect) or removed
 	return removed
 
@@ -889,6 +955,7 @@ func _sample_particle_work() -> int:
 		+ _sample_particle_array(_parry_sparks)
 		+ _sample_particle_array(_trails)
 		+ _sample_particle_array(_afterimages)
+		+ _sample_particle_array(_double_jump_vfx)
 		+ _sample_particle_array(_boss_phase_debris)
 	)
 

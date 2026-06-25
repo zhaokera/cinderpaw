@@ -17,6 +17,7 @@ class FakeAudioSystem:
 	var hit_events: Array[Dictionary] = []
 	var damage_taken_events: Array[Dictionary] = []
 	var dodge_events: Array[Dictionary] = []
+	var double_jump_events: Array[Dictionary] = []
 	var focus_events: Array[Dictionary] = []
 	var enemy_defeated_events: Array[Dictionary] = []
 	var boss_phase_events: Array[Dictionary] = []
@@ -61,6 +62,13 @@ class FakeAudioSystem:
 
 	func on_dodge_event(_texture: Texture2D, world_position: Vector2, facing: float) -> bool:
 		dodge_events.append({
+			"position": world_position,
+			"facing": facing,
+		})
+		return false
+
+	func on_double_jump_event(_texture: Texture2D, world_position: Vector2, facing: float) -> bool:
+		double_jump_events.append({
 			"position": world_position,
 			"facing": facing,
 		})
@@ -354,6 +362,29 @@ func test_incomplete_audio_system_does_not_block_existing_gameplay_presentation(
 
 	assert_bool(bool(player.call("request_dodge"))).is_true()
 	assert_int(int(combat_presentation.call("get_active_afterimage_count"))).is_equal(3)
+
+
+func test_player_double_jump_event_routes_to_presentation_and_audio_system() -> void:
+	var audio_system: FakeAudioSystem = _configure_fake_audio_system()
+	var player: Node = scene.get_node("Player")
+	var combat_presentation: Node = scene.get_node("CombatPresentation")
+
+	assert_bool(combat_presentation.has_method("get_active_double_jump_vfx_count")).is_true()
+	if not combat_presentation.has_method("get_active_double_jump_vfx_count"):
+		return
+
+	scene.call("unlock_ability", &"double_jump")
+	assert_bool(bool(player.call("has_ability", &"double_jump"))).is_true()
+	player.call("set_airborne", true)
+	assert_bool(bool(player.call("request_double_jump"))).is_true()
+
+	assert_int(int(combat_presentation.call("get_active_double_jump_vfx_count"))).is_equal(3)
+	assert_int(audio_system.double_jump_events.size()).is_equal(1)
+	if audio_system.double_jump_events.size() != 1:
+		return
+	assert_vector(audio_system.double_jump_events[0].get("position", Vector2.ZERO)).is_equal(
+		player.get_node("Sprite").global_position
+	)
 
 
 func _configure_fake_audio_system() -> FakeAudioSystem:

@@ -82,6 +82,7 @@ const DEFAULT_CORE_COMBAT_SFX_STREAMS: Dictionary = {
 	&"sfx_enemy_death": "res://assets/audio/sfx/sfx_enemy_death.wav",
 	&"sfx_boss_phase": "res://assets/audio/sfx/sfx_boss_phase.wav",
 	&"sfx_focus_mode_activate": "res://assets/audio/sfx/sfx_focus_mode_activate.wav",
+	&"sfx_double_jump": "res://assets/audio/sfx/sfx_double_jump.wav",
 }
 const DEFAULT_UI_AUDIO_STREAMS: Dictionary = {
 	&"ui_menu_open": "res://assets/audio/ui/ui_menu_open.wav",
@@ -654,6 +655,31 @@ func on_dodge_event(
 		&"dodge",
 		&"sfx_dodge",
 		dodge_position,
+		SFX_PRIORITY_DODGE,
+		metadata
+	)
+
+
+## Routes a successful Double Jump activation to the bounce/vortex SFX.
+func on_double_jump_event(
+	texture_or_metadata: Variant = null,
+	world_position: Vector2 = Vector2.ZERO,
+	facing: float = 1.0
+) -> bool:
+	var metadata: Dictionary = {}
+	var double_jump_position: Vector2 = world_position
+	if texture_or_metadata is Dictionary:
+		metadata = Dictionary(texture_or_metadata).duplicate(true)
+		double_jump_position = _event_position(metadata, ["position", "world_position", "hit_position"])
+	else:
+		metadata = {
+			"position": world_position,
+			"facing": facing,
+		}
+	return _request_gameplay_sfx(
+		&"double_jump",
+		&"sfx_double_jump",
+		double_jump_position,
 		SFX_PRIORITY_DODGE,
 		metadata
 	)
