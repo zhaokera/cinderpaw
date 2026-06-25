@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://main001"]
+[gd_scene load_steps=15 format=3 uid="uid://main001"]
 
 [ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://4j2ise5khuss" path="res://assets/generated/wasteland_alley_bg.png" id="3_bg"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://dg1hownpawbt" path="res://src/gameplay/game_flow_controller.gd" id="9_game_flow"]
 [ext_resource type="Script" path="res://src/feature/exploration_gate.gd" id="10_gate"]
 [ext_resource type="Texture2D" uid="uid://c78sfjwu3jnts" path="res://assets/environment/rat_king_arena/electric_leak.png" id="11_gate_texture"]
+[ext_resource type="Texture2D" uid="uid://cge7sath6efgs" path="res://assets/environment/high_platform_gate/high_platform_gate_marker.png" id="12_high_platform_gate"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -23,6 +24,9 @@ size = Vector2(360, 20)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dash_gate"]
 size = Vector2(44, 124)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_double_jump_gate"]
+size = Vector2(64, 124)
 
 [node name="Main" type="Node2D" unique_id=596361816]
 script = ExtResource("6_main")
@@ -92,6 +96,38 @@ shape = SubResource("RectangleShape2D_platform")
 [node name="PlatformVisual" type="Sprite2D" parent="RaisedPlatform" unique_id=457105820]
 position = Vector2(0, 30)
 texture = ExtResource("5_platform")
+
+[node name="DoubleJumpExplorationGate" type="Node2D" parent="." unique_id=1089301886]
+z_index = 32
+position = Vector2(820, 316)
+script = ExtResource("10_gate")
+gate_id = "double_jump_high_platform"
+required_ability = "double_jump"
+target_area_id = "area_03_factory"
+unlock_radius_px = 128.0
+locked_prompt_text = "Requires Double Jump"
+unlockable_prompt_text = "Double jump up"
+
+[node name="StaticBody2D" type="StaticBody2D" parent="DoubleJumpExplorationGate" unique_id=1948794290]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DoubleJumpExplorationGate/StaticBody2D" unique_id=1948794291]
+shape = SubResource("RectangleShape2D_double_jump_gate")
+
+[node name="Visual" type="Sprite2D" parent="DoubleJumpExplorationGate" unique_id=1948794292]
+scale = Vector2(0.074, 0.074)
+texture = ExtResource("12_high_platform_gate")
+
+[node name="PromptLabel" type="Label" parent="DoubleJumpExplorationGate" unique_id=1948794293]
+offset_left = -96.0
+offset_top = -110.0
+offset_right = 96.0
+offset_bottom = -84.0
+theme_override_colors/font_color = Color(1, 0.86, 0.2, 1)
+theme_override_font_sizes/font_size = 15
+text = "Requires Double Jump"
+horizontal_alignment = 1
 
 [node name="DashExplorationGate" type="Node2D" parent="." unique_id=809230151]
 z_index = 30

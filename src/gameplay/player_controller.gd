@@ -11,6 +11,7 @@ signal attack_landed(hit_data: Dictionary)
 signal attack_started(attack_data: Dictionary)
 signal dodge_started(texture: Texture2D, world_position: Vector2, facing: float)
 signal dash_started(texture: Texture2D, world_position: Vector2, facing: float)
+signal double_jump_started(texture: Texture2D, world_position: Vector2, facing: float)
 signal ability_unlocked(ability_id: StringName)
 signal ability_activated(ability_id: StringName)
 
@@ -38,6 +39,8 @@ const DODGE_COOLDOWN_FRAMES: int = 12
 const DODGE_SPEED: float = 400.0
 const DASH_DURATION_FRAMES: int = 10
 const DASH_SPEED: float = 620.0
+const DOUBLE_JUMP_HEIGHT_RATIO: float = 0.82
+const DOUBLE_JUMP_ANIMATION_LOCK_FRAMES: int = 10
 const NORMAL_MODULATE: Color = Color.WHITE
 const ATTACK_MODULATE: Color = Color(1.0, 0.55, 0.45, 1.0)
 const DAMAGE_MODULATE: Color = Color(1.0, 0.25, 0.25, 1.0)
@@ -68,6 +71,7 @@ const COMBAT_COMPONENT_SCRIPT: Script = preload("res://src/core/combat_component
 const COLLISION_COMPONENT_SCRIPT: Script = preload("res://src/core/collision_component.gd")
 const ABILITY_COMPONENT_SCRIPT: Script = preload("res://src/core/ability_component.gd")
 const ABILITY_DASH: StringName = &"dash"
+const ABILITY_DOUBLE_JUMP: StringName = &"double_jump"
 
 # ---------------------------------------------------------------------------
 # State
@@ -154,8 +158,10 @@ func _physics_process(delta: float) -> void:
 
 	# Coyote time tracking
 	if is_on_floor():
+		set_airborne(false)
 		_coyote_timer = COYOTE_FRAMES
 	else:
+		set_airborne(true)
 		_coyote_timer = maxi(_coyote_timer - 1, 0)
 	_advance_respawn_visual()
 	_update_character_animation()
@@ -188,11 +194,12 @@ func _handle_input() -> void:
 	else:
 		_jump_buffer_timer = maxi(_jump_buffer_timer - 1, 0)
 
-	# Execute jump if buffer active and coyote time valid
-	if _jump_buffer_timer > 0 and _coyote_timer > 0 and _state != State.DODGING:
-		velocity.y = JUMP_VELOCITY
-		_jump_buffer_timer = 0
-		_coyote_timer = 0
+	# Execute jump if buffer active; airborne presses can consume double jump.
+	if _jump_buffer_timer > 0 and _state != State.DODGING:
+		if _coyote_timer > 0:
+			_start_ground_jump()
+		elif request_double_jump():
+			_jump_buffer_timer = 0
 
 	# Attack
 	if Input.is_action_just_pressed("attack") and _state == State.IDLE:
@@ -327,6 +334,14 @@ func _start_dodge() -> void:
 	dodge_started.emit(_get_current_sprite_texture(), _sprite.global_position, _facing)
 
 
+func _start_ground_jump() -> void:
+	velocity.y = JUMP_VELOCITY
+	_jump_buffer_timer = 0
+	_coyote_timer = 0
+	set_airborne(true)
+	_play_character_animation(ANIMATION_JUMP, true)
+
+
 ## Unlocks a player ability. Returns false when the ability is already unlocked.
 func unlock_ability(ability_id: StringName) -> bool:
 	_ensure_ability_component()
@@ -368,6 +383,18 @@ func advance_ability_cooldowns(delta_sec: float) -> void:
 		_ability.advance_time(delta_sec)
 
 
+## Updates the AbilityComponent airborne state used by air-count abilities.
+func set_airborne(is_in_air: bool) -> void:
+	_ensure_ability_component()
+	if _ability != null:
+		_ability.set_airborne(is_in_air)
+
+
+## Clears air-count ability usage, matching the landing reset contract.
+func reset_air_abilities() -> void:
+	set_airborne(false)
+
+
 ## Requests a dash movement burst if the ability is unlocked and ready.
 func request_dash() -> bool:
 	if _control_locked or _state != State.IDLE:
@@ -386,6 +413,23 @@ func _start_dash() -> void:
 	_sprite.modulate = Color(0.75, 0.95, 1.0, 0.58)
 	_play_character_animation(ANIMATION_DASH, true)
 	dash_started.emit(_get_current_sprite_texture(), _sprite.global_position, _facing)
+
+
+## Requests an unlocked double jump while airborne and consumes its air count.
+func request_double_jump() -> bool:
+	if _control_locked or _state != State.IDLE:
+		return false
+	_ensure_ability_component()
+	if _ability == null:
+		return false
+	if not _ability.try_activate_ability(ABILITY_DOUBLE_JUMP):
+		return false
+	velocity.y = JUMP_VELOCITY * DOUBLE_JUMP_HEIGHT_RATIO
+	_jump_buffer_timer = 0
+	_coyote_timer = 0
+	_play_timed_character_animation(ANIMATION_JUMP, DOUBLE_JUMP_ANIMATION_LOCK_FRAMES)
+	double_jump_started.emit(_get_current_sprite_texture(), _sprite.global_position, _facing)
+	return true
 
 
 # ---------------------------------------------------------------------------
@@ -478,6 +522,7 @@ func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
 	_dodge_cooldown_timer = 0
 	_dash_timer = 0
 	advance_ability_cooldowns(999.0)
+	reset_air_abilities()
 	_jump_buffer_timer = 0
 	_coyote_timer = 0
 	_hitbox_shape.disabled = true
