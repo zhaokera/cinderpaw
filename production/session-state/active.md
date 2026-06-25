@@ -18,15 +18,31 @@
   SceneManagement Story009 electric leak contact damage、
   SceneManagement Story010 scene memory budget diagnostics、AudioSystem
   Story004 Rat King boss music state transitions、AudioSystem Story005 core
-  combat SFX asset import baseline 已完成；
+  combat SFX asset import baseline、AudioSystem Story006 weapon-style SFX asset
+  expansion 已完成；
   下一步推进 boss arena mutation save-state persistence、real platform
   profiler evidence、low-memory UI prompt routing、UI menu audio、same-SFX
-  merge、authored/final audio replacement、non-claw weapon SFX expansion，
-  以及玩家可见角色/敌人帧动画持续审计。
+  merge、authored/final audio replacement、broader audio mix polish，以及玩家
+  可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Audio System Story 006: Weapon Style SFX Asset Expansion —
+  新增 4 个程序化 baseline WAV：`sfx_blade_attack`、`sfx_bone_attack`、
+  `sfx_bell_attack`、`sfx_parry_good`，放入 `assets/audio/sfx/` 并通过
+  Godot import pipeline 生成 `.wav.import`。生成配方记录在
+  `assets/audio/source/weapon_style_sfx_generation_20260625.json`。
+  `AudioSystem` 默认加载这批 weapon-style/GOOD parry stream，现有
+  `long_tail`、`fish_bone`、`electro_bell` attack adapters 和
+  `parry_type="good"` 现在返回真实播放成功并记录 `stream_found=true`；
+  missing/unknown cue 仍 silent-safe 且不消耗 pool voice。通过 RED
+  `report_545`、Godot import、GREEN focused `report_546` `16/16`、related
+  regression `report_553` `25/25`、headless smoke、Godot MCP runtime
+  stream/playback/weapon-route/good-parry/unknown-cue probe、clean logs 和
+  `reports/visual/cinderpaw-mcp-weapon-style-sfx-20260625.png` 验证。QA
+  evidence:
+  `production/qa/evidence/audio-weapon-style-sfx-asset-expansion-2026-06-25.md`。
 - Audio System Story 005: Core Combat SFX Asset Import Baseline —
   新增 10 个程序化 baseline WAV：`sfx_claw_attack`、`sfx_hit_normal`、
   `sfx_hit_crit`、`sfx_parry_perfect`、`sfx_dodge`、

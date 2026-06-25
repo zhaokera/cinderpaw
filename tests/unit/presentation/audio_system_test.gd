@@ -5,9 +5,13 @@ const AUDIO_SYSTEM_PATH: String = "res://src/presentation/audio_system.gd"
 const PROJECT_PATH: String = "res://project.godot"
 const DEFAULT_CORE_COMBAT_SFX: Dictionary = {
 	&"sfx_claw_attack": "res://assets/audio/sfx/sfx_claw_attack.wav",
+	&"sfx_blade_attack": "res://assets/audio/sfx/sfx_blade_attack.wav",
+	&"sfx_bone_attack": "res://assets/audio/sfx/sfx_bone_attack.wav",
+	&"sfx_bell_attack": "res://assets/audio/sfx/sfx_bell_attack.wav",
 	&"sfx_hit_normal": "res://assets/audio/sfx/sfx_hit_normal.wav",
 	&"sfx_hit_crit": "res://assets/audio/sfx/sfx_hit_crit.wav",
 	&"sfx_parry_perfect": "res://assets/audio/sfx/sfx_parry_perfect.wav",
+	&"sfx_parry_good": "res://assets/audio/sfx/sfx_parry_good.wav",
 	&"sfx_dodge": "res://assets/audio/sfx/sfx_dodge.wav",
 	&"sfx_damage_taken": "res://assets/audio/sfx/sfx_damage_taken.wav",
 	&"sfx_damage_taken_lowhp": "res://assets/audio/sfx/sfx_damage_taken_lowhp.wav",
@@ -168,8 +172,11 @@ func test_default_core_combat_sfx_assets_load_and_play_from_imported_wav_files()
 		var request: Dictionary = audio_system.get_last_sfx_request()
 		assert_str(String(request.get("sfx_id", &""))).is_equal(String(sfx_id))
 		assert_bool(bool(request.get("stream_found", false))).is_true()
-		assert_int(int(request.get("player_index", -1))).is_greater_equal(0)
-		var player := audio_system.get_node("SFXPlayer%02d" % int(request.get("player_index", -1))) as AudioStreamPlayer2D
+		var player_index: int = int(request.get("player_index", -1))
+		assert_int(player_index).is_greater_equal(0)
+		if player_index < 0:
+			continue
+		var player := audio_system.get_node("SFXPlayer%02d" % player_index) as AudioStreamPlayer2D
 		assert_object(player).is_not_null()
 		assert_object(player.stream).is_not_null()
 
@@ -308,6 +315,31 @@ func test_hit_event_routes_normal_and_crit_sfx_with_priority() -> void:
 	assert_bool(int(crit_request.get("priority", 0)) > normal_priority).is_true()
 
 
+func test_weapon_style_attack_events_route_to_imported_sfx() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	assert_bool(audio_system.has_method("on_weapon_attack_event")).is_true()
+	if not audio_system.has_method("on_weapon_attack_event"):
+		return
+
+	var expected_by_weapon: Dictionary = {
+		&"long_tail": &"sfx_blade_attack",
+		&"fish_bone": &"sfx_bone_attack",
+		&"electro_bell": &"sfx_bell_attack",
+	}
+	for weapon_id: StringName in expected_by_weapon.keys():
+		assert_bool(bool(audio_system.call("on_weapon_attack_event", {
+			"weapon_id": weapon_id,
+			"attack_position": Vector2(32, 44),
+		}))).is_true()
+		var request: Dictionary = audio_system.get_last_sfx_request()
+		assert_str(String(request.get("sfx_id", &""))).is_equal(String(expected_by_weapon[weapon_id]))
+		assert_vector(request.get("position", Vector2.ZERO)).is_equal(Vector2(32, 44))
+		assert_bool(bool(request.get("stream_found", false))).is_true()
+		assert_int(int(request.get("player_index", -1))).is_greater_equal(0)
+
+
 func test_parry_dodge_enemy_death_and_boss_phase_events_route_to_expected_sfx() -> void:
 	assert_object(audio_system).is_not_null()
 	if audio_system == null:
@@ -333,10 +365,19 @@ func test_parry_dodge_enemy_death_and_boss_phase_events_route_to_expected_sfx() 
 	assert_bool(bool(parry_request.get("stream_found", false))).is_true()
 
 	assert_bool(bool(audio_system.call("on_parry_event", {
+		"parry_type": &"good",
+		"position": Vector2(14, 18),
+	}))).is_true()
+	var good_parry_request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(good_parry_request.get("sfx_id", &""))).is_equal("sfx_parry_good")
+	assert_vector(good_parry_request.get("position", Vector2.ZERO)).is_equal(Vector2(14, 18))
+	assert_bool(bool(good_parry_request.get("stream_found", false))).is_true()
+
+	assert_bool(bool(audio_system.call("on_parry_event", {
 		"parry_type": &"miss",
 		"position": Vector2(99, 99),
 	}))).is_false()
-	assert_str(String(audio_system.get_last_sfx_request().get("sfx_id", &""))).is_equal("sfx_parry_perfect")
+	assert_str(String(audio_system.get_last_sfx_request().get("sfx_id", &""))).is_equal("sfx_parry_good")
 
 	assert_bool(bool(audio_system.call("on_dodge_event", null, Vector2(40, 50), -1.0))).is_true()
 	var dodge_request: Dictionary = audio_system.get_last_sfx_request()

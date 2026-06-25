@@ -1,22 +1,26 @@
 ## Runtime player attack integration through Core combat/collision/health/weapon components.
 extends GdUnitTestSuite
 
-const MAIN_SCENE: PackedScene = preload("res://scenes/main.tscn")
+const MAIN_SCENE_PATH: String = "res://scenes/main.tscn"
 
 var scene
+var main_scene_resource: PackedScene
 
 
 func before_test() -> void:
-	scene = MAIN_SCENE.instantiate()
+	main_scene_resource = load(MAIN_SCENE_PATH) as PackedScene
+	scene = main_scene_resource.instantiate()
 	add_child(scene)
 
 
 func after_test() -> void:
+	_stop_runtime_audio_players()
 	if is_instance_valid(scene):
 		if scene.get_parent() != null:
 			scene.get_parent().remove_child(scene)
 		scene.free()
 	scene = null
+	main_scene_resource = null
 
 
 func test_player_light_attack_damages_enemy_through_core_chain_once() -> void:
@@ -140,3 +144,14 @@ func _assert_runtime_attack_contract() -> bool:
 	)
 	assert_bool(has_contract).is_true()
 	return has_contract
+
+
+func _stop_runtime_audio_players() -> void:
+	var audio_system := get_node_or_null("/root/AudioSystem")
+	if audio_system == null:
+		return
+	for child: Node in audio_system.get_children():
+		if child is AudioStreamPlayer2D:
+			var player := child as AudioStreamPlayer2D
+			player.stop()
+			player.stream = null

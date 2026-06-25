@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/audio-system.md
 > **Architecture Module**: AudioSystem
 > **Status**: In Progress
-> **Stories**: 5 stories tracked
+> **Stories**: 6 stories tracked
 
 ## Overview
 
@@ -44,6 +44,7 @@ calls without pushing logic back into Core.
 | 003 | Combat + Health Event Audio Adapters | Integration | Complete | ADR-0010 |
 | 004 | Rat King Boss Music State Transitions | Integration | Complete | ADR-0010 |
 | 005 | Core Combat SFX Asset Import Baseline | Integration | Complete | ADR-0010 |
+| 006 | Weapon Style SFX Asset Expansion | Integration | Complete | ADR-0010 |
 
 ## Definition of Done
 
@@ -57,12 +58,13 @@ This epic is complete when:
 - Missing or unloaded audio assets fail safely without blocking gameplay.
 - The first core combat SFX batch is imported through Godot and loaded by
   AudioSystem by default.
+- Weapon-style attack SFX and GOOD parry cue streams are imported through Godot
+  and loaded by AudioSystem by default.
 - Combat, health, scene, UI, and boss event adapters are wired and covered.
 - Godot CLI/GdUnit and Godot MCP verify runtime autoload, bus state, public API,
   and clean logs.
 
 ## Next Step
 
-Audio System Story 005 is complete. Next recommended work is UI menu audio,
-same-SFX merge, authored/final audio replacement, and non-claw weapon SFX
-expansion.
+Audio System Story 006 is complete. Next recommended work is UI menu audio,
+same-SFX merge, authored/final audio replacement, and broader mix polish.

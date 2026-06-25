@@ -1,0 +1,41 @@
+{
+  "generated_on": "2026-06-25",
+  "generator": "deterministic procedural PCM synthesis via Python wave module",
+  "sample_rate_hz": 44100,
+  "format": "16-bit mono WAV",
+  "purpose": "AudioSystem Story006 weapon-style SFX baseline; replaceable authored assets with stable cue ids.",
+  "assets": [
+    {
+      "cue_id": "sfx_blade_attack",
+      "path": "res://assets/audio/sfx/sfx_blade_attack.wav",
+      "duration_sec": 0.36,
+      "category": "SFX",
+      "description": "long_tail attack startup with mid-high sweep, air transient, and light metallic edge",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_bone_attack",
+      "path": "res://assets/audio/sfx/sfx_bone_attack.wav",
+      "duration_sec": 0.44,
+      "category": "SFX",
+      "description": "fish_bone attack startup with low-mid heavy whoosh, hollow bone resonance, and restrained crack",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_bell_attack",
+      "path": "res://assets/audio/sfx/sfx_bell_attack.wav",
+      "duration_sec": 0.42,
+      "category": "SFX",
+      "description": "electro_bell attack startup with short electric buzz, bell harmonics, and controlled arc noise",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "sfx_parry_good",
+      "path": "res://assets/audio/sfx/sfx_parry_good.wav",
+      "duration_sec": 0.24,
+      "category": "SFX",
+      "description": "GOOD parry confirmation with muted metal clink below perfect parry intensity",
+      "status": "procedural_baseline_replaceable"
+    }
+  ]
+}

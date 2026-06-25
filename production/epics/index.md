@@ -20,4 +20,4 @@ Engine: Godot 4.6.3
 | death-respawn | Feature | Death & Respawn | death-respawn.md | 6 stories | Complete |
 | hud-ui | Presentation | HUD/UI | hud-ui.md | 6 stories | Complete |
 | combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 15 stories tracked | Complete |
-| audio-system | Presentation | Audio System | audio-system.md | 5 stories tracked | In Progress |
+| audio-system | Presentation | Audio System | audio-system.md | 6 stories tracked | In Progress |

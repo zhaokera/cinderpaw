@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-25" name="report_545" tests="16" failures="24" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="audio_system_test" package="tests/unit/presentation" timestamp="2026-06-25T07:42:12" hostname="localhost" tests="16" failures="24" errors="0" skipped="0" flaky="0" time="0.047">
+		<testcase name="test_project_registers_audio_system_between_input_and_save_system" classname="audio_system_test" time="0.006">
+		</testcase>
+		<testcase name="test_audio_system_initializes_default_buses_and_player_pool" classname="audio_system_test" time="0.002">
+		</testcase>
+		<testcase name="test_set_bus_volume_clamps_values_and_rejects_unknown_bus" classname="audio_system_test" time="0.001">
+		</testcase>
+		<testcase name="test_play_sfx_records_pitch_spatial_metadata_and_enforces_voice_cap" classname="audio_system_test" time="0.006">
+		</testcase>
+		<testcase name="test_missing_sfx_asset_does_not_consume_pool_voice" classname="audio_system_test" time="0.007">
+		</testcase>
+		<testcase name="test_default_core_combat_sfx_assets_load_and_play_from_imported_wav_files" classname="audio_system_test" time="0.006">
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:167" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:168" type="FAILURE">
+<![CDATA[
+Expecting contains elements:
+ '[&"sfx_claw_attack", &"sfx_hit_normal", &"sfx_hit_crit", &"sfx_parry_perfect", &"sfx_dodge", &"sfx_damage_taken", &"sfx_damage_taken_lowhp", &"sfx_enemy_death", &"sfx_boss_phase", &"sfx_focus_mode_activate"]'
+ do contains (in any order)
+ '[&"sfx_blade_attack"]'
+but could not find elements:
+ '[&"sfx_blade_attack"]'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:169" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'res://assets/audio/sfx/sfx_blade_attack.wav'
+ but was
+ 'res://assets/audio/sfx/sfx_blade_attack.wav'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:171" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:174" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:176" type="FAILURE">
+<![CDATA[
+Expecting to be greater than or equal:
+ '0' but was '-1'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:167" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:168" type="FAILURE">
+<![CDATA[
+Expecting contains elements:
+ '[&"sfx_claw_attack", &"sfx_hit_normal", &"sfx_hit_crit", &"sfx_parry_perfect", &"sfx_dodge", &"sfx_damage_taken", &"sfx_damage_taken_lowhp", &"sfx_enemy_death", &"sfx_boss_phase", &"sfx_focus_mode_activate"]'
+ do contains (in any order)
+ '[&"sfx_bone_attack"]'
+but could not find elements:
+ '[&"sfx_bone_attack"]'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:169" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'res://assets/audio/sfx/sfx_bone_attack.wav'
+ but was
+ 'res://assets/audio/sfx/sfx_bone_attack.wav'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:171" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:174" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:176" type="FAILURE">
+<![CDATA[
+Expecting to be greater than or equal:
+ '0' but was '-1'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:167" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:168" type="FAILURE">
+<![CDATA[
+Expecting contains elements:
+ '[&"sfx_claw_attack", &"sfx_hit_normal", &"sfx_hit_crit", &"sfx_parry_perfect", &"sfx_dodge", &"sfx_damage_taken", &"sfx_damage_taken_lowhp", &"sfx_enemy_death", &"sfx_boss_phase", &"sfx_focus_mode_activate"]'
+ do contains (in any order)
+ '[&"sfx_bell_attack"]'
+but could not find elements:
+ '[&"sfx_bell_attack"]'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:169" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'res://assets/audio/sfx/sfx_bell_attack.wav'
+ but was
+ 'res://assets/audio/sfx/sfx_bell_attack.wav'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:171" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:174" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:176" type="FAILURE">
+<![CDATA[
+Expecting to be greater than or equal:
+ '0' but was '-1'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:167" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:168" type="FAILURE">
+<![CDATA[
+Expecting contains elements:
+ '[&"sfx_claw_attack", &"sfx_hit_normal", &"sfx_hit_crit", &"sfx_parry_perfect", &"sfx_dodge", &"sfx_damage_taken", &"sfx_damage_taken_lowhp", &"sfx_enemy_death", &"sfx_boss_phase", &"sfx_focus_mode_activate"]'
+ do contains (in any order)
+ '[&"sfx_parry_good"]'
+but could not find elements:
+ '[&"sfx_parry_good"]'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:169" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'res://assets/audio/sfx/sfx_parry_good.wav'
+ but was
+ 'res://assets/audio/sfx/sfx_parry_good.wav'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:171" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:174" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/presentation/audio_system_test.gd:176" type="FAILURE">
+<![CDATA[
+Expecting to be greater than or equal:
+ '0' but was '-1'
+]]>
+			</failure>
+		</testcase>
+	</testsuite>
+</testsuites>

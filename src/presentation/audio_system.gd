@@ -63,9 +63,13 @@ const DEFAULT_BOSS_MUSIC_CUES: Dictionary = {
 }
 const DEFAULT_CORE_COMBAT_SFX_STREAMS: Dictionary = {
 	&"sfx_claw_attack": "res://assets/audio/sfx/sfx_claw_attack.wav",
+	&"sfx_blade_attack": "res://assets/audio/sfx/sfx_blade_attack.wav",
+	&"sfx_bone_attack": "res://assets/audio/sfx/sfx_bone_attack.wav",
+	&"sfx_bell_attack": "res://assets/audio/sfx/sfx_bell_attack.wav",
 	&"sfx_hit_normal": "res://assets/audio/sfx/sfx_hit_normal.wav",
 	&"sfx_hit_crit": "res://assets/audio/sfx/sfx_hit_crit.wav",
 	&"sfx_parry_perfect": "res://assets/audio/sfx/sfx_parry_perfect.wav",
+	&"sfx_parry_good": "res://assets/audio/sfx/sfx_parry_good.wav",
 	&"sfx_dodge": "res://assets/audio/sfx/sfx_dodge.wav",
 	&"sfx_damage_taken": "res://assets/audio/sfx/sfx_damage_taken.wav",
 	&"sfx_damage_taken_lowhp": "res://assets/audio/sfx/sfx_damage_taken_lowhp.wav",
