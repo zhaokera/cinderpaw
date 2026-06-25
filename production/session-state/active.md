@@ -26,6 +26,23 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Scene Management Story 011: Rat King Final Arena VFX — 使用 image generation
+  生成 Rat King arena VFX 三段图，复制到
+  `assets/generated/source/rat_king_arena_vfx_imagegen_20260625.png`，alpha
+  处理为 `rat_king_arena_vfx_alpha_20260625.png`，并裁切导入
+  `assets/environment/rat_king_arena/vfx/arena_debris_dust.png`、
+  `electric_leak_hazard_glow.png`、`electric_leak_spark.png`。`MainScene`
+  保留 Story008/009 的 mutation root、collision、Visual、Sprite、电击伤害和
+  cooldown 契约，在每个 mutation 下新增 `Vfx` 容器与带 `change_id`、
+  `asset_source=image_generation`、`vfx_role` metadata 的 `Sprite2D` VFX 子节点；
+  `garbage_pile` 和 `overturned_trash_can` 使用 debris dust，
+  `electric_leak` 使用 hazard glow + electric spark。新增
+  `tests/unit/gameplay/rat_king_arena_vfx_polish_test.gd` 与 MCP visual fixture
+  `tests/fixtures/gameplay/rat_king_final_arena_vfx_probe.tscn/.gd`。通过 RED
+  `report_530`、GREEN focused `report_531` `4/4`、related regression
+  `report_534` `22/22`、headless smoke、Godot MCP runtime node/reapply/cleanup
+  probe、clean logs 和可见 final arena VFX screenshot 验证。QA evidence:
+  `production/qa/evidence/rat-king-final-arena-vfx-2026-06-25.md`。
 - Scene Management Story 010: Scene Memory Budget Diagnostics — `SceneManager`
   现在暴露 `get_memory_budget_diagnostics()`、`check_runtime_memory_budget()`
   和 `enforce_runtime_memory_budget()`，并新增

@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 10 stories tracked; future stories planned
+> **Stories**: 11 stories tracked; future stories planned
 
 ## Overview
 
@@ -30,7 +30,9 @@ damage hazard with ADR-0004 environment collision, player damage feedback, and
 per boss/change/target cooldown. Story010 adds deterministic SceneManager
 runtime memory-budget diagnostics, platform budget normalization, one-shot
 over-budget warnings, and non-current deferred cache enforcement for
-TR-scene-007.
+TR-scene-007. Story011 adds image-generated, texture-backed VFX layers to Rat
+King phase 2/3 arena mutations so the final arena reads as destruction and
+electric hazard instead of block-like collision fixtures.
 
 ## Governing ADRs
 
@@ -66,6 +68,7 @@ TR-scene-007.
 | 008 | Boss Arena Mutation Runtime | Integration | Complete | ADR-0007 |
 | 009 | Electric Leak Contact Damage | Integration | Complete | ADR-0007, ADR-0004, ADR-0019 |
 | 010 | Scene Memory Budget Diagnostics | Logic / Performance | Complete | ADR-0007 |
+| 011 | Rat King Final Arena VFX | Visual / Integration | Complete | ADR-0007 |
 
 ## Definition of Done
 
@@ -100,16 +103,20 @@ This epic is complete when:
 - Phase 3 electric leak damage zones apply rate-limited player contact damage
   through existing health/presentation/audio routes and are verified through
   Godot MCP runtime probes.
+- Rat King final arena mutations use image-generated texture-backed VFX layers
+  for debris dust, electric hazard glow, and electric sparks, with manifest and
+  MCP screenshot evidence.
 - SceneManager exposes deterministic runtime memory-budget diagnostics for
   mobile/PC/console budgets, emits one-shot over-budget warnings, and can evict
   non-current deferred runtime cache while preserving the current scene.
 - Later stories add real platform memory profiler evidence, low-memory UI
-  prompts, final arena VFX, and persistent boss arena mutation save state.
+  prompts, shader/camera arena polish, and persistent boss arena mutation save
+  state.
 - Godot CLI/GdUnit and Godot MCP verify the Autoload, runtime logs, and current
   scene visibility after SceneManager changes.
 
 ## Next Step
 
-Continue later arena polish stories: final arena VFX, persistent boss arena
-mutation save-state behavior, real platform profiler evidence, and low-memory
-UI prompt routing.
+Continue later SceneManagement stories: persistent boss arena mutation
+save-state behavior, real platform profiler evidence, low-memory UI prompt
+routing, and optional shader/camera arena polish.

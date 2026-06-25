@@ -20,6 +20,15 @@ const OVERTURNED_TRASH_CAN_TEXTURE: Texture2D = preload(
 const ELECTRIC_LEAK_TEXTURE: Texture2D = preload(
 	"res://assets/environment/rat_king_arena/electric_leak.png"
 )
+const ARENA_DEBRIS_DUST_VFX_TEXTURE: Texture2D = preload(
+	"res://assets/environment/rat_king_arena/vfx/arena_debris_dust.png"
+)
+const ELECTRIC_LEAK_HAZARD_GLOW_VFX_TEXTURE: Texture2D = preload(
+	"res://assets/environment/rat_king_arena/vfx/electric_leak_hazard_glow.png"
+)
+const ELECTRIC_LEAK_SPARK_VFX_TEXTURE: Texture2D = preload(
+	"res://assets/environment/rat_king_arena/vfx/electric_leak_spark.png"
+)
 const MAIN_SCENE_SAVE_KEY: StringName = &"main_scene"
 const SCENE_MANAGER_SAVE_KEY: StringName = &"scene"
 const MAIN_SCENE_ID: String = "main"
@@ -43,18 +52,56 @@ const ARENA_MUTATION_LAYOUTS: Dictionary = {
 		"size": Vector2(126, 46),
 		"color": Color(0.43, 0.53, 0.50, 1.0),
 		"texture": GARBAGE_PILE_TEXTURE,
+		"vfx_role": &"arena_destruction",
+		"vfx": [{
+			"name": "DebrisDust",
+			"role": &"debris_dust",
+			"texture": ARENA_DEBRIS_DUST_VFX_TEXTURE,
+			"position": Vector2(0, -36),
+			"scale": Vector2(0.50, 0.50),
+			"z_index": 2,
+			"modulate": Color(1, 1, 1, 0.92),
+		}],
 	},
 	"overturned_trash_can": {
 		"position": Vector2(860, 486),
 		"size": Vector2(136, 56),
 		"color": Color(0.38, 0.47, 0.55, 1.0),
 		"texture": OVERTURNED_TRASH_CAN_TEXTURE,
+		"vfx_role": &"arena_destruction",
+		"vfx": [{
+			"name": "DebrisDust",
+			"role": &"debris_dust",
+			"texture": ARENA_DEBRIS_DUST_VFX_TEXTURE,
+			"position": Vector2(0, -38),
+			"scale": Vector2(0.52, 0.52),
+			"z_index": 2,
+			"modulate": Color(1, 1, 1, 0.9),
+		}],
 	},
 	"electric_leak": {
 		"position": Vector2(1010, 520),
 		"size": Vector2(160, 24),
 		"color": Color(0.50, 0.84, 1.0, 0.72),
 		"texture": ELECTRIC_LEAK_TEXTURE,
+		"vfx_role": &"electric_hazard",
+		"vfx": [{
+			"name": "HazardGlow",
+			"role": &"hazard_glow",
+			"texture": ELECTRIC_LEAK_HAZARD_GLOW_VFX_TEXTURE,
+			"position": Vector2(0, -18),
+			"scale": Vector2(0.56, 0.56),
+			"z_index": 2,
+			"modulate": Color(1, 1, 1, 0.88),
+		}, {
+			"name": "ElectricSpark",
+			"role": &"electric_spark",
+			"texture": ELECTRIC_LEAK_SPARK_VFX_TEXTURE,
+			"position": Vector2(0, -54),
+			"scale": Vector2(0.38, 0.38),
+			"z_index": 3,
+			"modulate": Color(1, 1, 1, 1),
+		}],
 	},
 }
 
@@ -1508,7 +1555,7 @@ func _create_arena_mutation_node(
 	var size: Vector2 = _read_vector2(layout.get("size", Vector2(96, 32)), Vector2(96, 32))
 	mutation.name = "ArenaMutation_%s" % String(change_id)
 	mutation.position = _read_vector2(layout.get("position", Vector2.ZERO), Vector2.ZERO)
-	mutation.z_index = 15
+	mutation.z_index = 30
 	mutation.set_meta(&"boss_id", boss_id)
 	mutation.set_meta(&"phase", phase)
 	mutation.set_meta(&"change_type", change_type)
@@ -1520,6 +1567,12 @@ func _create_arena_mutation_node(
 		_read_color(layout.get("color", Color.WHITE), Color.WHITE)
 	)
 	_add_arena_mutation_sprite(mutation, layout.get("texture", null))
+	_add_arena_mutation_vfx(
+		mutation,
+		change_id,
+		layout.get("vfx_role", &""),
+		layout.get("vfx", [])
+	)
 	if mutation is Area2D and change_type == &"damage_zone":
 		_configure_arena_damage_zone(mutation as Area2D)
 	return mutation
@@ -1576,6 +1629,48 @@ func _add_arena_mutation_sprite(parent: Node2D, texture_value: Variant) -> void:
 	sprite.position = Vector2(0, -42)
 	sprite.z_index = 1
 	parent.add_child(sprite)
+
+
+func _add_arena_mutation_vfx(
+	parent: Node2D,
+	change_id: StringName,
+	container_role_value: Variant,
+	vfx_specs_value: Variant
+) -> void:
+	if not vfx_specs_value is Array:
+		return
+	var vfx_specs: Array = vfx_specs_value
+	if vfx_specs.is_empty():
+		return
+	var container := Node2D.new()
+	container.name = "Vfx"
+	container.z_index = 10
+	container.set_meta(&"change_id", change_id)
+	container.set_meta(&"asset_source", &"image_generation")
+	container.set_meta(&"vfx_role", StringName(String(container_role_value)))
+	for raw_spec: Variant in vfx_specs:
+		if not raw_spec is Dictionary:
+			continue
+		var spec: Dictionary = Dictionary(raw_spec)
+		var texture_value: Variant = spec.get("texture", null)
+		if not texture_value is Texture2D:
+			continue
+		var sprite := Sprite2D.new()
+		sprite.name = String(spec.get("name", "VfxSprite"))
+		sprite.texture = texture_value
+		sprite.centered = true
+		sprite.position = _read_vector2(spec.get("position", Vector2.ZERO), Vector2.ZERO)
+		sprite.scale = _read_vector2(spec.get("scale", Vector2.ONE), Vector2.ONE)
+		sprite.z_index = int(spec.get("z_index", 2))
+		sprite.modulate = _read_color(spec.get("modulate", Color.WHITE), Color.WHITE)
+		sprite.set_meta(&"change_id", change_id)
+		sprite.set_meta(&"asset_source", &"image_generation")
+		sprite.set_meta(&"vfx_role", StringName(String(spec.get("role", ""))))
+		container.add_child(sprite)
+	if container.get_child_count() == 0:
+		container.free()
+		return
+	parent.add_child(container)
 
 
 func _configure_arena_damage_zone(damage_zone: Area2D) -> void:

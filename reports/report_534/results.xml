@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-25" name="report_534" tests="22" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="rat_king_arena_vfx_polish_test" package="tests/unit/gameplay" timestamp="2026-06-25T06:31:50" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.079">
+		<testcase name="test_arena_mutations_spawn_generated_vfx_layers" classname="rat_king_arena_vfx_polish_test" time="0.054">
+		</testcase>
+		<testcase name="test_electric_leak_has_hazard_glow_and_spark_roles" classname="rat_king_arena_vfx_polish_test" time="0.005">
+		</testcase>
+		<testcase name="test_reapplying_arena_changes_does_not_duplicate_vfx_children" classname="rat_king_arena_vfx_polish_test" time="0.006">
+		</testcase>
+		<testcase name="test_cleanup_and_reapply_restores_vfx_layers" classname="rat_king_arena_vfx_polish_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="rat_king_arena_mutation_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-25T06:31:50" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.039">
+		<testcase name="test_main_scene_exposes_boss_arena_mutation_adapter_contract" classname="rat_king_arena_mutation_runtime_test" time="0.006">
+		</testcase>
+		<testcase name="test_phase_two_creates_garbage_pile_obstacle_runtime_node" classname="rat_king_arena_mutation_runtime_test" time="0.006">
+		</testcase>
+		<testcase name="test_phase_three_creates_overturned_trash_and_electric_leak_once" classname="rat_king_arena_mutation_runtime_test" time="0.007">
+		</testcase>
+		<testcase name="test_boss_death_and_arena_reset_clear_arena_mutations" classname="rat_king_arena_mutation_runtime_test" time="0.011">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="rat_king_electric_leak_contact_damage_test" package="tests/unit/gameplay" timestamp="2026-06-25T06:31:50" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.068">
+		<testcase name="test_electric_leak_uses_environment_collision_contract" classname="rat_king_electric_leak_contact_damage_test" time="0.007">
+		</testcase>
+		<testcase name="test_electric_leak_contact_damages_player_and_routes_feedback" classname="rat_king_electric_leak_contact_damage_test" time="0.007">
+		</testcase>
+		<testcase name="test_electric_leak_contact_cooldown_allows_repeated_damage_after_elapsed_time" classname="rat_king_electric_leak_contact_damage_test" time="0.008">
+		</testcase>
+		<testcase name="test_electric_leak_sustained_overlap_ticks_after_cooldown" classname="rat_king_electric_leak_contact_damage_test" time="0.029">
+		</testcase>
+		<testcase name="test_electric_leak_cleanup_clears_contact_cooldown_state" classname="rat_king_electric_leak_contact_damage_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="main_scene_visual_contract_test" package="tests/unit/gameplay" timestamp="2026-06-25T06:31:50" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.033">
+		<testcase name="test_runtime_characters_use_animated_sprite_frames" classname="main_scene_visual_contract_test" time="0.006">
+		</testcase>
+		<testcase name="test_runtime_characters_do_not_use_legacy_single_image_textures" classname="main_scene_visual_contract_test" time="0.007">
+		</testcase>
+		<testcase name="test_main_scene_startup_has_no_visible_gameplay_color_rect_blocks" classname="main_scene_visual_contract_test" time="0.006">
+		</testcase>
+		<testcase name="test_main_scene_routes_boss_phase_transition_source_to_combat_presentation" classname="main_scene_visual_contract_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="rat_king_boss_runtime_contract_test" package="tests/unit/gameplay" timestamp="2026-06-25T06:31:50" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.037">
+		<testcase name="test_rat_king_boss_scene_exposes_main_scene_enemy_contract" classname="rat_king_boss_runtime_contract_test" time="0.002">
+		</testcase>
+		<testcase name="test_main_scene_uses_rat_king_runtime_boss_as_visible_enemy" classname="rat_king_boss_runtime_contract_test" time="0.006">
+		</testcase>
+		<testcase name="test_main_scene_routes_real_rat_king_phase_transition_to_presentation" classname="rat_king_boss_runtime_contract_test" time="0.006">
+		</testcase>
+		<testcase name="test_rat_king_phase_transition_applies_data_driven_attack_pool" classname="rat_king_boss_runtime_contract_test" time="0.005">
+		</testcase>
+		<testcase name="test_rat_king_slam_attack_activates_data_driven_hitbox_metadata" classname="rat_king_boss_runtime_contract_test" time="0.006">
+		</testcase>
+	</testsuite>
+</testsuites>

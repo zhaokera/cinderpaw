@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c6d6x8fqwnyai"]
+
+[ext_resource type="Script" path="res://tests/fixtures/gameplay/rat_king_final_arena_vfx_probe.gd" id="1_probe"]
+
+[node name="RatKingFinalArenaVfxProbe" type="Node2D"]
+script = ExtResource("1_probe")
