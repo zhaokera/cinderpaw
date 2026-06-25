@@ -113,6 +113,7 @@ func configure_scene_registry(registry_data: Dictionary) -> bool:
 			"type": type_name,
 			"preload": bool(config.get("preload", false)),
 			"default_spawn": String(config.get("default_spawn", String(DEFAULT_SPAWN_POINT))),
+			"display_name": String(config.get("display_name", "")),
 		}
 
 	if normalized.is_empty():
@@ -879,6 +880,12 @@ func _get_default_spawn(scene_id: StringName) -> StringName:
 
 
 func _display_name_for_scene(scene_id: StringName) -> String:
+	if _scene_registry.has(scene_id):
+		var configured_name: String = String(
+			Dictionary(_scene_registry[scene_id]).get("display_name", "")
+		).strip_edges()
+		if not configured_name.is_empty():
+			return configured_name
 	match scene_id:
 		&"hub":
 			return "Clan Base"

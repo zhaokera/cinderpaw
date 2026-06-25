@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://main001"]
+[gd_scene load_steps=21 format=3 uid="uid://main001"]
 
 [ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://4j2ise5khuss" path="res://assets/generated/wasteland_alley_bg.png" id="3_bg"]
@@ -14,6 +14,8 @@
 [ext_resource type="Texture2D" uid="uid://cge7sath6efgs" path="res://assets/environment/high_platform_gate/high_platform_gate_marker.png" id="12_high_platform_gate"]
 [ext_resource type="Script" path="res://src/feature/ability_reward_source.gd" id="13_reward_source"]
 [ext_resource type="Texture2D" path="res://assets/environment/double_jump_reward/hidden_double_jump_reward_source.png" id="14_double_jump_reward"]
+[ext_resource type="Script" path="res://src/feature/route_transition_shell.gd" id="15_route_shell"]
+[ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="16_factory_route_shell"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -32,6 +34,9 @@ size = Vector2(64, 124)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hidden_double_jump_reward"]
 size = Vector2(112, 112)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_factory_route_transition"]
+size = Vector2(104, 132)
 
 [node name="Main" type="Node2D" unique_id=596361816]
 script = ExtResource("6_main")
@@ -162,6 +167,37 @@ offset_bottom = -72.0
 theme_override_colors/font_color = Color(0.93, 0.76, 1, 1)
 theme_override_font_sizes/font_size = 15
 text = "Claim Double Jump"
+horizontal_alignment = 1
+
+[node name="FactoryRouteTransitionShell" type="Node2D" parent="."]
+z_index = 33
+position = Vector2(970, 352)
+script = ExtResource("15_route_shell")
+route_id = "factory_route_transition_shell"
+target_scene_id = "area_03_factory"
+spawn_point = "factory_gate_entry"
+required_world_flag = "area_03_factory_unlocked"
+interaction_radius_px = 112.0
+locked_prompt_text = "Factory route locked"
+available_prompt_text = "Enter Factory Route"
+
+[node name="Visual" type="Sprite2D" parent="FactoryRouteTransitionShell"]
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("16_factory_route_shell")
+
+[node name="InteractionArea" type="Area2D" parent="FactoryRouteTransitionShell"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryRouteTransitionShell/InteractionArea"]
+shape = SubResource("RectangleShape2D_factory_route_transition")
+
+[node name="PromptLabel" type="Label" parent="FactoryRouteTransitionShell"]
+offset_left = -96.0
+offset_top = -104.0
+offset_right = 96.0
+offset_bottom = -78.0
+theme_override_colors/font_color = Color(1, 0.86, 0.2, 1)
+theme_override_font_sizes/font_size = 15
+text = "Factory route locked"
 horizontal_alignment = 1
 
 [node name="DashExplorationGate" type="Node2D" parent="." unique_id=809230151]

@@ -19,6 +19,17 @@
 				"preload": {"type": "bool"},
 				"default_spawn": {"type": "String"}
 			}
+		},
+		"area_03_factory": {
+			"required": ["scene_id", "path", "type", "preload", "default_spawn", "display_name"],
+			"fields": {
+				"scene_id": {"type": "String", "enum": ["area_03_factory"]},
+				"path": {"type": "String"},
+				"type": {"type": "String", "enum": ["route_shell"]},
+				"preload": {"type": "bool"},
+				"default_spawn": {"type": "String"},
+				"display_name": {"type": "String"}
+			}
 		}
 	}
 }

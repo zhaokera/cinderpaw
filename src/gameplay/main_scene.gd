@@ -46,6 +46,10 @@ const HIDDEN_DOUBLE_JUMP_REWARD_ID: StringName = &"hidden_boss_echo_double_jump"
 const HIDDEN_DOUBLE_JUMP_REWARD_ABILITY_ID: StringName = &"double_jump"
 const HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG: StringName = &"hidden_boss_echo_double_jump_claimed"
 const HIDDEN_DOUBLE_JUMP_REWARD_NOTIFICATION: String = "Double Jump unlocked"
+const FACTORY_ROUTE_SHELL_NODE_PATH: NodePath = ^"FactoryRouteTransitionShell"
+const FACTORY_ROUTE_SCENE_ID: StringName = &"area_03_factory"
+const FACTORY_ROUTE_SPAWN_POINT: StringName = &"factory_gate_entry"
+const FACTORY_ROUTE_UNLOCKED_FLAG: StringName = &"area_03_factory_unlocked"
 const ARENA_OBSTACLE_LAYER: int = 16
 const ARENA_DAMAGE_ZONE_LAYER: int = CollisionComponent.COLLISION_LAYER_ENVIRONMENT
 const ARENA_DAMAGE_ZONE_MASK: int = CollisionComponent.COLLISION_MASK_ENVIRONMENT
@@ -195,6 +199,7 @@ func _ready() -> void:
 	_sync_player_unlocked_abilities()
 	_sync_exploration_gates()
 	_sync_hidden_double_jump_reward_source()
+	_sync_factory_route_transition_shell()
 	_update_weapon_hud()
 	configure_save_system_runtime(get_node_or_null("/root/SaveSystem"))
 	configure_scene_manager_runtime(get_node_or_null("/root/SceneManager"))
@@ -214,6 +219,7 @@ func _process(delta: float) -> void:
 	_player.set_control_locked(_game_flow.is_player_control_locked())
 	advance_arena_hazard_time(delta)
 	_process_hidden_double_jump_reward_source_contact()
+	_process_factory_route_transition_shell_contact()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -812,6 +818,7 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 		_hud.restore_settings_state(Dictionary(snapshot.get("settings", {})))
 	_sync_combat_presentation_accessibility_settings()
 	_sync_hidden_double_jump_reward_source()
+	_sync_factory_route_transition_shell()
 
 
 func grant_currency(amount: int) -> void:
@@ -869,6 +876,31 @@ func claim_hidden_double_jump_reward_source(provider: Node = null) -> bool:
 	return true
 
 
+func request_factory_route_transition(provider: Node = null) -> bool:
+	var route_shell: Node = _get_factory_route_transition_shell()
+	if route_shell == null:
+		return false
+	_sync_factory_route_transition_shell()
+	var request_provider: Node = _player if provider == null else provider
+	if not bool(route_shell.call("can_request_transition", request_provider)):
+		return false
+	var target_scene_id: StringName = StringName(route_shell.call("get_target_scene_id"))
+	var spawn_point: StringName = StringName(route_shell.call("get_spawn_point"))
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if not _is_valid_scene_manager(scene_manager):
+		return false
+	if scene_manager.has_method("is_loading") and bool(scene_manager.call("is_loading")):
+		return false
+	if scene_manager.has_method("has_scene") and not bool(scene_manager.call("has_scene", target_scene_id)):
+		return false
+	if not _ensure_factory_route_runtime_scene_root(scene_manager):
+		return false
+	if not _request_scene_manager_transition(target_scene_id, spawn_point):
+		return false
+	route_shell.call("set_transition_requested", true)
+	return true
+
+
 func get_skill_points() -> int:
 	return _skill_points
 
@@ -913,6 +945,8 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 	_world_progress_flags[String(flag_id)] = enabled
 	if flag_id == HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG:
 		_sync_hidden_double_jump_reward_source()
+	if flag_id == FACTORY_ROUTE_UNLOCKED_FLAG:
+		_sync_factory_route_transition_shell()
 
 
 func get_runtime_progress_state() -> Dictionary:
@@ -1594,6 +1628,47 @@ func _process_hidden_double_jump_reward_source_contact() -> void:
 		return
 	if bool(source.call("is_provider_in_reward_range", _player)):
 		claim_hidden_double_jump_reward_source(_player)
+
+
+func _get_factory_route_transition_shell() -> Node:
+	var route_shell: Node = get_node_or_null(FACTORY_ROUTE_SHELL_NODE_PATH)
+	if (
+		route_shell == null
+		or not route_shell.has_method("set_route_available")
+		or not route_shell.has_method("can_request_transition")
+	):
+		return null
+	return route_shell
+
+
+func _sync_factory_route_transition_shell() -> void:
+	var route_shell: Node = _get_factory_route_transition_shell()
+	if route_shell == null:
+		return
+	var available: bool = bool(_world_progress_flags.get(String(FACTORY_ROUTE_UNLOCKED_FLAG), false))
+	route_shell.call("set_route_available", available)
+
+
+func _process_factory_route_transition_shell_contact() -> void:
+	var route_shell: Node = _get_factory_route_transition_shell()
+	if route_shell == null or not bool(route_shell.call("is_route_available")):
+		return
+	if bool(route_shell.call("is_provider_in_transition_range", _player)):
+		request_factory_route_transition(_player)
+
+
+func _ensure_factory_route_runtime_scene_root(scene_manager: Object) -> bool:
+	if scene_manager == null or not scene_manager.has_method("configure_runtime_scene_root"):
+		return true
+	if scene_manager.has_method("is_runtime_scene_swap_enabled") \
+			and bool(scene_manager.call("is_runtime_scene_swap_enabled")):
+		return true
+	if not is_inside_tree():
+		return false
+	var runtime_root: Node = get_parent()
+	if runtime_root == null:
+		return false
+	return bool(scene_manager.call("configure_runtime_scene_root", runtime_root, self))
 
 
 func _connect_exploration_gate_signal(gate: Node) -> void:

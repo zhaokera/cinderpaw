@@ -14,6 +14,14 @@
 			"type": "area",
 			"preload": true,
 			"default_spawn": "default"
+		},
+		"area_03_factory": {
+			"scene_id": "area_03_factory",
+			"path": "res://scenes/factory_route_transition_shell.tscn",
+			"type": "route_shell",
+			"preload": false,
+			"default_spawn": "factory_gate_entry",
+			"display_name": "Factory Route"
 		}
 	}
 }
