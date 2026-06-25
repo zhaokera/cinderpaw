@@ -23,6 +23,10 @@ class FakeAudioSystem:
 	var boss_encounter_started_events: Array[Dictionary] = []
 	var boss_encounter_ended_events: Array[Dictionary] = []
 	var weapon_attack_events: Array[Dictionary] = []
+	var menu_opened_events: Array[Dictionary] = []
+	var menu_closed_events: Array[Dictionary] = []
+	var ui_save_events: Array[Dictionary] = []
+	var ui_load_events: Array[Dictionary] = []
 
 	func on_scene_load_started(
 		scene_id: StringName,
@@ -98,6 +102,50 @@ class FakeAudioSystem:
 	func on_weapon_attack_event(attack_data: Dictionary) -> bool:
 		weapon_attack_events.append(attack_data.duplicate(true))
 		return false
+
+	func on_menu_opened(metadata: Dictionary = {}) -> bool:
+		menu_opened_events.append(metadata.duplicate(true))
+		return true
+
+	func on_menu_closed(metadata: Dictionary = {}) -> bool:
+		menu_closed_events.append(metadata.duplicate(true))
+		return true
+
+	func on_ui_save(metadata: Dictionary = {}) -> bool:
+		ui_save_events.append(metadata.duplicate(true))
+		return true
+
+	func on_ui_load(metadata: Dictionary = {}) -> bool:
+		ui_load_events.append(metadata.duplicate(true))
+		return true
+
+
+class ImmediateMenuSaveSystem:
+	extends Node
+
+	var manual_save_calls: int = 0
+	var load_game_calls: int = 0
+
+	func register_serializable(_system: Object, _save_key: StringName) -> bool:
+		return true
+
+	func unregister_serializable(_save_key: StringName) -> bool:
+		return true
+
+	func manual_save(_slot: int, _player_state: Dictionary = {}, _world_state: Dictionary = {}, _settings: Dictionary = {}) -> bool:
+		manual_save_calls += 1
+		return true
+
+	func load_game(_slot: int) -> bool:
+		load_game_calls += 1
+		return true
+
+	func get_last_loaded_data() -> Dictionary:
+		return {
+			"player_state": {},
+			"world_state": {},
+			"settings": {},
+		}
 
 
 class FakeSceneOnlyAudioSystem:
@@ -250,6 +298,47 @@ func test_rat_king_boss_music_start_and_end_events_route_to_audio_system() -> vo
 	assert_str(String(end_event.get("boss_id", &""))).is_equal("boss_01_rat_king")
 	var end_metadata: Dictionary = Dictionary(end_event.get("metadata", {}))
 	assert_str(String(end_metadata.get("reason", &""))).is_equal("defeated")
+
+
+func test_menu_open_close_save_and_load_route_to_audio_system() -> void:
+	var audio_system: FakeAudioSystem = _configure_fake_audio_system()
+	var hud: Node = scene.get_node("HUD")
+
+	hud.emit_signal("menu_pause_requested")
+
+	assert_int(audio_system.menu_opened_events.size()).is_equal(1)
+	if audio_system.menu_opened_events.size() != 1:
+		return
+	assert_str(String(audio_system.menu_opened_events[0].get("menu_mode", &""))).is_equal("pause")
+
+	hud.emit_signal("menu_resume_requested")
+
+	assert_int(audio_system.menu_closed_events.size()).is_equal(1)
+	if audio_system.menu_closed_events.size() != 1:
+		return
+	assert_str(String(audio_system.menu_closed_events[0].get("reason", &""))).is_equal("resume")
+
+	var save_system := ImmediateMenuSaveSystem.new()
+	add_child(save_system)
+	assert_bool(bool(scene.call("configure_save_system_runtime", save_system))).is_true()
+
+	hud.emit_signal("menu_save_slot_requested", 1)
+	assert_int(save_system.manual_save_calls).is_equal(1)
+	assert_int(audio_system.ui_save_events.size()).is_equal(1)
+	if audio_system.ui_save_events.size() != 1:
+		save_system.queue_free()
+		return
+	assert_int(int(audio_system.ui_save_events[0].get("slot", 0))).is_equal(1)
+
+	hud.emit_signal("menu_load_slot_requested", 1)
+	assert_int(save_system.load_game_calls).is_equal(1)
+	assert_int(audio_system.ui_load_events.size()).is_equal(1)
+	if audio_system.ui_load_events.size() != 1:
+		save_system.queue_free()
+		return
+	assert_int(int(audio_system.ui_load_events[0].get("slot", 0))).is_equal(1)
+
+	save_system.queue_free()
 
 
 func test_incomplete_audio_system_does_not_block_existing_gameplay_presentation() -> void:

@@ -304,6 +304,10 @@ func _on_menu_pause_requested() -> void:
 	_pause_menu_active = true
 	get_tree().paused = true
 	_hud.show_pause_menu()
+	_dispatch_audio_event(&"on_menu_opened", [{
+		"menu_mode": &"pause",
+		"source": &"pause_requested",
+	}])
 
 
 func _on_menu_resume_requested() -> void:
@@ -311,26 +315,55 @@ func _on_menu_resume_requested() -> void:
 		get_tree().paused = false
 	_pause_menu_active = false
 	_hud.hide_menu()
+	_dispatch_audio_event(&"on_menu_closed", [{
+		"menu_mode": &"pause",
+		"reason": &"resume",
+	}])
 
 
 func _on_menu_retry_requested() -> void:
 	_pause_menu_active = false
 	get_tree().paused = false
+	_dispatch_audio_event(&"on_ui_confirm", [{
+		"menu_mode": _hud.get_menu_mode(),
+		"action": &"retry",
+	}])
+	_dispatch_audio_event(&"on_menu_closed", [{
+		"menu_mode": _hud.get_menu_mode(),
+		"reason": &"retry",
+	}])
 	get_tree().reload_current_scene()
 
 
 func _on_menu_settings_requested() -> void:
+	_dispatch_audio_event(&"on_ui_navigate", [{
+		"from_menu_mode": _hud.get_menu_mode(),
+		"to_menu_mode": &"settings",
+	}])
 	_hud.show_settings_menu(_hud.get_menu_mode())
 
 
 func _on_menu_new_game_requested() -> void:
+	_dispatch_audio_event(&"on_ui_confirm", [{
+		"menu_mode": _hud.get_menu_mode(),
+		"action": &"new_game",
+	}])
 	if not _request_scene_manager_transition(StringName(MAIN_SCENE_ID), DEFAULT_NEW_GAME_SPAWN_POINT):
+		_dispatch_audio_event(&"on_ui_cancel", [{
+			"menu_mode": _hud.get_menu_mode(),
+			"action": &"new_game",
+			"reason": &"load_failed",
+		}])
 		_hud.show_notification("Load failed", 2.0)
 		_hud.show_main_menu(_collect_save_slot_infos())
 		return
 	_pause_menu_active = false
 	get_tree().paused = false
 	_hud.hide_menu()
+	_dispatch_audio_event(&"on_menu_closed", [{
+		"menu_mode": &"main_menu",
+		"reason": &"new_game",
+	}])
 
 
 func _on_menu_continue_requested() -> void:
@@ -338,12 +371,25 @@ func _on_menu_continue_requested() -> void:
 		_pause_menu_active = false
 		get_tree().paused = false
 		_hud.hide_menu()
+		_dispatch_audio_event(&"on_menu_closed", [{
+			"menu_mode": &"main_menu",
+			"reason": &"continue",
+		}])
 		return
+	_dispatch_audio_event(&"on_ui_cancel", [{
+		"menu_mode": _hud.get_menu_mode(),
+		"action": &"continue",
+		"reason": &"load_failed",
+	}])
 	_hud.show_notification("Load failed", 2.0)
 	_hud.show_main_menu(_collect_save_slot_infos())
 
 
 func _on_menu_load_menu_requested() -> void:
+	_dispatch_audio_event(&"on_ui_navigate", [{
+		"from_menu_mode": _hud.get_menu_mode(),
+		"to_menu_mode": &"save_load",
+	}])
 	_hud.show_save_load_menu(
 		_collect_save_slot_infos(),
 		false,
@@ -354,15 +400,34 @@ func _on_menu_load_menu_requested() -> void:
 func _on_menu_main_menu_requested() -> void:
 	_pause_menu_active = false
 	get_tree().paused = false
+	_dispatch_audio_event(&"on_ui_navigate", [{
+		"from_menu_mode": _hud.get_menu_mode(),
+		"to_menu_mode": &"main_menu",
+	}])
+	_dispatch_audio_event(&"on_menu_opened", [{
+		"menu_mode": &"main_menu",
+		"source": &"main_menu_requested",
+	}])
 	_hud.show_main_menu(_collect_save_slot_infos())
 
 
 func _on_menu_exit_requested() -> void:
+	_dispatch_audio_event(&"on_ui_cancel", [{
+		"menu_mode": _hud.get_menu_mode(),
+		"action": &"exit",
+		"reason": &"unavailable",
+	}])
 	_hud.show_notification("Exit is unavailable in this build", 2.0)
 
 
 func _on_menu_save_slot_requested(slot: int) -> void:
 	if _is_manual_save_write_pending():
+		_dispatch_audio_event(&"on_ui_cancel", [{
+			"menu_mode": _hud.get_menu_mode(),
+			"action": &"save",
+			"slot": slot,
+			"reason": &"write_pending",
+		}])
 		_hud.show_notification("Saving...", 1.5)
 		_hud.show_save_load_menu(
 			_collect_save_slot_infos(),
@@ -391,7 +456,18 @@ func _on_menu_load_slot_requested(slot: int) -> void:
 		_pause_menu_active = false
 		get_tree().paused = false
 		_hud.hide_menu()
+		_dispatch_audio_event(&"on_menu_closed", [{
+			"menu_mode": &"save_load",
+			"reason": &"load_slot",
+			"slot": slot,
+		}])
 		return
+	_dispatch_audio_event(&"on_ui_cancel", [{
+		"menu_mode": _hud.get_menu_mode(),
+		"action": &"load",
+		"slot": slot,
+		"reason": &"load_failed",
+	}])
 	_hud.show_notification("Load failed", 2.0)
 	_hud.show_save_load_menu(
 		_collect_save_slot_infos(),
@@ -1076,13 +1152,25 @@ func save_runtime_to_slot(slot: int) -> bool:
 	if not _save_system.has_method("manual_save"):
 		return false
 	var snapshot: Dictionary = capture_save_snapshot()
-	return bool(_save_system.call(
+	var save_started: bool = bool(_save_system.call(
 		"manual_save",
 		slot,
 		Dictionary(snapshot.get("player_state", {})),
 		Dictionary(snapshot.get("world_state", {})),
 		Dictionary(snapshot.get("settings", {}))
 	))
+	if (
+		save_started
+		and (
+			not _save_system.has_method("is_save_write_pending")
+			or not bool(_save_system.call("is_save_write_pending"))
+		)
+	):
+		_dispatch_audio_event(&"on_ui_save", [{
+			"slot": slot,
+			"source": &"manual_save",
+		}])
+	return save_started
 
 
 ## Loads a runtime save and applies the loaded MainScene state.
@@ -1110,6 +1198,10 @@ func load_runtime_from_slot(slot: int) -> bool:
 	if not _handoff_loaded_scene_to_scene_manager(loaded):
 		return false
 	restore_save_snapshot(loaded)
+	_dispatch_audio_event(&"on_ui_load", [{
+		"slot": slot,
+		"source": &"manual_load",
+	}])
 	return true
 
 
@@ -1443,6 +1535,10 @@ func _disconnect_save_system_signals(save_system: Variant) -> void:
 func _on_save_system_written(slot: int) -> void:
 	if slot > 0 and slot == _pending_manual_save_slot:
 		_pending_manual_save_slot = -1
+		_dispatch_audio_event(&"on_ui_save", [{
+			"slot": slot,
+			"source": &"manual_save_completed",
+		}])
 		_hud.show_notification("Game saved", 1.5)
 	_refresh_save_menu_if_visible()
 
@@ -1450,6 +1546,11 @@ func _on_save_system_written(slot: int) -> void:
 func _on_save_system_write_failed(slot: int, _reason: String) -> void:
 	if slot > 0 and slot == _pending_manual_save_slot:
 		_pending_manual_save_slot = -1
+		_dispatch_audio_event(&"on_ui_cancel", [{
+			"slot": slot,
+			"source": &"manual_save_failed",
+			"reason": _reason,
+		}])
 		_hud.show_notification("Save failed", 2.0)
 	_refresh_save_menu_if_visible()
 

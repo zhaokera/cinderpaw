@@ -19,6 +19,15 @@ const DEFAULT_CORE_COMBAT_SFX: Dictionary = {
 	&"sfx_boss_phase": "res://assets/audio/sfx/sfx_boss_phase.wav",
 	&"sfx_focus_mode_activate": "res://assets/audio/sfx/sfx_focus_mode_activate.wav",
 }
+const DEFAULT_UI_AUDIO_STREAMS: Dictionary = {
+	&"ui_menu_open": "res://assets/audio/ui/ui_menu_open.wav",
+	&"ui_menu_close": "res://assets/audio/ui/ui_menu_close.wav",
+	&"ui_navigate": "res://assets/audio/ui/ui_navigate.wav",
+	&"ui_confirm": "res://assets/audio/ui/ui_confirm.wav",
+	&"ui_cancel": "res://assets/audio/ui/ui_cancel.wav",
+	&"ui_save": "res://assets/audio/ui/ui_save.wav",
+	&"ui_load": "res://assets/audio/ui/ui_load.wav",
+}
 
 var audio_system = null
 
@@ -114,18 +123,18 @@ func test_play_sfx_records_pitch_spatial_metadata_and_enforces_voice_cap() -> vo
 	if audio_system == null:
 		return
 
-	var stream := AudioStreamGenerator.new()
-	assert_bool(audio_system.register_audio_stream(&"sfx_test_claw", stream)).is_true()
-
 	for index: int in range(17):
-		audio_system.play_sfx(&"sfx_test_claw", Vector2(index, -index), -3.0, 4.0, index)
+		var sfx_id: StringName = StringName("sfx_test_claw_%02d" % index)
+		var stream := AudioStreamGenerator.new()
+		assert_bool(audio_system.register_audio_stream(sfx_id, stream)).is_true()
+		audio_system.play_sfx(sfx_id, Vector2(index, -index), -3.0, 4.0, index)
 
 	assert_int(audio_system.get_sfx_pool_size()).is_equal(16)
 	assert_int(audio_system.get_active_sfx_count()).is_equal(16)
 	assert_int(audio_system.get_dropped_sfx_count()).is_equal(1)
 
 	var last_request: Dictionary = audio_system.get_last_sfx_request()
-	assert_str(String(last_request.get("sfx_id", &""))).is_equal("sfx_test_claw")
+	assert_str(String(last_request.get("sfx_id", &""))).is_equal("sfx_test_claw_16")
 	assert_vector(last_request.get("position", Vector2.ZERO)).is_equal(Vector2(16, -16))
 	assert_float(float(last_request.get("volume_db", 0.0))).is_equal(-3.0)
 	assert_float(float(last_request.get("pitch_offset", 0.0))).is_equal(4.0)
@@ -137,6 +146,31 @@ func test_play_sfx_records_pitch_spatial_metadata_and_enforces_voice_cap() -> vo
 	assert_vector(last_player.global_position).is_equal(Vector2(16, -16))
 	assert_float(last_player.volume_db).is_equal(-3.0)
 	assert_float(last_player.pitch_scale).is_equal_approx(pow(2.0, 4.0 / 12.0), 0.001)
+
+
+func test_same_sfx_within_merge_window_reuses_voice_and_boosts_volume() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+
+	var stream := AudioStreamGenerator.new()
+	assert_bool(audio_system.register_audio_stream(&"sfx_merge_probe", stream)).is_true()
+
+	assert_bool(audio_system.play_sfx(&"sfx_merge_probe", Vector2(1, 2), 0.0, 0.0, 40)).is_true()
+	var first_request: Dictionary = audio_system.get_last_sfx_request()
+	var first_player_index: int = int(first_request.get("player_index", -1))
+
+	assert_bool(audio_system.play_sfx(&"sfx_merge_probe", Vector2(3, 4), 0.0, 0.0, 40)).is_true()
+	var merged_request: Dictionary = audio_system.get_last_sfx_request()
+	assert_bool(bool(merged_request.get("merged", false))).is_true()
+	assert_int(int(merged_request.get("player_index", -1))).is_equal(first_player_index)
+	assert_int(audio_system.get_active_sfx_count()).is_equal(1)
+	assert_float(float(merged_request.get("volume_multiplier", 0.0))).is_equal_approx(1.2, 0.001)
+
+	var merged_player := audio_system.get_node("SFXPlayer%02d" % first_player_index) as AudioStreamPlayer2D
+	assert_object(merged_player).is_not_null()
+	if merged_player != null:
+		assert_float(merged_player.volume_db).is_equal_approx(linear_to_db(1.2), 0.001)
 
 
 func test_missing_sfx_asset_does_not_consume_pool_voice() -> void:
@@ -179,6 +213,84 @@ func test_default_core_combat_sfx_assets_load_and_play_from_imported_wav_files()
 		var player := audio_system.get_node("SFXPlayer%02d" % player_index) as AudioStreamPlayer2D
 		assert_object(player).is_not_null()
 		assert_object(player.stream).is_not_null()
+
+
+func test_default_ui_audio_assets_load_and_play_on_ui_bus() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	for method_name: String in [
+		"get_registered_audio_stream_ids",
+		"get_audio_stream_path",
+		"get_ui_sfx_pool_size",
+		"play_ui_sfx",
+		"get_last_ui_sfx_request",
+	]:
+		assert_bool(audio_system.has_method(method_name)).is_true()
+		if not audio_system.has_method(method_name):
+			return
+
+	assert_int(int(audio_system.call("get_ui_sfx_pool_size"))).is_equal(4)
+	var registered_ids: Array = audio_system.call("get_registered_audio_stream_ids")
+	for ui_sfx_id: StringName in DEFAULT_UI_AUDIO_STREAMS.keys():
+		var expected_path: String = String(DEFAULT_UI_AUDIO_STREAMS[ui_sfx_id])
+		assert_bool(FileAccess.file_exists(expected_path)).is_true()
+		assert_array(registered_ids).contains([ui_sfx_id])
+		assert_str(String(audio_system.call("get_audio_stream_path", ui_sfx_id))).is_equal(expected_path)
+
+		assert_bool(bool(audio_system.call("play_ui_sfx", ui_sfx_id))).is_true()
+		var request: Dictionary = Dictionary(audio_system.call("get_last_ui_sfx_request"))
+		assert_str(String(request.get("ui_sfx_id", &""))).is_equal(String(ui_sfx_id))
+		assert_bool(bool(request.get("stream_found", false))).is_true()
+		var player_index: int = int(request.get("player_index", -1))
+		assert_int(player_index).is_greater_equal(0)
+		var player := audio_system.get_node("UIPlayer%02d" % player_index) as AudioStreamPlayer
+		assert_object(player).is_not_null()
+		if player != null:
+			assert_str(String(player.bus)).is_equal("UI")
+			assert_object(player.stream).is_not_null()
+
+
+func test_menu_audio_state_ducks_music_and_restores_previous_state() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	for method_name: String in [
+		"on_menu_opened",
+		"on_menu_closed",
+		"is_menu_audio_active",
+		"get_menu_audio_state",
+		"get_audio_state",
+	]:
+		assert_bool(audio_system.has_method(method_name)).is_true()
+		if not audio_system.has_method(method_name):
+			return
+
+	assert_bool(audio_system.set_bus_volume(&"Music", 60)).is_true()
+	audio_system.call("on_boss_encounter_started", &"boss_01_rat_king", {
+		"phase": 1,
+	})
+
+	assert_bool(bool(audio_system.call("on_menu_opened", {
+		"menu_mode": &"pause",
+	}))).is_true()
+	assert_bool(bool(audio_system.call("is_menu_audio_active"))).is_true()
+	assert_str(String(audio_system.call("get_audio_state"))).is_equal("MENU")
+	assert_int(audio_system.get_bus_volume_percent(&"Music")).is_equal(30)
+	var opened_state: Dictionary = Dictionary(audio_system.call("get_menu_audio_state"))
+	assert_str(String(opened_state.get("previous_audio_state", &""))).is_equal("BOSS_FIGHT")
+	assert_int(int(opened_state.get("music_volume_before_duck", -1))).is_equal(60)
+	assert_int(int(opened_state.get("music_volume_ducked", -1))).is_equal(30)
+	assert_str(String(audio_system.call("get_last_ui_sfx_request").get("ui_sfx_id", &""))).is_equal("ui_menu_open")
+
+	assert_bool(bool(audio_system.call("on_menu_closed", {
+		"menu_mode": &"pause",
+		"reason": &"resume",
+	}))).is_true()
+	assert_bool(bool(audio_system.call("is_menu_audio_active"))).is_false()
+	assert_str(String(audio_system.call("get_audio_state"))).is_equal("BOSS_FIGHT")
+	assert_int(audio_system.get_bus_volume_percent(&"Music")).is_equal(60)
+	assert_str(String(audio_system.call("get_last_ui_sfx_request").get("ui_sfx_id", &""))).is_equal("ui_menu_close")
 
 
 func test_music_and_ambient_requests_are_safe_without_assets() -> void:

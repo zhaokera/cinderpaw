@@ -21,15 +21,37 @@
   SceneManagement Story012 boss arena mutation save-state persistence、AudioSystem
   Story004 Rat King boss music state transitions、AudioSystem Story005 core
   combat SFX asset import baseline、AudioSystem Story006 weapon-style SFX asset
-  expansion 已完成；
+  expansion、AudioSystem Story007 UI menu audio + same-SFX merge 已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
-  routing、UI menu audio、same-SFX
-  merge、authored/final audio replacement、broader audio mix polish，以及玩家
-  可见角色/敌人帧动画持续审计。
+  routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
+  music/ambience asset import、broader audio mix polish，以及玩家可见角色/敌人
+  帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Audio System Story 007: UI Menu Audio + Same-SFX Merge —
+  新增 7 个程序化 baseline UI WAV：`ui_menu_open`、`ui_menu_close`、
+  `ui_navigate`、`ui_confirm`、`ui_cancel`、`ui_save`、`ui_load`，放入
+  `assets/audio/ui/` 并通过 Godot import pipeline 生成 `.wav.import`。
+  生成配方记录在
+  `assets/audio/source/ui_menu_audio_generation_20260625.json`。`AudioSystem`
+  现在默认加载 UI cue，新增 4 路非空间 `UIPlayer` pool、`play_ui_sfx()`、
+  `on_menu_opened()` / `on_menu_closed()`、`on_ui_*()` helpers 和 MENU state
+  diagnostics；菜单打开会捕获当前 Music volume 并 duck 到 50%，关闭时恢复
+  上一 audio state 和音量。`play_sfx()` 新增 TR-audio-005 same-SFX merge：
+  100ms 内同 cue 复用 active voice，线性音量乘 `1.2`，不新增 pool voice。
+  `MainScene` 现在通过 runtime adapter 转发 pause/resume/menu navigation/
+  save/load feedback，不让 HUD、SaveSystem 或 Core gameplay 依赖 AudioSystem。
+  通过 RED `report_580`、GREEN focused `report_582` `25/25`、related
+  regression `report_583` `36/36`、post-fix guard `report_584` `10/10`、
+  Godot import、headless smoke
+  `reports/audio_ui_menu_audio_main_scene_smoke.log`、Godot MCP runtime UI cue /
+  MENU duck / save-load cue / same-SFX merge probe、clean game/editor logs 和
+  `reports/visual/cinderpaw-mcp-ui-menu-audio-20260625.png` 验证。`report_583`
+  在 Godot process exit 处仍出现既有 GdUnit resource cleanup warning；focused
+  Story007、headless smoke 和 MCP logs clean。QA evidence:
+  `production/qa/evidence/audio-ui-menu-audio-sfx-merge-2026-06-25.md`。
 - Scene Management Story 012: Boss Arena Mutation Save-State Persistence —
   `MainScene.capture_save_snapshot()` 现在将 active Rat King arena mutations
   写入 `world_state.arena_mutations`，保存为 JSON-safe deterministic

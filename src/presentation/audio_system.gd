@@ -8,6 +8,7 @@ extends Node
 signal sfx_requested(sfx_id: StringName, metadata: Dictionary)
 signal music_requested(music_id: StringName, metadata: Dictionary)
 signal ambient_requested(ambient_id: StringName, metadata: Dictionary)
+signal ui_sfx_requested(ui_sfx_id: StringName, metadata: Dictionary)
 signal bus_volume_changed(bus_name: StringName, volume_percent: int)
 signal scene_transition_audio_started(scene_id: StringName, metadata: Dictionary)
 signal scene_transition_audio_completed(scene_id: StringName, metadata: Dictionary)
@@ -22,7 +23,11 @@ const BUS_VOLUME_DEFAULTS: Dictionary = {
 	&"UI": 70,
 }
 const MAX_CONCURRENT_SFX: int = 16
+const MAX_CONCURRENT_UI_SFX: int = 4
 const MAX_SFX_DISTANCE_PX: float = 600.0
+const SAME_SFX_MERGE_WINDOW_MS: int = 100
+const SAME_SFX_MERGE_VOLUME_MULTIPLIER: float = 1.2
+const MENU_MUSIC_DUCK_RATIO: float = 0.5
 const SCENE_TRANSITION_FORCE_FADE_SEC: float = 2.0
 const DEFAULT_SCENE_CROSSFADE_SEC: float = 3.0
 const BOSS_MUSIC_HARD_CUT_SEC: float = 1.0
@@ -31,6 +36,7 @@ const BOSS_MUSIC_END_FADE_SEC: float = 3.0
 const AUDIO_STATE_NORMAL: StringName = &"NORMAL"
 const AUDIO_STATE_BOSS_FIGHT: StringName = &"BOSS_FIGHT"
 const AUDIO_STATE_LOW_HP: StringName = &"LOW_HP"
+const AUDIO_STATE_MENU: StringName = &"MENU"
 const SFX_PRIORITY_NORMAL: int = 50
 const SFX_PRIORITY_DODGE: int = 60
 const SFX_PRIORITY_DAMAGE: int = 70
@@ -77,6 +83,15 @@ const DEFAULT_CORE_COMBAT_SFX_STREAMS: Dictionary = {
 	&"sfx_boss_phase": "res://assets/audio/sfx/sfx_boss_phase.wav",
 	&"sfx_focus_mode_activate": "res://assets/audio/sfx/sfx_focus_mode_activate.wav",
 }
+const DEFAULT_UI_AUDIO_STREAMS: Dictionary = {
+	&"ui_menu_open": "res://assets/audio/ui/ui_menu_open.wav",
+	&"ui_menu_close": "res://assets/audio/ui/ui_menu_close.wav",
+	&"ui_navigate": "res://assets/audio/ui/ui_navigate.wav",
+	&"ui_confirm": "res://assets/audio/ui/ui_confirm.wav",
+	&"ui_cancel": "res://assets/audio/ui/ui_cancel.wav",
+	&"ui_save": "res://assets/audio/ui/ui_save.wav",
+	&"ui_load": "res://assets/audio/ui/ui_load.wav",
+}
 
 var _bus_volume_percent: Dictionary = {}
 var _audio_streams: Dictionary = {}
@@ -84,10 +99,12 @@ var _audio_stream_paths: Dictionary = {}
 var _scene_audio_cues: Dictionary = {}
 var _boss_music_cues: Dictionary = {}
 var _sfx_players: Array[AudioStreamPlayer2D] = []
+var _ui_sfx_players: Array[AudioStreamPlayer] = []
 var _music_player: AudioStreamPlayer
 var _ambient_player: AudioStreamPlayer
 var _active_sfx_requests: Array[Dictionary] = []
 var _last_sfx_request: Dictionary = {}
+var _last_ui_sfx_request: Dictionary = {}
 var _dropped_sfx_count: int = 0
 var _current_music_id: StringName = &""
 var _current_ambient_id: StringName = &""
@@ -103,6 +120,11 @@ var _scene_transition_failed_scene_id: StringName = &""
 var _scene_transition_failed_reason: StringName = &""
 var _audio_state: StringName = AUDIO_STATE_NORMAL
 var _focus_mode_audio_active: bool = false
+var _menu_audio_active: bool = false
+var _pre_menu_audio_state: StringName = AUDIO_STATE_NORMAL
+var _pre_menu_music_volume_percent: int = int(BUS_VOLUME_DEFAULTS[&"Music"])
+var _menu_ducked_music_volume_percent: int = int(BUS_VOLUME_DEFAULTS[&"Music"])
+var _last_menu_audio_event: Dictionary = {}
 var _last_gameplay_audio_event: Dictionary = {}
 var _boss_music_active: bool = false
 var _current_boss_id: StringName = &""
@@ -115,12 +137,16 @@ func _ready() -> void:
 	configure_scene_audio_cues(DEFAULT_SCENE_AUDIO_CUES)
 	configure_boss_music_cues(DEFAULT_BOSS_MUSIC_CUES)
 	load_audio_streams_from_paths(DEFAULT_CORE_COMBAT_SFX_STREAMS)
+	load_audio_streams_from_paths(DEFAULT_UI_AUDIO_STREAMS)
 	_initialize_buses()
 	_initialize_audio_players()
 
 
 func _exit_tree() -> void:
 	for player: AudioStreamPlayer2D in _sfx_players:
+		if is_instance_valid(player):
+			player.stop()
+	for player: AudioStreamPlayer in _ui_sfx_players:
 		if is_instance_valid(player):
 			player.stop()
 	if is_instance_valid(_music_player):
@@ -211,6 +237,10 @@ func get_sfx_pool_size() -> int:
 	return _sfx_players.size()
 
 
+func get_ui_sfx_pool_size() -> int:
+	return _ui_sfx_players.size()
+
+
 func get_active_sfx_count() -> int:
 	return _active_sfx_requests.size()
 
@@ -221,6 +251,10 @@ func get_dropped_sfx_count() -> int:
 
 func get_last_sfx_request() -> Dictionary:
 	return _last_sfx_request.duplicate(true)
+
+
+func get_last_ui_sfx_request() -> Dictionary:
+	return _last_ui_sfx_request.duplicate(true)
 
 
 ## Plays or records an SFX request. Missing streams return false without errors.
@@ -248,6 +282,12 @@ func play_sfx(
 	var stream: AudioStream = _audio_streams.get(sfx_id, null)
 	if stream == null:
 		return false
+	_prune_finished_sfx_requests()
+	var merge_index: int = _find_mergeable_sfx_request(sfx_id, int(request["timestamp_ms"]))
+	if merge_index >= 0:
+		var merged_request: Dictionary = _merge_sfx_request(merge_index, request)
+		_last_sfx_request = merged_request.duplicate(true)
+		return true
 
 	var player_index: int = _reserve_sfx_player(priority)
 	if player_index < 0:
@@ -259,6 +299,16 @@ func play_sfx(
 	_last_sfx_request = request.duplicate(true)
 	_play_sfx_player(player_index, stream, position, volume_db, pitch_scale)
 	return true
+
+
+## Plays a global UI cue on the UI bus without spatial attenuation.
+func play_ui_sfx(
+	ui_sfx_id: StringName,
+	volume_db: float = 0.0,
+	pitch_offset: float = 0.0,
+	priority: int = SFX_PRIORITY_NORMAL
+) -> bool:
+	return _request_ui_sfx(&"ui_sfx", ui_sfx_id, {}, volume_db, pitch_offset, priority)
 
 
 ## Requests music playback and records fade metadata even when no stream exists.
@@ -413,8 +463,81 @@ func is_focus_mode_audio_active() -> bool:
 	return _focus_mode_audio_active
 
 
+func is_menu_audio_active() -> bool:
+	return _menu_audio_active
+
+
+func get_menu_audio_state() -> Dictionary:
+	return {
+		"active": _menu_audio_active,
+		"previous_audio_state": _pre_menu_audio_state,
+		"music_volume_before_duck": _pre_menu_music_volume_percent,
+		"music_volume_ducked": _menu_ducked_music_volume_percent,
+		"last_event": _last_menu_audio_event.duplicate(true),
+	}
+
+
 func get_last_gameplay_audio_event() -> Dictionary:
 	return _last_gameplay_audio_event.duplicate(true)
+
+
+## Enters MENU audio state and ducks Music to half of its pre-menu volume.
+func on_menu_opened(metadata: Dictionary = {}) -> bool:
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	if not _menu_audio_active:
+		_pre_menu_audio_state = _audio_state
+		_pre_menu_music_volume_percent = get_bus_volume_percent(&"Music")
+		_menu_ducked_music_volume_percent = int(
+			float(_pre_menu_music_volume_percent) * MENU_MUSIC_DUCK_RATIO
+		)
+		_menu_audio_active = true
+		_audio_state = AUDIO_STATE_MENU
+		set_bus_volume(&"Music", _menu_ducked_music_volume_percent)
+	_last_menu_audio_event = {
+		"event_id": &"menu_opened",
+		"metadata": event_metadata,
+		"previous_audio_state": _pre_menu_audio_state,
+		"music_volume_before_duck": _pre_menu_music_volume_percent,
+		"music_volume_ducked": _menu_ducked_music_volume_percent,
+	}
+	return _request_ui_sfx(&"menu_opened", &"ui_menu_open", event_metadata)
+
+
+## Leaves MENU audio state and restores the Music bus volume captured on open.
+func on_menu_closed(metadata: Dictionary = {}) -> bool:
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	if _menu_audio_active:
+		_menu_audio_active = false
+		_audio_state = _pre_menu_audio_state
+		set_bus_volume(&"Music", _pre_menu_music_volume_percent)
+	_last_menu_audio_event = {
+		"event_id": &"menu_closed",
+		"metadata": event_metadata,
+		"previous_audio_state": _pre_menu_audio_state,
+		"music_volume_before_duck": _pre_menu_music_volume_percent,
+		"music_volume_ducked": _menu_ducked_music_volume_percent,
+	}
+	return _request_ui_sfx(&"menu_closed", &"ui_menu_close", event_metadata)
+
+
+func on_ui_navigate(metadata: Dictionary = {}) -> bool:
+	return _request_ui_sfx(&"ui_navigate", &"ui_navigate", metadata)
+
+
+func on_ui_confirm(metadata: Dictionary = {}) -> bool:
+	return _request_ui_sfx(&"ui_confirm", &"ui_confirm", metadata)
+
+
+func on_ui_cancel(metadata: Dictionary = {}) -> bool:
+	return _request_ui_sfx(&"ui_cancel", &"ui_cancel", metadata)
+
+
+func on_ui_save(metadata: Dictionary = {}) -> bool:
+	return _request_ui_sfx(&"ui_save", &"ui_save", metadata)
+
+
+func on_ui_load(metadata: Dictionary = {}) -> bool:
+	return _request_ui_sfx(&"ui_load", &"ui_load", metadata)
 
 
 func on_scene_load_started(
@@ -669,6 +792,12 @@ func _initialize_audio_players() -> void:
 		player.max_distance = MAX_SFX_DISTANCE_PX
 		_sfx_players.append(player)
 		add_child(player)
+	while _ui_sfx_players.size() < MAX_CONCURRENT_UI_SFX:
+		var player := AudioStreamPlayer.new()
+		player.name = "UIPlayer%02d" % _ui_sfx_players.size()
+		player.bus = "UI"
+		_ui_sfx_players.append(player)
+		add_child(player)
 
 
 func _ensure_bus(bus_name: StringName) -> int:
@@ -736,6 +865,30 @@ func _play_sfx_player(
 	player.play()
 
 
+func _play_ui_sfx_player(
+	player_index: int,
+	stream: AudioStream,
+	volume_db: float,
+	pitch_scale: float
+) -> void:
+	if player_index < 0 or player_index >= _ui_sfx_players.size():
+		return
+	var player: AudioStreamPlayer = _ui_sfx_players[player_index]
+	player.stop()
+	player.stream = stream
+	player.volume_db = volume_db
+	player.pitch_scale = pitch_scale
+	player.bus = "UI"
+	player.play()
+
+
+func _reserve_ui_sfx_player() -> int:
+	for index: int in range(_ui_sfx_players.size()):
+		if not _ui_sfx_players[index].playing:
+			return index
+	return 0 if not _ui_sfx_players.is_empty() else -1
+
+
 func _prune_finished_sfx_requests() -> void:
 	for index: int in range(_active_sfx_requests.size() - 1, -1, -1):
 		var player_index: int = int(_active_sfx_requests[index].get("player_index", -1))
@@ -755,6 +908,44 @@ func _lowest_priority_request_index() -> int:
 			lowest_index = index
 			lowest_priority = request_priority
 	return lowest_index
+
+
+func _find_mergeable_sfx_request(sfx_id: StringName, timestamp_ms: int) -> int:
+	for index: int in range(_active_sfx_requests.size() - 1, -1, -1):
+		var active_request: Dictionary = Dictionary(_active_sfx_requests[index])
+		if StringName(String(active_request.get("sfx_id", &""))) != sfx_id:
+			continue
+		var player_index: int = int(active_request.get("player_index", -1))
+		if player_index < 0 or player_index >= _sfx_players.size():
+			continue
+		if not _sfx_players[player_index].playing:
+			continue
+		var elapsed_ms: int = timestamp_ms - int(active_request.get("timestamp_ms", 0))
+		if elapsed_ms >= 0 and elapsed_ms <= SAME_SFX_MERGE_WINDOW_MS:
+			return index
+	return -1
+
+
+func _merge_sfx_request(merge_index: int, request: Dictionary) -> Dictionary:
+	var active_request: Dictionary = Dictionary(_active_sfx_requests[merge_index])
+	var player_index: int = int(active_request.get("player_index", -1))
+	var current_volume_db: float = float(active_request.get("volume_db", 0.0))
+	if player_index >= 0 and player_index < _sfx_players.size():
+		current_volume_db = _sfx_players[player_index].volume_db
+	var merged_volume_db: float = linear_to_db(
+		db_to_linear(current_volume_db) * SAME_SFX_MERGE_VOLUME_MULTIPLIER
+	)
+	if player_index >= 0 and player_index < _sfx_players.size():
+		_sfx_players[player_index].volume_db = merged_volume_db
+	active_request["timestamp_ms"] = int(request.get("timestamp_ms", active_request.get("timestamp_ms", 0)))
+	active_request["position"] = request.get("position", active_request.get("position", Vector2.ZERO))
+	active_request["volume_db"] = merged_volume_db
+	active_request["priority"] = maxi(int(active_request.get("priority", 0)), int(request.get("priority", 0)))
+	active_request["merged"] = true
+	active_request["merged_count"] = int(active_request.get("merged_count", 1)) + 1
+	active_request["volume_multiplier"] = SAME_SFX_MERGE_VOLUME_MULTIPLIER
+	_active_sfx_requests[merge_index] = active_request.duplicate(true)
+	return active_request
 
 
 func _is_managed_bus(bus_name: StringName) -> bool:
@@ -832,6 +1023,42 @@ func _request_gameplay_sfx(
 		"metadata": metadata.duplicate(true),
 	}
 	return play_sfx(sfx_id, world_position, volume_db, pitch_offset, priority)
+
+
+func _request_ui_sfx(
+	event_id: StringName,
+	ui_sfx_id: StringName,
+	metadata: Dictionary,
+	volume_db: float = 0.0,
+	pitch_offset: float = 0.0,
+	priority: int = SFX_PRIORITY_NORMAL
+) -> bool:
+	var pitch_scale: float = _pitch_offset_to_scale(pitch_offset)
+	var request: Dictionary = {
+		"event_id": event_id,
+		"ui_sfx_id": ui_sfx_id,
+		"volume_db": volume_db,
+		"pitch_offset": pitch_offset,
+		"pitch_scale": pitch_scale,
+		"priority": priority,
+		"timestamp_ms": Time.get_ticks_msec(),
+		"stream_found": _audio_streams.has(ui_sfx_id),
+		"metadata": metadata.duplicate(true),
+	}
+	_last_ui_sfx_request = request.duplicate(true)
+	ui_sfx_requested.emit(ui_sfx_id, request.duplicate(true))
+
+	var stream: AudioStream = _audio_streams.get(ui_sfx_id, null)
+	if stream == null:
+		return false
+
+	var player_index: int = _reserve_ui_sfx_player()
+	if player_index < 0:
+		return false
+	request["player_index"] = player_index
+	_last_ui_sfx_request = request.duplicate(true)
+	_play_ui_sfx_player(player_index, stream, volume_db, pitch_scale)
+	return true
 
 
 func _event_position(metadata: Dictionary, keys: Array) -> Vector2:

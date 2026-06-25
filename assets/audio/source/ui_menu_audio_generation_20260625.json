@@ -1,0 +1,65 @@
+{
+  "generated_on": "2026-06-25",
+  "generator": "deterministic procedural PCM synthesis via Python wave module",
+  "sample_rate_hz": 44100,
+  "format": "16-bit mono WAV",
+  "purpose": "AudioSystem Story007 UI menu audio baseline; replaceable authored assets with stable cue ids.",
+  "assets": [
+    {
+      "cue_id": "ui_menu_open",
+      "path": "res://assets/audio/ui/ui_menu_open.wav",
+      "duration_sec": 0.21,
+      "category": "UI",
+      "description": "ascending metal latch cue for menu opening",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "ui_menu_close",
+      "path": "res://assets/audio/ui/ui_menu_close.wav",
+      "duration_sec": 0.2,
+      "category": "UI",
+      "description": "descending metal latch cue for menu closing",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "ui_navigate",
+      "path": "res://assets/audio/ui/ui_navigate.wav",
+      "duration_sec": 0.11,
+      "category": "UI",
+      "description": "short cat-paw tap for focus movement",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "ui_confirm",
+      "path": "res://assets/audio/ui/ui_confirm.wav",
+      "duration_sec": 0.21,
+      "category": "UI",
+      "description": "bright stamp-like confirmation cue",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "ui_cancel",
+      "path": "res://assets/audio/ui/ui_cancel.wav",
+      "duration_sec": 0.17,
+      "category": "UI",
+      "description": "soft downward cancel cue",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "ui_save",
+      "path": "res://assets/audio/ui/ui_save.wav",
+      "duration_sec": 0.25,
+      "category": "UI",
+      "description": "compact seal-stamp save confirmation",
+      "status": "procedural_baseline_replaceable"
+    },
+    {
+      "cue_id": "ui_load",
+      "path": "res://assets/audio/ui/ui_load.wav",
+      "duration_sec": 0.29,
+      "category": "UI",
+      "description": "rising restore cue for successful load",
+      "status": "procedural_baseline_replaceable"
+    }
+  ]
+}
