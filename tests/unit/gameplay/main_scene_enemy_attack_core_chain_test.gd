@@ -48,14 +48,14 @@ func test_enemy_attack_tell_then_active_hitbox_damages_player_once() -> void:
 
 	var start_hp: int = int(player.call("get_current_hp"))
 	assert_bool(bool(enemy.call("request_attack_pattern", &"claw_swipe"))).is_true()
-	assert_str(String(enemy.get_node("Sprite").get("animation"))).is_equal("attack_tell")
+	assert_str(String(enemy.get_node("Sprite").get("animation"))).is_equal("claw_swipe")
 
 	var enemy_collision: CollisionComponent = enemy.call("get_collision_component") as CollisionComponent
 	var player_collision: CollisionComponent = player.call("get_collision_component") as CollisionComponent
 	assert_bool(enemy_collision.is_hitbox_active(ENEMY_HITBOX_ID)).is_false()
 
 	enemy.call("advance_attack_frames", int(enemy.call("get_current_attack_startup_frames")))
-	assert_str(String(enemy.get_node("Sprite").get("animation"))).is_equal("attack")
+	assert_str(String(enemy.get_node("Sprite").get("animation"))).is_equal("claw_swipe")
 	assert_bool(enemy_collision.is_hitbox_active(ENEMY_HITBOX_ID)).is_true()
 
 	enemy_collision.process_detection_frame({

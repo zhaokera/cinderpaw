@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=25 format=3]
+[gd_resource type="SpriteFrames" load_steps=40 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/characters/rat_king/idle/rat_king_idle_000.png" id="1_idle0"]
 [ext_resource type="Texture2D" path="res://assets/characters/rat_king/idle/rat_king_idle_001.png" id="2_idle1"]
@@ -24,6 +24,21 @@
 [ext_resource type="Texture2D" path="res://assets/characters/rat_king/phase_3_overload/rat_king_phase_3_overload_000.png" id="22_phase30"]
 [ext_resource type="Texture2D" path="res://assets/characters/rat_king/phase_3_overload/rat_king_phase_3_overload_001.png" id="23_phase31"]
 [ext_resource type="Texture2D" path="res://assets/characters/rat_king/phase_3_overload/rat_king_phase_3_overload_002.png" id="24_phase32"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/charge/rat_king_charge_000.png" id="25_charge0"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/charge/rat_king_charge_001.png" id="26_charge1"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/charge/rat_king_charge_002.png" id="27_charge2"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/claw_swipe/rat_king_claw_swipe_000.png" id="28_claw0"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/claw_swipe/rat_king_claw_swipe_001.png" id="29_claw1"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/claw_swipe/rat_king_claw_swipe_002.png" id="30_claw2"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/summon_minion/rat_king_summon_minion_000.png" id="31_summon0"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/summon_minion/rat_king_summon_minion_001.png" id="32_summon1"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/summon_minion/rat_king_summon_minion_002.png" id="33_summon2"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/slam/rat_king_slam_000.png" id="34_slam0"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/slam/rat_king_slam_001.png" id="35_slam1"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/slam/rat_king_slam_002.png" id="36_slam2"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/berserk_combo/rat_king_berserk_combo_000.png" id="37_combo0"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/berserk_combo/rat_king_berserk_combo_001.png" id="38_combo1"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_king/berserk_combo/rat_king_berserk_combo_002.png" id="39_combo2"]
 
 [resource]
 animations = [{
@@ -138,4 +153,74 @@ animations = [{
 "loop": true,
 "name": &"phase_3_overload",
 "speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("25_charge0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("26_charge1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("27_charge2")
+}],
+"loop": false,
+"name": &"charge",
+"speed": 9.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("28_claw0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("29_claw1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("30_claw2")
+}],
+"loop": false,
+"name": &"claw_swipe",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("31_summon0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("32_summon1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("33_summon2")
+}],
+"loop": false,
+"name": &"summon_minion",
+"speed": 7.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("34_slam0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("35_slam1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("36_slam2")
+}],
+"loop": false,
+"name": &"slam",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("37_combo0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("38_combo1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("39_combo2")
+}],
+"loop": false,
+"name": &"berserk_combo",
+"speed": 12.0
 }]

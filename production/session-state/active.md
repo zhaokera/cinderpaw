@@ -10,16 +10,30 @@
   Story001 autoload bus/pool baseline、AudioSystem Story002 scene transition
   audio fades、AudioSystem Story003 combat/health event audio adapters、
   CombatPresentation Story014 Rat King boss frame animation slice、
+  CombatPresentation Story015 Rat King specialized attack animation expansion、
   BossConfig Story007 RatKingBoss runtime scene/MainScene boss replacement、
   BossConfig Story008 Rat King AI attack scheduler runtime integration 已完成；
-  下一步推进 specialized attack animation expansion、live phase 2 summon
-  runtime、arena mutation runtime、SceneManager memory-budget
-  verification、UI menu audio、Boss music state transitions、same-SFX merge 和
-  real audio asset import stories，以及玩家可见角色/敌人帧动画持续审计。
+  下一步推进 live phase 2 summon runtime、arena mutation runtime、SceneManager
+  memory-budget verification、UI menu audio、Boss music state transitions、
+  same-SFX merge 和 real audio asset import stories，以及玩家可见角色/敌人帧动画
+  持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Combat Presentation Story 015: Rat King Specialized Attack Animation
+  Expansion — 使用 image generation 生成 5x3 Rat King 专用攻击 sheet，复制到
+  `assets/characters/rat_king/source/`，alpha-matted 后切成
+  `charge`、`claw_swipe`、`summon_minion`、`slam`、`berserk_combo` 五组
+  192x192 transparent runtime PNG 帧，并导入 Godot asset pipeline。
+  `assets/characters/rat_king/rat_king_sprite_frames.tres` 新增 5 个
+  SpriteFrames animation；`RatKingBoss` 现在按 BossConfig/AI pattern id 映射
+  对应动画，`charge`、`claw_swipe`、`slam`、`berserk_combo` 保持 hitbox
+  metadata，`summon_minion` 提供 presentation hook，不混入 live summon scope。
+  通过 RED `report_480`、GREEN focused `report_482` `15/15`、Boss/AI/Gameplay
+  regression `report_484` `82/82`、headless smoke、Godot MCP runtime
+  game_eval/log/screenshot 验证。QA evidence:
+  `production/qa/evidence/rat-king-specialized-attack-animation-2026-06-25.md`。
 - Boss Configuration Story 008: Rat King AI Attack Scheduler MainScene Runtime
   Integration — `AIComponent` 新增 BossConfig `apply_boss_phase()` 合同、
   当前 phase-filtered attack pattern ids、按 pattern id 启动攻击和

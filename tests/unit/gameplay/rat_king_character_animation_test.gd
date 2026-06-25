@@ -13,6 +13,11 @@ const REQUIRED_ANIMATIONS: Array[StringName] = [
 	&"phase_1_intro",
 	&"phase_2_rebuild",
 	&"phase_3_overload",
+	&"charge",
+	&"claw_swipe",
+	&"summon_minion",
+	&"slam",
+	&"berserk_combo",
 ]
 const MIN_FRAMES_PER_ANIMATION: int = 3
 

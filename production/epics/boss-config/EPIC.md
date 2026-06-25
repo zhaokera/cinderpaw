@@ -65,7 +65,8 @@ This epic is complete when:
 ## Next Step
 
 Boss Configuration Core scope is complete through the playable Rat King runtime
-shell and the first data-driven Rat King AI attack scheduler slice. Move to
-downstream consumer stories for specialized attack animation expansion, live
-summons, arena mutation runtime, boss music/SFX, HUD polish, ability unlock
-presentation, and progression reward consumption.
+shell and the first data-driven Rat King AI attack scheduler slice. Specialized
+attack animation expansion is covered by Combat Presentation Story015. Move to
+downstream consumer stories for live summons, arena mutation runtime, boss
+music/SFX, HUD polish, ability unlock presentation, and progression reward
+consumption.

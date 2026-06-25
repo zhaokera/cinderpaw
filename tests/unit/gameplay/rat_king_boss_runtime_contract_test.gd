@@ -150,14 +150,14 @@ func test_rat_king_slam_attack_activates_data_driven_hitbox_metadata() -> void:
 
 	assert_bool(bool(enemy.call("request_attack_pattern", &"slam"))).is_true()
 	assert_str(String(enemy.call("get_current_attack_pattern_id"))).is_equal("slam")
-	assert_str(String(enemy.get_node("Sprite").get("animation"))).is_equal("attack_tell")
+	assert_str(String(enemy.get_node("Sprite").get("animation"))).is_equal("slam")
 
 	var startup_frames: int = int(enemy.call("get_current_attack_startup_frames"))
 	enemy.call("advance_attack_frames", startup_frames)
 
 	var enemy_collision: CollisionComponent = enemy.call("get_collision_component") as CollisionComponent
 	assert_bool(enemy_collision.is_hitbox_active(&"rat_king_slam")).is_true()
-	assert_str(String(enemy.get_node("Sprite").get("animation"))).is_equal("attack")
+	assert_str(String(enemy.get_node("Sprite").get("animation"))).is_equal("slam")
 
 	var hitbox := enemy_collision.get_hitbox(&"rat_king_slam")
 	var metadata: Dictionary = hitbox.get_attack_metadata()
@@ -186,6 +186,11 @@ func _assert_rat_king_sprite(boss: Node) -> void:
 		&"phase_1_intro",
 		&"phase_2_rebuild",
 		&"phase_3_overload",
+		&"charge",
+		&"claw_swipe",
+		&"summon_minion",
+		&"slam",
+		&"berserk_combo",
 	]:
 		assert_bool(animated_sprite.sprite_frames.has_animation(animation_name)).is_true()
 		if animated_sprite.sprite_frames.has_animation(animation_name):

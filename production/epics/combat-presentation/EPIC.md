@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: Complete
-> **Stories**: 14 stories tracked
+> **Stories**: 15 stories tracked
 
 ## Overview
 
@@ -54,6 +54,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 012 | Particle Budget + Performance Guardrails | Logic/Performance | Complete | ADR-0002 |
 | 013 | Weapon Style VFX Variants | Visual/Feel | Complete | ADR-0002, ADR-0016 |
 | 014 | Rat King Boss Frame Animation Slice | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
+| 015 | Rat King Specialized Attack Animation Expansion | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
 
 ## Definition of Done
 
@@ -67,8 +68,10 @@ This epic is complete when:
 
 ## Completion Evidence
 
-Combat Presentation has all 14 tracked stories complete. Story014 adds the
+Combat Presentation has all 15 tracked stories complete. Story014 adds the
 first Rat King boss frame-animation asset slice so the MVP boss no longer exists
-only as data. Full runtime BossConfig/AI scene integration remains downstream
-gameplay work; Story014 evidence is recorded in
-`production/qa/evidence/rat-king-boss-frame-animation-2026-06-25.md`.
+only as data. Story015 adds data-aligned specialized Rat King attack animations
+for `charge`, `claw_swipe`, `summon_minion`, `slam`, and `berserk_combo`.
+Evidence is recorded in
+`production/qa/evidence/rat-king-boss-frame-animation-2026-06-25.md` and
+`production/qa/evidence/rat-king-specialized-attack-animation-2026-06-25.md`.

@@ -56,8 +56,9 @@ encounter is complete.
 
 ## Out of Scope
 
-- Full final Rat King AI attack scheduler and all GDD special attacks:
-  `charge`, `claw_attack`, `summon`, `jump_slam`, and `combo_attack`.
+- Full final Rat King AI attack scheduler and all data-aligned GDD special
+  attack presentations; later split across Boss Configuration Story008 and
+  Combat Presentation Story015.
 - Phase 2 live minion scene spawning, full arena geometry mutations, boss music
   state machine, bespoke boss SFX, defeat cutscene, dash unlock presentation,
   and complete progression reward consumption.

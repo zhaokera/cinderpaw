@@ -46,8 +46,9 @@ contract while keeping runtime BossConfig/AI integration out of scope.
 - Replacing `MainScene/Enemy` with a runtime Rat King boss.
 - Implementing `RatKingBoss` gameplay, BossConfig wiring, AI scheduling,
   summons, arena changes, rewards, or phase damage windows.
-- Full specialized Boss attack animation coverage beyond this first slice:
-  `charge`, `claw_attack`, `summon`, `jump_slam`, and `combo_attack`.
+- Full specialized Boss attack animation coverage beyond this first slice;
+  later covered by Story015 with data-aligned `charge`, `claw_swipe`,
+  `summon_minion`, `slam`, and `berserk_combo` animations.
 - Boss theme, SFX, or HUD phase text changes.
 
 ## Test Evidence

@@ -34,6 +34,18 @@ const ANIMATION_ATTACK_TELL: StringName = &"attack_tell"
 const ANIMATION_ATTACK: StringName = &"attack"
 const ANIMATION_HURT: StringName = &"hurt"
 const ANIMATION_DEATH: StringName = &"death"
+const ANIMATION_CHARGE: StringName = &"charge"
+const ANIMATION_CLAW_SWIPE: StringName = &"claw_swipe"
+const ANIMATION_SUMMON_MINION: StringName = &"summon_minion"
+const ANIMATION_SLAM: StringName = &"slam"
+const ANIMATION_BERSERK_COMBO: StringName = &"berserk_combo"
+const ATTACK_PATTERN_TO_ANIMATION: Dictionary = {
+	&"charge": ANIMATION_CHARGE,
+	&"claw_swipe": ANIMATION_CLAW_SWIPE,
+	&"summon_minion": ANIMATION_SUMMON_MINION,
+	&"slam": ANIMATION_SLAM,
+	&"berserk_combo": ANIMATION_BERSERK_COMBO,
+}
 const HEALTH_COMPONENT_SCRIPT: Script = preload("res://src/core/health_component.gd")
 const COLLISION_COMPONENT_SCRIPT: Script = preload("res://src/core/collision_component.gd")
 const COMBAT_COMPONENT_SCRIPT: Script = preload("res://src/core/combat_component.gd")
@@ -119,7 +131,7 @@ func request_attack_pattern(pattern_id: StringName) -> bool:
 	_active_attack_metadata.clear()
 	_state = State.ATTACK_TELL
 	_attack_timer = _ai.get_effective_attack_startup_frames()
-	_play_character_animation(ANIMATION_ATTACK_TELL, true)
+	_play_character_animation(get_attack_animation_for_pattern(pattern_id), true)
 	return true
 
 
@@ -309,6 +321,27 @@ func get_current_attack_startup_frames() -> int:
 	return _ai.get_effective_attack_startup_frames()
 
 
+## Returns the SpriteFrames animation that presents one AI attack pattern.
+func get_attack_animation_for_pattern(pattern_id: StringName) -> StringName:
+	var animation_name: StringName = StringName(ATTACK_PATTERN_TO_ANIMATION.get(
+		pattern_id,
+		ANIMATION_ATTACK
+	))
+	if _sprite != null and _sprite.sprite_frames != null \
+			and _sprite.sprite_frames.has_animation(animation_name):
+		return animation_name
+	return ANIMATION_ATTACK
+
+
+## Plays a BossConfig special-attack presentation hook without spawning gameplay entities.
+func play_special_attack_animation(special_attack_id: StringName) -> bool:
+	var animation_name: StringName = get_attack_animation_for_pattern(special_attack_id)
+	if animation_name == ANIMATION_ATTACK and special_attack_id != ANIMATION_ATTACK:
+		return false
+	_play_character_animation(animation_name, true)
+	return StringName(_sprite.animation) == animation_name
+
+
 func get_attack_speed_modifier() -> float:
 	if _ai == null:
 		return 1.0
@@ -387,7 +420,7 @@ func _process_hit(delta: float) -> void:
 func _process_attack_tell(_delta: float) -> void:
 	velocity.x = 0.0
 	_update_sprite_facing()
-	_play_character_animation(ANIMATION_ATTACK_TELL)
+	_play_character_animation(_current_attack_animation())
 	_process_ai_attack(_delta)
 
 
@@ -407,7 +440,7 @@ func _enter_attack_active() -> void:
 
 func _process_attack_active(_delta: float) -> void:
 	velocity.x = 0.0
-	_play_character_animation(ANIMATION_ATTACK)
+	_play_character_animation(_current_attack_animation())
 	_process_ai_attack(_delta)
 
 
@@ -434,15 +467,18 @@ func _sync_state_from_ai_attack() -> void:
 		&"startup":
 			_state = State.ATTACK_TELL
 			_attack_timer = maxi(1, _ai.get_effective_attack_startup_frames() - _ai.get_attack_frame())
-			_play_character_animation(ANIMATION_ATTACK_TELL)
+			_play_character_animation(_current_attack_animation())
 		&"active":
 			_state = State.ATTACK_ACTIVE
 			_attack_timer = ATTACK_ACTIVE_FRAMES
-			_play_character_animation(ANIMATION_ATTACK, previous_state != State.ATTACK_ACTIVE)
+			_play_character_animation(
+				_current_attack_animation(),
+				previous_state != State.ATTACK_ACTIVE
+			)
 		&"recovery":
 			_state = State.ATTACK_RECOVERY
 			_attack_timer = ATTACK_RECOVERY_FRAMES
-			_play_character_animation(ANIMATION_ATTACK)
+			_play_character_animation(_current_attack_animation())
 		_:
 			_finish_ai_attack_if_needed()
 
@@ -695,6 +731,12 @@ func _update_sprite_facing() -> void:
 	if _sprite == null:
 		return
 	_sprite.flip_h = _facing < 0.0
+
+
+func _current_attack_animation() -> StringName:
+	if _ai == null:
+		return ANIMATION_ATTACK
+	return get_attack_animation_for_pattern(_ai.get_current_attack_pattern_id())
 
 
 func _play_character_animation(animation_name: StringName, restart: bool = false) -> void:
