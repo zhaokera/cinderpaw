@@ -25,6 +25,9 @@ const MAX_CONCURRENT_SFX: int = 16
 const MAX_SFX_DISTANCE_PX: float = 600.0
 const SCENE_TRANSITION_FORCE_FADE_SEC: float = 2.0
 const DEFAULT_SCENE_CROSSFADE_SEC: float = 3.0
+const BOSS_MUSIC_HARD_CUT_SEC: float = 1.0
+const BOSS_PHASE_MUSIC_TRANSITION_SEC: float = 2.0
+const BOSS_MUSIC_END_FADE_SEC: float = 3.0
 const AUDIO_STATE_NORMAL: StringName = &"NORMAL"
 const AUDIO_STATE_BOSS_FIGHT: StringName = &"BOSS_FIGHT"
 const AUDIO_STATE_LOW_HP: StringName = &"LOW_HP"
@@ -51,10 +54,18 @@ const DEFAULT_SCENE_AUDIO_CUES: Dictionary = {
 		"crossfade_sec": DEFAULT_SCENE_CROSSFADE_SEC,
 	},
 }
+const DEFAULT_BOSS_MUSIC_CUES: Dictionary = {
+	"boss_01_rat_king": {
+		1: &"mus_boss_rat_p1",
+		2: &"mus_boss_rat_p2",
+		3: &"mus_boss_rat_p3",
+	},
+}
 
 var _bus_volume_percent: Dictionary = {}
 var _audio_streams: Dictionary = {}
 var _scene_audio_cues: Dictionary = {}
+var _boss_music_cues: Dictionary = {}
 var _sfx_players: Array[AudioStreamPlayer2D] = []
 var _music_player: AudioStreamPlayer
 var _ambient_player: AudioStreamPlayer
@@ -76,10 +87,16 @@ var _scene_transition_failed_reason: StringName = &""
 var _audio_state: StringName = AUDIO_STATE_NORMAL
 var _focus_mode_audio_active: bool = false
 var _last_gameplay_audio_event: Dictionary = {}
+var _boss_music_active: bool = false
+var _current_boss_id: StringName = &""
+var _current_boss_phase: int = 0
+var _current_boss_music_id: StringName = &""
+var _last_boss_music_event: Dictionary = {}
 
 
 func _ready() -> void:
 	configure_scene_audio_cues(DEFAULT_SCENE_AUDIO_CUES)
+	configure_boss_music_cues(DEFAULT_BOSS_MUSIC_CUES)
 	_initialize_buses()
 	_initialize_audio_players()
 
@@ -281,6 +298,44 @@ func get_scene_audio_cue(scene_id: StringName) -> Dictionary:
 	return Dictionary(_scene_audio_cues.get(String(scene_id), {})).duplicate(true)
 
 
+func configure_boss_music_cues(boss_music_cues: Dictionary) -> void:
+	_boss_music_cues.clear()
+	for boss_key: Variant in boss_music_cues.keys():
+		var phase_cues_value: Variant = boss_music_cues.get(boss_key)
+		if not phase_cues_value is Dictionary:
+			continue
+		var normalized_phase_cues: Dictionary = {}
+		var phase_cues: Dictionary = Dictionary(phase_cues_value)
+		for phase_key: Variant in phase_cues.keys():
+			var phase: int = int(phase_key)
+			var music_id: StringName = StringName(String(phase_cues.get(phase_key, "")))
+			if phase <= 0 or music_id == &"":
+				continue
+			normalized_phase_cues[phase] = music_id
+		if not normalized_phase_cues.is_empty():
+			_boss_music_cues[String(boss_key)] = normalized_phase_cues
+
+
+func get_boss_music_cue(boss_id: StringName, phase: int) -> StringName:
+	var phase_cues: Dictionary = Dictionary(_boss_music_cues.get(String(boss_id), {}))
+	return StringName(String(phase_cues.get(phase, "")))
+
+
+func is_boss_music_active() -> bool:
+	return _boss_music_active
+
+
+func get_boss_music_state() -> Dictionary:
+	return {
+		"active": _boss_music_active,
+		"boss_id": _current_boss_id,
+		"phase": _current_boss_phase,
+		"music_id": _current_boss_music_id,
+		"audio_state": _audio_state,
+		"last_event": _last_boss_music_event.duplicate(true),
+	}
+
+
 func is_scene_transition_audio_active() -> bool:
 	return _scene_transition_audio_active
 
@@ -474,19 +529,64 @@ func on_enemy_defeated(metadata: Dictionary = {}) -> bool:
 	)
 
 
+## Starts boss-fight music for a runtime encounter.
+func on_boss_encounter_started(boss_id: StringName, metadata: Dictionary = {}) -> bool:
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	var phase: int = maxi(1, int(event_metadata.get("phase", 1)))
+	return _request_boss_music(
+		&"boss_encounter_started",
+		_normalize_boss_id(boss_id, event_metadata),
+		phase,
+		BOSS_MUSIC_HARD_CUT_SEC,
+		event_metadata
+	)
+
+
 ## Routes boss phase transition presentation metadata to boss phase SFX.
 func on_boss_phase_transition_started(entity_id: int, phase: int, metadata: Dictionary) -> bool:
 	_audio_state = AUDIO_STATE_BOSS_FIGHT
 	var event_metadata: Dictionary = metadata.duplicate(true)
 	event_metadata["entity_id"] = entity_id
 	event_metadata["phase"] = phase
-	return _request_gameplay_sfx(
+	var boss_music_requested: bool = _request_boss_music(
+		&"boss_phase_transition",
+		_normalize_boss_id(&"", event_metadata),
+		phase,
+		BOSS_PHASE_MUSIC_TRANSITION_SEC,
+		event_metadata
+	)
+	var phase_sfx_requested: bool = _request_gameplay_sfx(
 		&"boss_phase_transition",
 		&"sfx_boss_phase",
 		_event_position(event_metadata, ["world_position", "position", "hit_position"]),
 		SFX_PRIORITY_CRITICAL,
 		event_metadata
 	)
+	return boss_music_requested or phase_sfx_requested
+
+
+## Ends boss-fight music without requiring area music to be ready yet.
+func on_boss_encounter_ended(boss_id: StringName, metadata: Dictionary = {}) -> void:
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	var ended_boss_id: StringName = _normalize_boss_id(boss_id, event_metadata)
+	event_metadata["boss_id"] = ended_boss_id
+	_last_boss_music_event = {
+		"event_id": &"boss_encounter_ended",
+		"boss_id": ended_boss_id,
+		"phase": _current_boss_phase,
+		"music_id": _current_boss_music_id,
+		"transition_kind": &"boss_end",
+		"transition_sec": BOSS_MUSIC_END_FADE_SEC,
+		"fade_out_sec": BOSS_MUSIC_END_FADE_SEC,
+		"reason": StringName(String(event_metadata.get("reason", ""))),
+		"metadata": event_metadata.duplicate(true),
+	}
+	_boss_music_active = false
+	_current_boss_id = &""
+	_current_boss_phase = 0
+	_current_boss_music_id = &""
+	_audio_state = AUDIO_STATE_LOW_HP if _focus_mode_audio_active else AUDIO_STATE_NORMAL
+	stop_music(BOSS_MUSIC_END_FADE_SEC)
 
 
 func _initialize_buses() -> void:
@@ -616,6 +716,49 @@ func _normalize_scene_audio_cue(cue: Dictionary) -> Dictionary:
 			float(cue.get("crossfade_sec", DEFAULT_SCENE_CROSSFADE_SEC))
 		),
 	}
+
+
+func _normalize_boss_id(boss_id: StringName, metadata: Dictionary) -> StringName:
+	if boss_id != &"":
+		return boss_id
+	return StringName(String(metadata.get("boss_id", "")))
+
+
+func _request_boss_music(
+	event_id: StringName,
+	boss_id: StringName,
+	phase: int,
+	fade_in_sec: float,
+	metadata: Dictionary
+) -> bool:
+	if boss_id == &"":
+		return false
+	var music_id: StringName = get_boss_music_cue(boss_id, phase)
+	if music_id == &"":
+		return false
+	var transition_sec: float = maxf(0.0, fade_in_sec)
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	event_metadata["boss_id"] = boss_id
+	event_metadata["phase"] = phase
+	_boss_music_active = true
+	_current_boss_id = boss_id
+	_current_boss_phase = phase
+	_current_boss_music_id = music_id
+	_audio_state = AUDIO_STATE_BOSS_FIGHT
+	_last_boss_music_event = {
+		"event_id": event_id,
+		"boss_id": boss_id,
+		"phase": phase,
+		"music_id": music_id,
+		"transition_kind": &"hard_cut" if phase <= 1 else &"phase_transition",
+		"transition_sec": transition_sec,
+		"fade_in_sec": transition_sec,
+		"stream_found": _audio_streams.has(music_id),
+		"audio_state": _audio_state,
+		"world_position": _event_position(event_metadata, ["world_position", "position", "hit_position"]),
+		"metadata": event_metadata.duplicate(true),
+	}
+	return play_music(music_id, transition_sec)
 
 
 func _request_gameplay_sfx(

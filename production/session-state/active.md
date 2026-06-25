@@ -16,16 +16,31 @@
   BossConfig Story009 Rat King live phase 2 summon runtime integration、
   SceneManagement Story008 boss arena mutation runtime、
   SceneManagement Story009 electric leak contact damage、
-  SceneManagement Story010 scene memory budget diagnostics 已完成；
+  SceneManagement Story010 scene memory budget diagnostics、AudioSystem
+  Story004 Rat King boss music state transitions 已完成；
   下一步推进 final arena VFX、boss arena mutation save-state persistence、
   real platform profiler evidence、low-memory UI prompt routing、UI menu audio、
-  Boss music state transitions、
   same-SFX merge 和 real audio asset import stories，以及玩家可见角色/敌人帧动画
   持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Audio System Story 004: Rat King Boss Music State Transitions —
+  `AudioSystem` 新增 Rat King boss music cue map 与
+  `on_boss_encounter_started()`、`on_boss_encounter_ended()`、
+  `get_boss_music_state()`；Boss start 进入 `BOSS_FIGHT` 并请求
+  `mus_boss_rat_p1`/`1.0` hard-cut，phase 2/3 在保留 `sfx_boss_phase` 的同时请求
+  `mus_boss_rat_p2`/`mus_boss_rat_p3`/`2.0` phase transition，defeat/end 清空
+  boss music state 并 `3.0` fade-out 回到 `NORMAL`（focus active 时仍保留
+  LOW_HP 逻辑）。`MainScene` 作为 runtime adapter 在配置 AudioSystem 时转发
+  Rat King encounter start，在 `_on_enemy_defeated()` 转发 encounter end，并给
+  phase transition metadata 补 `boss_id`，不让 RatKingBoss、BossConfig、
+  AIComponent 或 GameFlow 依赖 AudioSystem。通过 RED `report_535`、GREEN
+  focused `report_536` `19/19`、最终相关回归 `report_538` `24/24`、headless
+  smoke、Godot MCP runtime boss music state probe、clean logs 和
+  `reports/visual/cinderpaw-mcp-boss-music-state-20260625.png` 验证。QA evidence:
+  `production/qa/evidence/audio-boss-music-state-transitions-2026-06-25.md`。
 - Scene Management Story 011: Rat King Final Arena VFX — 使用 image generation
   生成 Rat King arena VFX 三段图，复制到
   `assets/generated/source/rat_king_arena_vfx_imagegen_20260625.png`，alpha
@@ -2060,3 +2075,14 @@
 - Asset note: no image-generated visual asset was required for this audio infrastructure slice; real SFX/music/ambience asset generation/import is deferred to later audio content stories.
 - Blockers: None
 - Next: implement Audio System Story 002 scene-transition audio fades by wiring SceneManager transition events to AudioSystem-owned fade APIs, then add real generated/imported audio content and combat event adapters.
+
+## Session Extract — /dev-story 2026-06-25
+
+- Story: `production/epics/audio-system/story-004-boss-music-state-transitions.md` — Rat King Boss Music State Transitions
+- Files changed: `src/presentation/audio_system.gd`, `src/gameplay/main_scene.gd`, `tests/unit/presentation/audio_system_test.gd`, `tests/unit/gameplay/main_scene_audio_event_adapter_test.gd`, `production/epics/audio-system/EPIC.md`, `production/epics/index.md`, `production/epics/audio-system/story-004-boss-music-state-transitions.md`, `production/qa/evidence/audio-boss-music-state-transitions-2026-06-25.md`, `production/session-state/active.md`
+- Implementation: `AudioSystem` now owns Rat King boss music cue diagnostics for encounter start, phase 2/3 transition, and encounter end. `MainScene` forwards Rat King encounter start and defeat/end events to AudioSystem and enriches phase transition metadata with `boss_id` without coupling RatKingBoss, BossConfig, AIComponent, or GameFlow to Presentation.
+- Test written: `tests/unit/presentation/audio_system_test.gd` extended with boss music state regression; `tests/unit/gameplay/main_scene_audio_event_adapter_test.gd` extended with Rat King boss music start/end forwarding.
+- Verification: RED failed on missing boss music API/MainScene start forwarding (`reports/report_535/`); GREEN focused AudioSystem/MainScene adapter `19/19` (`reports/report_536/`); final related regression after Godot warning cleanup `24/24` (`reports/report_538/`); headless main-scene smoke clean; Godot MCP runtime boss music state probe/log/screenshot evidence captured.
+- Asset note: no image-generated visual asset was required for this audio state slice.
+- Blockers: None
+- Next: continue UI menu audio, same-SFX merge, real audio asset import, boss arena persistence, platform profiler evidence, or player-visible frame animation audit slices.

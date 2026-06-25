@@ -123,6 +123,7 @@ var _pending_manual_save_slot: int = -1
 var _scene_manager: Object = null
 var _connected_scene_manager: Object = null
 var _audio_system: Object = null
+var _boss_music_audio_system: Object = null
 var _last_discovered_savepoint: Dictionary = {}
 var _summons_container: Node2D = null
 var _summoned_minions: Array[Node] = []
@@ -270,6 +271,12 @@ func _on_enemy_defeated() -> void:
 		"target_id": RAT_KING_BOSS_ID,
 		"position": _enemy.global_position + Vector2(0, -24),
 	}])
+	var boss_end_metadata: Dictionary = _build_boss_audio_metadata(_get_enemy_phase())
+	boss_end_metadata["reason"] = &"defeated"
+	_dispatch_audio_event(&"on_boss_encounter_ended", [
+		StringName(RAT_KING_BOSS_ID),
+		boss_end_metadata,
+	])
 	_combat_presentation.on_kill_event(2, _enemy.global_position + Vector2(0, -24))
 	_game_flow.handle_enemy_defeated()
 	set_world_progress_flag(&"boss_rat_king_defeated", true)
@@ -697,7 +704,11 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 
 func configure_audio_system_runtime(audio_system: Object) -> bool:
 	_audio_system = audio_system
-	return _is_valid_audio_system(_audio_system)
+	if not _is_valid_audio_system(_audio_system):
+		_boss_music_audio_system = null
+		return false
+	_dispatch_boss_encounter_started_if_supported()
+	return true
 
 
 func _request_scene_manager_transition(scene_id: StringName, spawn_point: StringName) -> bool:
@@ -1137,6 +1148,7 @@ func is_boss_phase_transition_source_connected() -> bool:
 
 func _handle_boss_phase_transition_started(entity_id: int, phase: int, metadata: Dictionary) -> void:
 	var enriched_metadata: Dictionary = metadata.duplicate(true)
+	enriched_metadata["boss_id"] = RAT_KING_BOSS_ID
 	if not enriched_metadata.has("world_position") and is_instance_valid(_enemy):
 		enriched_metadata["world_position"] = _enemy.global_position + Vector2(0, -24)
 	if is_instance_valid(_hud) and is_instance_valid(_enemy):
@@ -1148,6 +1160,33 @@ func _handle_boss_phase_transition_started(entity_id: int, phase: int, metadata:
 		)
 	_combat_presentation.on_boss_phase_transition_started(entity_id, phase, enriched_metadata)
 	_dispatch_audio_event(&"on_boss_phase_transition_started", [entity_id, phase, enriched_metadata])
+
+
+func _dispatch_boss_encounter_started_if_supported() -> bool:
+	if _audio_system == null or not is_instance_valid(_audio_system):
+		return false
+	if _boss_music_audio_system == _audio_system:
+		return true
+	if not _audio_system.has_method("on_boss_encounter_started"):
+		return false
+	_boss_music_audio_system = _audio_system
+	_audio_system.call(
+		"on_boss_encounter_started",
+		StringName(RAT_KING_BOSS_ID),
+		_build_boss_audio_metadata(1)
+	)
+	return true
+
+
+func _build_boss_audio_metadata(phase: int) -> Dictionary:
+	var metadata: Dictionary = {
+		"boss_id": RAT_KING_BOSS_ID,
+		"display_name": _get_enemy_display_name(),
+		"phase": maxi(1, phase),
+	}
+	if is_instance_valid(_enemy):
+		metadata["world_position"] = _enemy.global_position + Vector2(0, -24)
+	return metadata
 
 
 func _on_hud_colorblind_mode_changed(mode: StringName) -> void:

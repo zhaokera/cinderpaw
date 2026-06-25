@@ -20,6 +20,8 @@ class FakeAudioSystem:
 	var focus_events: Array[Dictionary] = []
 	var enemy_defeated_events: Array[Dictionary] = []
 	var boss_phase_events: Array[Dictionary] = []
+	var boss_encounter_started_events: Array[Dictionary] = []
+	var boss_encounter_ended_events: Array[Dictionary] = []
 	var weapon_attack_events: Array[Dictionary] = []
 
 	func on_scene_load_started(
@@ -79,6 +81,19 @@ class FakeAudioSystem:
 			"metadata": metadata.duplicate(true),
 		})
 		return false
+
+	func on_boss_encounter_started(boss_id: StringName, metadata: Dictionary) -> bool:
+		boss_encounter_started_events.append({
+			"boss_id": boss_id,
+			"metadata": metadata.duplicate(true),
+		})
+		return false
+
+	func on_boss_encounter_ended(boss_id: StringName, metadata: Dictionary) -> void:
+		boss_encounter_ended_events.append({
+			"boss_id": boss_id,
+			"metadata": metadata.duplicate(true),
+		})
 
 	func on_weapon_attack_event(attack_data: Dictionary) -> bool:
 		weapon_attack_events.append(attack_data.duplicate(true))
@@ -211,6 +226,30 @@ func test_focus_enemy_defeat_and_boss_phase_events_route_to_audio_system() -> vo
 		"world_position",
 		Vector2.ZERO
 	)).is_equal(Vector2(320, 360))
+
+
+func test_rat_king_boss_music_start_and_end_events_route_to_audio_system() -> void:
+	var audio_system: FakeAudioSystem = _configure_fake_audio_system()
+
+	assert_int(audio_system.boss_encounter_started_events.size()).is_equal(1)
+	if audio_system.boss_encounter_started_events.size() != 1:
+		return
+	var start_event: Dictionary = audio_system.boss_encounter_started_events[0]
+	assert_str(String(start_event.get("boss_id", &""))).is_equal("boss_01_rat_king")
+	var start_metadata: Dictionary = Dictionary(start_event.get("metadata", {}))
+	assert_int(int(start_metadata.get("phase", 0))).is_equal(1)
+	assert_str(String(start_metadata.get("display_name", ""))).is_equal("垃圾桶鼠王")
+	assert_bool(start_metadata.has("world_position")).is_true()
+
+	scene.call("_on_enemy_defeated")
+
+	assert_int(audio_system.boss_encounter_ended_events.size()).is_equal(1)
+	if audio_system.boss_encounter_ended_events.size() != 1:
+		return
+	var end_event: Dictionary = audio_system.boss_encounter_ended_events[0]
+	assert_str(String(end_event.get("boss_id", &""))).is_equal("boss_01_rat_king")
+	var end_metadata: Dictionary = Dictionary(end_event.get("metadata", {}))
+	assert_str(String(end_metadata.get("reason", &""))).is_equal("defeated")
 
 
 func test_incomplete_audio_system_does_not_block_existing_gameplay_presentation() -> void:

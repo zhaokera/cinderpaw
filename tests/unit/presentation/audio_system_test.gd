@@ -315,6 +315,67 @@ func test_parry_dodge_enemy_death_and_boss_phase_events_route_to_expected_sfx() 
 	assert_str(String(audio_system.call("get_audio_state"))).is_equal("BOSS_FIGHT")
 
 
+func test_boss_music_state_hard_cuts_phase_transitions_and_ends_cleanly() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	for method_name: String in [
+		"on_boss_encounter_started",
+		"on_boss_phase_transition_started",
+		"on_boss_encounter_ended",
+		"get_boss_music_state",
+	]:
+		assert_bool(audio_system.has_method(method_name)).is_true()
+		if not audio_system.has_method(method_name):
+			return
+
+	assert_bool(bool(audio_system.call("on_boss_encounter_started", &"boss_01_rat_king", {
+		"display_name": "垃圾桶鼠王",
+		"world_position": Vector2(300, 420),
+	}))).is_false()
+	var started_state: Dictionary = Dictionary(audio_system.call("get_boss_music_state"))
+	assert_bool(bool(started_state.get("active", false))).is_true()
+	assert_str(String(started_state.get("boss_id", &""))).is_equal("boss_01_rat_king")
+	assert_int(int(started_state.get("phase", 0))).is_equal(1)
+	assert_str(String(started_state.get("music_id", &""))).is_equal("mus_boss_rat_p1")
+	assert_str(String(audio_system.get_current_music_id())).is_equal("mus_boss_rat_p1")
+	assert_float(audio_system.get_music_fade_in_sec()).is_equal(1.0)
+	assert_str(String(audio_system.call("get_audio_state"))).is_equal("BOSS_FIGHT")
+
+	assert_bool(bool(audio_system.call("on_boss_phase_transition_started", 2, 2, {
+		"boss_id": "boss_01_rat_king",
+		"world_position": Vector2(320, 360),
+	}))).is_false()
+	var phase_two_state: Dictionary = Dictionary(audio_system.call("get_boss_music_state"))
+	assert_bool(bool(phase_two_state.get("active", false))).is_true()
+	assert_int(int(phase_two_state.get("phase", 0))).is_equal(2)
+	assert_str(String(phase_two_state.get("music_id", &""))).is_equal("mus_boss_rat_p2")
+	assert_str(String(audio_system.get_current_music_id())).is_equal("mus_boss_rat_p2")
+	assert_float(audio_system.get_music_fade_in_sec()).is_equal(2.0)
+
+	assert_bool(bool(audio_system.call("on_boss_phase_transition_started", 2, 3, {
+		"boss_id": "boss_01_rat_king",
+		"world_position": Vector2(340, 380),
+	}))).is_false()
+	var phase_three_state: Dictionary = Dictionary(audio_system.call("get_boss_music_state"))
+	assert_int(int(phase_three_state.get("phase", 0))).is_equal(3)
+	assert_str(String(phase_three_state.get("music_id", &""))).is_equal("mus_boss_rat_p3")
+	assert_str(String(audio_system.get_current_music_id())).is_equal("mus_boss_rat_p3")
+	assert_float(audio_system.get_music_fade_in_sec()).is_equal(2.0)
+
+	audio_system.call("on_boss_encounter_ended", &"boss_01_rat_king", {
+		"reason": &"defeated",
+	})
+	var ended_state: Dictionary = Dictionary(audio_system.call("get_boss_music_state"))
+	assert_bool(bool(ended_state.get("active", true))).is_false()
+	assert_str(String(ended_state.get("boss_id", &"missing"))).is_equal("")
+	assert_int(int(ended_state.get("phase", -1))).is_equal(0)
+	assert_str(String(ended_state.get("music_id", &"missing"))).is_equal("")
+	assert_str(String(audio_system.get_current_music_id())).is_equal("")
+	assert_float(audio_system.get_music_fade_out_sec()).is_equal(3.0)
+	assert_str(String(audio_system.call("get_audio_state"))).is_equal("NORMAL")
+
+
 func test_focus_mode_switches_damage_taken_to_low_hp_cue() -> void:
 	assert_object(audio_system).is_not_null()
 	if audio_system == null:
