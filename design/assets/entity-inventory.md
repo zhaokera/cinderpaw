@@ -33,7 +33,7 @@ All new visual assets in this inventory should be produced from image2 / image g
 | 13 | Electromagnetic Bell | Item / Weapon | Bell weapon icon with slow/status-effect visual language. | design/gdd/weapon-styles.md; design/gdd/status-effects.md | Needed |
 | 14 | Charm Icons | Item / Equipment | Power, crit, speed, shield, dash, and parry charm icons, 24x24 source with 16x16 HUD versions. | design/gdd/charm-equipment.md | Needed |
 | 15 | Save Point Cat Nest | Structure / Interactive | Warm safe checkpoint nest, readable as healing and respawn anchor. | design/gdd/save-system.md; design/gdd/death-respawn.md; design/art/art-bible.md | Needed |
-| 16 | Ability Gate Electric Fence | Structure / Gate | Dash-gated electric fence with readable locked/unlockable/unlocked states. | design/gdd/exploration-ability-gating.md | Needed |
+| 16 | Ability Gate Electric Fence | Structure / Gate | Dash-gated electric fence with readable locked/unlockable/unlocked states. | design/gdd/exploration-ability-gating.md; production/epics/player-abilities/story-002-dash-exploration-gate-runtime.md | Imported baseline |
 | 17 | High Platform Gate | Environment / Gate | Double-jump route marker using high platform and cat claw marks. | design/gdd/exploration-ability-gating.md | Needed |
 | 18 | Breakable Wall | Environment / Interactive | Cracked wall with escalating crack frames and debris particles. | design/gdd/exploration-ability-gating.md | Needed |
 | 19 | Hidden Room Entrance | Environment / Interactive | Purple mystery outline, subtle discoverable edge glow, hidden-to-revealed transition. | design/gdd/exploration-ability-gating.md; design/art/art-bible.md | Needed |

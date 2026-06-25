@@ -23,15 +23,38 @@
   combat SFX asset import baseline、AudioSystem Story006 weapon-style SFX asset
   expansion、AudioSystem Story007 UI menu audio + same-SFX merge、AudioSystem
   Story008 music + ambience asset import baseline、BossConfig Story010 Rat King
-  defeat reward runtime consumption 已完成；
+  defeat reward runtime consumption、Player Abilities Story002
+  ExplorationGate dash 门控 已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
   routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
   area cue expansion、broader audio mix polish、skill-tree spending UI、
-  ExplorationGate dash 门控，以及玩家可见角色/敌人帧动画持续审计。
+  其他 ExplorationGate 能力门，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 002: Dash Exploration Gate Runtime —
+  新增 `src/feature/exploration_gate.gd` 场景级能力门控组件，支持
+  `locked` / `unlockable` / `unlocked` 三态、Player/AbilityComponent
+  `has_ability("dash")` 查询、`ability_unlocked` 与 `ability_activated`
+  监听、近距离 Dash 解锁、碰撞开关、提示文本与视觉 modulate 更新。
+  `scenes/main.tscn` 新增 `DashExplorationGate`，复用现有 image-generated
+  `assets/environment/rat_king_arena/electric_leak.png` 作为可替换 baseline
+  电栅栏视觉；无 Dash 时阻挡并显示 `Requires Dash`，Rat King reward /
+  `MainScene.unlock_ability("dash")` 后变 `unlockable` 并显示 `Dash through`，
+  玩家在门旁执行 Dash 后变 `unlocked`、关闭碰撞并隐藏提示。`MainScene`
+  现在同步 `exploration_gate` 组，记录 `world_state.exploration_gates.unlocked`
+  与 `gate_dash_gate_commercial_street_unlocked`、`area_02_sewer_unlocked`
+  world flags，并在 restore 时恢复已打开 gate。通过 RED `report_599`、
+  GREEN focused `report_604` `2/2`、related regression `report_606` `12/12`、
+  headless smoke `reports/exploration_gate_dash_main_scene_smoke.log`、Godot
+  MCP runtime `locked -> unlockable -> unlocked` probe、clean runtime logs 和
+  screenshot
+  `reports/visual/cinderpaw-mcp-dash-exploration-gate-runtime-20260626.png`
+  验证。GdUnit/headless process exit 仍出现既有 ObjectDB/resource cleanup
+  warnings；focused/related test results 和 MCP runtime logs clean。QA
+  evidence:
+  `production/qa/evidence/dash-exploration-gate-runtime-2026-06-26.md`。
 - Player Abilities Story 001: Dash Runtime Ability Gate —
   新增 `data/abilities.json` 与 `data/schemas/abilities.schema.json`，并在
   `data/manifest.json` 注册 `abilities` domain；新增

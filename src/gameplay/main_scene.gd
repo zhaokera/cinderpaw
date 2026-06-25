@@ -186,6 +186,7 @@ func _ready() -> void:
 	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), 1, _get_enemy_display_name())
 	_hud.update_currency(_currency_amount)
 	_sync_player_unlocked_abilities()
+	_sync_exploration_gates()
 	_update_weapon_hud()
 	configure_save_system_runtime(get_node_or_null("/root/SaveSystem"))
 	configure_scene_manager_runtime(get_node_or_null("/root/SceneManager"))
@@ -782,6 +783,7 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 		snapshot.get("unlocked_abilities", _unlocked_abilities)
 	)
 	_sync_player_unlocked_abilities()
+	_sync_exploration_gates()
 	_inventory_items = _read_string_name_array(snapshot.get("inventory", _inventory_items))
 	var weapon_state: Dictionary = Dictionary(snapshot.get("weapons", {}))
 	_current_weapon_id = StringName(String(weapon_state.get("current_weapon", String(_current_weapon_id))))
@@ -823,6 +825,7 @@ func unlock_ability(ability_id: StringName) -> void:
 		_unlocked_abilities.append(ability_id)
 		_record_boss_reward_ability(ability_id)
 	_sync_player_unlocked_abilities()
+	_sync_exploration_gates()
 	_refresh_victory_reward_feedback_if_needed()
 
 
@@ -1200,6 +1203,7 @@ func restore_save_snapshot(snapshot: Dictionary) -> void:
 	var settings: Dictionary = Dictionary(snapshot.get("settings", {}))
 	_restore_player_state(player_state)
 	_restore_runtime_progress_state(player_state, world_state, settings)
+	_restore_exploration_gate_save_state(world_state)
 	_restore_arena_mutations_from_world_state(world_state)
 
 
@@ -1424,6 +1428,7 @@ func _capture_world_state() -> Dictionary:
 		"scene_id": MAIN_SCENE_ID,
 		"defeated_bosses": _get_defeated_bosses(),
 		"arena_mutations": get_arena_mutation_save_state(),
+		"exploration_gates": _capture_exploration_gate_save_state(),
 		"world_flags": _world_progress_flags.duplicate(true),
 		"last_savepoint": _last_discovered_savepoint.duplicate(true),
 	}
@@ -1504,10 +1509,91 @@ func _sync_player_unlocked_abilities() -> void:
 		return
 	if _player.has_method("set_unlocked_abilities"):
 		_player.set_unlocked_abilities(_unlocked_abilities)
-		return
-	if _player.has_method("unlock_ability"):
+	elif _player.has_method("unlock_ability"):
 		for ability_id: StringName in _unlocked_abilities:
 			_player.unlock_ability(ability_id)
+
+
+func get_exploration_gate_nodes() -> Array:
+	var gates: Array = []
+	if not is_inside_tree():
+		return gates
+	for gate: Node in get_tree().get_nodes_in_group("exploration_gate"):
+		if gate != null and is_instance_valid(gate) and is_ancestor_of(gate):
+			gates.append(gate)
+	return gates
+
+
+func _sync_exploration_gates() -> void:
+	for gate: Node in get_exploration_gate_nodes():
+		_connect_exploration_gate_signal(gate)
+		if gate.has_method("set_ability_provider"):
+			gate.call("set_ability_provider", _player)
+		elif gate.has_method("refresh_gate_state"):
+			gate.call("refresh_gate_state")
+
+
+func _connect_exploration_gate_signal(gate: Node) -> void:
+	if gate == null or not is_instance_valid(gate) or not gate.has_signal("gate_state_changed"):
+		return
+	var state_changed: Signal = gate.get("gate_state_changed")
+	var callback := Callable(self, "_on_exploration_gate_state_changed").bind(gate)
+	if not state_changed.is_connected(callback):
+		state_changed.connect(callback)
+
+
+func _on_exploration_gate_state_changed(
+	gate_id: StringName,
+	state: StringName,
+	gate: Node
+) -> void:
+	if state != &"unlocked":
+		return
+	set_world_progress_flag(StringName("gate_%s_unlocked" % String(gate_id)), true)
+	var target_area: StringName = _exploration_gate_target_area_id(gate)
+	if target_area != &"":
+		var area_flag: String = String(target_area)
+		if not area_flag.begins_with("area_"):
+			area_flag = "area_%s" % area_flag
+		set_world_progress_flag(StringName("%s_unlocked" % area_flag), true)
+
+
+func _capture_exploration_gate_save_state() -> Dictionary:
+	var unlocked_gate_ids: Array[String] = []
+	for gate: Node in get_exploration_gate_nodes():
+		if not gate.has_method("is_unlocked") or not bool(gate.call("is_unlocked")):
+			continue
+		var gate_id: String = _exploration_gate_id(gate)
+		if not gate_id.is_empty() and not unlocked_gate_ids.has(gate_id):
+			unlocked_gate_ids.append(gate_id)
+	unlocked_gate_ids.sort()
+	return {
+		"unlocked": unlocked_gate_ids,
+	}
+
+
+func _restore_exploration_gate_save_state(world_state: Dictionary) -> void:
+	_sync_exploration_gates()
+	if not world_state.has("exploration_gates"):
+		return
+	var gate_state: Dictionary = Dictionary(world_state.get("exploration_gates", {}))
+	var unlocked_gate_ids: Array = Array(gate_state.get("unlocked", []))
+	for gate: Node in get_exploration_gate_nodes():
+		if not gate.has_method("set_gate_unlocked"):
+			continue
+		gate.call("set_gate_unlocked", unlocked_gate_ids.has(_exploration_gate_id(gate)))
+
+
+func _exploration_gate_id(gate: Node) -> String:
+	if gate != null and gate.has_method("get_gate_id"):
+		return String(gate.call("get_gate_id"))
+	return String(gate.name) if gate != null else ""
+
+
+func _exploration_gate_target_area_id(gate: Node) -> StringName:
+	if gate != null and gate.has_method("get_target_area_id"):
+		return StringName(String(gate.call("get_target_area_id")))
+	return &""
 
 
 func _record_boss_reward_ability(ability_id: StringName) -> void:

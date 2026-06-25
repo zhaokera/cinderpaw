@@ -9,6 +9,8 @@
 [ext_resource type="Script" uid="uid://dk5c1kutnlall" path="res://src/presentation/combat_presentation.gd" id="8_combat_presentation"]
 [ext_resource type="PackedScene" uid="uid://cxrtq1c5nol33" path="res://src/gameplay/rat_king_boss.tscn" id="9_85g3d"]
 [ext_resource type="Script" uid="uid://dg1hownpawbt" path="res://src/gameplay/game_flow_controller.gd" id="9_game_flow"]
+[ext_resource type="Script" path="res://src/feature/exploration_gate.gd" id="10_gate"]
+[ext_resource type="Texture2D" uid="uid://c78sfjwu3jnts" path="res://assets/environment/rat_king_arena/electric_leak.png" id="11_gate_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -18,6 +20,9 @@ size = Vector2(40, 720)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_platform"]
 size = Vector2(360, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dash_gate"]
+size = Vector2(44, 124)
 
 [node name="Main" type="Node2D" unique_id=596361816]
 script = ExtResource("6_main")
@@ -87,6 +92,39 @@ shape = SubResource("RectangleShape2D_platform")
 [node name="PlatformVisual" type="Sprite2D" parent="RaisedPlatform" unique_id=457105820]
 position = Vector2(0, 30)
 texture = ExtResource("5_platform")
+
+[node name="DashExplorationGate" type="Node2D" parent="." unique_id=809230151]
+z_index = 30
+position = Vector2(1035, 438)
+script = ExtResource("10_gate")
+gate_id = "dash_gate_commercial_street"
+required_ability = "dash"
+target_area_id = "area_02_sewer"
+unlock_radius_px = 104.0
+locked_prompt_text = "Requires Dash"
+unlockable_prompt_text = "Dash through"
+
+[node name="StaticBody2D" type="StaticBody2D" parent="DashExplorationGate" unique_id=949557688]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DashExplorationGate/StaticBody2D" unique_id=318537049]
+shape = SubResource("RectangleShape2D_dash_gate")
+
+[node name="Visual" type="Sprite2D" parent="DashExplorationGate" unique_id=1029982546]
+rotation = 1.5708
+scale = Vector2(0.48, 0.64)
+texture = ExtResource("11_gate_texture")
+
+[node name="PromptLabel" type="Label" parent="DashExplorationGate" unique_id=1770494571]
+offset_left = -65.0
+offset_top = -96.0
+offset_right = 65.0
+offset_bottom = -72.0
+theme_override_colors/font_color = Color(1, 0.86, 0.2, 1)
+theme_override_font_sizes/font_size = 16
+text = "Requires Dash"
+horizontal_alignment = 1
 
 [node name="Player" parent="." unique_id=1203527687 instance=ExtResource("1_player")]
 z_index = 20

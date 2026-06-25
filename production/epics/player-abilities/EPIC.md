@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 1 story tracked
+> **Stories**: 2 stories tracked
 
 ## Overview
 
@@ -39,6 +39,7 @@ recording the reward in progression state.
 | # | Story | Type | Status | ADR |
 |---|-------|------|--------|-----|
 | 001 | Dash Runtime Ability Gate | Integration + Gameplay Runtime + Visual | Complete | ADR-0003/0005/0018/0021 |
+| 002 | Dash Exploration Gate Runtime | Integration + Gameplay Runtime + Visual | Complete | ADR-0007/0018/0021 |
 
 ## Definition of Done
 
@@ -58,5 +59,5 @@ This epic is complete when:
 
 ## Next Step
 
-Story001 is complete. Continue skill-tree spending UI, ExplorationGate
-`requires_ability` doors, and later boss-reward ability consumers.
+Stories001-002 are complete. Continue skill-tree spending UI, additional
+ExplorationGate ability doors, and later boss-reward ability consumers.

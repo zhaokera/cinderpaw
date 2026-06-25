@@ -38,6 +38,11 @@ func test_rat_king_defeat_consumes_configured_rewards_once_and_persists_progress
 	assert_bool(Array(progress.get("unlocked_abilities", [])).has("dash")).is_true()
 	assert_int(int(progress.get("skill_points", 0))).is_equal(5)
 	assert_bool(bool(progress.get("world_flags", {}).get("boss_rat_king_defeated", false))).is_true()
+	var dash_gate: Node = scene.get_node_or_null("DashExplorationGate")
+	assert_that(dash_gate).is_not_null()
+	if dash_gate != null:
+		assert_str(String(dash_gate.call("get_gate_state"))).is_equal("unlockable")
+		assert_bool(bool(dash_gate.call("is_collision_blocking"))).is_true()
 
 	assert_str(String(hud.call("get_notification_text"))).is_equal("Dash unlocked +50 Gears +5 SP")
 	assert_str(String(hud.call("get_menu_title"))).is_equal("Rat King defeated")
