@@ -11,6 +11,15 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 const RUNTIME_DAMAGE_CALCULATOR_ADAPTER_SCRIPT: Script = preload("res://src/gameplay/runtime_damage_calculator_adapter.gd")
 const SAVE_TRIGGER_ADAPTER_SCRIPT: Script = preload("res://src/feature/save_trigger_adapter.gd")
 const RAT_MINION_SCENE: PackedScene = preload("res://src/gameplay/rat_minion.tscn")
+const GARBAGE_PILE_TEXTURE: Texture2D = preload(
+	"res://assets/environment/rat_king_arena/garbage_pile.png"
+)
+const OVERTURNED_TRASH_CAN_TEXTURE: Texture2D = preload(
+	"res://assets/environment/rat_king_arena/overturned_trash_can.png"
+)
+const ELECTRIC_LEAK_TEXTURE: Texture2D = preload(
+	"res://assets/environment/rat_king_arena/electric_leak.png"
+)
 const MAIN_SCENE_SAVE_KEY: StringName = &"main_scene"
 const SCENE_MANAGER_SAVE_KEY: StringName = &"scene"
 const MAIN_SCENE_ID: String = "main"
@@ -23,6 +32,28 @@ const RAT_MINION_SUMMON_ID: StringName = &"summon_minion"
 const RAT_MINION_SUMMON_CAP: int = 2
 const RAT_MINION_ENTITY_ID_START: int = 2000
 const RAT_MINION_SPAWN_OFFSET_X: float = 96.0
+const ARENA_OBSTACLE_LAYER: int = 16
+const ARENA_DAMAGE_ZONE_LAYER: int = 32
+const ARENA_MUTATION_LAYOUTS: Dictionary = {
+	"garbage_pile": {
+		"position": Vector2(700, 492),
+		"size": Vector2(126, 46),
+		"color": Color(0.43, 0.53, 0.50, 1.0),
+		"texture": GARBAGE_PILE_TEXTURE,
+	},
+	"overturned_trash_can": {
+		"position": Vector2(860, 486),
+		"size": Vector2(136, 56),
+		"color": Color(0.38, 0.47, 0.55, 1.0),
+		"texture": OVERTURNED_TRASH_CAN_TEXTURE,
+	},
+	"electric_leak": {
+		"position": Vector2(1010, 520),
+		"size": Vector2(160, 24),
+		"color": Color(0.50, 0.84, 1.0, 0.72),
+		"texture": ELECTRIC_LEAK_TEXTURE,
+	},
+}
 
 var _pause_menu_active: bool = false
 var _currency_amount: int = 0
@@ -46,11 +77,15 @@ var _last_discovered_savepoint: Dictionary = {}
 var _summons_container: Node2D = null
 var _summoned_minions: Array[Node] = []
 var _next_summon_entity_id: int = RAT_MINION_ENTITY_ID_START
+var _arena_mutations_container: Node2D = null
+var _applied_arena_mutation_keys: Dictionary = {}
+var _boss_scene_locked: bool = false
 
 
 func _ready() -> void:
 	_setup_weapon_component()
 	_ensure_summons_container()
+	_ensure_arena_mutations_container()
 	_setup_player_attack_core_chain()
 	_setup_enemy_attack_core_chain()
 	_game_flow.set_no_loss_state_adapter(self)
@@ -100,6 +135,7 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	cleanup_temporary_summons()
+	cleanup_arena_mutations()
 	_disconnect_scene_manager_signals()
 	_disconnect_boss_phase_transition_source()
 	_unregister_main_scene_from_save_system()
@@ -176,6 +212,7 @@ func _on_enemy_health_changed(current_hp: int, max_hp: int) -> void:
 
 func _on_enemy_defeated() -> void:
 	cleanup_temporary_summons()
+	cleanup_arena_mutations()
 	_dispatch_audio_event(&"on_enemy_defeated", [{
 		"target_id": RAT_KING_BOSS_ID,
 		"position": _enemy.global_position + Vector2(0, -24),
@@ -320,6 +357,7 @@ func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
 	if not is_instance_valid(_enemy):
 		return
 	cleanup_temporary_summons()
+	cleanup_arena_mutations()
 	var enemy_snapshot: Dictionary = Dictionary(snapshot.get("enemy", {}))
 	_enemy.restore_respawn_snapshot(enemy_snapshot)
 	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), _get_enemy_phase(), _get_enemy_display_name())
@@ -402,8 +440,76 @@ func apply_damage(target_id: int, final_damage: int, metadata: Dictionary = {}) 
 	return true
 
 
+func apply_arena_changes(boss_id: StringName, phase: int, changes: Array) -> void:
+	for raw_change: Variant in changes:
+		if not raw_change is Dictionary:
+			continue
+		var change: Dictionary = Dictionary(raw_change)
+		var change_id: StringName = StringName(String(change.get("id", "")))
+		var change_type: StringName = StringName(String(change.get("type", "")))
+		if change_id == &"" or change_type == &"":
+			continue
+		var key: String = _arena_mutation_key(boss_id, phase, change_type, change_id)
+		if _applied_arena_mutation_keys.has(key):
+			continue
+		var mutation: Node2D = _create_arena_mutation_node(boss_id, phase, change_type, change_id)
+		if mutation == null:
+			continue
+		_ensure_arena_mutations_container().add_child(mutation)
+		_applied_arena_mutation_keys[key] = true
+
+
+func get_arena_mutation_nodes() -> Array:
+	var nodes: Array = []
+	for child: Node in _ensure_arena_mutations_container().get_children():
+		if is_instance_valid(child) and not child.is_queued_for_deletion():
+			nodes.append(child)
+	return nodes
+
+
+func get_arena_mutation_count() -> int:
+	return get_arena_mutation_nodes().size()
+
+
+func cleanup_arena_mutations(boss_id: StringName = &"") -> void:
+	if not is_instance_valid(_arena_mutations_container):
+		_applied_arena_mutation_keys.clear()
+		return
+	for child: Node in _arena_mutations_container.get_children():
+		if boss_id != &"" and String(child.get_meta(&"boss_id", &"")) != String(boss_id):
+			continue
+		_arena_mutations_container.remove_child(child)
+		child.free()
+	if boss_id == &"":
+		_applied_arena_mutation_keys.clear()
+	else:
+		_clear_arena_mutation_keys_for_boss(boss_id)
+
+
+func lock_scene() -> void:
+	_boss_scene_locked = true
+	if _scene_manager != null and is_instance_valid(_scene_manager) \
+			and _scene_manager.has_method("lock_scene"):
+		_scene_manager.call("lock_scene")
+
+
+func unlock_scene() -> void:
+	_boss_scene_locked = false
+	if _scene_manager != null and is_instance_valid(_scene_manager) \
+			and _scene_manager.has_method("unlock_scene"):
+		_scene_manager.call("unlock_scene")
+
+
+func is_boss_scene_locked() -> bool:
+	return _boss_scene_locked
+
+
 func clear_arena_locks() -> void:
-	pass
+	_boss_scene_locked = false
+	cleanup_arena_mutations()
+	if _scene_manager != null and is_instance_valid(_scene_manager) \
+			and _scene_manager.has_method("unlock_scene"):
+		_scene_manager.call("unlock_scene")
 
 
 func clear_combat_adapters() -> void:
@@ -1230,6 +1336,30 @@ func _read_vector2_dictionary(value: Variant, fallback: Vector2) -> Vector2:
 	)
 
 
+func _read_vector2(value: Variant, fallback: Vector2) -> Vector2:
+	if value is Vector2:
+		return value
+	if value is Dictionary:
+		return _read_vector2_dictionary(value, fallback)
+	return fallback
+
+
+func _read_color(value: Variant, fallback: Color) -> Color:
+	if value is Color:
+		return value
+	if value is String:
+		return Color(String(value))
+	if value is Dictionary:
+		var data: Dictionary = Dictionary(value)
+		return Color(
+			float(data.get("r", fallback.r)),
+			float(data.get("g", fallback.g)),
+			float(data.get("b", fallback.b)),
+			float(data.get("a", fallback.a))
+		)
+	return fallback
+
+
 func _restore_last_savepoint_from_dictionary(savepoint: Dictionary) -> void:
 	if savepoint.is_empty():
 		_last_discovered_savepoint.clear()
@@ -1280,6 +1410,8 @@ func _setup_enemy_attack_core_chain() -> void:
 		_enemy.set_attack_target(_player)
 	if _enemy.has_method("set_summon_adapter"):
 		_enemy.set_summon_adapter(self)
+	if _enemy.has_method("set_scene_adapter"):
+		_enemy.set_scene_adapter(self)
 	if not _enemy.enemy_attack_landed.is_connected(_on_enemy_attack_landed):
 		_enemy.enemy_attack_landed.connect(_on_enemy_attack_landed)
 
@@ -1293,6 +1425,116 @@ func _ensure_summons_container() -> Node2D:
 		_summons_container.name = "Summons"
 		add_child(_summons_container)
 	return _summons_container
+
+
+func _ensure_arena_mutations_container() -> Node2D:
+	if is_instance_valid(_arena_mutations_container):
+		return _arena_mutations_container
+	_arena_mutations_container = get_node_or_null("ArenaMutations") as Node2D
+	if _arena_mutations_container == null:
+		_arena_mutations_container = Node2D.new()
+		_arena_mutations_container.name = "ArenaMutations"
+		add_child(_arena_mutations_container)
+	return _arena_mutations_container
+
+
+func _create_arena_mutation_node(
+	boss_id: StringName,
+	phase: int,
+	change_type: StringName,
+	change_id: StringName
+) -> Node2D:
+	var layout: Dictionary = Dictionary(ARENA_MUTATION_LAYOUTS.get(String(change_id), {}))
+	if layout.is_empty():
+		return null
+	var mutation: Node2D = _instantiate_arena_mutation_root(change_type)
+	if mutation == null:
+		return null
+	var size: Vector2 = _read_vector2(layout.get("size", Vector2(96, 32)), Vector2(96, 32))
+	mutation.name = "ArenaMutation_%s" % String(change_id)
+	mutation.position = _read_vector2(layout.get("position", Vector2.ZERO), Vector2.ZERO)
+	mutation.z_index = 15
+	mutation.set_meta(&"boss_id", boss_id)
+	mutation.set_meta(&"phase", phase)
+	mutation.set_meta(&"change_type", change_type)
+	mutation.set_meta(&"change_id", change_id)
+	_add_arena_mutation_collision(mutation, size)
+	_add_arena_mutation_visual(
+		mutation,
+		size,
+		_read_color(layout.get("color", Color.WHITE), Color.WHITE)
+	)
+	_add_arena_mutation_sprite(mutation, layout.get("texture", null))
+	return mutation
+
+
+func _instantiate_arena_mutation_root(change_type: StringName) -> Node2D:
+	match change_type:
+		&"obstacle":
+			var body := StaticBody2D.new()
+			body.collision_layer = ARENA_OBSTACLE_LAYER
+			body.collision_mask = 0
+			return body
+		&"damage_zone":
+			var area := Area2D.new()
+			area.collision_layer = ARENA_DAMAGE_ZONE_LAYER
+			area.collision_mask = 1
+			area.monitoring = true
+			area.monitorable = false
+			return area
+		_:
+			return null
+
+
+func _add_arena_mutation_collision(parent: Node2D, size: Vector2) -> void:
+	var shape := RectangleShape2D.new()
+	shape.size = size
+	var collision := CollisionShape2D.new()
+	collision.name = "CollisionShape2D"
+	collision.shape = shape
+	parent.add_child(collision)
+
+
+func _add_arena_mutation_visual(parent: Node2D, size: Vector2, color: Color) -> void:
+	var half_size: Vector2 = size * 0.5
+	var visual := Polygon2D.new()
+	visual.name = "Visual"
+	visual.color = Color(color.r, color.g, color.b, minf(color.a, 0.24))
+	visual.polygon = PackedVector2Array([
+		Vector2(-half_size.x, half_size.y),
+		Vector2(-half_size.x * 0.82, -half_size.y),
+		Vector2(half_size.x * 0.68, -half_size.y * 0.88),
+		Vector2(half_size.x, half_size.y),
+	])
+	parent.add_child(visual)
+
+
+func _add_arena_mutation_sprite(parent: Node2D, texture_value: Variant) -> void:
+	if not texture_value is Texture2D:
+		return
+	var sprite := Sprite2D.new()
+	sprite.name = "Sprite"
+	sprite.texture = texture_value
+	sprite.centered = true
+	sprite.position = Vector2(0, -42)
+	sprite.z_index = 1
+	parent.add_child(sprite)
+
+
+func _arena_mutation_key(
+	boss_id: StringName,
+	phase: int,
+	change_type: StringName,
+	change_id: StringName
+) -> String:
+	return "%s:%d:%s:%s" % [String(boss_id), phase, String(change_type), String(change_id)]
+
+
+func _clear_arena_mutation_keys_for_boss(boss_id: StringName) -> void:
+	var prefix: String = "%s:" % String(boss_id)
+	for key: String in _applied_arena_mutation_keys.keys():
+		if key.begins_with(prefix):
+			_applied_arena_mutation_keys.erase(key)
 
 
 func _on_summon_defeated(minion: Node) -> void:

@@ -13,15 +13,35 @@
   CombatPresentation Story015 Rat King specialized attack animation expansion、
   BossConfig Story007 RatKingBoss runtime scene/MainScene boss replacement、
   BossConfig Story008 Rat King AI attack scheduler runtime integration、
-  BossConfig Story009 Rat King live phase 2 summon runtime integration 已完成；
-  下一步推进 arena mutation runtime、SceneManager
-  memory-budget verification、UI menu audio、Boss music state transitions、
+  BossConfig Story009 Rat King live phase 2 summon runtime integration、
+  SceneManagement Story008 boss arena mutation runtime 已完成；
+  下一步推进 SceneManager memory-budget verification、electric leak contact
+  damage、final arena VFX、boss arena mutation save-state persistence、
+  UI menu audio、Boss music state transitions、
   same-SFX merge 和 real audio asset import stories，以及玩家可见角色/敌人帧动画
   持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Scene Management Story 008: Boss Arena Mutation Runtime — `RatKingBoss`
+  新增 scene adapter 转发，`MainScene` 新增 `ArenaMutations` 容器、
+  `apply_arena_changes()`、`get_arena_mutation_nodes()`、
+  `cleanup_arena_mutations()`、boss scene lock/unlock hooks 和 arena reset
+  清理路径。使用 image generation 生成 Rat King arena mutation 三联图，
+  保留 source/alpha source 于 `assets/generated/source/`，裁切导入
+  `assets/environment/rat_king_arena/garbage_pile.png`、
+  `overturned_trash_can.png`、`electric_leak.png`；phase 2 生成
+  `garbage_pile` StaticBody2D，phase 3 生成 `overturned_trash_can`
+  StaticBody2D 与 `electric_leak` Area2D，节点带 boss id、phase、change id、
+  change type metadata，含 CollisionShape2D、Polygon2D Visual 和 Sprite2D。
+  通过 RED `report_501`、GREEN focused `report_506` `4/4`、相关回归
+  `report_509` `24/24`、headless smoke、Godot MCP runtime phase 2/3 mutation
+  probe、cleanup/reapply/reset probe 和 clean game logs 验证。MCP 截图保存到
+  `reports/visual/cinderpaw-mcp-rat-king-arena-mutations-20260625*.png`，但
+  当前 game framebuffer 未刷新出 mutation 可见帧，QA evidence 已如实记录为弱
+  视觉证据。QA evidence:
+  `production/qa/evidence/rat-king-arena-mutation-runtime-2026-06-25.md`。
 - Boss Configuration Story 009: Rat King Live Phase Two Summon Runtime
   Integration — 使用 image generation 生成 Rat Minion 5x3 sprite sheet，复制到
   `assets/characters/rat_minion/source/`，alpha-matted 后切成 `idle`、`run`、

@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 7 stories tracked; future stories planned
+> **Stories**: 8 stories tracked; future stories planned
 
 ## Overview
 
@@ -23,7 +23,8 @@ runtime unload, cached quick-return reuse, and max-two resident enforcement.
 Story007 adds the fast-travel preload path: target scenes load behind a 2.0
 second portal gate, reuse deferred cached runtime scenes when available, and
 fall through the same timeout/runtime swap/deferred cache path as regular async
-scene changes.
+scene changes. Story008 connects BossConfig arena-change adapter requests to
+playable MainScene arena mutation runtime nodes for Rat King phase transitions.
 
 ## Governing ADRs
 
@@ -56,6 +57,7 @@ scene changes.
 | 005 | Runtime Scene-Tree Swap Ownership | Integration | Complete | ADR-0007 |
 | 006 | Deferred Unload + Runtime Cache Eviction | Integration | Complete | ADR-0007 |
 | 007 | Fast Travel Preload + Scene Change | Integration | Complete | ADR-0007 |
+| 008 | Boss Arena Mutation Runtime | Integration | Complete | ADR-0007 |
 
 ## Definition of Done
 
@@ -84,11 +86,15 @@ This epic is complete when:
 - Fast travel requests preload their target scene during a 2.0 second portal
   gate, expose fast-travel metadata/signals, and preserve async timeout,
   runtime swap, and deferred cache behavior.
+- Boss arena mutation requests from BossConfig create deterministic runtime
+  obstacle/damage-zone nodes during Rat King phase transitions and clear them on
+  boss death or arena reset.
 - Later stories add loading audio fades and memory-budget verification.
 - Godot CLI/GdUnit and Godot MCP verify the Autoload, runtime logs, and current
   scene visibility after SceneManager changes.
 
 ## Next Step
 
-Continue with loading audio fades and scene memory-budget verification as later
-SceneManagement stories.
+Continue SceneManager memory-budget verification and later arena polish stories:
+electric leak contact damage, final arena VFX, and persistent boss arena mutation
+save-state behavior.
