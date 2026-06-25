@@ -188,7 +188,7 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	cleanup_temporary_summons()
-	cleanup_arena_mutations()
+	clear_arena_locks()
 	_disconnect_scene_manager_signals()
 	_disconnect_boss_phase_transition_source()
 	_unregister_main_scene_from_save_system()
@@ -531,6 +531,53 @@ func get_arena_mutation_count() -> int:
 	return get_arena_mutation_nodes().size()
 
 
+## Captures active arena mutations as JSON-safe descriptors for save/load.
+func get_arena_mutation_save_state() -> Array[Dictionary]:
+	var entries_by_key: Dictionary = {}
+	var keys: Array[String] = []
+	for mutation: Node in get_arena_mutation_nodes():
+		var entry: Dictionary = _build_arena_mutation_save_entry(mutation)
+		if entry.is_empty():
+			continue
+		var key: String = _arena_mutation_key(
+			StringName(String(entry.get("boss_id", ""))),
+			int(entry.get("phase", 0)),
+			StringName(String(entry.get("type", ""))),
+			StringName(String(entry.get("id", "")))
+		)
+		if entries_by_key.has(key):
+			continue
+		entries_by_key[key] = entry
+		keys.append(key)
+	keys.sort()
+	var result: Array[Dictionary] = []
+	for key: String in keys:
+		result.append(Dictionary(entries_by_key[key]).duplicate(true))
+	return result
+
+
+## Rebuilds arena mutation nodes from JSON-safe save descriptors.
+func restore_arena_mutation_save_state(raw_mutations: Variant) -> void:
+	cleanup_arena_mutations()
+	if not raw_mutations is Array:
+		return
+	var saved_mutations: Array = raw_mutations
+	for raw_entry: Variant in saved_mutations:
+		if not raw_entry is Dictionary:
+			continue
+		var entry: Dictionary = Dictionary(raw_entry)
+		var boss_id: StringName = StringName(String(entry.get("boss_id", "")))
+		var phase: int = _read_int(entry.get("phase", 0), 0)
+		var change_id: StringName = StringName(String(entry.get("id", entry.get("change_id", ""))))
+		var change_type: StringName = StringName(String(entry.get("type", entry.get("change_type", ""))))
+		if boss_id == &"" or phase <= 0 or change_id == &"" or change_type == &"":
+			continue
+		apply_arena_changes(boss_id, phase, [{
+			"id": String(change_id),
+			"type": String(change_type),
+		}])
+
+
 func cleanup_arena_mutations(boss_id: StringName = &"") -> void:
 	if not is_instance_valid(_arena_mutations_container):
 		_applied_arena_mutation_keys.clear()
@@ -721,6 +768,9 @@ func _request_scene_manager_transition(scene_id: StringName, spawn_point: String
 		return false
 	if scene_manager.has_method("is_scene_locked") and bool(scene_manager.call("is_scene_locked")):
 		return false
+	if scene_manager.has_method("get_current_scene") \
+			and String(scene_manager.call("get_current_scene")) == String(scene_id):
+		return true
 	if scene_manager.has_method("request_scene_change"):
 		return bool(scene_manager.call("request_scene_change", scene_id, spawn_point))
 	if not scene_manager.has_method("change_scene"):
@@ -1013,6 +1063,7 @@ func restore_save_snapshot(snapshot: Dictionary) -> void:
 	var settings: Dictionary = Dictionary(snapshot.get("settings", {}))
 	_restore_player_state(player_state)
 	_restore_runtime_progress_state(player_state, world_state, settings)
+	_restore_arena_mutations_from_world_state(world_state)
 
 
 ## Writes a manual runtime save through SaveSystem slots 1-3.
@@ -1215,6 +1266,7 @@ func _capture_world_state() -> Dictionary:
 	return {
 		"scene_id": MAIN_SCENE_ID,
 		"defeated_bosses": _get_defeated_bosses(),
+		"arena_mutations": get_arena_mutation_save_state(),
 		"world_flags": _world_progress_flags.duplicate(true),
 		"last_savepoint": _last_discovered_savepoint.duplicate(true),
 	}
@@ -1270,6 +1322,14 @@ func _restore_runtime_progress_state(player_state: Dictionary, world_state: Dict
 	if defeated_bosses is Array:
 		for boss_id: Variant in defeated_bosses:
 			set_world_progress_flag(StringName("boss_%s_defeated" % String(boss_id)), true)
+
+
+func _restore_arena_mutations_from_world_state(world_state: Dictionary) -> void:
+	var defeated_bosses: Variant = world_state.get("defeated_bosses", [])
+	if defeated_bosses is Array and Array(defeated_bosses).has(RAT_KING_BOSS_ID):
+		cleanup_arena_mutations()
+		return
+	restore_arena_mutation_save_state(world_state.get("arena_mutations", []))
 
 
 func _trigger_runtime_autosave(reason: StringName, context: Dictionary) -> bool:
@@ -1773,6 +1833,23 @@ func _arena_mutation_key(
 	change_id: StringName
 ) -> String:
 	return "%s:%d:%s:%s" % [String(boss_id), phase, String(change_type), String(change_id)]
+
+
+func _build_arena_mutation_save_entry(mutation: Node) -> Dictionary:
+	if mutation == null or not is_instance_valid(mutation):
+		return {}
+	var boss_id: String = String(mutation.get_meta(&"boss_id", ""))
+	var phase: int = int(mutation.get_meta(&"phase", 0))
+	var change_type: String = String(mutation.get_meta(&"change_type", ""))
+	var change_id: String = String(mutation.get_meta(&"change_id", ""))
+	if boss_id.is_empty() or phase <= 0 or change_type.is_empty() or change_id.is_empty():
+		return {}
+	return {
+		"boss_id": boss_id,
+		"phase": phase,
+		"id": change_id,
+		"type": change_type,
+	}
 
 
 func _clear_arena_mutation_keys_for_boss(boss_id: StringName) -> void:

@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 11 stories tracked; future stories planned
+> **Stories**: 12 stories tracked; future stories planned
 
 ## Overview
 
@@ -32,7 +32,10 @@ runtime memory-budget diagnostics, platform budget normalization, one-shot
 over-budget warnings, and non-current deferred cache enforcement for
 TR-scene-007. Story011 adds image-generated, texture-backed VFX layers to Rat
 King phase 2/3 arena mutations so the final arena reads as destruction and
-electric hazard instead of block-like collision fixtures.
+electric hazard instead of block-like collision fixtures. Story012 persists
+active Rat King arena mutation descriptors through MainScene save/load snapshots
+and SaveSystem slot handoff, then rebuilds collision, damage-zone, and VFX
+runtime nodes on restore.
 
 ## Governing ADRs
 
@@ -48,7 +51,7 @@ electric hazard instead of block-like collision fixtures.
 | TR-scene-001 | Scene registry maps `scene_id` to `{path, type, preload}`, with hub preloaded and resident. | ADR-0007 |
 | TR-scene-002 | Async scene loading uses background loading plus 1-2 second transition animation. | ADR-0007; Story003 request lifecycle + timing gate; Story004 transition visual/loading UI shell |
 | TR-scene-003 | Old scenes are deferred-unloaded after 3 seconds and no more than 2 scenes remain resident. | ADR-0007; Story005 keeps previous runtime scene reference after detach; Story006 deferred runtime unload/cache eviction |
-| TR-scene-004 | Scene-local state persists through `get_local_state()` / `set_local_state()` and save serialization. | ADR-0007; local dictionary cache in Story001; runtime scene capture/restore in Story005 |
+| TR-scene-004 | Scene-local state persists through `get_local_state()` / `set_local_state()` and save serialization. | ADR-0007; local dictionary cache in Story001; runtime scene capture/restore in Story005; boss arena mutation save-state persistence in Story012 |
 | TR-scene-005 | Boss arena locks scene switching during boss fights. | ADR-0007 |
 | TR-scene-006 | Fast travel preloads target scenes during its portal animation. | ADR-0007; Story007 |
 | TR-scene-007 | Scene loading stays under 2 seconds and memory under platform budgets. | ADR-0007; Story003 timing diagnostics partial; Story005 runtime swap seam; Story010 deterministic memory-budget diagnostics/enforcement |
@@ -69,6 +72,7 @@ electric hazard instead of block-like collision fixtures.
 | 009 | Electric Leak Contact Damage | Integration | Complete | ADR-0007, ADR-0004, ADR-0019 |
 | 010 | Scene Memory Budget Diagnostics | Logic / Performance | Complete | ADR-0007 |
 | 011 | Rat King Final Arena VFX | Visual / Integration | Complete | ADR-0007 |
+| 012 | Boss Arena Mutation Save-State Persistence | Integration | Complete | ADR-0007, ADR-0008, ADR-0021 |
 
 ## Definition of Done
 
@@ -106,17 +110,19 @@ This epic is complete when:
 - Rat King final arena mutations use image-generated texture-backed VFX layers
   for debris dust, electric hazard glow, and electric sparks, with manifest and
   MCP screenshot evidence.
+- Active Rat King arena mutation state persists through MainScene save snapshots
+  and SaveSystem slot load, restores Story008 collision/metadata, Story009
+  electric leak hazard behavior, and Story011 VFX children without duplicating
+  nodes, and clears for defeated/older-save states.
 - SceneManager exposes deterministic runtime memory-budget diagnostics for
   mobile/PC/console budgets, emits one-shot over-budget warnings, and can evict
   non-current deferred runtime cache while preserving the current scene.
 - Later stories add real platform memory profiler evidence, low-memory UI
-  prompts, shader/camera arena polish, and persistent boss arena mutation save
-  state.
+  prompts, and optional shader/camera arena polish.
 - Godot CLI/GdUnit and Godot MCP verify the Autoload, runtime logs, and current
   scene visibility after SceneManager changes.
 
 ## Next Step
 
-Continue later SceneManagement stories: persistent boss arena mutation
-save-state behavior, real platform profiler evidence, low-memory UI prompt
-routing, and optional shader/camera arena polish.
+Continue later SceneManagement stories: real platform profiler evidence,
+low-memory UI prompt routing, and optional shader/camera arena polish.

@@ -16,18 +16,37 @@
   BossConfig Story009 Rat King live phase 2 summon runtime integration、
   SceneManagement Story008 boss arena mutation runtime、
   SceneManagement Story009 electric leak contact damage、
-  SceneManagement Story010 scene memory budget diagnostics、AudioSystem
+  SceneManagement Story010 scene memory budget diagnostics、
+  SceneManagement Story011 Rat King final arena VFX、
+  SceneManagement Story012 boss arena mutation save-state persistence、AudioSystem
   Story004 Rat King boss music state transitions、AudioSystem Story005 core
   combat SFX asset import baseline、AudioSystem Story006 weapon-style SFX asset
   expansion 已完成；
-  下一步推进 boss arena mutation save-state persistence、real platform
-  profiler evidence、low-memory UI prompt routing、UI menu audio、same-SFX
+  下一步推进 real platform profiler evidence、low-memory UI prompt
+  routing、UI menu audio、same-SFX
   merge、authored/final audio replacement、broader audio mix polish，以及玩家
   可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Scene Management Story 012: Boss Arena Mutation Save-State Persistence —
+  `MainScene.capture_save_snapshot()` 现在将 active Rat King arena mutations
+  写入 `world_state.arena_mutations`，保存为 JSON-safe deterministic
+  descriptors：`boss_id`、`phase`、`id`、`type`。`restore_save_snapshot()`
+  会清理当前 arena mutation，再通过现有 `apply_arena_changes()` 重建
+  Story008 collision/metadata、Story009 electric leak damage-zone wiring 和
+  Story011 VFX children；重复 restore 或重复应用 BossConfig changes 不会复制
+  mutation/VFX 节点。SaveSystem slot 1 runtime save/load 已覆盖该状态；boss
+  defeat/autosave 与旧存档缺失 `arena_mutations` 时会记录或恢复为空，避免
+  清场后 hazard 复活。通过 pre-implementation RED failure、GREEN focused `report_577`
+  `6/6`、related regression `report_578` `26/26`、title/load handoff guard
+  `report_579` `7/7`、headless smoke、Godot MCP runtime save/cleanup/load/
+  reapply probe、clean game/editor logs 和
+  `reports/visual/cinderpaw-mcp-arena-mutation-save-state-20260625.png`
+  验证。`report_578` 仍在 Godot process exit 处出现既有 ObjectDB/resource
+  cleanup warning；focused Story012 和 MCP logs clean。QA evidence:
+  `production/qa/evidence/boss-arena-mutation-save-state-persistence-2026-06-25.md`。
 - Audio System Story 006: Weapon Style SFX Asset Expansion —
   新增 4 个程序化 baseline WAV：`sfx_blade_attack`、`sfx_bone_attack`、
   `sfx_bell_attack`、`sfx_parry_good`，放入 `assets/audio/sfx/` 并通过
