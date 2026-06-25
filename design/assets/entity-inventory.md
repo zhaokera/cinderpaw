@@ -41,6 +41,7 @@ All new visual assets in this inventory should be produced from image2 / image g
 | 21 | Wasteland Street Tileset | Environment / Tileset | 16x16 abandoned commercial street tiles with old-world remnants and steel-gray wasteland structures. | design/art/art-bible.md; scenes/main.tscn | Needed |
 | 22 | Boss Arena Gate | Structure / Environment | Heavy boss door with opening frames and camera-push transition support. | design/gdd/scene-management.md; design/gdd/boss-config.md | Needed |
 | 23 | Fast Travel Pipe | Structure / Interactive | Glowing pipe for cat jump-in fast travel animation with particle swirl. | design/gdd/scene-management.md | Needed |
+| 24 | Hidden Double Jump Reward Source | Environment / Interactive Reward | Hidden-boss echo relic with rusted vent pedestal, floating cat-eye gold wind core, pale upward air spiral, and purple hidden-route glow. Story005 imports the generated transparent PNG as `HiddenDoubleJumpRewardSource` in `scenes/main.tscn` and uses it to unlock `double_jump` once through the existing ability runtime. | design/gdd/player-abilities.md; design/gdd/exploration-ability-gating.md; production/epics/player-abilities/story-005-hidden-double-jump-reward-source.md | Implemented baseline |
 
 ## VFX / Particles
 

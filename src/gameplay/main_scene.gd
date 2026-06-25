@@ -41,6 +41,11 @@ const RAT_MINION_SUMMON_ID: StringName = &"summon_minion"
 const RAT_MINION_SUMMON_CAP: int = 2
 const RAT_MINION_ENTITY_ID_START: int = 2000
 const RAT_MINION_SPAWN_OFFSET_X: float = 96.0
+const HIDDEN_DOUBLE_JUMP_REWARD_NODE_PATH: NodePath = ^"HiddenDoubleJumpRewardSource"
+const HIDDEN_DOUBLE_JUMP_REWARD_ID: StringName = &"hidden_boss_echo_double_jump"
+const HIDDEN_DOUBLE_JUMP_REWARD_ABILITY_ID: StringName = &"double_jump"
+const HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG: StringName = &"hidden_boss_echo_double_jump_claimed"
+const HIDDEN_DOUBLE_JUMP_REWARD_NOTIFICATION: String = "Double Jump unlocked"
 const ARENA_OBSTACLE_LAYER: int = 16
 const ARENA_DAMAGE_ZONE_LAYER: int = CollisionComponent.COLLISION_LAYER_ENVIRONMENT
 const ARENA_DAMAGE_ZONE_MASK: int = CollisionComponent.COLLISION_MASK_ENVIRONMENT
@@ -189,6 +194,7 @@ func _ready() -> void:
 	_hud.update_currency(_currency_amount)
 	_sync_player_unlocked_abilities()
 	_sync_exploration_gates()
+	_sync_hidden_double_jump_reward_source()
 	_update_weapon_hud()
 	configure_save_system_runtime(get_node_or_null("/root/SaveSystem"))
 	configure_scene_manager_runtime(get_node_or_null("/root/SceneManager"))
@@ -207,6 +213,7 @@ func _exit_tree() -> void:
 func _process(delta: float) -> void:
 	_player.set_control_locked(_game_flow.is_player_control_locked())
 	advance_arena_hazard_time(delta)
+	_process_hidden_double_jump_reward_source_contact()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -804,6 +811,7 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	if snapshot.has("settings"):
 		_hud.restore_settings_state(Dictionary(snapshot.get("settings", {})))
 	_sync_combat_presentation_accessibility_settings()
+	_sync_hidden_double_jump_reward_source()
 
 
 func grant_currency(amount: int) -> void:
@@ -838,6 +846,27 @@ func unlock_ability(ability_id: StringName) -> void:
 
 func has_unlocked_ability(ability_id: StringName) -> bool:
 	return _unlocked_abilities.has(ability_id)
+
+
+func claim_hidden_double_jump_reward_source(provider: Node = null) -> bool:
+	var source: Node = _get_hidden_double_jump_reward_source()
+	if source == null:
+		return false
+	_sync_hidden_double_jump_reward_source()
+	if bool(_world_progress_flags.get(String(HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG), false)):
+		return false
+	var claim_provider: Node = _player if provider == null else provider
+	if not bool(source.call("try_claim", claim_provider)):
+		return false
+	set_world_progress_flag(HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG, true)
+	unlock_ability(HIDDEN_DOUBLE_JUMP_REWARD_ABILITY_ID)
+	_hud.show_notification(HIDDEN_DOUBLE_JUMP_REWARD_NOTIFICATION, 2.5)
+	_trigger_runtime_autosave(&"ability_reward_claimed", {
+		"reward_id": String(HIDDEN_DOUBLE_JUMP_REWARD_ID),
+		"ability_id": String(HIDDEN_DOUBLE_JUMP_REWARD_ABILITY_ID),
+		"source": &"hidden_boss_echo",
+	})
+	return true
 
 
 func get_skill_points() -> int:
@@ -882,6 +911,8 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 	if flag_id == &"":
 		return
 	_world_progress_flags[String(flag_id)] = enabled
+	if flag_id == HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG:
+		_sync_hidden_double_jump_reward_source()
 
 
 func get_runtime_progress_state() -> Dictionary:
@@ -1538,6 +1569,31 @@ func _sync_exploration_gates() -> void:
 			gate.call("set_ability_provider", _player)
 		elif gate.has_method("refresh_gate_state"):
 			gate.call("refresh_gate_state")
+
+
+func _get_hidden_double_jump_reward_source() -> Node:
+	var source: Node = get_node_or_null(HIDDEN_DOUBLE_JUMP_REWARD_NODE_PATH)
+	if source == null or not source.has_method("set_claimed") or not source.has_method("try_claim"):
+		return null
+	return source
+
+
+func _sync_hidden_double_jump_reward_source() -> void:
+	var source: Node = _get_hidden_double_jump_reward_source()
+	if source == null:
+		return
+	source.call("set_claimed", bool(_world_progress_flags.get(
+		String(HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG),
+		false
+	)))
+
+
+func _process_hidden_double_jump_reward_source_contact() -> void:
+	var source: Node = _get_hidden_double_jump_reward_source()
+	if source == null or not bool(source.call("is_claim_available")):
+		return
+	if bool(source.call("is_provider_in_reward_range", _player)):
+		claim_hidden_double_jump_reward_source(_player)
 
 
 func _connect_exploration_gate_signal(gate: Node) -> void:
