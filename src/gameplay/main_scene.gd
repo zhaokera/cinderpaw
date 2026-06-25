@@ -10,6 +10,7 @@ extends Node2D
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 const RUNTIME_DAMAGE_CALCULATOR_ADAPTER_SCRIPT: Script = preload("res://src/gameplay/runtime_damage_calculator_adapter.gd")
 const SAVE_TRIGGER_ADAPTER_SCRIPT: Script = preload("res://src/feature/save_trigger_adapter.gd")
+const RAT_MINION_SCENE: PackedScene = preload("res://src/gameplay/rat_minion.tscn")
 const MAIN_SCENE_SAVE_KEY: StringName = &"main_scene"
 const SCENE_MANAGER_SAVE_KEY: StringName = &"scene"
 const MAIN_SCENE_ID: String = "main"
@@ -17,6 +18,11 @@ const DEFAULT_NEW_GAME_SPAWN_POINT: StringName = &"default"
 const RAT_KING_BOSS_ID: String = "boss_01_rat_king"
 const RAT_KING_BOSS_DISPLAY_NAME: String = "垃圾桶鼠王"
 const RAT_KING_ATTACK_SOURCE: StringName = &"rat_king_claw"
+const RAT_MINION_ATTACK_SOURCE: StringName = &"rat_minion_bite"
+const RAT_MINION_SUMMON_ID: StringName = &"summon_minion"
+const RAT_MINION_SUMMON_CAP: int = 2
+const RAT_MINION_ENTITY_ID_START: int = 2000
+const RAT_MINION_SPAWN_OFFSET_X: float = 96.0
 
 var _pause_menu_active: bool = false
 var _currency_amount: int = 0
@@ -37,10 +43,14 @@ var _scene_manager: Object = null
 var _connected_scene_manager: Object = null
 var _audio_system: Object = null
 var _last_discovered_savepoint: Dictionary = {}
+var _summons_container: Node2D = null
+var _summoned_minions: Array[Node] = []
+var _next_summon_entity_id: int = RAT_MINION_ENTITY_ID_START
 
 
 func _ready() -> void:
 	_setup_weapon_component()
+	_ensure_summons_container()
 	_setup_player_attack_core_chain()
 	_setup_enemy_attack_core_chain()
 	_game_flow.set_no_loss_state_adapter(self)
@@ -89,6 +99,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	cleanup_temporary_summons()
 	_disconnect_scene_manager_signals()
 	_disconnect_boss_phase_transition_source()
 	_unregister_main_scene_from_save_system()
@@ -146,11 +157,25 @@ func _on_enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool) 
 	_dispatch_audio_event(&"on_damage_taken_event", [hit_data])
 
 
+func _on_summon_attack_landed(damage: int, hit_position: Vector2, is_crit: bool) -> void:
+	var hit_data: Dictionary = {
+		"damage": damage,
+		"hit_position": hit_position,
+		"is_crit": is_crit,
+		"source": RAT_MINION_ATTACK_SOURCE,
+		"show_damage_number": _hud.are_damage_numbers_enabled(),
+		"focus_mode_active": _is_player_focus_mode_active(),
+	}
+	_combat_presentation.on_hit_event(hit_data)
+	_dispatch_audio_event(&"on_damage_taken_event", [hit_data])
+
+
 func _on_enemy_health_changed(current_hp: int, max_hp: int) -> void:
 	_hud.update_boss_hp(current_hp, max_hp, _get_enemy_phase(), _get_enemy_display_name())
 
 
 func _on_enemy_defeated() -> void:
+	cleanup_temporary_summons()
 	_dispatch_audio_event(&"on_enemy_defeated", [{
 		"target_id": RAT_KING_BOSS_ID,
 		"position": _enemy.global_position + Vector2(0, -24),
@@ -294,13 +319,87 @@ func capture_boss_arena_snapshot() -> Dictionary:
 func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
 	if not is_instance_valid(_enemy):
 		return
+	cleanup_temporary_summons()
 	var enemy_snapshot: Dictionary = Dictionary(snapshot.get("enemy", {}))
 	_enemy.restore_respawn_snapshot(enemy_snapshot)
 	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), _get_enemy_phase(), _get_enemy_display_name())
 
 
 func cleanup_temporary_summons() -> void:
-	pass
+	cleanup_summons(StringName(RAT_KING_BOSS_ID))
+
+
+func get_active_summon_count(boss_id: StringName) -> int:
+	_prune_summoned_minions()
+	var count: int = 0
+	for minion: Node in _summoned_minions:
+		if _is_live_summon_for_boss(minion, boss_id):
+			count += 1
+	return count
+
+
+func request_summon(boss_id: StringName, summon_id: StringName) -> bool:
+	if summon_id != RAT_MINION_SUMMON_ID:
+		return false
+	_prune_summoned_minions()
+	if get_active_summon_count(boss_id) >= RAT_MINION_SUMMON_CAP:
+		return false
+
+	var minion: Node = RAT_MINION_SCENE.instantiate()
+	if minion == null:
+		return false
+	_ensure_summons_container().add_child(minion)
+	if not (
+		minion.has_method("configure_summon")
+		and minion.has_method("set_attack_target")
+		and minion.has_method("set_damage_calculator_adapter")
+	):
+		minion.queue_free()
+		return false
+	minion.call("configure_summon", boss_id, _next_summon_entity_id, summon_id)
+	_next_summon_entity_id += 1
+	minion.global_position = _next_summon_position()
+	minion.call("set_attack_target", _player)
+	minion.call("set_damage_calculator_adapter", _damage_calculator_adapter)
+	if minion.has_signal("enemy_attack_landed"):
+		minion.connect("enemy_attack_landed", _on_summon_attack_landed)
+	if minion.has_signal("enemy_defeated"):
+		minion.connect("enemy_defeated", _on_summon_defeated.bind(minion))
+	_summoned_minions.append(minion)
+
+	if is_instance_valid(_enemy) and _enemy.has_method("play_special_attack_animation"):
+		_enemy.call("play_special_attack_animation", summon_id)
+	return true
+
+
+func cleanup_summons(boss_id: StringName) -> void:
+	for minion: Node in _summoned_minions.duplicate():
+		if _is_summon_owned_by_boss(minion, boss_id) and minion.has_method("kill_summon"):
+			minion.call("kill_summon", &"boss_cleanup")
+	_prune_summoned_minions()
+
+
+func get_summoned_minion_nodes() -> Array:
+	_prune_summoned_minions()
+	var minions: Array = []
+	for minion: Node in _summoned_minions:
+		if _is_live_summon_for_boss(minion, StringName(RAT_KING_BOSS_ID)):
+			minions.append(minion)
+	return minions
+
+
+func apply_damage(target_id: int, final_damage: int, metadata: Dictionary = {}) -> bool:
+	if final_damage <= 0:
+		return false
+	if is_instance_valid(_enemy) and _enemy.has_method("get_entity_id") \
+			and int(_enemy.call("get_entity_id")) == target_id:
+		_enemy.call("apply_damage", final_damage, metadata)
+		return true
+	var minion: Node = _find_live_summon_by_entity_id(target_id)
+	if minion == null:
+		return false
+	minion.call("apply_damage", final_damage, metadata)
+	return true
 
 
 func clear_arena_locks() -> void:
@@ -1164,7 +1263,7 @@ func _setup_player_attack_core_chain() -> void:
 	if _player.has_method("set_damage_calculator_adapter"):
 		_player.set_damage_calculator_adapter(_damage_calculator_adapter)
 	if _player.has_method("set_target_health_adapter"):
-		_player.set_target_health_adapter(_enemy)
+		_player.set_target_health_adapter(self)
 	if _player.has_method("set_weapon_component"):
 		_player.set_weapon_component(_weapon_component)
 	if _weapon_component != null:
@@ -1179,8 +1278,76 @@ func _setup_enemy_attack_core_chain() -> void:
 		_enemy.set_damage_calculator_adapter(_damage_calculator_adapter)
 	if _enemy.has_method("set_attack_target"):
 		_enemy.set_attack_target(_player)
+	if _enemy.has_method("set_summon_adapter"):
+		_enemy.set_summon_adapter(self)
 	if not _enemy.enemy_attack_landed.is_connected(_on_enemy_attack_landed):
 		_enemy.enemy_attack_landed.connect(_on_enemy_attack_landed)
+
+
+func _ensure_summons_container() -> Node2D:
+	if is_instance_valid(_summons_container):
+		return _summons_container
+	_summons_container = get_node_or_null("Summons") as Node2D
+	if _summons_container == null:
+		_summons_container = Node2D.new()
+		_summons_container.name = "Summons"
+		add_child(_summons_container)
+	return _summons_container
+
+
+func _on_summon_defeated(minion: Node) -> void:
+	_summoned_minions.erase(minion)
+	_prune_summoned_minions()
+
+
+func _prune_summoned_minions() -> void:
+	var live_minions: Array[Node] = []
+	for minion: Node in _summoned_minions:
+		if is_instance_valid(minion) and not minion.is_queued_for_deletion():
+			live_minions.append(minion)
+	_summoned_minions = live_minions
+
+
+func _is_live_summon_for_boss(minion: Node, boss_id: StringName) -> bool:
+	if not _is_summon_owned_by_boss(minion, boss_id):
+		return false
+	if not minion.has_method("get_current_hp"):
+		return false
+	return int(minion.call("get_current_hp")) > 0
+
+
+func _is_summon_owned_by_boss(minion: Node, boss_id: StringName) -> bool:
+	if not is_instance_valid(minion) or minion.is_queued_for_deletion():
+		return false
+	if not minion.has_method("get_summon_owner_boss_id"):
+		return false
+	return String(minion.call("get_summon_owner_boss_id")) == String(boss_id)
+
+
+func _find_live_summon_by_entity_id(target_id: int) -> Node:
+	_prune_summoned_minions()
+	for minion: Node in _summoned_minions:
+		if not minion.has_method("get_entity_id") or not minion.has_method("get_current_hp"):
+			continue
+		if int(minion.call("get_entity_id")) == target_id and int(minion.call("get_current_hp")) > 0:
+			return minion
+	return null
+
+
+func _resolve_player_hit_target(hit_data: Dictionary) -> Node:
+	var target_id: int = _read_int(hit_data.get("target_id", -1), -1)
+	var minion: Node = _find_live_summon_by_entity_id(target_id)
+	if minion != null:
+		return minion
+	return _enemy
+
+
+func _next_summon_position() -> Vector2:
+	if not is_instance_valid(_enemy):
+		return _player.global_position + Vector2(RAT_MINION_SPAWN_OFFSET_X, 0.0)
+	var current_count: int = get_active_summon_count(StringName(RAT_KING_BOSS_ID))
+	var side: float = -1.0 if current_count % 2 == 0 else 1.0
+	return _enemy.global_position + Vector2(side * RAT_MINION_SPAWN_OFFSET_X, 0.0)
 
 
 func _connect_player_focus_mode_signal() -> void:
@@ -1252,7 +1419,7 @@ func _update_weapon_hud_with_resource(weapon: Resource) -> void:
 func _apply_weapon_effects_to_player_hit(hit_data: Dictionary) -> Dictionary:
 	if _weapon_component == null:
 		return hit_data.duplicate(true)
-	return _weapon_component.apply_confirmed_hit_effects(_enemy, hit_data)
+	return _weapon_component.apply_confirmed_hit_effects(_resolve_player_hit_target(hit_data), hit_data)
 
 
 func _string_names_to_strings(values: Array[StringName]) -> Array[String]:

@@ -1,0 +1,1285 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-25" name="report_497" tests="523" failures="6" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="story_002_weapon_upgrade_serialization_test" package="tests/unit/weapon" timestamp="2026-06-25T02:05:07" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.030">
+		<testcase name="test_all_weapons_start_at_level_one_with_next_damage_preview" classname="story_002_weapon_upgrade_serialization_test" time="0.007">
+		</testcase>
+		<testcase name="test_upgrade_weapon_increments_until_level_five_and_emits_signal" classname="story_002_weapon_upgrade_serialization_test" time="0.002">
+		</testcase>
+		<testcase name="test_invalid_upgrade_requests_are_rejected_without_state_change" classname="story_002_weapon_upgrade_serialization_test" time="0.002">
+		</testcase>
+		<testcase name="test_serialize_and_deserialize_restore_current_weapon_and_levels" classname="story_002_weapon_upgrade_serialization_test" time="0.003">
+		</testcase>
+		<testcase name="test_deserialize_clamps_invalid_indices_and_ignores_unknown_weapons" classname="story_002_weapon_upgrade_serialization_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="story_006_long_tail_multi_target_test" package="tests/unit/weapon" timestamp="2026-06-25T02:05:07" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.021">
+		<testcase name="test_long_tail_attack_parameters_expose_two_tile_multi_target_contract" classname="story_006_long_tail_multi_target_test" time="0.003">
+		</testcase>
+		<testcase name="test_long_tail_hitbox_metadata_marks_multi_target_and_keeps_collision_duplicate_tracking" classname="story_006_long_tail_multi_target_test" time="0.006">
+		</testcase>
+		<testcase name="test_cat_claw_hitbox_metadata_remains_single_target" classname="story_006_long_tail_multi_target_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="story_004_special_attack_gates_test" package="tests/unit/weapon" timestamp="2026-06-25T02:05:07" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_each_weapon_exposes_special_id_cooldown_and_energy_cost" classname="story_004_special_attack_gates_test" time="0.002">
+		</testcase>
+		<testcase name="test_insufficient_cat_energy_rejects_special_and_emits_required_energy" classname="story_004_special_attack_gates_test" time="0.006">
+		</testcase>
+		<testcase name="test_active_cooldown_rejects_special_and_emits_remaining_cooldown" classname="story_004_special_attack_gates_test" time="0.006">
+		</testcase>
+		<testcase name="test_passing_gates_consumes_cat_energy_starts_cooldown_and_emits_start_signal" classname="story_004_special_attack_gates_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="story_001_weapon_config_catalog_test" package="tests/unit/weapon" timestamp="2026-06-25T02:05:07" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_weapon_component_and_config_scripts_exist" classname="story_001_weapon_config_catalog_test" time="0.003">
+		</testcase>
+		<testcase name="test_weapon_config_data_validates_and_manifest_registers_domain" classname="story_001_weapon_config_catalog_test" time="0.007">
+		</testcase>
+		<testcase name="test_catalog_defines_four_weapons_in_swap_order" classname="story_001_weapon_config_catalog_test" time="0.007">
+		</testcase>
+		<testcase name="test_weapon_configs_expose_gdd_metadata" classname="story_001_weapon_config_catalog_test" time="0.006">
+		</testcase>
+		<testcase name="test_default_weapon_and_cat_claw_level_three_damage_query" classname="story_001_weapon_config_catalog_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="story_007_fish_bone_shield_break_test" package="tests/unit/weapon" timestamp="2026-06-25T02:05:07" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.021">
+		<testcase name="test_full_charge_fish_bone_hit_breaks_target_shield" classname="story_007_fish_bone_shield_break_test" time="0.003">
+		</testcase>
+		<testcase name="test_partial_charge_fish_bone_hit_does_not_break_target_shield" classname="story_007_fish_bone_shield_break_test" time="0.006">
+		</testcase>
+		<testcase name="test_missing_shield_api_degrades_to_normal_hit_metadata" classname="story_007_fish_bone_shield_break_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="story_005_cat_claw_counter_crit_test" package="tests/unit/weapon" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_cat_claw_dodge_completion_opens_half_second_counter_window" classname="story_005_cat_claw_counter_crit_test" time="0.003">
+		</testcase>
+		<testcase name="test_qualifying_cat_claw_hit_injects_bonus_and_consumes_counter_window" classname="story_005_cat_claw_counter_crit_test" time="0.007">
+		</testcase>
+		<testcase name="test_non_cat_claw_weapon_does_not_open_counter_bonus" classname="story_005_cat_claw_counter_crit_test" time="0.007">
+		</testcase>
+		<testcase name="test_damage_calculator_treats_claw_counter_bonus_as_perfect_window_extension" classname="story_005_cat_claw_counter_crit_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="6" name="story_003_weapon_swap_state_machine_test" package="tests/unit/weapon" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.041">
+		<testcase name="test_request_swap_starts_uncancellable_half_second_swap" classname="story_003_weapon_swap_state_machine_test" time="0.002">
+		</testcase>
+		<testcase name="test_request_swap_is_rejected_while_combat_is_attacking" classname="story_003_weapon_swap_state_machine_test" time="0.005">
+		</testcase>
+		<testcase name="test_completed_swaps_cycle_through_all_weapon_styles" classname="story_003_weapon_swap_state_machine_test" time="0.006">
+		</testcase>
+		<testcase name="test_completed_swap_emits_changed_weapon_signal" classname="story_003_weapon_swap_state_machine_test" time="0.006">
+		</testcase>
+		<testcase name="test_missing_optional_combat_hooks_still_completes_swap" classname="story_003_weapon_swap_state_machine_test" time="0.006">
+		</testcase>
+		<testcase name="test_completed_swap_resets_real_combat_dodge_cooldown_hook" classname="story_003_weapon_swap_state_machine_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="7" name="story_008_electro_bell_slow_test" package="tests/unit/weapon" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_electro_bell_hit_applies_slow_status_to_target" classname="story_008_electro_bell_slow_test" time="0.003">
+		</testcase>
+		<testcase name="test_electro_bell_slow_metadata_matches_gdd_values" classname="story_008_electro_bell_slow_test" time="0.005">
+		</testcase>
+		<testcase name="test_repeated_electro_bell_hits_refresh_slow_without_duplicate_effects" classname="story_008_electro_bell_slow_test" time="0.006">
+		</testcase>
+		<testcase name="test_missing_status_api_preserves_hit_metadata_without_error" classname="story_008_electro_bell_slow_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="8" name="story_002_light_combo_cancel_windows_test" package="tests/unit/combat" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_light_attack_stage_frame_data_matches_gdd" classname="story_002_light_combo_cancel_windows_test" time="0.002">
+		</testcase>
+		<testcase name="test_attack_in_recovery_advances_combo_before_timeout" classname="story_002_light_combo_cancel_windows_test" time="0.007">
+		</testcase>
+		<testcase name="test_combo_timeout_resets_next_attack_to_stage_zero" classname="story_002_light_combo_cancel_windows_test" time="0.006">
+		</testcase>
+		<testcase name="test_dodge_cancels_light_attack_recovery_for_all_stages" classname="story_002_light_combo_cancel_windows_test" time="0.006">
+		</testcase>
+		<testcase name="test_stage_two_attack_does_not_create_fourth_combo_stage" classname="story_002_light_combo_cancel_windows_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="9" name="story_004_parry_timing_counter_outcome_test" package="tests/unit/combat" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.042">
+		<testcase name="test_parry_action_from_idle_enters_parrying" classname="story_004_parry_timing_counter_outcome_test" time="0.002">
+		</testcase>
+		<testcase name="test_classify_parry_timing_boundaries" classname="story_004_parry_timing_counter_outcome_test" time="0.007">
+		</testcase>
+		<testcase name="test_parrying_lifecycle_exits_after_frame_eighteen" classname="story_004_parry_timing_counter_outcome_test" time="0.005">
+		</testcase>
+		<testcase name="test_repeated_parry_input_during_parrying_is_ignored" classname="story_004_parry_timing_counter_outcome_test" time="0.006">
+		</testcase>
+		<testcase name="test_successful_parry_returns_counter_metadata" classname="story_004_parry_timing_counter_outcome_test" time="0.006">
+		</testcase>
+		<testcase name="test_missed_parry_returns_no_stun_or_extra_punishment" classname="story_004_parry_timing_counter_outcome_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="10" name="story_003_dodge_iframes_hurtbox_adapter_test" package="tests/unit/combat" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.042">
+		<testcase name="test_dodge_starts_from_idle_and_attack_recovery" classname="story_003_dodge_iframes_hurtbox_adapter_test" time="0.002">
+		</testcase>
+		<testcase name="test_dodge_iframe_boundaries_are_frames_three_through_ten" classname="story_003_dodge_iframes_hurtbox_adapter_test" time="0.006">
+		</testcase>
+		<testcase name="test_hurtbox_adapter_receives_gone_during_iframe_and_normal_on_end" classname="story_003_dodge_iframes_hurtbox_adapter_test" time="0.007">
+		</testcase>
+		<testcase name="test_dodge_iframe_exposes_invulnerability_for_health_integration" classname="story_003_dodge_iframes_hurtbox_adapter_test" time="0.007">
+		</testcase>
+		<testcase name="test_dodge_cooldown_and_airborne_rejection" classname="story_003_dodge_iframes_hurtbox_adapter_test" time="0.007">
+		</testcase>
+		<testcase name="test_cat_claw_dodge_end_opens_and_closes_counter_window" classname="story_003_dodge_iframes_hurtbox_adapter_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="11" name="story_006_cat_energy_special_ultimate_gates_test" package="tests/unit/combat" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.041">
+		<testcase name="test_cat_energy_starts_at_zero_and_gain_table_clamps_at_max" classname="story_006_cat_energy_special_ultimate_gates_test" time="0.002">
+		</testcase>
+		<testcase name="test_out_of_combat_timer_resets_on_damage_interaction_and_clears_energy_after_ten_seconds" classname="story_006_cat_energy_special_ultimate_gates_test" time="0.004">
+		</testcase>
+		<testcase name="test_special_gate_checks_weapon_cost_and_cooldown" classname="story_006_cat_energy_special_ultimate_gates_test" time="0.007">
+		</testcase>
+		<testcase name="test_special_gate_failed_energy_check_does_not_consume_energy" classname="story_006_cat_energy_special_ultimate_gates_test" time="0.006">
+		</testcase>
+		<testcase name="test_ultimate_requires_provider_unlock_and_eighty_cat_energy" classname="story_006_cat_energy_special_ultimate_gates_test" time="0.006">
+		</testcase>
+		<testcase name="test_ultimate_failed_energy_check_does_not_consume_energy" classname="story_006_cat_energy_special_ultimate_gates_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="12" name="story_005_heavy_charge_hit_stun_aerial_hooks_test" package="tests/unit/combat" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.049">
+		<testcase name="test_heavy_release_after_minimum_charge_starts_attack" classname="story_005_heavy_charge_hit_stun_aerial_hooks_test" time="0.002">
+		</testcase>
+		<testcase name="test_full_charge_auto_releases_at_maximum" classname="story_005_heavy_charge_hit_stun_aerial_hooks_test" time="0.006">
+		</testcase>
+		<testcase name="test_releasing_before_minimum_charge_returns_to_idle_without_attack" classname="story_005_heavy_charge_hit_stun_aerial_hooks_test" time="0.006">
+		</testcase>
+		<testcase name="test_dodge_cancels_charging_into_dodging" classname="story_005_heavy_charge_hit_stun_aerial_hooks_test" time="0.006">
+		</testcase>
+		<testcase name="test_damage_taken_interrupts_charging_into_hit_stun" classname="story_005_heavy_charge_hit_stun_aerial_hooks_test" time="0.006">
+		</testcase>
+		<testcase name="test_hit_stun_duration_stacks_and_clamps_at_three" classname="story_005_heavy_charge_hit_stun_aerial_hooks_test" time="0.006">
+		</testcase>
+		<testcase name="test_aerial_hit_confirmation_emits_bounce_request" classname="story_005_heavy_charge_hit_stun_aerial_hooks_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="13" name="story_001_combat_state_machine_input_entry_test" package="tests/unit/combat" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_component_instantiates_with_idle_defaults" classname="story_001_combat_state_machine_input_entry_test" time="0.002">
+		</testcase>
+		<testcase name="test_attack_from_idle_enters_attacking_and_stage_zero" classname="story_001_combat_state_machine_input_entry_test" time="0.006">
+		</testcase>
+		<testcase name="test_defensive_and_heavy_actions_enter_base_states" classname="story_001_combat_state_machine_input_entry_test" time="0.007">
+		</testcase>
+		<testcase name="test_unknown_action_is_ignored" classname="story_001_combat_state_machine_input_entry_test" time="0.006">
+		</testcase>
+		<testcase name="test_state_changed_signal_emits_once_for_valid_transition" classname="story_001_combat_state_machine_input_entry_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="14" name="story_007_hit_confirmation_focus_damage_metadata_test" package="tests/unit/combat" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_collision_adapter_hit_builds_attack_metadata_and_grants_light_energy" classname="story_007_hit_confirmation_focus_damage_metadata_test" time="0.003">
+		</testcase>
+		<testcase name="test_focus_mode_adds_one_crit_window_bonus_without_stacking" classname="story_007_hit_confirmation_focus_damage_metadata_test" time="0.003">
+		</testcase>
+		<testcase name="test_missing_adapters_still_emit_hit_metadata_safely" classname="story_007_hit_confirmation_focus_damage_metadata_test" time="0.007">
+		</testcase>
+		<testcase name="test_damage_and_health_adapters_receive_confirmed_hit_payload" classname="story_007_hit_confirmation_focus_damage_metadata_test" time="0.006">
+		</testcase>
+		<testcase name="test_battle_stats_track_hit_damage_parry_dodge_and_cat_energy_snapshot" classname="story_007_hit_confirmation_focus_damage_metadata_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="15" name="story_002_direct_dispatch_fsm_test" package="tests/unit/input" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.036">
+		<testcase name="test_direct_mode_dispatches_trigger_action_immediately" classname="story_002_direct_dispatch_fsm_test" time="0.002">
+		</testcase>
+		<testcase name="test_animation_lock_and_unlock_switch_between_buffering_and_direct" classname="story_002_direct_dispatch_fsm_test" time="0.008">
+		</testcase>
+		<testcase name="test_pause_dispatches_immediately_while_buffering" classname="story_002_direct_dispatch_fsm_test" time="0.006">
+		</testcase>
+		<testcase name="test_action_triggered_metadata_contract_has_required_keys" classname="story_002_direct_dispatch_fsm_test" time="0.006">
+		</testcase>
+		<testcase name="test_continuous_and_unknown_actions_do_not_emit_trigger_events" classname="story_002_direct_dispatch_fsm_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="16" name="story_005_coyote_jump_buffer_test" package="tests/unit/input" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_coyote_jump_uses_default_inclusive_frame_window" classname="story_005_coyote_jump_buffer_test" time="0.004">
+		</testcase>
+		<testcase name="test_coyote_jump_rejects_negative_frame_counts" classname="story_005_coyote_jump_buffer_test" time="0.006">
+		</testcase>
+		<testcase name="test_jump_buffer_uses_default_inclusive_frame_window" classname="story_005_coyote_jump_buffer_test" time="0.007">
+		</testcase>
+		<testcase name="test_jump_buffer_rejects_negative_frame_counts" classname="story_005_coyote_jump_buffer_test" time="0.006">
+		</testcase>
+		<testcase name="test_tuned_coyote_and_jump_buffer_values_affect_results" classname="story_005_coyote_jump_buffer_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="17" name="story_006_device_switching_test" package="tests/unit/input" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.049">
+		<testcase name="test_classifies_input_sources" classname="story_006_device_switching_test" time="0.003">
+		</testcase>
+		<testcase name="test_valid_gamepad_switch_emits_device_changed_once" classname="story_006_device_switching_test" time="0.004">
+		</testcase>
+		<testcase name="test_debounce_suppresses_lower_priority_switch_until_window_expires" classname="story_006_device_switching_test" time="0.007">
+		</testcase>
+		<testcase name="test_higher_priority_device_can_win_inside_debounce_window" classname="story_006_device_switching_test" time="0.006">
+		</testcase>
+		<testcase name="test_same_device_events_do_not_emit_duplicate_changes" classname="story_006_device_switching_test" time="0.006">
+		</testcase>
+		<testcase name="test_tuned_debounce_value_affects_switch_timing" classname="story_006_device_switching_test" time="0.007">
+		</testcase>
+		<testcase name="test_combat_lock_preserves_current_mapping_and_suppresses_disconnect_switch" classname="story_006_device_switching_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="18" name="story_003_buffer_queue_preinput_test" package="tests/unit/input" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.042">
+		<testcase name="test_buffered_trigger_consumes_on_unlock_within_window" classname="story_003_buffer_queue_preinput_test" time="0.002">
+		</testcase>
+		<testcase name="test_buffered_trigger_expires_after_window" classname="story_003_buffer_queue_preinput_test" time="0.007">
+		</testcase>
+		<testcase name="test_buffer_queue_drops_oldest_entry_when_capacity_is_exceeded" classname="story_003_buffer_queue_preinput_test" time="0.006">
+		</testcase>
+		<testcase name="test_duplicate_buffered_action_keeps_latest_timestamp" classname="story_003_buffer_queue_preinput_test" time="0.006">
+		</testcase>
+		<testcase name="test_pre_input_gets_bonus_and_wins_over_nearby_base_priority" classname="story_003_buffer_queue_preinput_test" time="0.006">
+		</testcase>
+		<testcase name="test_clear_buffer_prevents_old_entries_from_consuming" classname="story_003_buffer_queue_preinput_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="19" name="story_001_action_abstraction_test" package="tests/unit/input" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_project_registers_input_manager_after_data_manager" classname="story_001_action_abstraction_test" time="0.003">
+		</testcase>
+		<testcase name="test_supported_actions_and_metadata_match_gdd_core_actions" classname="story_001_action_abstraction_test" time="0.004">
+		</testcase>
+		<testcase name="test_query_api_returns_safe_defaults_for_unknown_actions" classname="story_001_action_abstraction_test" time="0.007">
+		</testcase>
+		<testcase name="test_input_tuning_knobs_register_with_data_manager" classname="story_001_action_abstraction_test" time="0.006">
+		</testcase>
+		<testcase name="test_input_tuning_registration_without_data_manager_uses_safe_defaults" classname="story_001_action_abstraction_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="20" name="story_004_combo_conflicts_test" package="tests/unit/input" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.042">
+		<testcase name="test_consecutive_attack_inputs_increment_combo_index_to_finisher" classname="story_004_combo_conflicts_test" time="0.002">
+		</testcase>
+		<testcase name="test_attack_after_combo_window_resets_combo_index" classname="story_004_combo_conflicts_test" time="0.007">
+		</testcase>
+		<testcase name="test_same_frame_dodge_and_attack_resolves_to_dodge_only" classname="story_004_combo_conflicts_test" time="0.006">
+		</testcase>
+		<testcase name="test_same_frame_parry_and_dodge_resolves_to_parry_only" classname="story_004_combo_conflicts_test" time="0.006">
+		</testcase>
+		<testcase name="test_same_frame_dash_and_jump_resolves_to_dash_only" classname="story_004_combo_conflicts_test" time="0.006">
+		</testcase>
+		<testcase name="test_pause_has_highest_priority_and_is_not_buffered_by_combat_actions" classname="story_004_combo_conflicts_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="21" name="story_006_max_hp_serialization_prep_test" package="tests/unit/health" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_recalculate_max_hp_uses_hd_f0_base_skill_and_charm_sources" classname="story_006_max_hp_serialization_prep_test" time="0.002">
+		</testcase>
+		<testcase name="test_invalid_recalculated_max_hp_uses_safe_default" classname="story_006_max_hp_serialization_prep_test" time="0.007">
+		</testcase>
+		<testcase name="test_recalculate_max_hp_preserves_current_hp_percentage" classname="story_006_max_hp_serialization_prep_test" time="0.005">
+		</testcase>
+		<testcase name="test_get_injury_pitch_offset_uses_hd_f4_default_max_semitones" classname="story_006_max_hp_serialization_prep_test" time="0.006">
+		</testcase>
+		<testcase name="test_serialize_deserialize_round_trip_preserves_health_state" classname="story_006_max_hp_serialization_prep_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="22" name="story_003_iframes_healing_revive_test" package="tests/unit/health" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.042">
+		<testcase name="test_grant_iframes_uses_max_take_and_ticks_down_without_stacking" classname="story_003_iframes_healing_revive_test" time="0.002">
+		</testcase>
+		<testcase name="test_damage_during_iframes_is_ignored_without_hp_or_signals" classname="story_003_iframes_healing_revive_test" time="0.007">
+		</testcase>
+		<testcase name="test_heal_clamps_to_max_hp_and_emits_hp_changed" classname="story_003_iframes_healing_revive_test" time="0.006">
+		</testcase>
+		<testcase name="test_savepoint_restore_refills_hp_and_shield_to_max_values" classname="story_003_iframes_healing_revive_test" time="0.006">
+		</testcase>
+		<testcase name="test_revive_restores_at_least_one_hp_and_returns_to_alive" classname="story_003_iframes_healing_revive_test" time="0.006">
+		</testcase>
+		<testcase name="test_revive_resets_milestones_for_next_lifecycle" classname="story_003_iframes_healing_revive_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="23" name="story_002_milestones_boss_phases_test" package="tests/unit/health" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.029">
+		<testcase name="test_hp_milestones_emit_once_when_thresholds_are_first_crossed" classname="story_002_milestones_boss_phases_test" time="0.002">
+		</testcase>
+		<testcase name="test_repeated_crossing_of_triggered_milestone_does_not_emit_duplicate" classname="story_002_milestones_boss_phases_test" time="0.007">
+		</testcase>
+		<testcase name="test_boss_phase_cross_jump_emits_all_phase_changes_in_order" classname="story_002_milestones_boss_phases_test" time="0.006">
+		</testcase>
+		<testcase name="test_lethal_boss_hit_emits_hp_milestone_phase_then_death_order" classname="story_002_milestones_boss_phases_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="24" name="story_005_death_metadata_zone_hooks_test" package="tests/unit/health" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_death_metadata_contains_last_hit_battle_stats_and_context" classname="story_005_death_metadata_zone_hooks_test" time="0.002">
+		</testcase>
+		<testcase name="test_missing_combat_component_uses_safe_default_metadata" classname="story_005_death_metadata_zone_hooks_test" time="0.004">
+		</testcase>
+		<testcase name="test_death_in_zone_signal_emits_when_zone_is_configured" classname="story_005_death_metadata_zone_hooks_test" time="0.006">
+		</testcase>
+		<testcase name="test_death_metadata_deep_copies_battle_stats_before_emission" classname="story_005_death_metadata_zone_hooks_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="25" name="story_004_focus_mode_signals_test" package="tests/unit/health" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.049">
+		<testcase name="test_focus_activates_at_25_percent_when_combat_is_active" classname="story_004_focus_mode_signals_test" time="0.002">
+		</testcase>
+		<testcase name="test_focus_does_not_activate_at_low_hp_without_active_combat" classname="story_004_focus_mode_signals_test" time="0.005">
+		</testcase>
+		<testcase name="test_focus_hysteresis_holds_at_28_percent_and_exits_above_it" classname="story_004_focus_mode_signals_test" time="0.006">
+		</testcase>
+		<testcase name="test_focus_exits_when_active_enemy_count_reaches_zero" classname="story_004_focus_mode_signals_test" time="0.006">
+		</testcase>
+		<testcase name="test_focus_signal_emits_only_on_state_transitions" classname="story_004_focus_mode_signals_test" time="0.006">
+		</testcase>
+		<testcase name="test_revive_resets_focus_mode_and_emits_false_transition" classname="story_004_focus_mode_signals_test" time="0.006">
+		</testcase>
+		<testcase name="test_apply_damage_emits_focus_after_milestones_and_before_death" classname="story_004_focus_mode_signals_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="26" name="story_001_hp_damage_pipeline_test" package="tests/unit/health" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.049">
+		<testcase name="test_configure_sets_hp_shield_and_alive_queries" classname="story_001_hp_damage_pipeline_test" time="0.002">
+		</testcase>
+		<testcase name="test_configure_replaces_invalid_max_hp_with_safe_default" classname="story_001_hp_damage_pipeline_test" time="0.005">
+		</testcase>
+		<testcase name="test_apply_damage_subtracts_hp_and_emits_changed_once" classname="story_001_hp_damage_pipeline_test" time="0.006">
+		</testcase>
+		<testcase name="test_shield_absorbs_damage_before_hp" classname="story_001_hp_damage_pipeline_test" time="0.006">
+		</testcase>
+		<testcase name="test_lethal_damage_emits_death_once_and_ignores_later_damage" classname="story_001_hp_damage_pipeline_test" time="0.006">
+		</testcase>
+		<testcase name="test_non_positive_damage_is_ignored" classname="story_001_hp_damage_pipeline_test" time="0.006">
+		</testcase>
+		<testcase name="test_lethal_damage_emits_hp_changed_before_death" classname="story_001_hp_damage_pipeline_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="27" name="story_007_phase_transition_start_signal_contract_test" package="tests/unit/boss" timestamp="2026-06-25T02:05:08" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.022">
+		<testcase name="test_transition_started_signal_waits_for_ai_idle_and_emits_metadata_once" classname="story_007_phase_transition_start_signal_contract_test" time="0.003">
+		</testcase>
+		<testcase name="test_health_threshold_ordinals_preserve_actual_phase_start_order" classname="story_007_phase_transition_start_signal_contract_test" time="0.006">
+		</testcase>
+		<testcase name="test_transition_started_signal_filters_foreign_entity_health_events" classname="story_007_phase_transition_start_signal_contract_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="28" name="story_006_parry_immunity_test" package="tests/unit/boss" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.029">
+		<testcase name="test_successful_boss_parry_outcome_uses_five_times_damage" classname="story_006_parry_immunity_test" time="0.003">
+		</testcase>
+		<testcase name="test_successful_boss_parry_outcome_suppresses_stun" classname="story_006_parry_immunity_test" time="0.007">
+		</testcase>
+		<testcase name="test_missed_or_none_parry_outcomes_are_neutral" classname="story_006_parry_immunity_test" time="0.006">
+		</testcase>
+		<testcase name="test_parry_rules_are_loaded_from_boss_config_data" classname="story_006_parry_immunity_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="29" name="story_003_summon_scheduling_test" package="tests/unit/boss" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_phase_two_summon_interval_requests_one_minion_below_cap" classname="story_003_summon_scheduling_test" time="0.002">
+		</testcase>
+		<testcase name="test_phase_two_summon_cap_suppresses_additional_requests" classname="story_003_summon_scheduling_test" time="0.006">
+		</testcase>
+		<testcase name="test_leaving_phase_two_resets_summon_timer_state" classname="story_003_summon_scheduling_test" time="0.007">
+		</testcase>
+		<testcase name="test_boss_death_requests_cleanup_for_this_boss_once" classname="story_003_summon_scheduling_test" time="0.006">
+		</testcase>
+		<testcase name="test_summon_rules_are_loaded_from_boss_config_data" classname="story_003_summon_scheduling_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="30" name="story_001_boss_config_component_test" package="tests/unit/boss" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.034">
+		<testcase name="test_load_boss_config_exposes_rat_king_required_values" classname="story_001_boss_config_component_test" time="0.004">
+		</testcase>
+		<testcase name="test_phase_queries_expose_patterns_speed_modifiers_and_arena_bounds" classname="story_001_boss_config_component_test" time="0.003">
+		</testcase>
+		<testcase name="test_missing_or_malformed_config_fails_safely" classname="story_001_boss_config_component_test" time="0.006">
+		</testcase>
+		<testcase name="test_phase_data_normalizes_required_fields_and_defaults_optional_lists" classname="story_001_boss_config_component_test" time="0.006">
+		</testcase>
+		<testcase name="test_project_boss_config_data_loads_through_data_manager_and_schema" classname="story_001_boss_config_component_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="31" name="story_004_arena_change_adapter_test" package="tests/unit/boss" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_boss_encounter_start_requests_scene_lock_once" classname="story_004_arena_change_adapter_test" time="0.002">
+		</testcase>
+		<testcase name="test_phase_two_transition_applies_garbage_pile_arena_change" classname="story_004_arena_change_adapter_test" time="0.008">
+		</testcase>
+		<testcase name="test_phase_three_transition_applies_obstacle_and_damage_zone_changes" classname="story_004_arena_change_adapter_test" time="0.005">
+		</testcase>
+		<testcase name="test_boss_death_unlocks_scene_locked_by_encounter_once" classname="story_004_arena_change_adapter_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="32" name="story_005_desperation_reward_test" package="tests/unit/boss" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.029">
+		<testcase name="test_phase_three_below_ten_percent_hp_uses_desperation_defense" classname="story_005_desperation_reward_test" time="0.003">
+		</testcase>
+		<testcase name="test_desperation_defense_boundary_and_non_phase_three_remain_normal" classname="story_005_desperation_reward_test" time="0.007">
+		</testcase>
+		<testcase name="test_boss_defeat_dispatches_configured_rewards_for_this_boss" classname="story_005_desperation_reward_test" time="0.006">
+		</testcase>
+		<testcase name="test_boss_defeat_reward_dispatch_is_idempotent" classname="story_005_desperation_reward_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="33" name="story_002_phase_transition_adapter_test" package="tests/unit/boss" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.034">
+		<testcase name="test_phase_change_waits_until_current_ai_attack_is_complete" classname="story_002_phase_transition_adapter_test" time="0.002">
+		</testcase>
+		<testcase name="test_transition_invulnerability_lasts_default_two_point_five_seconds" classname="story_002_phase_transition_adapter_test" time="0.005">
+		</testcase>
+		<testcase name="test_completed_transition_applies_phase_patterns_and_speed_to_ai_adapter" classname="story_002_phase_transition_adapter_test" time="0.006">
+		</testcase>
+		<testcase name="test_multiple_threshold_crossing_processes_phases_in_order" classname="story_002_phase_transition_adapter_test" time="0.006">
+		</testcase>
+		<testcase name="test_health_signal_filters_entity_id_when_configured" classname="story_002_phase_transition_adapter_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="34" name="story_004_status_iframe_immunity_test" package="tests/unit/status" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.029">
+		<testcase name="test_health_adapter_invincible_rejects_debuff_before_application" classname="story_004_status_iframe_immunity_test" time="0.003">
+		</testcase>
+		<testcase name="test_buff_can_apply_while_health_adapter_is_invincible" classname="story_004_status_iframe_immunity_test" time="0.006">
+		</testcase>
+		<testcase name="test_active_invincible_status_rejects_later_debuffs" classname="story_004_status_iframe_immunity_test" time="0.007">
+		</testcase>
+		<testcase name="test_invincible_status_is_queryable_for_health_integration" classname="story_004_status_iframe_immunity_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="35" name="story_001_status_effect_catalog_test" package="tests/unit/status" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_component_starts_empty_with_default_capacity" classname="story_001_status_effect_catalog_test" time="0.002">
+		</testcase>
+		<testcase name="test_catalog_defines_exactly_gdd_effect_ids" classname="story_001_status_effect_catalog_test" time="0.008">
+		</testcase>
+		<testcase name="test_catalog_entries_expose_required_metadata" classname="story_001_status_effect_catalog_test" time="0.005">
+		</testcase>
+		<testcase name="test_active_effects_returns_defensive_copy" classname="story_001_status_effect_catalog_test" time="0.006">
+		</testcase>
+		<testcase name="test_project_status_tuning_knobs_validate_through_schema" classname="story_001_status_effect_catalog_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="36" name="story_002_status_application_immunity_test" package="tests/unit/status" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_apply_status_adds_effect_and_emits_signal" classname="story_002_status_application_immunity_test" time="0.002">
+		</testcase>
+		<testcase name="test_reapplying_same_effect_refreshes_without_duplicate" classname="story_002_status_application_immunity_test" time="0.007">
+		</testcase>
+		<testcase name="test_boss_rejects_stun_without_emitting_signal" classname="story_002_status_application_immunity_test" time="0.006">
+		</testcase>
+		<testcase name="test_non_boss_can_receive_stun" classname="story_002_status_application_immunity_test" time="0.006">
+		</testcase>
+		<testcase name="test_unknown_effect_is_rejected_safely" classname="story_002_status_application_immunity_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="37" name="story_003_status_duration_tick_modifiers_test" package="tests/unit/status" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_advance_time_expires_effect_and_emits_signal" classname="story_003_status_duration_tick_modifiers_test" time="0.002">
+		</testcase>
+		<testcase name="test_poison_ticks_once_per_second_through_health_adapter" classname="story_003_status_duration_tick_modifiers_test" time="0.007">
+		</testcase>
+		<testcase name="test_burn_ticks_damage_and_exposes_movement_modifier" classname="story_003_status_duration_tick_modifiers_test" time="0.006">
+		</testcase>
+		<testcase name="test_movement_and_damage_modifiers_multiply_active_effects" classname="story_003_status_duration_tick_modifiers_test" time="0.006">
+		</testcase>
+		<testcase name="test_expired_effects_no_longer_contribute_modifiers" classname="story_003_status_duration_tick_modifiers_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="38" name="story_006_status_cleanup_hooks_test" package="tests/unit/status" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_owner_death_clears_all_effects_and_emits_expiration_once" classname="story_006_status_cleanup_hooks_test" time="0.002">
+		</testcase>
+		<testcase name="test_foreign_death_does_not_clear_this_component" classname="story_006_status_cleanup_hooks_test" time="0.007">
+		</testcase>
+		<testcase name="test_scene_transition_signal_clears_all_effects_once" classname="story_006_status_cleanup_hooks_test" time="0.005">
+		</testcase>
+		<testcase name="test_direct_cleanup_is_idempotent" classname="story_006_status_cleanup_hooks_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="39" name="story_005_status_priority_capacity_test" package="tests/unit/status" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.022">
+		<testcase name="test_effect_priority_matches_gdd_order" classname="story_005_status_priority_capacity_test" time="0.002">
+		</testcase>
+		<testcase name="test_sixth_distinct_effect_keeps_capacity_at_five" classname="story_005_status_priority_capacity_test" time="0.007">
+		</testcase>
+		<testcase name="test_sixth_distinct_effect_evicts_oldest_and_emits_expired" classname="story_005_status_priority_capacity_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="40" name="story_004_attack_phase_execution_collision_adapter_test" package="tests/unit/ai" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_start_attack_enters_attack_state_and_startup_frame_zero" classname="story_004_attack_phase_execution_collision_adapter_test" time="0.003">
+		</testcase>
+		<testcase name="test_startup_boundary_activates_collision_hitbox_once_with_metadata" classname="story_004_attack_phase_execution_collision_adapter_test" time="0.007">
+		</testcase>
+		<testcase name="test_active_and_recovery_frames_return_to_idle_deterministically" classname="story_004_attack_phase_execution_collision_adapter_test" time="0.005">
+		</testcase>
+		<testcase name="test_startup_interruption_enters_stun_and_prevents_late_activation" classname="story_004_attack_phase_execution_collision_adapter_test" time="0.006">
+		</testcase>
+		<testcase name="test_missing_collision_adapter_does_not_crash_attack_lifecycle" classname="story_004_attack_phase_execution_collision_adapter_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="41" name="story_002_perception_cone_line_of_sight_query_test" package="tests/unit/ai" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_detect_target_requires_radius_cone_and_clear_line_of_sight" classname="story_002_perception_cone_line_of_sight_query_test" time="0.002">
+		</testcase>
+		<testcase name="test_perception_radius_clamps_to_gdd_safe_range" classname="story_002_perception_cone_line_of_sight_query_test" time="0.007">
+		</testcase>
+		<testcase name="test_perception_angle_clamps_to_gdd_safe_range" classname="story_002_perception_cone_line_of_sight_query_test" time="0.006">
+		</testcase>
+		<testcase name="test_idle_transitions_to_chase_when_target_visible" classname="story_002_perception_cone_line_of_sight_query_test" time="0.006">
+		</testcase>
+		<testcase name="test_chase_transitions_to_patrol_after_target_lost_delay" classname="story_002_perception_cone_line_of_sight_query_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="42" name="story_001_ai_state_machine_active_enemy_count_test" package="tests/unit/ai" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.036">
+		<testcase name="test_component_starts_idle_without_active_count_contribution" classname="story_001_ai_state_machine_active_enemy_count_test" time="0.003">
+		</testcase>
+		<testcase name="test_all_ai_states_can_be_entered_without_enemy_scene" classname="story_001_ai_state_machine_active_enemy_count_test" time="0.007">
+		</testcase>
+		<testcase name="test_entering_chase_or_attack_counts_each_entity_once" classname="story_001_ai_state_machine_active_enemy_count_test" time="0.006">
+		</testcase>
+		<testcase name="test_leaving_combat_states_decrements_without_going_negative" classname="story_001_ai_state_machine_active_enemy_count_test" time="0.007">
+		</testcase>
+		<testcase name="test_state_changed_signal_emits_for_real_changes_only" classname="story_001_ai_state_machine_active_enemy_count_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="43" name="story_003_data_driven_attack_pattern_loading_test" package="tests/unit/ai" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.057">
+		<testcase name="test_load_attack_patterns_from_data_adapter_preserves_required_fields" classname="story_003_data_driven_attack_pattern_loading_test" time="0.003">
+		</testcase>
+		<testcase name="test_invalid_or_missing_pattern_fields_use_safe_defaults" classname="story_003_data_driven_attack_pattern_loading_test" time="0.004">
+		</testcase>
+		<testcase name="test_empty_pattern_lists_leave_component_in_safe_no_attack_configuration" classname="story_003_data_driven_attack_pattern_loading_test" time="0.014">
+		</testcase>
+		<testcase name="test_project_enemy_stats_data_loads_through_data_manager_and_schema" classname="story_003_data_driven_attack_pattern_loading_test" time="0.009">
+		</testcase>
+		<testcase name="test_rat_king_enemy_stats_patterns_cover_boss_config_phase_pattern_ids" classname="story_003_data_driven_attack_pattern_loading_test" time="0.012">
+		</testcase>
+	</testsuite>
+	<testsuite id="44" name="story_006_low_hp_adaptation_weighted_attack_selection_test" package="tests/unit/ai" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.037">
+		<testcase name="test_low_hp_queries_health_and_enters_flee_from_chase_when_enabled" classname="story_006_low_hp_adaptation_weighted_attack_selection_test" time="0.002">
+		</testcase>
+		<testcase name="test_flee_disabled_keeps_combat_state_but_still_queries_health" classname="story_006_low_hp_adaptation_weighted_attack_selection_test" time="0.006">
+		</testcase>
+		<testcase name="test_berserk_speed_modifier_applies_to_future_pattern_timing" classname="story_006_low_hp_adaptation_weighted_attack_selection_test" time="0.006">
+		</testcase>
+		<testcase name="test_attack_weight_computation_clamps_base_phase_hp_product" classname="story_006_low_hp_adaptation_weighted_attack_selection_test" time="0.004">
+		</testcase>
+		<testcase name="test_weighted_selection_uses_injected_roll_value" classname="story_006_low_hp_adaptation_weighted_attack_selection_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="45" name="story_005_boss_phase_focus_mode_signal_integration_test" package="tests/unit/ai" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.052">
+		<testcase name="test_health_focus_signal_adds_windup_to_new_attacks_only" classname="story_005_boss_phase_focus_mode_signal_integration_test" time="0.003">
+		</testcase>
+		<testcase name="test_focus_signal_ignores_foreign_entity_metadata_form" classname="story_005_boss_phase_focus_mode_signal_integration_test" time="0.005">
+		</testcase>
+		<testcase name="test_legacy_bool_only_focus_signal_uses_default_windup_extension" classname="story_005_boss_phase_focus_mode_signal_integration_test" time="0.006">
+		</testcase>
+		<testcase name="test_boss_phase_signal_stores_current_phase_and_ignores_foreign_entity" classname="story_005_boss_phase_focus_mode_signal_integration_test" time="0.017">
+		</testcase>
+		<testcase name="test_boss_phase_switches_future_pattern_sets_when_available" classname="story_005_boss_phase_focus_mode_signal_integration_test" time="0.002">
+		</testcase>
+		<testcase name="test_boss_config_apply_phase_contract_filters_pattern_ids_and_speed" classname="story_005_boss_phase_focus_mode_signal_integration_test" time="0.003">
+		</testcase>
+	</testsuite>
+	<testsuite id="46" name="main_scene_weapon_swap_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.082">
+		<testcase name="test_weapon_swap_action_is_registered_for_runtime_input" classname="main_scene_weapon_swap_runtime_test" time="0.071">
+		</testcase>
+		<testcase name="test_runtime_weapon_swap_updates_progress_state_and_hud_after_half_second" classname="main_scene_weapon_swap_runtime_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="47" name="game_flow_controller_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.033">
+		<testcase name="test_enemy_defeat_enters_victory_once" classname="game_flow_controller_test" time="0.002">
+		</testcase>
+		<testcase name="test_player_death_delays_respawn_until_animation_time" classname="game_flow_controller_test" time="0.005">
+		</testcase>
+		<testcase name="test_revived_state_unlocks_after_invincibility_window" classname="game_flow_controller_test" time="0.007">
+		</testcase>
+		<testcase name="test_boss_death_respawns_at_arena_entrance_and_resets_entry_snapshot" classname="game_flow_controller_test" time="0.005">
+		</testcase>
+		<testcase name="test_boss_victory_does_not_reset_arena_or_emit_second_reward_path" classname="game_flow_controller_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="48" name="main_scene_visual_contract_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_runtime_characters_use_animated_sprite_frames" classname="main_scene_visual_contract_test" time="0.005">
+		</testcase>
+		<testcase name="test_runtime_characters_do_not_use_legacy_single_image_textures" classname="main_scene_visual_contract_test" time="0.004">
+		</testcase>
+		<testcase name="test_main_scene_startup_has_no_visible_gameplay_color_rect_blocks" classname="main_scene_visual_contract_test" time="0.005">
+		</testcase>
+		<testcase name="test_main_scene_routes_boss_phase_transition_source_to_combat_presentation" classname="main_scene_visual_contract_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="49" name="simple_enemy_respawn_reset_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.007">
+		<testcase name="test_restore_respawn_snapshot_resets_hp_position_and_collision" classname="simple_enemy_respawn_reset_test" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="50" name="main_scene_scene_transition_ui_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.015">
+		<testcase name="test_new_game_prefers_async_scene_request_and_shows_transition_shell" classname="main_scene_scene_transition_ui_test" time="0.006">
+		</testcase>
+		<testcase name="test_async_scene_failure_hides_transition_and_reports_failure" classname="main_scene_scene_transition_ui_test" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="51" name="main_scene_save_load_menu_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.030">
+		<testcase name="test_returning_from_pause_to_main_menu_releases_pause_state_and_focus" classname="main_scene_save_load_menu_runtime_test" time="0.007">
+		</testcase>
+		<testcase name="test_save_slot_request_waits_for_async_completion_before_success_feedback" classname="main_scene_save_load_menu_runtime_test" time="0.005">
+		</testcase>
+		<testcase name="test_save_slot_request_does_not_replace_pending_slot_when_write_in_progress" classname="main_scene_save_load_menu_runtime_test" time="0.005">
+		</testcase>
+		<testcase name="test_save_slot_request_reports_async_failure_without_success_refresh" classname="main_scene_save_load_menu_runtime_test" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="52" name="main_scene_player_attack_core_chain_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:09" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.029">
+		<testcase name="test_player_light_attack_damages_enemy_through_core_chain_once" classname="main_scene_player_attack_core_chain_test" time="0.005">
+		</testcase>
+		<testcase name="test_main_scene_dispatches_long_tail_attack_started_to_blade_arc_vfx" classname="main_scene_player_attack_core_chain_test" time="0.004">
+		</testcase>
+		<testcase name="test_main_scene_dispatches_fish_bone_attack_started_to_shockwave_vfx" classname="main_scene_player_attack_core_chain_test" time="0.005">
+		</testcase>
+		<testcase name="test_electro_bell_runtime_hit_applies_slow_to_enemy_status_component" classname="main_scene_player_attack_core_chain_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="53" name="player_respawn_visual_feedback_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.021">
+		<testcase name="test_respawn_starts_visible_transparent_flash_for_invincibility_window" classname="player_respawn_visual_feedback_test" time="0.004">
+		</testcase>
+		<testcase name="test_respawn_visual_stops_when_game_flow_unlocks" classname="player_respawn_visual_feedback_test" time="0.007">
+		</testcase>
+		<testcase name="test_respawn_visual_does_not_override_damage_color_after_window" classname="player_respawn_visual_feedback_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="54" name="player_air_animation_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="8" failures="0" errors="0" skipped="0" flaky="0" time="0.071">
+		<testcase name="test_player_sprite_frames_include_jump_and_fall_assets" classname="player_air_animation_test" time="0.002">
+		</testcase>
+		<testcase name="test_air_animation_assets_follow_project_pipeline_paths" classname="player_air_animation_test" time="0.007">
+		</testcase>
+		<testcase name="test_upward_air_velocity_plays_jump_animation" classname="player_air_animation_test" time="0.004">
+		</testcase>
+		<testcase name="test_upward_velocity_prefers_jump_during_floor_contact_cache" classname="player_air_animation_test" time="0.007">
+		</testcase>
+		<testcase name="test_downward_air_velocity_plays_fall_animation" classname="player_air_animation_test" time="0.006">
+		</testcase>
+		<testcase name="test_air_animation_does_not_override_locked_damage_state" classname="player_air_animation_test" time="0.014">
+		</testcase>
+		<testcase name="test_air_animation_does_not_override_attack_state" classname="player_air_animation_test" time="0.003">
+		</testcase>
+		<testcase name="test_air_animation_does_not_override_dodge_state" classname="player_air_animation_test" time="0.003">
+		</testcase>
+	</testsuite>
+	<testsuite id="55" name="main_scene_hud_settings_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.039">
+		<testcase name="test_damage_number_toggle_controls_runtime_hit_numbers_without_muting_impact" classname="main_scene_hud_settings_runtime_test" time="0.005">
+		</testcase>
+		<testcase name="test_battle_summary_toggle_opens_lesson_panel_on_player_death" classname="main_scene_hud_settings_runtime_test" time="0.004">
+		</testcase>
+		<testcase name="test_runtime_progress_state_hands_off_hud_accessibility_settings" classname="main_scene_hud_settings_runtime_test" time="0.010">
+		</testcase>
+		<testcase name="test_hud_colorblind_mode_syncs_to_runtime_combat_particles" classname="main_scene_hud_settings_runtime_test" time="0.005">
+		</testcase>
+		<testcase name="test_player_focus_signal_reduces_runtime_combat_screen_shake" classname="main_scene_hud_settings_runtime_test" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="56" name="no_loss_respawn_state_contract_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.015">
+		<testcase name="test_death_respawn_restores_currency_inventory_weapons_and_world_flags" classname="no_loss_respawn_state_contract_test" time="0.004">
+		</testcase>
+		<testcase name="test_no_loss_contract_keeps_health_restore_owned_by_revive_percentage" classname="no_loss_respawn_state_contract_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="57" name="player_character_animation_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.022">
+		<testcase name="test_player_uses_animated_sprite_with_required_frame_sets" classname="player_character_animation_test" time="0.004">
+		</testcase>
+		<testcase name="test_character_animation_assets_follow_project_pipeline_paths" classname="player_character_animation_test" time="0.006">
+		</testcase>
+		<testcase name="test_player_attack_switches_to_attack_animation" classname="player_character_animation_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="58" name="main_scene_player_dodge_afterimage_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.008">
+		<testcase name="test_player_dodge_spawns_three_presentation_afterimages_in_main_scene" classname="main_scene_player_dodge_afterimage_test" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="59" name="rat_king_boss_runtime_contract_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.036">
+		<testcase name="test_rat_king_boss_scene_exposes_main_scene_enemy_contract" classname="rat_king_boss_runtime_contract_test" time="0.002">
+		</testcase>
+		<testcase name="test_main_scene_uses_rat_king_runtime_boss_as_visible_enemy" classname="rat_king_boss_runtime_contract_test" time="0.004">
+		</testcase>
+		<testcase name="test_main_scene_routes_real_rat_king_phase_transition_to_presentation" classname="rat_king_boss_runtime_contract_test" time="0.007">
+		</testcase>
+		<testcase name="test_rat_king_phase_transition_applies_data_driven_attack_pool" classname="rat_king_boss_runtime_contract_test" time="0.006">
+		</testcase>
+		<testcase name="test_rat_king_slam_attack_activates_data_driven_hitbox_metadata" classname="rat_king_boss_runtime_contract_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="60" name="player_hurt_death_revive_animation_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.036">
+		<testcase name="test_player_sprite_frames_include_hurt_death_and_revive_assets" classname="player_hurt_death_revive_animation_test" time="0.002">
+		</testcase>
+		<testcase name="test_player_animation_assets_follow_project_pipeline_paths" classname="player_hurt_death_revive_animation_test" time="0.007">
+		</testcase>
+		<testcase name="test_player_damage_states_play_hurt_and_death_animations" classname="player_hurt_death_revive_animation_test" time="0.005">
+		</testcase>
+		<testcase name="test_player_respawn_plays_revive_animation_and_keeps_invincibility_flash" classname="player_hurt_death_revive_animation_test" time="0.007">
+		</testcase>
+		<testcase name="test_player_hurt_death_and_revive_are_not_immediately_overridden" classname="player_hurt_death_revive_animation_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="61" name="simple_enemy_character_animation_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.021">
+		<testcase name="test_enemy_uses_shadow_beast_animated_sprite_frames" classname="simple_enemy_character_animation_test" time="0.003">
+		</testcase>
+		<testcase name="test_enemy_animation_assets_follow_project_pipeline_paths" classname="simple_enemy_character_animation_test" time="0.006">
+		</testcase>
+		<testcase name="test_enemy_damage_states_play_hurt_and_death_animations" classname="simple_enemy_character_animation_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="62" name="main_scene_enemy_attack_core_chain_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.017">
+		<testcase name="test_enemy_attack_tell_then_active_hitbox_damages_player_once" classname="main_scene_enemy_attack_core_chain_test" time="0.006">
+		</testcase>
+		<testcase name="test_enemy_attack_rejects_reentry_during_tell_and_recovers" classname="main_scene_enemy_attack_core_chain_test" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="63" name="player_dodge_animation_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.022">
+		<testcase name="test_player_has_three_frame_dodge_animation_from_character_asset_pipeline" classname="player_dodge_animation_test" time="0.004">
+		</testcase>
+		<testcase name="test_request_dodge_plays_dodge_animation_and_emits_afterimage_metadata" classname="player_dodge_animation_test" time="0.007">
+		</testcase>
+		<testcase name="test_request_dodge_respects_cooldown_until_dodge_window_finishes" classname="player_dodge_animation_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="64" name="main_scene_audio_event_adapter_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.031">
+		<testcase name="test_player_attack_and_weapon_start_events_route_to_audio_system" classname="main_scene_audio_event_adapter_test" time="0.006">
+		</testcase>
+		<testcase name="test_enemy_damage_and_player_dodge_events_route_to_audio_system" classname="main_scene_audio_event_adapter_test" time="0.006">
+		</testcase>
+		<testcase name="test_focus_enemy_defeat_and_boss_phase_events_route_to_audio_system" classname="main_scene_audio_event_adapter_test" time="0.007">
+		</testcase>
+		<testcase name="test_incomplete_audio_system_does_not_block_existing_gameplay_presentation" classname="main_scene_audio_event_adapter_test" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="65" name="rat_king_character_animation_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.015">
+		<testcase name="test_rat_king_character_scene_uses_animated_sprite_frames" classname="rat_king_character_animation_test" time="0.004">
+		</testcase>
+		<testcase name="test_rat_king_animation_assets_follow_project_pipeline_paths" classname="rat_king_character_animation_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="66" name="rat_king_specialized_attack_animation_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="8" failures="0" errors="0" skipped="0" flaky="0" time="0.056">
+		<testcase name="test_rat_king_sprite_frames_include_specialized_attack_sets" classname="rat_king_specialized_attack_animation_test" time="0.002">
+		</testcase>
+		<testcase name="test_specialized_attack_assets_follow_project_pipeline_paths" classname="rat_king_specialized_attack_animation_test" time="0.008">
+		</testcase>
+		<testcase name="test_all_rat_king_ai_pattern_ids_have_matching_animation_sets" classname="rat_king_specialized_attack_animation_test" time="0.005">
+		</testcase>
+		<testcase name="test_charge_pattern_plays_charge_animation_and_preserves_hitbox_metadata" classname="rat_king_specialized_attack_animation_test" time="0.007">
+		</testcase>
+		<testcase name="test_claw_swipe_pattern_plays_claw_swipe_animation_and_preserves_hitbox_metadata" classname="rat_king_specialized_attack_animation_test" time="0.006">
+		</testcase>
+		<testcase name="test_phase_two_slam_pattern_plays_slam_animation_and_preserves_hitbox_metadata" classname="rat_king_specialized_attack_animation_test" time="0.006">
+		</testcase>
+		<testcase name="test_phase_three_berserk_combo_pattern_plays_berserk_combo_animation_and_preserves_hitbox_metadata" classname="rat_king_specialized_attack_animation_test" time="0.006">
+		</testcase>
+		<testcase name="test_summon_minion_special_attack_maps_to_animation_without_live_spawn_requirement" classname="rat_king_specialized_attack_animation_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="67" name="rat_king_live_summon_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.049">
+		<testcase name="test_rat_minion_character_asset_contract_uses_sprite_frames" classname="rat_king_live_summon_runtime_test" time="0.002">
+		</testcase>
+		<testcase name="test_rat_minion_animation_assets_follow_project_pipeline_paths" classname="rat_king_live_summon_runtime_test" time="0.003">
+		</testcase>
+		<testcase name="test_rat_minion_runtime_scene_exposes_enemy_contract" classname="rat_king_live_summon_runtime_test" time="0.006">
+		</testcase>
+		<testcase name="test_main_scene_spawns_live_phase_two_summon_from_boss_timer" classname="rat_king_live_summon_runtime_test" time="0.006">
+		</testcase>
+		<testcase name="test_main_scene_enforces_summon_cap_and_replenishes_after_minion_death" classname="rat_king_live_summon_runtime_test" time="0.006">
+		</testcase>
+		<testcase name="test_boss_death_cleans_up_live_summons" classname="rat_king_live_summon_runtime_test" time="0.006">
+		</testcase>
+		<testcase name="test_player_damage_adapter_routes_to_live_summon" classname="rat_king_live_summon_runtime_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="68" name="story_004_savepoint_respawn_selection_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_last_discovered_savepoint_is_preferred_and_routed_through_scene_manager" classname="story_004_savepoint_respawn_selection_test" time="0.002">
+		</testcase>
+		<testcase name="test_missing_or_invalid_savepoint_falls_back_to_clan_base" classname="story_004_savepoint_respawn_selection_test" time="0.006">
+		</testcase>
+		<testcase name="test_boss_entrance_remains_higher_priority_than_discovered_savepoint" classname="story_004_savepoint_respawn_selection_test" time="0.006">
+		</testcase>
+		<testcase name="test_main_scene_save_system_round_trips_last_discovered_savepoint" classname="story_004_savepoint_respawn_selection_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="69" name="main_scene_title_load_handoff_test" package="tests/unit/gameplay" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.048">
+		<testcase name="test_new_game_routes_default_playable_scene_through_scene_manager" classname="main_scene_title_load_handoff_test" time="0.004">
+		</testcase>
+		<testcase name="test_continue_loads_first_available_slot_and_hands_off_saved_spawn" classname="main_scene_title_load_handoff_test" time="0.005">
+		</testcase>
+		<testcase name="test_load_slot_uses_selected_slot_not_continue_default" classname="main_scene_title_load_handoff_test" time="0.004">
+		</testcase>
+		<testcase name="test_load_slot_rejection_keeps_menu_visible_and_does_not_restore_state" classname="main_scene_title_load_handoff_test" time="0.004">
+		</testcase>
+		<testcase name="test_load_slot_uses_scene_fallback_order_when_savepoint_is_missing" classname="main_scene_title_load_handoff_test" time="0.005">
+		</testcase>
+		<testcase name="test_locked_or_rejected_scene_manager_keeps_load_atomic" classname="main_scene_title_load_handoff_test" time="0.007">
+		</testcase>
+		<testcase name="test_registered_system_deserialize_is_skipped_until_scene_handoff_succeeds" classname="main_scene_title_load_handoff_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="70" name="story_003_async_load_timeout_fallback_test" package="tests/unit/scene" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_request_scene_change_starts_threaded_request_without_committing_current_scene" classname="story_003_async_load_timeout_fallback_test" time="0.002">
+		</testcase>
+		<testcase name="test_loaded_scene_waits_for_transition_gate_before_logical_commit" classname="story_003_async_load_timeout_fallback_test" time="0.006">
+		</testcase>
+		<testcase name="test_timeout_retries_once_then_records_failure_and_falls_back_to_hub" classname="story_003_async_load_timeout_fallback_test" time="0.006">
+		</testcase>
+		<testcase name="test_locked_unknown_or_active_loading_requests_are_rejected_without_loader_calls" classname="story_003_async_load_timeout_fallback_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="71" name="story_005_runtime_scene_tree_swap_test" package="tests/unit/scene" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.027">
+		<testcase name="test_configure_runtime_root_enables_scene_tree_swap_diagnostics" classname="story_005_runtime_scene_tree_swap_test" time="0.002">
+		</testcase>
+		<testcase name="test_async_loaded_packed_scene_is_instantiated_into_runtime_root_after_transition_gate" classname="story_005_runtime_scene_tree_swap_test" time="0.005">
+		</testcase>
+		<testcase name="test_invalid_loaded_resource_fails_without_detaching_current_runtime_scene" classname="story_005_runtime_scene_tree_swap_test" time="0.006">
+		</testcase>
+		<testcase name="test_no_runtime_root_preserves_story003_logical_async_commit" classname="story_005_runtime_scene_tree_swap_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="72" name="story_001_scene_manager_registry_api_test" package="tests/unit/scene" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="9" failures="0" errors="0" skipped="0" flaky="0" time="0.063">
+		<testcase name="test_project_autoload_registers_scene_manager_after_save_system_and_script_loads" classname="story_001_scene_manager_registry_api_test" time="0.002">
+		</testcase>
+		<testcase name="test_scene_registry_domain_contains_hub_and_main_existing_scene_paths" classname="story_001_scene_manager_registry_api_test" time="0.003">
+		</testcase>
+		<testcase name="test_configure_registry_and_preload_mark_logical_scene_loaded_without_tree_swap" classname="story_001_scene_manager_registry_api_test" time="0.007">
+		</testcase>
+		<testcase name="test_change_scene_records_current_scene_spawn_and_emits_expected_signals_once" classname="story_001_scene_manager_registry_api_test" time="0.005">
+		</testcase>
+		<testcase name="test_lock_and_invalid_scene_reject_change_without_state_or_signal_side_effects" classname="story_001_scene_manager_registry_api_test" time="0.006">
+		</testcase>
+		<testcase name="test_unlock_scene_allows_change_after_lock" classname="story_001_scene_manager_registry_api_test" time="0.006">
+		</testcase>
+		<testcase name="test_set_get_scene_state_deep_copies_json_safe_state" classname="story_001_scene_manager_registry_api_test" time="0.006">
+		</testcase>
+		<testcase name="test_serialize_deserialize_round_trip_preserves_current_scene_spawn_and_states" classname="story_001_scene_manager_registry_api_test" time="0.006">
+		</testcase>
+		<testcase name="test_save_system_can_register_scene_manager_and_call_deserialize_with_version" classname="story_001_scene_manager_registry_api_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="73" name="story_007_fast_travel_preload_scene_change_test" package="tests/unit/scene" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.056">
+		<testcase name="test_fast_travel_preload_waits_for_two_second_portal_gate_before_commit" classname="story_007_fast_travel_preload_scene_change_test" time="0.002">
+		</testcase>
+		<testcase name="test_fast_travel_runtime_swap_keeps_deferred_cache_contract" classname="story_007_fast_travel_preload_scene_change_test" time="0.009">
+		</testcase>
+		<testcase name="test_fast_travel_quick_return_reuses_deferred_cache_after_two_second_gate_without_new_loader_request" classname="story_007_fast_travel_preload_scene_change_test" time="0.013">
+		</testcase>
+		<testcase name="test_regular_scene_change_keeps_one_point_five_second_transition_gate" classname="story_007_fast_travel_preload_scene_change_test" time="0.004">
+		</testcase>
+		<testcase name="test_fast_travel_rejects_locked_unknown_or_active_loading_without_extra_loader_calls" classname="story_007_fast_travel_preload_scene_change_test" time="0.007">
+		</testcase>
+		<testcase name="test_fast_travel_timeout_retries_once_then_emits_failure_and_falls_back_to_hub" classname="story_007_fast_travel_preload_scene_change_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="74" name="story_006_deferred_unload_cache_eviction_test" package="tests/unit/scene" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.042">
+		<testcase name="test_successful_swap_keeps_outgoing_scene_for_three_seconds_then_queues_free" classname="story_006_deferred_unload_cache_eviction_test" time="0.003">
+		</testcase>
+		<testcase name="test_quick_return_to_cached_scene_reuses_node_without_new_loader_request" classname="story_006_deferred_unload_cache_eviction_test" time="0.012">
+		</testcase>
+		<testcase name="test_third_scene_swap_evicts_older_cache_and_keeps_only_two_resident_scenes" classname="story_006_deferred_unload_cache_eviction_test" time="0.013">
+		</testcase>
+		<testcase name="test_no_runtime_root_keeps_deferred_cache_diagnostics_empty" classname="story_006_deferred_unload_cache_eviction_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="75" name="story_005_async_write_performance_budget_test" package="tests/unit/save" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.107">
+		<testcase name="test_async_manual_save_dispatches_under_budget_and_completes_on_process_poll" classname="story_005_async_write_performance_budget_test" time="0.024">
+		</testcase>
+		<testcase name="test_async_write_rejects_second_save_until_first_completion_is_polled" classname="story_005_async_write_performance_budget_test" time="0.026">
+		</testcase>
+		<testcase name="test_async_completion_preserves_backup_for_existing_slot" classname="story_005_async_write_performance_budget_test" time="0.019">
+		</testcase>
+		<testcase name="test_sync_fallback_writes_immediately_when_async_disabled" classname="story_005_async_write_performance_budget_test" time="0.005">
+		</testcase>
+		<testcase name="test_async_write_failure_clears_pending_and_emits_failure_signal" classname="story_005_async_write_performance_budget_test" time="0.021">
+		</testcase>
+	</testsuite>
+	<testsuite id="76" name="story_002_version_migration_save_info_metadata_test" package="tests/unit/save" timestamp="2026-06-25T02:05:10" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.022">
+		<testcase name="test_get_save_info_returns_empty_and_populated_slot_metadata" classname="story_002_version_migration_save_info_metadata_test" time="0.004">
+		</testcase>
+		<testcase name="test_load_game_migrates_older_save_before_deserializing_and_writes_current_version" classname="story_002_version_migration_save_info_metadata_test" time="0.003">
+		</testcase>
+		<testcase name="test_missing_migration_and_future_version_fail_without_loaded_data" classname="story_002_version_migration_save_info_metadata_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="77" name="story_001_save_slots_backup_json_pipeline_test" package="tests/unit/save" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.029">
+		<testcase name="test_manual_save_rejects_autosave_slot_and_auto_save_writes_slot_zero" classname="story_001_save_slots_backup_json_pipeline_test" time="0.004">
+		</testcase>
+		<testcase name="test_manual_save_writes_complete_json_payload_with_registered_systems" classname="story_001_save_slots_backup_json_pipeline_test" time="0.003">
+		</testcase>
+		<testcase name="test_registered_systems_deserialize_in_registration_order_and_duplicate_keys_reject" classname="story_001_save_slots_backup_json_pipeline_test" time="0.007">
+		</testcase>
+		<testcase name="test_save_over_existing_slot_creates_backup_and_corrupt_main_loads_backup" classname="story_001_save_slots_backup_json_pipeline_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="78" name="story_003_autosave_trigger_adapter_test" package="tests/unit/save" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.022">
+		<testcase name="test_savepoint_signal_writes_slot_zero_with_snapshot_and_context" classname="story_003_autosave_trigger_adapter_test" time="0.003">
+		</testcase>
+		<testcase name="test_boss_key_and_scene_triggers_share_autosave_path_and_emit_reasons" classname="story_003_autosave_trigger_adapter_test" time="0.006">
+		</testcase>
+		<testcase name="test_invalid_and_failed_autosave_triggers_fail_without_manual_slot_write" classname="story_003_autosave_trigger_adapter_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="79" name="story_004_main_scene_save_system_runtime_handoff_test" package="tests/unit/save" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="3" failures="6" errors="0" skipped="0" flaky="0" time="0.022">
+		<testcase name="test_runtime_manual_save_writes_main_scene_snapshot_and_registered_system" classname="story_004_main_scene_save_system_runtime_handoff_test" time="0.007">
+		</testcase>
+		<testcase name="test_load_runtime_from_slot_restores_main_scene_progress_after_mutation" classname="story_004_main_scene_save_system_runtime_handoff_test" time="0.007">
+			<failure message="FAILED: res://tests/unit/save/story_004_main_scene_save_system_runtime_handoff_test.gd:88" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/save/story_004_main_scene_save_system_runtime_handoff_test.gd:90" type="FAILURE">
+<![CDATA[
+Expecting:
+ '64'
+ but was
+ '44'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/save/story_004_main_scene_save_system_runtime_handoff_test.gd:91" type="FAILURE">
+<![CDATA[
+Expecting:
+ '17'
+ but was
+ '116'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/save/story_004_main_scene_save_system_runtime_handoff_test.gd:92" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'long_tail'
+ but was
+ 'cat_clong_tailw'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/save/story_004_main_scene_save_system_runtime_handoff_test.gd:93" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/save/story_004_main_scene_save_system_runtime_handoff_test.gd:94" type="FAILURE">
+<![CDATA[
+Expecting:
+ '1.000000'
+ in range between
+ '1.499000' <> '1.501000'
+]]>
+			</failure>
+		</testcase>
+	</testsuite>
+	<testsuite id="80" name="story_002_schema_validator_test" package="tests/unit/data" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="12" failures="0" errors="0" skipped="0" flaky="0" time="0.081">
+		<testcase name="test_valid_data_passes_validation" classname="story_002_schema_validator_test" time="0.003">
+		</testcase>
+		<testcase name="test_integral_float_passes_int_validation_for_json_numbers" classname="story_002_schema_validator_test" time="0.002">
+		</testcase>
+		<testcase name="test_fractional_float_fails_int_validation" classname="story_002_schema_validator_test" time="0.005">
+		</testcase>
+		<testcase name="test_missing_required_field_fails_validation" classname="story_002_schema_validator_test" time="0.006">
+		</testcase>
+		<testcase name="test_missing_entry_entirely_fails_validation" classname="story_002_schema_validator_test" time="0.006">
+		</testcase>
+		<testcase name="test_type_mismatch_fails_validation" classname="story_002_schema_validator_test" time="0.006">
+		</testcase>
+		<testcase name="test_range_violation_fails_validation" classname="story_002_schema_validator_test" time="0.006">
+		</testcase>
+		<testcase name="test_enum_violation_fails_validation" classname="story_002_schema_validator_test" time="0.006">
+		</testcase>
+		<testcase name="test_first_load_validation_failure_empty_cache_and_ready" classname="story_002_schema_validator_test" time="0.005">
+		</testcase>
+		<testcase name="test_hot_reload_preserves_cache_design" classname="story_002_schema_validator_test" time="0.007">
+		</testcase>
+		<testcase name="test_missing_schema_skips_validation_data_loaded" classname="story_002_schema_validator_test" time="0.005">
+		</testcase>
+		<testcase name="test_schema_without_type_only_checks_required" classname="story_002_schema_validator_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="81" name="story_004_hot_reloader_test" package="tests/unit/data" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.042">
+		<testcase name="test_debug_file_change_reloads_emits_signal_and_returns_new_entry" classname="story_004_hot_reloader_test" time="0.005">
+		</testcase>
+		<testcase name="test_hot_reload_validation_failure_preserves_cache_and_skips_signal" classname="story_004_hot_reloader_test" time="0.004">
+		</testcase>
+		<testcase name="test_debug_hot_reload_timer_runs_at_one_second_interval" classname="story_004_hot_reloader_test" time="0.004">
+		</testcase>
+		<testcase name="test_release_hot_reload_timer_is_not_created_or_running" classname="story_004_hot_reloader_test" time="0.007">
+		</testcase>
+		<testcase name="test_same_polling_cycle_reloads_multiple_files_and_emits_each_domain_once" classname="story_004_hot_reloader_test" time="0.005">
+		</testcase>
+		<testcase name="test_deleted_domain_file_enters_fallback_without_affecting_other_domains" classname="story_004_hot_reloader_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="82" name="story_005_tuning_knob_test" package="tests/unit/data" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.041">
+		<testcase name="test_registered_knob_returns_default_value" classname="story_005_tuning_knob_test" time="0.002">
+		</testcase>
+		<testcase name="test_set_tuning_in_range_updates_value_and_emits_signal" classname="story_005_tuning_knob_test" time="0.006">
+		</testcase>
+		<testcase name="test_set_tuning_above_max_clamps_to_max" classname="story_005_tuning_knob_test" time="0.006">
+		</testcase>
+		<testcase name="test_set_tuning_below_min_clamps_to_min" classname="story_005_tuning_knob_test" time="0.006">
+		</testcase>
+		<testcase name="test_unregistered_knob_returns_fallback_value" classname="story_005_tuning_knob_test" time="0.006">
+		</testcase>
+		<testcase name="test_json_hot_reload_updates_knob_value_and_emits_signal" classname="story_005_tuning_knob_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="83" name="story_001_manifest_test" package="tests/unit/data" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.042">
+		<testcase name="test_valid_manifest_enters_ready_state" classname="story_001_manifest_test" time="0.003">
+		</testcase>
+		<testcase name="test_missing_manifest_enters_error_state" classname="story_001_manifest_test" time="0.007">
+		</testcase>
+		<testcase name="test_corrupt_manifest_enters_error_state" classname="story_001_manifest_test" time="0.005">
+		</testcase>
+		<testcase name="test_get_entry_returns_null_in_non_ready_state" classname="story_001_manifest_test" time="0.006">
+		</testcase>
+		<testcase name="test_retry_when_manifest_fixed_transitions_to_ready" classname="story_001_manifest_test" time="0.006">
+		</testcase>
+		<testcase name="test_retry_in_ready_state_is_noop" classname="story_001_manifest_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="84" name="story_003_domain_cache_test" package="tests/unit/data" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.049">
+		<testcase name="test_get_entry_returns_loaded_domain_entry" classname="story_003_domain_cache_test" time="0.003">
+		</testcase>
+		<testcase name="test_get_entry_returns_null_for_missing_entry" classname="story_003_domain_cache_test" time="0.006">
+		</testcase>
+		<testcase name="test_get_entry_returns_null_for_missing_domain" classname="story_003_domain_cache_test" time="0.006">
+		</testcase>
+		<testcase name="test_preload_false_domain_lazy_loads_on_first_query" classname="story_003_domain_cache_test" time="0.006">
+		</testcase>
+		<testcase name="test_get_domain_returns_entries_and_lazy_loads_registered_domain" classname="story_003_domain_cache_test" time="0.007">
+		</testcase>
+		<testcase name="test_has_entry_uses_lazy_loading_and_reports_missing_entries" classname="story_003_domain_cache_test" time="0.006">
+		</testcase>
+		<testcase name="test_load_input_config_returns_full_config_and_accepts_legacy_path_arg" classname="story_003_domain_cache_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="85" name="story_006_version_migrator_test" package="tests/unit/data" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.042">
+		<testcase name="test_exact_version_returns_duplicate_without_migration" classname="story_006_version_migrator_test" time="0.003">
+		</testcase>
+		<testcase name="test_lower_minor_executes_migration_chain_to_expected_version" classname="story_006_version_migrator_test" time="0.005">
+		</testcase>
+		<testcase name="test_major_mismatch_returns_null_and_keeps_original_data" classname="story_006_version_migrator_test" time="0.007">
+		</testcase>
+		<testcase name="test_higher_minor_is_compatible_without_migration" classname="story_006_version_migrator_test" time="0.006">
+		</testcase>
+		<testcase name="test_migration_failure_rolls_back_to_original_data" classname="story_006_version_migrator_test" time="0.005">
+		</testcase>
+		<testcase name="test_version_formula_flags_cover_boundary_quadrants" classname="story_006_version_migrator_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="86" name="combat_presentation_test" package="tests/unit/presentation" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="31" failures="0" errors="0" skipped="0" flaky="0" time="0.226">
+		<testcase name="test_normal_hit_spawns_damage_number_sparks_hitstop_and_shake" classname="combat_presentation_test" time="0.002">
+		</testcase>
+		<testcase name="test_crit_hit_uses_larger_gold_feedback" classname="combat_presentation_test" time="0.002">
+		</testcase>
+		<testcase name="test_damage_number_tiers_match_gdd_size_color_and_outline" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_damage_number_records_gdd_float_distance_and_lifetime" classname="combat_presentation_test" time="0.003">
+		</testcase>
+		<testcase name="test_damage_number_boundary_values_clamp_to_valid_tiers" classname="combat_presentation_test" time="0.007">
+		</testcase>
+		<testcase name="test_hit_event_prefers_final_damage_metadata_for_runtime_core_chain" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_rapid_damage_numbers_cleanup_without_stale_active_entries" classname="combat_presentation_test" time="0.005">
+		</testcase>
+		<testcase name="test_kill_event_uses_stronger_hitstop_and_debris" classname="combat_presentation_test" time="0.007">
+		</testcase>
+		<testcase name="test_hit_feedback_uses_textured_sprite_vfx_not_color_rect_blocks" classname="combat_presentation_test" time="0.007">
+		</testcase>
+		<testcase name="test_hit_event_can_disable_damage_number_without_suppressing_impact_feedback" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_colorblind_modes_remap_combat_particle_palette" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_focus_mode_reduces_screen_shake_intensity_without_shortening_duration" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_focus_mode_reduces_parry_boss_and_restores_after_exit" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_kill_debris_uses_textured_sprite_vfx_not_color_rect_blocks" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_perfect_parry_spawns_flash_and_radial_textured_sparks" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_perfect_parry_flash_uses_textured_overlay_not_color_rect" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_cat_claw_attack_spawns_three_textured_slash_trails" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_long_tail_attack_spawns_one_silver_textured_blade_arc" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_fish_bone_attack_spawns_one_white_textured_shockwave" classname="combat_presentation_test" time="0.004">
+		</testcase>
+		<testcase name="test_electro_bell_attack_spawns_blue_textured_arcs" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_weapon_specific_vfx_expire_at_gdd_lifetimes" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_weapon_specific_vfx_count_toward_particle_budget" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_dodge_event_spawns_three_textured_afterimages_with_gdd_alpha_steps" classname="combat_presentation_test" time="0.005">
+		</testcase>
+		<testcase name="test_boss_phase_transition_spawns_textured_overlay_and_metal_debris" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_boss_phase_debris_expires_after_gdd_lifetime" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_effects_expire_after_their_lifetime" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_particle_budget_caps_active_sprite_particles_and_evicts_oldest" classname="combat_presentation_test" time="0.006">
+		</testcase>
+		<testcase name="test_particle_budget_counts_sprite_particles_without_overlays_or_damage_numbers" classname="combat_presentation_test" time="0.005">
+		</testcase>
+		<testcase name="test_performance_budget_sample_reports_gdd_budget_without_mutating_state" classname="combat_presentation_test" time="0.011">
+		</testcase>
+		<testcase name="test_performance_budget_sample_clamps_non_positive_sample_frames" classname="combat_presentation_test" time="0.002">
+		</testcase>
+		<testcase name="test_particle_budget_preserves_event_counts_when_under_cap" classname="combat_presentation_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="87" name="hud_manager_test" package="tests/unit/presentation" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="22" failures="0" errors="0" skipped="0" flaky="0" time="0.157">
+		<testcase name="test_update_hp_sets_ratio_label_and_healthy_color" classname="hud_manager_test" time="0.003">
+		</testcase>
+		<testcase name="test_low_hp_uses_stable_warning_red_without_pulsing" classname="hud_manager_test" time="0.004">
+		</testcase>
+		<testcase name="test_show_notification_expires_after_duration" classname="hud_manager_test" time="0.004">
+		</testcase>
+		<testcase name="test_scene_transition_shell_uses_generated_textures_and_scene_label" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_scene_transition_spinner_advances_and_hides_without_menu_state_change" classname="hud_manager_test" time="0.007">
+		</testcase>
+		<testcase name="test_show_pause_menu_displays_focusable_resume_and_retry_buttons" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_menu_buttons_emit_resume_and_retry_requests" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_hide_menu_clears_menu_mode_and_focus" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_show_battle_summary_formats_stats_tip_and_retry_actions" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_show_battle_summary_generates_learning_tip_when_missing" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_show_settings_menu_exposes_required_groups_and_focusable_controls" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_settings_toggles_hud_scale_and_colorblind_palette_update_runtime_state" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_blue_yellow_colorblind_palette_uses_red_to_white_hp_mapping" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_scaled_settings_menu_text_does_not_overlap_at_max_hud_scale" classname="hud_manager_test" time="0.005">
+		</testcase>
+		<testcase name="test_runtime_hud_scale_change_resizes_visible_settings_menu" classname="hud_manager_test" time="0.007">
+		</testcase>
+		<testcase name="test_all_menu_modes_keep_text_non_overlapping_at_max_hud_scale" classname="hud_manager_test" time="0.005">
+		</testcase>
+		<testcase name="test_boss_phase_marker_uses_text_shape_not_only_color" classname="hud_manager_test" time="0.007">
+		</testcase>
+		<testcase name="test_hud_settings_state_round_trip_hands_off_to_save_system" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_close_settings_returns_to_invoking_pause_menu_focus" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_close_settings_returns_to_invoking_main_menu_focus" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_main_menu_shows_entry_points_and_disabled_save_actions_explain_availability" classname="hud_manager_test" time="0.006">
+		</testcase>
+		<testcase name="test_save_load_shell_lists_slot_info_without_owning_save_file_rules" classname="hud_manager_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="88" name="audio_system_test" package="tests/unit/presentation" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="13" failures="0" errors="0" skipped="0" flaky="0" time="0.091">
+		<testcase name="test_project_registers_audio_system_between_input_and_save_system" classname="audio_system_test" time="0.002">
+		</testcase>
+		<testcase name="test_audio_system_initializes_default_buses_and_player_pool" classname="audio_system_test" time="0.002">
+		</testcase>
+		<testcase name="test_set_bus_volume_clamps_values_and_rejects_unknown_bus" classname="audio_system_test" time="0.003">
+		</testcase>
+		<testcase name="test_play_sfx_records_pitch_spatial_metadata_and_enforces_voice_cap" classname="audio_system_test" time="0.006">
+		</testcase>
+		<testcase name="test_missing_sfx_asset_does_not_consume_pool_voice" classname="audio_system_test" time="0.007">
+		</testcase>
+		<testcase name="test_music_and_ambient_requests_are_safe_without_assets" classname="audio_system_test" time="0.005">
+		</testcase>
+		<testcase name="test_scene_load_start_forces_music_and_ambient_to_fade_out_over_two_seconds" classname="audio_system_test" time="0.006">
+		</testcase>
+		<testcase name="test_scene_change_crossfades_default_area_music_and_ambient_cues" classname="audio_system_test" time="0.006">
+		</testcase>
+		<testcase name="test_scene_audio_cues_can_be_overridden_and_unknown_scene_stays_silent" classname="audio_system_test" time="0.006">
+		</testcase>
+		<testcase name="test_scene_load_failed_clears_transition_state_without_starting_new_cues" classname="audio_system_test" time="0.005">
+		</testcase>
+		<testcase name="test_hit_event_routes_normal_and_crit_sfx_with_priority" classname="audio_system_test" time="0.007">
+		</testcase>
+		<testcase name="test_parry_dodge_enemy_death_and_boss_phase_events_route_to_expected_sfx" classname="audio_system_test" time="0.006">
+		</testcase>
+		<testcase name="test_focus_mode_switches_damage_taken_to_low_hp_cue" classname="audio_system_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="89" name="story_004_data_api_integration_test" package="tests/unit/damage" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.049">
+		<testcase name="test_damage_params_contains_all_supported_weapon_entries" classname="story_004_data_api_integration_test" time="0.004">
+		</testcase>
+		<testcase name="test_damage_params_schema_accepts_valid_data_and_declares_required_fields" classname="story_004_data_api_integration_test" time="0.004">
+		</testcase>
+		<testcase name="test_damage_params_schema_rejects_missing_nested_special_move_parameter" classname="story_004_data_api_integration_test" time="0.005">
+		</testcase>
+		<testcase name="test_calculate_damage_public_api_uses_data_values_for_all_paths" classname="story_004_data_api_integration_test" time="0.006">
+		</testcase>
+		<testcase name="test_calculate_damage_covers_remaining_gdd_ac10_and_ac17_examples" classname="story_004_data_api_integration_test" time="0.006">
+		</testcase>
+		<testcase name="test_tuning_knobs_affect_damage_multiplier_floor_and_cap" classname="story_004_data_api_integration_test" time="0.006">
+		</testcase>
+		<testcase name="test_missing_weapon_id_returns_safe_damage_result" classname="story_004_data_api_integration_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="90" name="story_002_crit_combo_parry_test" package="tests/unit/damage" timestamp="2026-06-25T02:05:11" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_crit_windows_apply_perfect_good_and_normal_multipliers" classname="story_002_crit_combo_parry_test" time="0.002">
+		</testcase>
+		<testcase name="test_parry_intervals_apply_half_open_multiplier_ranges" classname="story_002_crit_combo_parry_test" time="0.007">
+		</testcase>
+		<testcase name="test_parry_damage_matches_perfect_good_and_late_gdd_examples" classname="story_002_crit_combo_parry_test" time="0.005">
+		</testcase>
+		<testcase name="test_combo_finisher_and_reset_match_gdd_examples" classname="story_002_crit_combo_parry_test" time="0.006">
+		</testcase>
+		<testcase name="test_perfect_parry_with_defense_ignores_combo_multiplier" classname="story_002_crit_combo_parry_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="91" name="story_003_special_modifiers_test" package="tests/unit/damage" timestamp="2026-06-25T02:05:12" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.042">
+		<testcase name="test_cat_claw_special_floors_each_hit_before_summing" classname="story_003_special_modifiers_test" time="0.002">
+		</testcase>
+		<testcase name="test_long_tail_special_uses_single_perfect_crit_and_ignores_combo" classname="story_003_special_modifiers_test" time="0.006">
+		</testcase>
+		<testcase name="test_skill_weapon_bonus_replaces_weapon_base_before_dc_f1" classname="story_003_special_modifiers_test" time="0.006">
+		</testcase>
+		<testcase name="test_charm_and_focus_extend_perfect_crit_window_without_changing_multiplier" classname="story_003_special_modifiers_test" time="0.006">
+		</testcase>
+		<testcase name="test_heavy_attack_type_uses_third_path_without_combo_or_parry" classname="story_003_special_modifiers_test" time="0.006">
+		</testcase>
+		<testcase name="test_unknown_attack_type_falls_back_to_neutral_multiplier" classname="story_003_special_modifiers_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="92" name="story_001_formula_pipeline_test" package="tests/unit/damage" timestamp="2026-06-25T02:05:12" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.042">
+		<testcase name="test_baseline_pipeline_returns_base_damage_without_reduction" classname="story_001_formula_pipeline_test" time="0.002">
+		</testcase>
+		<testcase name="test_defense_reduction_curve_matches_gdd_examples" classname="story_001_formula_pipeline_test" time="0.006">
+		</testcase>
+		<testcase name="test_negative_defense_is_clamped_to_zero" classname="story_001_formula_pipeline_test" time="0.006">
+		</testcase>
+		<testcase name="test_final_damage_floor_cap_and_multiplier_match_gdd_examples" classname="story_001_formula_pipeline_test" time="0.006">
+		</testcase>
+		<testcase name="test_damage_result_exposes_default_metadata_fields" classname="story_001_formula_pipeline_test" time="0.006">
+		</testcase>
+		<testcase name="test_damage_category_thresholds_match_gdd_ranges" classname="story_001_formula_pipeline_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="93" name="story_004_multi_target_hits_duplicate_suppression_test" package="tests/unit/collision" timestamp="2026-06-25T02:05:12" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.029">
+		<testcase name="test_one_hitbox_overlapping_three_hurtboxes_emits_three_events" classname="story_004_multi_target_hits_duplicate_suppression_test" time="0.002">
+		</testcase>
+		<testcase name="test_same_target_overlapping_for_two_frames_emits_only_first_hit" classname="story_004_multi_target_hits_duplicate_suppression_test" time="0.007">
+		</testcase>
+		<testcase name="test_reactivating_hitbox_clears_previous_target_marks" classname="story_004_multi_target_hits_duplicate_suppression_test" time="0.005">
+		</testcase>
+		<testcase name="test_simultaneous_opposing_attacks_emit_independent_events" classname="story_004_multi_target_hits_duplicate_suppression_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="94" name="story_002_hurtbox_states_collision_layers_test" package="tests/unit/collision" timestamp="2026-06-25T02:05:12" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.036">
+		<testcase name="test_hurtbox_state_transitions_apply_monitorable_and_size" classname="story_002_hurtbox_states_collision_layers_test" time="0.002">
+		</testcase>
+		<testcase name="test_unknown_hurtbox_state_falls_back_to_normal" classname="story_002_hurtbox_states_collision_layers_test" time="0.006">
+		</testcase>
+		<testcase name="test_collision_layer_constants_match_adr_bitmasks" classname="story_002_hurtbox_states_collision_layers_test" time="0.006">
+		</testcase>
+		<testcase name="test_player_configuration_applies_hitbox_and_hurtbox_layers" classname="story_002_hurtbox_states_collision_layers_test" time="0.006">
+		</testcase>
+		<testcase name="test_enemy_configuration_applies_to_existing_hitboxes" classname="story_002_hurtbox_states_collision_layers_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="95" name="story_003_frame_level_hit_detection_hit_event_signal_test" package="tests/unit/collision" timestamp="2026-06-25T02:05:12" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_hit_event_exposes_all_payload_fields" classname="story_003_frame_level_hit_detection_hit_event_signal_test" time="0.002">
+		</testcase>
+		<testcase name="test_valid_opposing_hurtbox_overlap_emits_one_hit_event" classname="story_003_frame_level_hit_detection_hit_event_signal_test" time="0.006">
+		</testcase>
+		<testcase name="test_hitbox_vs_own_hurtbox_does_not_emit" classname="story_003_frame_level_hit_detection_hit_event_signal_test" time="0.006">
+		</testcase>
+		<testcase name="test_gone_target_hurtbox_does_not_emit" classname="story_003_frame_level_hit_detection_hit_event_signal_test" time="0.006">
+		</testcase>
+		<testcase name="test_physics_process_decrements_active_hitboxes_once_per_frame" classname="story_003_frame_level_hit_detection_hit_event_signal_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="96" name="story_001_hitbox_area_activation_lifecycle_test" package="tests/unit/collision" timestamp="2026-06-25T02:05:12" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.035">
+		<testcase name="test_hitbox_area_starts_inactive_and_tracks_hit_targets" classname="story_001_hitbox_area_activation_lifecycle_test" time="0.002">
+		</testcase>
+		<testcase name="test_activate_hitbox_applies_lifecycle_data_and_clears_old_hits" classname="story_001_hitbox_area_activation_lifecycle_test" time="0.006">
+		</testcase>
+		<testcase name="test_advance_hitbox_frames_auto_deactivates_after_duration" classname="story_001_hitbox_area_activation_lifecycle_test" time="0.006">
+		</testcase>
+		<testcase name="test_deactivate_hitbox_is_safe_for_active_and_unknown_ids" classname="story_001_hitbox_area_activation_lifecycle_test" time="0.006">
+		</testcase>
+		<testcase name="test_activate_hitbox_clamps_invalid_duration_and_size_to_safe_minimums" classname="story_001_hitbox_area_activation_lifecycle_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="97" name="story_005_entity_death_cleanup_combat_adapter_integration_test" package="tests/unit/collision" timestamp="2026-06-25T02:05:12" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_health_adapter_death_signal_deactivates_all_active_hitboxes" classname="story_005_entity_death_cleanup_combat_adapter_integration_test" time="0.002">
+		</testcase>
+		<testcase name="test_death_cleanup_sets_hurtbox_safe_and_blocks_late_hit_events" classname="story_005_entity_death_cleanup_combat_adapter_integration_test" time="0.006">
+		</testcase>
+		<testcase name="test_repeated_or_foreign_death_signals_are_safe" classname="story_005_entity_death_cleanup_combat_adapter_integration_test" time="0.006">
+		</testcase>
+		<testcase name="test_combat_can_use_collision_as_hurtbox_and_hit_adapter" classname="story_005_entity_death_cleanup_combat_adapter_integration_test" time="0.006">
+		</testcase>
+	</testsuite>
+</testsuites>

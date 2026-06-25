@@ -4,14 +4,16 @@
 > **GDD**: design/gdd/boss-config.md
 > **Architecture Module**: BossConfigComponent
 > **Status**: Complete
-> **Stories**: 8 stories
+> **Stories**: 9 stories
 
 ## Overview
 
 This epic implements the data-driven Boss configuration layer for the MVP boss, Garbage Bin Rat King. It provides a BossConfigComponent mounted on Boss entities, loads phase and reward data through the existing DataManager JSON pipeline, coordinates phase transitions with AI and Health signals, and exposes stable integration points for arena changes, rewards, and downstream presentation systems.
 Story007 mounts this BossConfig contract into the playable `MainScene` through
 the Rat King runtime shell. Story008 connects that shell to data-driven Rat King
-AI attack scheduling for phase-specific attack pools.
+AI attack scheduling for phase-specific attack pools. Story009 connects the
+phase 2 summon adapter to live Rat Minion runtime enemies with frame-animation
+visuals, player damage routing, summon cap enforcement, and boss-death cleanup.
 
 ## Governing ADRs
 
@@ -47,6 +49,7 @@ AI attack scheduling for phase-specific attack pools.
 | 006 | Boss Parry Damage + STUN Immunity | Integration | Complete | ADR-0005 |
 | 007 | Rat King Runtime MainScene Replacement | Integration + Visual/Feel | Complete | ADR-0001/0002/0006 |
 | 008 | Rat King AI Attack Scheduler MainScene Runtime Integration | Integration + Gameplay Runtime | Complete | ADR-0003/0005/0006 |
+| 009 | Rat King Live Phase Two Summon Runtime Integration | Integration + Gameplay Runtime + Visual | Complete | ADR-0002/0003/0005/0006 |
 
 ## Definition of Done
 
@@ -59,14 +62,17 @@ This epic is complete when:
 - RatKingBoss consumes BossConfig phase attack pattern ids through AIComponent
   and schedules at least `charge`, `claw_swipe`, `slam`, and `berserk_combo`
   from data-driven attack profiles.
+- RatKingBoss phase 2 spawns live Rat Minion runtime enemies through the
+  BossConfig summon adapter, caps active summons at 2, routes player damage to
+  live summon entity ids, and cleans summons on boss death.
 - Logic and Integration stories have passing automated tests.
 - Visual/audio/UI follow-up work is routed to Combat Presentation, Audio, and HUD/UI epics instead of being implemented here.
 
 ## Next Step
 
 Boss Configuration Core scope is complete through the playable Rat King runtime
-shell and the first data-driven Rat King AI attack scheduler slice. Specialized
-attack animation expansion is covered by Combat Presentation Story015. Move to
-downstream consumer stories for live summons, arena mutation runtime, boss
-music/SFX, HUD polish, ability unlock presentation, and progression reward
-consumption.
+shell, data-driven Rat King AI attack scheduler slice, and live phase 2 Rat
+Minion summon runtime. Specialized attack animation expansion is covered by
+Combat Presentation Story015. Move to downstream consumer stories for arena
+mutation runtime, boss music/SFX, HUD polish, ability unlock presentation, and
+progression reward consumption.

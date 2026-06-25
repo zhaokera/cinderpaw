@@ -12,8 +12,9 @@
   CombatPresentation Story014 Rat King boss frame animation slice、
   CombatPresentation Story015 Rat King specialized attack animation expansion、
   BossConfig Story007 RatKingBoss runtime scene/MainScene boss replacement、
-  BossConfig Story008 Rat King AI attack scheduler runtime integration 已完成；
-  下一步推进 live phase 2 summon runtime、arena mutation runtime、SceneManager
+  BossConfig Story008 Rat King AI attack scheduler runtime integration、
+  BossConfig Story009 Rat King live phase 2 summon runtime integration 已完成；
+  下一步推进 arena mutation runtime、SceneManager
   memory-budget verification、UI menu audio、Boss music state transitions、
   same-SFX merge 和 real audio asset import stories，以及玩家可见角色/敌人帧动画
   持续审计。
@@ -21,6 +22,24 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Boss Configuration Story 009: Rat King Live Phase Two Summon Runtime
+  Integration — 使用 image generation 生成 Rat Minion 5x3 sprite sheet，复制到
+  `assets/characters/rat_minion/source/`，alpha-matted 后切成 `idle`、`run`、
+  `attack`、`hurt`、`death` 五组 96x96 transparent runtime PNG 帧，并导入
+  Godot asset pipeline。新增 `scenes/characters/rat_minion.tscn`、
+  `src/characters/rat_minion.gd`、`assets/characters/rat_minion/rat_minion_sprite_frames.tres`、
+  `src/gameplay/rat_minion.tscn` 和 `src/gameplay/rat_minion.gd`；`MainScene`
+  现在实现 BossConfig summon adapter，Rat King phase 2 每 15 秒可召唤 live
+  Rat Minion，active cap 为 2，玩家伤害可按 entity id 打到小怪，小怪 bite
+  通过 Collision/Combat/DamageCalculator 对玩家造成 8 点伤害，boss death
+  会清理 active summons。通过 RED `report_485`、GREEN `report_486` `7/7`、
+  Gameplay regression `report_491` `94/94`、minimum risk regression
+  `report_496` `17/17`、final verification `report_500` `17/17`、headless
+  smoke、Godot MCP runtime SpriteFrames / summon cap / bite damage / cleanup
+  probe、clean logs 和非空截图验证。Full
+  unit `report_497` 仍有 Save Story004 full-order isolation failure；Rat Minion
+  runtime 在同一 full run 中 `7/7` 通过，Data Story003 也已恢复 `7/7`。QA evidence:
+  `production/qa/evidence/rat-king-live-phase-two-summon-runtime-2026-06-25.md`。
 - Combat Presentation Story 015: Rat King Specialized Attack Animation
   Expansion — 使用 image generation 生成 5x3 Rat King 专用攻击 sheet，复制到
   `assets/characters/rat_king/source/`，alpha-matted 后切成

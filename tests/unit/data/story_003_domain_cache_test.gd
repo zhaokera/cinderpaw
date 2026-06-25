@@ -129,6 +129,11 @@ func _create_enemy_stats() -> void:
 				"max_hp": 3,
 				"patrol_speed": 80,
 				"attack_patterns": []
+			},
+			"boss_01_rat_king": {
+				"max_hp": 300,
+				"patrol_speed": 0,
+				"attack_patterns": []
 			}
 		}
 	}""")

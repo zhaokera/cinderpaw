@@ -170,10 +170,21 @@ func _route_enemy_hit() -> void:
 
 
 func _land_enemy_attack(enemy: Node, player: Node) -> void:
-	assert_bool(bool(enemy.call("request_attack"))).is_true()
-	enemy.call("advance_attack_frames", ATTACK_TELL_FRAMES)
+	var attack_started: bool = false
+	if enemy.has_method("request_attack_pattern"):
+		attack_started = bool(enemy.call("request_attack_pattern", &"claw_swipe"))
+	else:
+		attack_started = bool(enemy.call("request_attack"))
+	assert_bool(attack_started).is_true()
+	enemy.call("advance_attack_frames", _enemy_startup_frames(enemy))
 	var enemy_collision: CollisionComponent = enemy.call("get_collision_component") as CollisionComponent
 	var player_collision: CollisionComponent = player.call("get_collision_component") as CollisionComponent
 	enemy_collision.process_detection_frame({
 		ENEMY_HITBOX_ID: [player_collision.get_hurtbox()],
 	})
+
+
+func _enemy_startup_frames(enemy: Node) -> int:
+	if enemy.has_method("get_current_attack_startup_frames"):
+		return int(enemy.call("get_current_attack_startup_frames"))
+	return ATTACK_TELL_FRAMES

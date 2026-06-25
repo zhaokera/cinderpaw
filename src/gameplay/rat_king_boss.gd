@@ -71,6 +71,7 @@ var _status_effects: StatusEffectComponent = null
 var _boss_config: BossConfigComponent = null
 var _ai: AIComponent = null
 var _damage_calculator_adapter: Object = null
+var _summon_adapter: Object = null
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
 
@@ -198,6 +199,12 @@ func set_damage_calculator_adapter(damage_calculator_adapter: Object) -> void:
 	_damage_calculator_adapter = damage_calculator_adapter
 	if _combat != null:
 		_combat.set_damage_calculator_adapter(_damage_calculator_adapter)
+
+
+func set_summon_adapter(summon_adapter: Object) -> void:
+	_summon_adapter = summon_adapter
+	if _boss_config != null:
+		_boss_config.set_summon_adapter(_summon_adapter)
 
 
 func apply_boss_phase(
@@ -555,6 +562,8 @@ func _setup_core_components() -> void:
 	_boss_config.set_entity_id(BOSS_ENTITY_ID)
 	_boss_config.set_health_adapter(_health)
 	_boss_config.set_ai_adapter(self)
+	if _summon_adapter != null:
+		_boss_config.set_summon_adapter(_summon_adapter)
 	if not _boss_config.on_boss_phase_transition_started.is_connected(_on_boss_phase_transition_started):
 		_boss_config.on_boss_phase_transition_started.connect(_on_boss_phase_transition_started)
 	_setup_ai_component()

@@ -12,7 +12,7 @@ Engine: Godot 4.6.3
 | feline-combat | Core | Feline Combat | feline-combat.md | 9 stories | Complete |
 | collision-detection | Core | Collision Detection | collision-detection.md | 5 stories | Complete |
 | ai-framework | Core | AI Framework | ai-framework.md | 6 stories | Complete |
-| boss-config | Core | Boss Configuration | boss-config.md | 8 stories | Complete |
+| boss-config | Core | Boss Configuration | boss-config.md | 9 stories | Complete |
 | status-effects | Core | Status Effects | status-effects.md | 6 stories | Complete |
 | weapon-styles | Core | Weapon Styles | weapon-styles.md | 8 stories | Complete |
 | save-system | Feature | Save System | save-system.md | 5 stories | Complete |
