@@ -173,6 +173,8 @@ func _ready() -> void:
 	_player.attack_landed.connect(_on_player_attack_landed)
 	_player.attack_started.connect(_on_player_attack_started)
 	_player.dodge_started.connect(_on_player_dodge_started)
+	if _player.has_signal("dash_started"):
+		_player.dash_started.connect(_on_player_dash_started)
 	_connect_player_focus_mode_signal()
 	_enemy.enemy_health_changed.connect(_on_enemy_health_changed)
 	_enemy.enemy_defeated.connect(_on_enemy_defeated)
@@ -183,6 +185,7 @@ func _ready() -> void:
 	_hud.update_hp(_player.get_current_hp(), _player.get_max_hp())
 	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), 1, _get_enemy_display_name())
 	_hud.update_currency(_currency_amount)
+	_sync_player_unlocked_abilities()
 	_update_weapon_hud()
 	configure_save_system_runtime(get_node_or_null("/root/SaveSystem"))
 	configure_scene_manager_runtime(get_node_or_null("/root/SceneManager"))
@@ -234,6 +237,11 @@ func _on_player_attack_started(attack_data: Dictionary) -> void:
 
 
 func _on_player_dodge_started(texture: Texture2D, world_position: Vector2, facing: float) -> void:
+	_combat_presentation.on_dodge_event(texture, world_position, facing)
+	_dispatch_audio_event(&"on_dodge_event", [texture, world_position, facing])
+
+
+func _on_player_dash_started(texture: Texture2D, world_position: Vector2, facing: float) -> void:
 	_combat_presentation.on_dodge_event(texture, world_position, facing)
 	_dispatch_audio_event(&"on_dodge_event", [texture, world_position, facing])
 
@@ -773,6 +781,7 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_unlocked_abilities = _read_string_name_array(
 		snapshot.get("unlocked_abilities", _unlocked_abilities)
 	)
+	_sync_player_unlocked_abilities()
 	_inventory_items = _read_string_name_array(snapshot.get("inventory", _inventory_items))
 	var weapon_state: Dictionary = Dictionary(snapshot.get("weapons", {}))
 	_current_weapon_id = StringName(String(weapon_state.get("current_weapon", String(_current_weapon_id))))
@@ -813,6 +822,7 @@ func unlock_ability(ability_id: StringName) -> void:
 	if not _unlocked_abilities.has(ability_id):
 		_unlocked_abilities.append(ability_id)
 		_record_boss_reward_ability(ability_id)
+	_sync_player_unlocked_abilities()
 	_refresh_victory_reward_feedback_if_needed()
 
 
@@ -1487,6 +1497,17 @@ func _trigger_runtime_autosave(reason: StringName, context: Dictionary) -> bool:
 	if _save_trigger_adapter == null:
 		return false
 	return _save_trigger_adapter.trigger_auto_save(reason, context)
+
+
+func _sync_player_unlocked_abilities() -> void:
+	if _player == null:
+		return
+	if _player.has_method("set_unlocked_abilities"):
+		_player.set_unlocked_abilities(_unlocked_abilities)
+		return
+	if _player.has_method("unlock_ability"):
+		for ability_id: StringName in _unlocked_abilities:
+			_player.unlock_ability(ability_id)
 
 
 func _record_boss_reward_ability(ability_id: StringName) -> void:

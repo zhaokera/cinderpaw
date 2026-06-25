@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=28 format=3]
+[gd_resource type="SpriteFrames" load_steps=31 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/idle/cinderpaw_idle_000.png" id="1_idle0"]
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/idle/cinderpaw_idle_001.png" id="2_idle1"]
@@ -27,6 +27,9 @@
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/fall/cinderpaw_fall_000.png" id="25_fall0"]
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/fall/cinderpaw_fall_001.png" id="26_fall1"]
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/fall/cinderpaw_fall_002.png" id="27_fall2"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/dash/cinderpaw_dash_000.png" id="28_dash0"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/dash/cinderpaw_dash_001.png" id="29_dash1"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/dash/cinderpaw_dash_002.png" id="30_dash2"]
 
 [resource]
 animations = [{
@@ -85,6 +88,20 @@ animations = [{
 "loop": false,
 "name": &"dodge",
 "speed": 14.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("28_dash0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("29_dash1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("30_dash2")
+}],
+"loop": false,
+"name": &"dash",
+"speed": 18.0
 }, {
 "frames": [{
 "duration": 1.0,

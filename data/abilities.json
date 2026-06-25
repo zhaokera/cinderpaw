@@ -1,0 +1,87 @@
+{
+	"_meta": {"version": "1.0", "domain": "abilities"},
+	"entries": {
+		"basic_attack": {
+			"ability_id": "basic_attack",
+			"display_name": "Basic Attack",
+			"unlock_condition": "game_start",
+			"cooldown_sec": 0.0,
+			"cooldown_type": "none",
+			"air_count_max": 0,
+			"requires_airborne": false,
+			"combat_state_blocking": []
+		},
+		"jump": {
+			"ability_id": "jump",
+			"display_name": "Jump",
+			"unlock_condition": "game_start",
+			"cooldown_sec": 0.0,
+			"cooldown_type": "none",
+			"air_count_max": 0,
+			"requires_airborne": false,
+			"combat_state_blocking": []
+		},
+		"dodge": {
+			"ability_id": "dodge",
+			"display_name": "Dodge",
+			"unlock_condition": "game_start",
+			"cooldown_sec": 0.5,
+			"cooldown_type": "short",
+			"air_count_max": 0,
+			"requires_airborne": false,
+			"combat_state_blocking": ["HIT_STUN"]
+		},
+		"dash": {
+			"ability_id": "dash",
+			"display_name": "Dash",
+			"unlock_condition": "boss_01_rat_king_defeated",
+			"unlock_trigger": "boss_defeated",
+			"unlock_target": "boss_01_rat_king",
+			"cooldown_sec": 1.0,
+			"cooldown_type": "medium",
+			"air_count_max": 0,
+			"requires_airborne": false,
+			"combat_state_blocking": ["HIT_STUN"]
+		},
+		"double_jump": {
+			"ability_id": "double_jump",
+			"display_name": "Double Jump",
+			"unlock_condition": "boss_02_defeated_or_hidden_boss",
+			"cooldown_sec": 0.0,
+			"cooldown_type": "air_count",
+			"air_count_max": 1,
+			"requires_airborne": true,
+			"combat_state_blocking": []
+		},
+		"aerial_attack": {
+			"ability_id": "aerial_attack",
+			"display_name": "Aerial Attack",
+			"unlock_condition": "boss_03_defeated",
+			"cooldown_sec": 0.0,
+			"cooldown_type": "none",
+			"air_count_max": 0,
+			"requires_airborne": true,
+			"combat_state_blocking": []
+		},
+		"wall_climb": {
+			"ability_id": "wall_climb",
+			"display_name": "Wall Climb",
+			"unlock_condition": "boss_04_defeated_or_hidden_altar",
+			"cooldown_sec": 0.0,
+			"cooldown_type": "none",
+			"air_count_max": 0,
+			"requires_airborne": false,
+			"combat_state_blocking": []
+		},
+		"parry": {
+			"ability_id": "parry",
+			"display_name": "Parry",
+			"unlock_condition": "game_start",
+			"cooldown_sec": 0.3,
+			"cooldown_type": "short",
+			"air_count_max": 0,
+			"requires_airborne": false,
+			"combat_state_blocking": ["HIT_STUN", "ATTACKING"]
+		}
+	}
+}

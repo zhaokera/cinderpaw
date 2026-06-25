@@ -10,6 +10,9 @@ signal player_died(death_metadata: Dictionary)
 signal attack_landed(hit_data: Dictionary)
 signal attack_started(attack_data: Dictionary)
 signal dodge_started(texture: Texture2D, world_position: Vector2, facing: float)
+signal dash_started(texture: Texture2D, world_position: Vector2, facing: float)
+signal ability_unlocked(ability_id: StringName)
+signal ability_activated(ability_id: StringName)
 
 # ---------------------------------------------------------------------------
 # Constants — Movement
@@ -33,6 +36,8 @@ const ATTACK_DURATION_FRAMES: int = 6
 const DODGE_DURATION_FRAMES: int = 8
 const DODGE_COOLDOWN_FRAMES: int = 12
 const DODGE_SPEED: float = 400.0
+const DASH_DURATION_FRAMES: int = 10
+const DASH_SPEED: float = 620.0
 const NORMAL_MODULATE: Color = Color.WHITE
 const ATTACK_MODULATE: Color = Color(1.0, 0.55, 0.45, 1.0)
 const DAMAGE_MODULATE: Color = Color(1.0, 0.25, 0.25, 1.0)
@@ -40,6 +45,7 @@ const ANIMATION_IDLE: StringName = &"idle"
 const ANIMATION_RUN: StringName = &"run"
 const ANIMATION_ATTACK: StringName = &"attack"
 const ANIMATION_DODGE: StringName = &"dodge"
+const ANIMATION_DASH: StringName = &"dash"
 const ANIMATION_HURT: StringName = &"hurt"
 const ANIMATION_DEATH: StringName = &"death"
 const ANIMATION_REVIVE: StringName = &"revive"
@@ -60,12 +66,14 @@ const RESPAWN_FLASH_BRIGHT_ALPHA: float = 0.72
 const PLAYER_HURTBOX_SIZE: Vector2 = Vector2(20, 44)
 const COMBAT_COMPONENT_SCRIPT: Script = preload("res://src/core/combat_component.gd")
 const COLLISION_COMPONENT_SCRIPT: Script = preload("res://src/core/collision_component.gd")
+const ABILITY_COMPONENT_SCRIPT: Script = preload("res://src/core/ability_component.gd")
+const ABILITY_DASH: StringName = &"dash"
 
 # ---------------------------------------------------------------------------
 # State
 # ---------------------------------------------------------------------------
 
-enum State { IDLE, ATTACKING, DODGING }
+enum State { IDLE, ATTACKING, DODGING, DASHING }
 
 var _state: State = State.IDLE
 var _facing: float = 1.0  # 1 = right, -1 = left
@@ -74,12 +82,14 @@ var _jump_buffer_timer: int = 0
 var _attack_timer: int = 0
 var _dodge_timer: int = 0
 var _dodge_cooldown_timer: int = 0
+var _dash_timer: int = 0
 var _control_locked: bool = false
 var _respawn_visual_remaining_frames: int = 0
 var _respawn_visual_elapsed_frames: int = 0
 var _presentation_animation_lock_frames: int = 0
 var _combat: CombatComponent = null
 var _collision: CollisionComponent = null
+var _ability: AbilityComponent = null
 var _weapon_component: Object = null
 var _damage_calculator_adapter: Object = null
 
@@ -127,10 +137,16 @@ func _physics_process(delta: float) -> void:
 			_state = State.IDLE
 			_sprite.modulate = NORMAL_MODULATE
 
+	if _state == State.DASHING:
+		_dash_timer -= 1
+		if _dash_timer <= 0:
+			_state = State.IDLE
+			_sprite.modulate = NORMAL_MODULATE
+
 	# Input + movement
 	_handle_input()
 	_apply_gravity(delta)
-	_apply_dodge_velocity(delta)
+	_apply_burst_movement_velocity(delta)
 	move_and_slide()
 
 	# Update facing direction
@@ -156,14 +172,14 @@ func _handle_input() -> void:
 	var input_dir: float = Input.get_axis("move_left", "move_right")
 
 	# Horizontal movement (disabled during attack/dodge)
-	if _state != State.ATTACKING and _state != State.DODGING:
+	if _state != State.ATTACKING and _state != State.DODGING and _state != State.DASHING:
 		if input_dir != 0.0:
 			velocity.x = move_toward(velocity.x, input_dir * MAX_RUN_SPEED, ACCELERATION * get_physics_process_delta_time())
 			_facing = input_dir
 		else:
 			velocity.x = move_toward(velocity.x, 0.0, FRICTION * get_physics_process_delta_time())
 	else:
-		# Lock horizontal movement during attack/dodge
+		# Lock horizontal movement during attack/dodge/dash
 		velocity.x = move_toward(velocity.x, 0.0, FRICTION * get_physics_process_delta_time())
 
 	# Jump buffer
@@ -186,6 +202,10 @@ func _handle_input() -> void:
 	if Input.is_action_just_pressed("dodge"):
 		request_dodge()
 
+	# Dash
+	if Input.is_action_just_pressed("dash"):
+		request_dash()
+
 # ---------------------------------------------------------------------------
 # Physics Helpers
 # ---------------------------------------------------------------------------
@@ -195,9 +215,11 @@ func _apply_gravity(delta: float) -> void:
 		velocity.y += GRAVITY * delta
 
 
-func _apply_dodge_velocity(_delta: float) -> void:
+func _apply_burst_movement_velocity(_delta: float) -> void:
 	if _state == State.DODGING:
 		velocity.x = _facing * DODGE_SPEED
+	elif _state == State.DASHING:
+		velocity.x = _facing * DASH_SPEED
 
 # ---------------------------------------------------------------------------
 # Attack
@@ -305,6 +327,67 @@ func _start_dodge() -> void:
 	dodge_started.emit(_get_current_sprite_texture(), _sprite.global_position, _facing)
 
 
+## Unlocks a player ability. Returns false when the ability is already unlocked.
+func unlock_ability(ability_id: StringName) -> bool:
+	_ensure_ability_component()
+	if _ability == null:
+		return false
+	return _ability.unlock_ability(ability_id)
+
+
+## Replaces unlock state while preserving start-of-game abilities.
+func set_unlocked_abilities(ability_ids: Array) -> void:
+	_ensure_ability_component()
+	if _ability != null:
+		_ability.set_unlocked_abilities(ability_ids)
+
+
+func has_ability(ability_id: StringName) -> bool:
+	_ensure_ability_component()
+	return _ability != null and _ability.has_ability(ability_id)
+
+
+func get_unlocked_abilities() -> Array[StringName]:
+	_ensure_ability_component()
+	return _ability.get_unlocked_abilities() if _ability != null else []
+
+
+func is_ability_on_cooldown(ability_id: StringName) -> bool:
+	_ensure_ability_component()
+	return _ability != null and _ability.is_ability_on_cooldown(ability_id)
+
+
+func get_ability_cooldown_remaining(ability_id: StringName) -> float:
+	_ensure_ability_component()
+	return _ability.get_ability_cooldown_remaining(ability_id) if _ability != null else 0.0
+
+
+func advance_ability_cooldowns(delta_sec: float) -> void:
+	_ensure_ability_component()
+	if _ability != null:
+		_ability.advance_time(delta_sec)
+
+
+## Requests a dash movement burst if the ability is unlocked and ready.
+func request_dash() -> bool:
+	if _control_locked or _state != State.IDLE:
+		return false
+	_ensure_ability_component()
+	if _ability == null or not _ability.try_activate_ability(ABILITY_DASH):
+		return false
+	_start_dash()
+	return true
+
+
+func _start_dash() -> void:
+	_state = State.DASHING
+	_dash_timer = DASH_DURATION_FRAMES
+	velocity.x = _facing * DASH_SPEED
+	_sprite.modulate = Color(0.75, 0.95, 1.0, 0.58)
+	_play_character_animation(ANIMATION_DASH, true)
+	dash_started.emit(_get_current_sprite_texture(), _sprite.global_position, _facing)
+
+
 # ---------------------------------------------------------------------------
 # Facing
 # ---------------------------------------------------------------------------
@@ -330,8 +413,8 @@ func take_damage() -> void:
 func apply_damage(final_damage: int, metadata: Dictionary = {}) -> void:
 	if _control_locked:
 		return
-	if _state == State.DODGING:
-		return  # Invincible during dodge
+	if _state == State.DODGING or _state == State.DASHING:
+		return  # Invincible during burst movement
 	if final_damage <= 0:
 		return
 	_sprite.modulate = DAMAGE_MODULATE
@@ -393,6 +476,8 @@ func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
 	_attack_timer = 0
 	_dodge_timer = 0
 	_dodge_cooldown_timer = 0
+	_dash_timer = 0
+	advance_ability_cooldowns(999.0)
 	_jump_buffer_timer = 0
 	_coyote_timer = 0
 	_hitbox_shape.disabled = true
@@ -433,6 +518,7 @@ func _ensure_core_components() -> void:
 		_collision = COLLISION_COMPONENT_SCRIPT.new() as CollisionComponent
 		_collision.name = "CollisionComponent"
 		add_child(_collision)
+	_ensure_ability_component()
 
 
 func _setup_core_combat_chain() -> void:
@@ -496,6 +582,9 @@ func _update_character_animation() -> void:
 	if _state == State.DODGING:
 		_play_character_animation(ANIMATION_DODGE)
 		return
+	if _state == State.DASHING:
+		_play_character_animation(ANIMATION_DASH)
+		return
 	_play_character_animation(_get_locomotion_animation(is_on_floor(), velocity))
 
 
@@ -536,3 +625,25 @@ func _get_current_sprite_texture() -> Texture2D:
 		return null
 	var frame_index: int = clampi(_sprite.frame, 0, frame_count - 1)
 	return _sprite.sprite_frames.get_frame_texture(_sprite.animation, frame_index)
+
+
+func _ensure_ability_component() -> void:
+	if _ability != null and is_instance_valid(_ability):
+		return
+	_ability = get_node_or_null("AbilityComponent") as AbilityComponent
+	if _ability == null:
+		_ability = ABILITY_COMPONENT_SCRIPT.new() as AbilityComponent
+		_ability.name = "AbilityComponent"
+		add_child(_ability)
+	if not _ability.ability_unlocked.is_connected(_on_ability_unlocked):
+		_ability.ability_unlocked.connect(_on_ability_unlocked)
+	if not _ability.ability_activated.is_connected(_on_ability_activated):
+		_ability.ability_activated.connect(_on_ability_activated)
+
+
+func _on_ability_unlocked(ability_id: StringName) -> void:
+	ability_unlocked.emit(ability_id)
+
+
+func _on_ability_activated(ability_id: StringName) -> void:
+	ability_activated.emit(ability_id)

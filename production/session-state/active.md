@@ -26,11 +26,36 @@
   defeat reward runtime consumption 已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
   routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
-  area cue expansion、broader audio mix polish，以及玩家可见角色/敌人帧动画持续审计。
+  area cue expansion、broader audio mix polish、skill-tree spending UI、
+  ExplorationGate dash 门控，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 001: Dash Runtime Ability Gate —
+  新增 `data/abilities.json` 与 `data/schemas/abilities.schema.json`，并在
+  `data/manifest.json` 注册 `abilities` domain；新增
+  `src/core/ability_component.gd` 作为 Player 子节点能力组件，支持
+  初始能力、`dash` 锁定/解锁、重复解锁拒绝、`try_activate_ability()`、
+  1.0 秒 Dash 冷却、能力事件、序列化接口与安全 fallback。`scenes/player.tscn`
+  挂载 `AbilityComponent`；`PlayerController` 现在将能力查询/激活/冷却委托给
+  组件，并在解锁后执行可见 Dash：播放 `dash` SpriteFrames animation、发出
+  `dash_started` 与 `ability_activated`、施加向前 620px/s burst。新增
+  `assets/characters/cinderpaw/dash/cinderpaw_dash_000.png` through `_002.png`
+  及 `.import`，并将 `cinderpaw_sprite_frames.tres` 的 `dash` 动画改为引用
+  dash 目录帧。Dash 帧为现有 image-generated Cinderpaw dodge strip 的派生复用，
+  已记录到 asset manifest 和 QA evidence，后续可替换为 Dash-only authored
+  generation。通过 RED 缺失 `AbilityComponent` / 早期 `report_596` 缺失 Dash
+  animation，GREEN focused `report_597` `6/6`，related regression
+  `report_598` `40/40`，headless smoke
+  `reports/player_dash_runtime_main_scene_smoke.log`，以及 Godot MCP runtime
+  probe 验证 `/Main/Player/AbilityComponent`、`AnimatedSprite2D` dash 三帧路径、
+  locked request false、unlock 后 `request_dash()` true、`animation=dash`、
+  `cooldown=1.0`、`velocity.x=620`、afterimage count 3、clean game/editor logs
+  和 screenshot
+  `reports/visual/cinderpaw-mcp-player-dash-ability-runtime-20260625.png`。
+  QA evidence:
+  `production/qa/evidence/player-dash-runtime-ability-gate-2026-06-25.md`。
 - Boss Configuration Story 010: Rat King Defeat Reward Runtime Consumption —
   `BossConfigComponent` optionally brackets defeat reward dispatch with
   `begin_boss_defeat_rewards()` / `finish_boss_defeat_rewards()` adapter hooks;

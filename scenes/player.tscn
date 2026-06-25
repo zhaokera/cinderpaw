@@ -1,8 +1,9 @@
-[gd_scene load_steps=12 format=3 uid="uid://player001"]
+[gd_scene load_steps=13 format=3 uid="uid://player001"]
 
 [ext_resource type="Script" path="res://src/gameplay/player_controller.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/characters/cinderpaw.tscn" id="2_character"]
 [ext_resource type="Script" path="res://src/core/health_component.gd" id="3_health"]
+[ext_resource type="Script" path="res://src/core/ability_component.gd" id="4_ability"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(24, 48)
@@ -26,6 +27,9 @@ position = Vector2(0, -40)
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("3_health")
+
+[node name="AbilityComponent" type="Node" parent="."]
+script = ExtResource("4_ability")
 
 [node name="AttackHitbox" type="Area2D" parent="."]
 position = Vector2(20, -20)
