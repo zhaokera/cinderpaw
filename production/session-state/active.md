@@ -33,6 +33,23 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Scene Management Story 013: Rat King Arena Placeholder Visual Removal —
+  removed the remaining visible `Polygon2D` placeholder baseline from Rat King
+  arena mutation runtime nodes while preserving Story008 collision/metadata,
+  Story009 electric leak contact damage, Story011 generated `Sprite2D`/`Vfx`
+  layers, and Story012 save/load restoration. `_add_arena_mutation_visual(...)`
+  remains as a compatibility seam but no longer creates a visible shape; tests
+  now assert no visible `Polygon2D`/`ColorRect` child exists under active
+  mutations. Through RED `report_608`, initial GREEN `report_609` `14/14`,
+  final focused + related regression `report_610` `23/23`, headless smoke
+  `reports/rat_king_arena_placeholder_visual_removal_smoke.log`, Godot MCP
+  runtime probe confirming `3` active mutations with generated sprites/VFX and
+  `visible_placeholders=[]`, clean game/editor logs after the successful probe,
+  and screenshot
+  `reports/visual/cinderpaw-mcp-rat-king-arena-placeholder-visual-removal-20260626.png`.
+  No new image-generated asset was needed; existing generated arena mutation
+  prop and VFX assets were reused. QA evidence:
+  `production/qa/evidence/rat-king-arena-placeholder-visual-removal-2026-06-26.md`。
 - Player Abilities Story 002: Dash Exploration Gate Runtime —
   新增 `src/feature/exploration_gate.gd` 场景级能力门控组件，支持
   `locked` / `unlockable` / `unlocked` 三态、Player/AbilityComponent

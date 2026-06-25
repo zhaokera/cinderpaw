@@ -2046,18 +2046,9 @@ func _add_arena_mutation_collision(parent: Node2D, size: Vector2) -> void:
 	parent.add_child(collision)
 
 
-func _add_arena_mutation_visual(parent: Node2D, size: Vector2, color: Color) -> void:
-	var half_size: Vector2 = size * 0.5
-	var visual := Polygon2D.new()
-	visual.name = "Visual"
-	visual.color = Color(color.r, color.g, color.b, minf(color.a, 0.24))
-	visual.polygon = PackedVector2Array([
-		Vector2(-half_size.x, half_size.y),
-		Vector2(-half_size.x * 0.82, -half_size.y),
-		Vector2(half_size.x * 0.68, -half_size.y * 0.88),
-		Vector2(half_size.x, half_size.y),
-	])
-	parent.add_child(visual)
+func _add_arena_mutation_visual(_parent: Node2D, _size: Vector2, _color: Color) -> void:
+	# Arena mutations are now represented by generated textures and VFX only.
+	pass
 
 
 func _add_arena_mutation_sprite(parent: Node2D, texture_value: Variant) -> void:

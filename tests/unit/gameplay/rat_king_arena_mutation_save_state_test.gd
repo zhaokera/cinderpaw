@@ -263,7 +263,7 @@ func _assert_runtime_mutation(
 	assert_int(int(mutation.get_meta(&"phase", 0))).is_equal(phase)
 	assert_object(mutation.get_node_or_null("CollisionShape2D")).is_not_null()
 	assert_bool(mutation.get_node_or_null("Sprite") is Sprite2D).is_true()
-	assert_bool(mutation.get_node_or_null("Visual") is Polygon2D).is_true()
+	_assert_no_visible_placeholder_visual(mutation)
 	var vfx := mutation.get_node_or_null("Vfx") as Node2D
 	assert_object(vfx).is_not_null()
 	if change_id == &"electric_leak":
@@ -292,6 +292,12 @@ func _find_runtime_mutation(change_id: StringName) -> Node:
 		if StringName(String(mutation.get_meta(&"change_id", &""))) == change_id:
 			return mutation
 	return null
+
+
+func _assert_no_visible_placeholder_visual(mutation: Node) -> void:
+	for child: Node in mutation.get_children():
+		if child is Polygon2D or child is ColorRect:
+			assert_bool((child as CanvasItem).visible).is_false()
 
 
 func _read_json(path: String) -> Dictionary:

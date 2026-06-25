@@ -171,5 +171,10 @@ func _assert_mutation_node(
 			assert_str(texture.resource_path).is_equal(
 				String(ARENA_MUTATION_TEXTURE_PATHS[String(change_id)])
 			)
-	assert_object(mutation.get_node_or_null("Visual")).is_not_null()
-	assert_bool(mutation.get_node_or_null("Visual") is Polygon2D).is_true()
+	_assert_no_visible_placeholder_visual(mutation)
+
+
+func _assert_no_visible_placeholder_visual(mutation: Node) -> void:
+	for child: Node in mutation.get_children():
+		if child is Polygon2D or child is ColorRect:
+			assert_bool((child as CanvasItem).visible).is_false()

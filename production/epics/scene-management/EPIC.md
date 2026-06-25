@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 12 stories tracked; future stories planned
+> **Stories**: 13 stories tracked; future stories planned
 
 ## Overview
 
@@ -35,7 +35,9 @@ King phase 2/3 arena mutations so the final arena reads as destruction and
 electric hazard instead of block-like collision fixtures. Story012 persists
 active Rat King arena mutation descriptors through MainScene save/load snapshots
 and SaveSystem slot handoff, then rebuilds collision, damage-zone, and VFX
-runtime nodes on restore.
+runtime nodes on restore. Story013 removes the remaining visible placeholder
+`Polygon2D` baseline from those mutation nodes so runtime presentation uses only
+the generated `Sprite2D` prop textures and generated VFX layers.
 
 ## Governing ADRs
 
@@ -73,6 +75,7 @@ runtime nodes on restore.
 | 010 | Scene Memory Budget Diagnostics | Logic / Performance | Complete | ADR-0007 |
 | 011 | Rat King Final Arena VFX | Visual / Integration | Complete | ADR-0007 |
 | 012 | Boss Arena Mutation Save-State Persistence | Integration | Complete | ADR-0007, ADR-0008, ADR-0021 |
+| 013 | Rat King Arena Placeholder Visual Removal | Visual / Integration | Complete | ADR-0007, ADR-0004, ADR-0019 |
 
 ## Definition of Done
 
@@ -114,6 +117,10 @@ This epic is complete when:
   and SaveSystem slot load, restores Story008 collision/metadata, Story009
   electric leak hazard behavior, and Story011 VFX children without duplicating
   nodes, and clears for defeated/older-save states.
+- Rat King arena mutations do not render visible `Polygon2D` or `ColorRect`
+  placeholder blocks; the player-facing runtime layer uses generated `Sprite2D`
+  prop textures and generated VFX while collision/damage shapes remain gameplay
+  only.
 - SceneManager exposes deterministic runtime memory-budget diagnostics for
   mobile/PC/console budgets, emits one-shot over-budget warnings, and can evict
   non-current deferred runtime cache while preserving the current scene.

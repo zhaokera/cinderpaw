@@ -160,8 +160,8 @@ func _assert_original_mutation_contract_still_present(
 	change_id: StringName
 ) -> void:
 	assert_object(mutation.get_node_or_null("CollisionShape2D")).is_not_null()
-	assert_bool(mutation.get_node_or_null("Visual") is Polygon2D).is_true()
 	assert_bool(mutation.get_node_or_null("Sprite") is Sprite2D).is_true()
+	_assert_no_visible_placeholder_visual(mutation)
 	if change_id == &"electric_leak":
 		assert_bool(mutation is Area2D).is_true()
 		if mutation is Area2D:
@@ -176,6 +176,12 @@ func _assert_original_mutation_contract_still_present(
 			assert_bool(damage_zone.monitorable).is_false()
 	else:
 		assert_bool(mutation is StaticBody2D).is_true()
+
+
+func _assert_no_visible_placeholder_visual(mutation: Node) -> void:
+	for child: Node in mutation.get_children():
+		if child is Polygon2D or child is ColorRect:
+			assert_bool((child as CanvasItem).visible).is_false()
 
 
 func _collect_vfx_child_counts() -> Dictionary:
