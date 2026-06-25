@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 8 stories tracked; future stories planned
+> **Stories**: 9 stories tracked; future stories planned
 
 ## Overview
 
@@ -25,6 +25,9 @@ second portal gate, reuse deferred cached runtime scenes when available, and
 fall through the same timeout/runtime swap/deferred cache path as regular async
 scene changes. Story008 connects BossConfig arena-change adapter requests to
 playable MainScene arena mutation runtime nodes for Rat King phase transitions.
+Story009 turns the phase 3 `electric_leak` arena mutation into a real contact
+damage hazard with ADR-0004 environment collision, player damage feedback, and
+per boss/change/target cooldown.
 
 ## Governing ADRs
 
@@ -58,6 +61,7 @@ playable MainScene arena mutation runtime nodes for Rat King phase transitions.
 | 006 | Deferred Unload + Runtime Cache Eviction | Integration | Complete | ADR-0007 |
 | 007 | Fast Travel Preload + Scene Change | Integration | Complete | ADR-0007 |
 | 008 | Boss Arena Mutation Runtime | Integration | Complete | ADR-0007 |
+| 009 | Electric Leak Contact Damage | Integration | Complete | ADR-0007, ADR-0004, ADR-0019 |
 
 ## Definition of Done
 
@@ -89,6 +93,9 @@ This epic is complete when:
 - Boss arena mutation requests from BossConfig create deterministic runtime
   obstacle/damage-zone nodes during Rat King phase transitions and clear them on
   boss death or arena reset.
+- Phase 3 electric leak damage zones apply rate-limited player contact damage
+  through existing health/presentation/audio routes and are verified through
+  Godot MCP runtime probes.
 - Later stories add loading audio fades and memory-budget verification.
 - Godot CLI/GdUnit and Godot MCP verify the Autoload, runtime logs, and current
   scene visibility after SceneManager changes.
@@ -96,5 +103,4 @@ This epic is complete when:
 ## Next Step
 
 Continue SceneManager memory-budget verification and later arena polish stories:
-electric leak contact damage, final arena VFX, and persistent boss arena mutation
-save-state behavior.
+final arena VFX and persistent boss arena mutation save-state behavior.

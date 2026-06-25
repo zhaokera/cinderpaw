@@ -14,16 +14,29 @@
   BossConfig Story007 RatKingBoss runtime scene/MainScene boss replacement、
   BossConfig Story008 Rat King AI attack scheduler runtime integration、
   BossConfig Story009 Rat King live phase 2 summon runtime integration、
-  SceneManagement Story008 boss arena mutation runtime 已完成；
-  下一步推进 SceneManager memory-budget verification、electric leak contact
-  damage、final arena VFX、boss arena mutation save-state persistence、
-  UI menu audio、Boss music state transitions、
+  SceneManagement Story008 boss arena mutation runtime、
+  SceneManagement Story009 electric leak contact damage 已完成；
+  下一步推进 SceneManager memory-budget verification、final arena VFX、
+  boss arena mutation save-state persistence、UI menu audio、Boss music state transitions、
   same-SFX merge 和 real audio asset import stories，以及玩家可见角色/敌人帧动画
   持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Scene Management Story 009: Electric Leak Contact Damage — `MainScene`
+  现在将 Rat King phase 3 `electric_leak` arena mutation 作为真实 contact
+  damage hazard 处理：damage zone 使用 ADR-0004 environment layer/mask
+  (`16/12`)，通过 `Area2D.area_entered` 与每帧 overlap polling 检测玩家
+  hurtbox，命中后走 `PlayerController.apply_damage()` 造成 8 点 electric
+  damage，并转发 CombatPresentation hit feedback 与 AudioSystem
+  `on_damage_taken_event`。同一 boss/change/target 使用 1.0 秒 cooldown，持续
+  overlap 到冷却边界后会再次扣血；arena cleanup、boss reset/death 和 exit tree
+  会清理 cooldown。通过 RED `report_510`、GREEN focused `report_518` `5/5`、
+  final related regression `report_519` `24/24`、headless smoke、Godot MCP
+  runtime phase 3 contact/cooldown/cleanup probe、clean logs 和可见 electric leak
+  screenshot 验证。QA evidence:
+  `production/qa/evidence/rat-king-electric-leak-contact-damage-2026-06-25.md`。
 - Scene Management Story 008: Boss Arena Mutation Runtime — `RatKingBoss`
   新增 scene adapter 转发，`MainScene` 新增 `ArenaMutations` 容器、
   `apply_arena_changes()`、`get_arena_mutation_nodes()`、

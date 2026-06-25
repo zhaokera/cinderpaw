@@ -33,7 +33,10 @@ const RAT_MINION_SUMMON_CAP: int = 2
 const RAT_MINION_ENTITY_ID_START: int = 2000
 const RAT_MINION_SPAWN_OFFSET_X: float = 96.0
 const ARENA_OBSTACLE_LAYER: int = 16
-const ARENA_DAMAGE_ZONE_LAYER: int = 32
+const ARENA_DAMAGE_ZONE_LAYER: int = CollisionComponent.COLLISION_LAYER_ENVIRONMENT
+const ARENA_DAMAGE_ZONE_MASK: int = CollisionComponent.COLLISION_MASK_ENVIRONMENT
+const ELECTRIC_LEAK_CONTACT_DAMAGE: int = 8
+const ELECTRIC_LEAK_CONTACT_COOLDOWN_SEC: float = 1.0
 const ARENA_MUTATION_LAYOUTS: Dictionary = {
 	"garbage_pile": {
 		"position": Vector2(700, 492),
@@ -79,6 +82,8 @@ var _summoned_minions: Array[Node] = []
 var _next_summon_entity_id: int = RAT_MINION_ENTITY_ID_START
 var _arena_mutations_container: Node2D = null
 var _applied_arena_mutation_keys: Dictionary = {}
+var _arena_hazard_elapsed_sec: float = 0.0
+var _arena_hazard_contact_cooldowns: Dictionary = {}
 var _boss_scene_locked: bool = false
 
 
@@ -141,8 +146,9 @@ func _exit_tree() -> void:
 	_unregister_main_scene_from_save_system()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	_player.set_control_locked(_game_flow.is_player_control_locked())
+	advance_arena_hazard_time(delta)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -474,6 +480,7 @@ func get_arena_mutation_count() -> int:
 func cleanup_arena_mutations(boss_id: StringName = &"") -> void:
 	if not is_instance_valid(_arena_mutations_container):
 		_applied_arena_mutation_keys.clear()
+		_arena_hazard_contact_cooldowns.clear()
 		return
 	for child: Node in _arena_mutations_container.get_children():
 		if boss_id != &"" and String(child.get_meta(&"boss_id", &"")) != String(boss_id):
@@ -482,8 +489,56 @@ func cleanup_arena_mutations(boss_id: StringName = &"") -> void:
 		child.free()
 	if boss_id == &"":
 		_applied_arena_mutation_keys.clear()
+		_arena_hazard_contact_cooldowns.clear()
 	else:
 		_clear_arena_mutation_keys_for_boss(boss_id)
+		_clear_arena_hazard_cooldowns_for_boss(boss_id)
+
+
+func advance_arena_hazard_time(delta_sec: float) -> void:
+	_arena_hazard_elapsed_sec += maxf(0.0, delta_sec)
+	_process_arena_damage_zone_overlaps()
+
+
+func apply_arena_damage_zone_contact(damage_zone: Area2D, target: Node) -> bool:
+	if damage_zone == null or target == null or not is_instance_valid(damage_zone):
+		return false
+	if target != _player:
+		return false
+	var change_id: StringName = StringName(String(damage_zone.get_meta(&"change_id", &"")))
+	if change_id != &"electric_leak":
+		return false
+	var boss_id: StringName = StringName(String(damage_zone.get_meta(&"boss_id", &"")))
+	var phase: int = int(damage_zone.get_meta(&"phase", 0))
+	var target_id: int = PlayerController.PLAYER_ENTITY_ID
+	var cooldown_key: String = _arena_hazard_cooldown_key(boss_id, change_id, target_id)
+	var next_allowed_sec: float = float(_arena_hazard_contact_cooldowns.get(cooldown_key, -1.0))
+	if next_allowed_sec > _arena_hazard_elapsed_sec:
+		return false
+	var hp_before: int = _player.get_current_hp()
+	var damage_data: Dictionary = {
+		"damage": ELECTRIC_LEAK_CONTACT_DAMAGE,
+		"final_damage": ELECTRIC_LEAK_CONTACT_DAMAGE,
+		"hit_position": damage_zone.global_position,
+		"is_crit": false,
+		"source": change_id,
+		"damage_type": &"electric",
+		"boss_id": boss_id,
+		"phase": phase,
+		"change_id": change_id,
+		"target_id": target_id,
+		"show_damage_number": _hud.are_damage_numbers_enabled(),
+		"focus_mode_active": _is_player_focus_mode_active(),
+	}
+	_player.apply_damage(ELECTRIC_LEAK_CONTACT_DAMAGE, damage_data)
+	if _player.get_current_hp() >= hp_before:
+		return false
+	_arena_hazard_contact_cooldowns[cooldown_key] = (
+		_arena_hazard_elapsed_sec + ELECTRIC_LEAK_CONTACT_COOLDOWN_SEC
+	)
+	_combat_presentation.on_hit_event(damage_data)
+	_dispatch_audio_event(&"on_damage_taken_event", [damage_data])
+	return true
 
 
 func lock_scene() -> void:
@@ -1465,6 +1520,8 @@ func _create_arena_mutation_node(
 		_read_color(layout.get("color", Color.WHITE), Color.WHITE)
 	)
 	_add_arena_mutation_sprite(mutation, layout.get("texture", null))
+	if mutation is Area2D and change_type == &"damage_zone":
+		_configure_arena_damage_zone(mutation as Area2D)
 	return mutation
 
 
@@ -1478,7 +1535,7 @@ func _instantiate_arena_mutation_root(change_type: StringName) -> Node2D:
 		&"damage_zone":
 			var area := Area2D.new()
 			area.collision_layer = ARENA_DAMAGE_ZONE_LAYER
-			area.collision_mask = 1
+			area.collision_mask = ARENA_DAMAGE_ZONE_MASK
 			area.monitoring = true
 			area.monitorable = false
 			return area
@@ -1521,6 +1578,60 @@ func _add_arena_mutation_sprite(parent: Node2D, texture_value: Variant) -> void:
 	parent.add_child(sprite)
 
 
+func _configure_arena_damage_zone(damage_zone: Area2D) -> void:
+	var area_entered_callback := Callable(
+		self,
+		"_on_arena_damage_zone_area_entered"
+	).bind(damage_zone)
+	if not damage_zone.area_entered.is_connected(area_entered_callback):
+		damage_zone.area_entered.connect(area_entered_callback)
+	var body_entered_callback := Callable(
+		self,
+		"_on_arena_damage_zone_body_entered"
+	).bind(damage_zone)
+	if not damage_zone.body_entered.is_connected(body_entered_callback):
+		damage_zone.body_entered.connect(body_entered_callback)
+
+
+func _process_arena_damage_zone_overlaps() -> void:
+	for mutation: Node in get_arena_mutation_nodes():
+		if not mutation is Area2D:
+			continue
+		var damage_zone := mutation as Area2D
+		if StringName(String(damage_zone.get_meta(&"change_id", &""))) != &"electric_leak":
+			continue
+		for area: Area2D in damage_zone.get_overlapping_areas():
+			var target: Node = _resolve_arena_hazard_target_from_area(area)
+			if target != null:
+				apply_arena_damage_zone_contact(damage_zone, target)
+		for body: Node2D in damage_zone.get_overlapping_bodies():
+			if body == _player:
+				apply_arena_damage_zone_contact(damage_zone, _player)
+
+
+func _on_arena_damage_zone_area_entered(area: Area2D, damage_zone: Area2D) -> void:
+	var target: Node = _resolve_arena_hazard_target_from_area(area)
+	if target != null:
+		apply_arena_damage_zone_contact(damage_zone, target)
+
+
+func _on_arena_damage_zone_body_entered(body: Node2D, damage_zone: Area2D) -> void:
+	if body == _player:
+		apply_arena_damage_zone_contact(damage_zone, _player)
+
+
+func _resolve_arena_hazard_target_from_area(area: Area2D) -> Node:
+	if area == null:
+		return null
+	var parent: Node = area.get_parent()
+	if parent == _player:
+		return _player
+	if parent != null and parent.has_method("get_entity_id") \
+			and int(parent.call("get_entity_id")) == PlayerController.PLAYER_ENTITY_ID:
+		return _player
+	return null
+
+
 func _arena_mutation_key(
 	boss_id: StringName,
 	phase: int,
@@ -1535,6 +1646,21 @@ func _clear_arena_mutation_keys_for_boss(boss_id: StringName) -> void:
 	for key: String in _applied_arena_mutation_keys.keys():
 		if key.begins_with(prefix):
 			_applied_arena_mutation_keys.erase(key)
+
+
+func _arena_hazard_cooldown_key(
+	boss_id: StringName,
+	change_id: StringName,
+	target_id: int
+) -> String:
+	return "%s:%s:%d" % [String(boss_id), String(change_id), target_id]
+
+
+func _clear_arena_hazard_cooldowns_for_boss(boss_id: StringName) -> void:
+	var prefix: String = "%s:" % String(boss_id)
+	for key: String in _arena_hazard_contact_cooldowns.keys():
+		if key.begins_with(prefix):
+			_arena_hazard_contact_cooldowns.erase(key)
 
 
 func _on_summon_defeated(minion: Node) -> void:

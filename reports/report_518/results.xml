@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-25" name="report_518" tests="5" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="rat_king_electric_leak_contact_damage_test" package="tests/unit/gameplay" timestamp="2026-06-25T03:43:05" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.098">
+		<testcase name="test_electric_leak_uses_environment_collision_contract" classname="rat_king_electric_leak_contact_damage_test" time="0.051">
+		</testcase>
+		<testcase name="test_electric_leak_contact_damages_player_and_routes_feedback" classname="rat_king_electric_leak_contact_damage_test" time="0.005">
+		</testcase>
+		<testcase name="test_electric_leak_contact_cooldown_allows_repeated_damage_after_elapsed_time" classname="rat_king_electric_leak_contact_damage_test" time="0.005">
+		</testcase>
+		<testcase name="test_electric_leak_sustained_overlap_ticks_after_cooldown" classname="rat_king_electric_leak_contact_damage_test" time="0.024">
+		</testcase>
+		<testcase name="test_electric_leak_cleanup_clears_contact_cooldown_state" classname="rat_king_electric_leak_contact_damage_test" time="0.005">
+		</testcase>
+	</testsuite>
+</testsuites>

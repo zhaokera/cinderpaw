@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-25" name="report_510" tests="4" failures="2" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="rat_king_electric_leak_contact_damage_test" package="tests/unit/gameplay" timestamp="2026-06-25T03:18:16" hostname="localhost" tests="4" failures="2" errors="0" skipped="0" flaky="0" time="0.056">
+		<testcase name="test_electric_leak_uses_environment_collision_contract" classname="rat_king_electric_leak_contact_damage_test" time="0.050">
+			<failure message="FAILED: res://tests/unit/gameplay/rat_king_electric_leak_contact_damage_test.gd:41" type="FAILURE">
+<![CDATA[
+Expecting:
+ '16'
+ but was
+ '32'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/rat_king_electric_leak_contact_damage_test.gd:42" type="FAILURE">
+<![CDATA[
+Expecting:
+ '12'
+ but was
+ '1'
+]]>
+			</failure>
+		</testcase>
+	</testsuite>
+</testsuites>
