@@ -7,17 +7,23 @@ const FACTORY_MUSIC_ID: StringName = &"mus_factory"
 const FACTORY_AMBIENT_ID: StringName = &"amb_factory"
 const FACTORY_AUDIO_FADE_SEC: float = 3.0
 const FACTORY_PLAYER_LIGHT_DAMAGE: int = 12
+const FACTORY_STEAM_DAMAGE_FALLBACK: int = 8
+const FACTORY_STEAM_CONTACT_COOLDOWN_FALLBACK_SEC: float = 1.0
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
 @onready var _spawn: Marker2D = $FactoryGateEntrySpawn
 @onready var _player: Node2D = $Player
 @onready var _enemy: Node2D = $FactoryRatMinion
 @onready var _cache: Node = $FactoryCombatCache
+@onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 
 var _last_player_hit_metadata: Dictionary = {}
 var _last_cache_reward: Dictionary = {}
+var _last_hazard_damage: Dictionary = {}
 var _encounter_cleared: bool = false
 var _cache_claimed: bool = false
+var _factory_hazard_elapsed_sec: float = 0.0
+var _factory_hazard_contact_cooldowns: Dictionary = {}
 var _weapon_component: WeaponComponent = null
 
 
@@ -26,6 +32,7 @@ func _ready() -> void:
 	_align_player_to_spawn()
 	_bind_enemy_to_player()
 	_setup_factory_cache()
+	_setup_factory_hazards()
 	_bind_player_combat_to_room()
 	_request_factory_audio()
 
@@ -96,12 +103,58 @@ func try_claim_factory_cache(provider: Node = null) -> bool:
 	return true
 
 
+## Advances scene-local hazard time and applies sustained overlap ticks.
+func advance_factory_hazard_time(delta_sec: float) -> void:
+	_factory_hazard_elapsed_sec += maxf(0.0, delta_sec)
+	_process_factory_hazard_overlaps()
+
+
+## Applies steam vent contact damage to the player with per-target cooldown.
+func apply_factory_steam_vent_contact(hazard: Area2D, target: Node) -> bool:
+	if hazard == null or target == null or _player == null or not is_instance_valid(hazard):
+		return false
+	if target != _player:
+		return false
+	var hazard_id: StringName = _get_hazard_id(hazard)
+	if hazard_id != &"old_factory_steam_vent":
+		return false
+	var target_id: int = PlayerController.PLAYER_ENTITY_ID
+	var cooldown_key: String = _factory_hazard_cooldown_key(hazard_id, target_id)
+	var next_allowed_sec: float = float(_factory_hazard_contact_cooldowns.get(cooldown_key, -1.0))
+	if next_allowed_sec > _factory_hazard_elapsed_sec:
+		return false
+	var steam_damage: int = _get_hazard_damage(hazard)
+	var hp_before: int = int(_player.call("get_current_hp")) if _player.has_method("get_current_hp") else 0
+	var damage_data: Dictionary = {
+		"damage": steam_damage,
+		"final_damage": steam_damage,
+		"hit_position": hazard.global_position,
+		"is_crit": false,
+		"source": hazard_id,
+		"damage_type": &"steam",
+		"scene_id": FACTORY_SCENE_ID,
+		"target_id": target_id,
+	}
+	if _player.has_method("apply_damage"):
+		_player.call("apply_damage", steam_damage, damage_data)
+	var hp_after: int = int(_player.call("get_current_hp")) if _player.has_method("get_current_hp") else hp_before
+	if hp_after >= hp_before:
+		return false
+	_last_hazard_damage = damage_data.duplicate(true)
+	_factory_hazard_contact_cooldowns[cooldown_key] = (
+		_factory_hazard_elapsed_sec + _get_hazard_cooldown_sec(hazard)
+	)
+	_update_route_label("Steam vent hit")
+	return true
+
+
 ## Captures scene-local state for SceneManager runtime swap persistence.
 func get_local_state() -> Dictionary:
 	return {
 		"encounter_cleared": _encounter_cleared,
 		"factory_cache_claimed": _cache_claimed,
 		"last_cache_reward": _last_cache_reward.duplicate(true),
+		"last_hazard_damage": _last_hazard_damage.duplicate(true),
 	}
 
 
@@ -113,6 +166,12 @@ func set_local_state(state: Dictionary) -> void:
 	_last_cache_reward = (
 		(reward_variant as Dictionary).duplicate(true)
 		if reward_variant is Dictionary
+		else {}
+	)
+	var hazard_variant: Variant = state.get("last_hazard_damage", {})
+	_last_hazard_damage = (
+		(hazard_variant as Dictionary).duplicate(true)
+		if hazard_variant is Dictionary
 		else {}
 	)
 	_sync_room_clear_state()
@@ -139,6 +198,24 @@ func get_factory_room_clear_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic steam vent hazard diagnostics for tests and MCP probes.
+func get_factory_hazard_diagnostics() -> Dictionary:
+	return {
+		"steam_vent_present": _steam_vent != null,
+		"steam_vent_id": String(_get_hazard_id(_steam_vent)),
+		"steam_damage": _get_hazard_damage(_steam_vent),
+		"steam_cooldown_sec": _get_hazard_cooldown_sec(_steam_vent),
+		"steam_vent_texture_path": (
+			String(_steam_vent.call("get_visual_texture_path"))
+			if _steam_vent != null and _steam_vent.has_method("get_visual_texture_path")
+			else ""
+		),
+		"steam_vent_layer": _steam_vent.collision_layer if _steam_vent != null else 0,
+		"steam_vent_mask": _steam_vent.collision_mask if _steam_vent != null else 0,
+		"last_hazard_damage": _last_hazard_damage.duplicate(true),
+	}
+
+
 func get_factory_entrance_diagnostics() -> Dictionary:
 	var backdrop := get_node_or_null("Background") as TextureRect
 	var enemy_sprite := get_node_or_null("FactoryRatMinion/Sprite") as AnimatedSprite2D
@@ -158,6 +235,7 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 			else ""
 		),
 		"room_clear": get_factory_room_clear_diagnostics(),
+		"hazards": get_factory_hazard_diagnostics(),
 		"last_player_hit_metadata": get_last_player_hit_metadata(),
 	}
 
@@ -188,6 +266,17 @@ func _setup_factory_cache() -> void:
 	var claimed_signal: Signal = _cache.get("cache_claimed")
 	if not claimed_signal.is_connected(_on_factory_cache_claimed):
 		claimed_signal.connect(_on_factory_cache_claimed)
+
+
+func _setup_factory_hazards() -> void:
+	if _steam_vent == null:
+		return
+	var area_entered_callback := Callable(self, "_on_factory_hazard_area_entered").bind(_steam_vent)
+	if not _steam_vent.area_entered.is_connected(area_entered_callback):
+		_steam_vent.area_entered.connect(area_entered_callback)
+	var body_entered_callback := Callable(self, "_on_factory_hazard_body_entered").bind(_steam_vent)
+	if not _steam_vent.body_entered.is_connected(body_entered_callback):
+		_steam_vent.body_entered.connect(body_entered_callback)
 
 
 func _bind_player_combat_to_room() -> void:
@@ -223,6 +312,17 @@ func _on_factory_enemy_defeated() -> void:
 func _on_factory_cache_claimed(_cache_id: StringName, reward: Dictionary) -> void:
 	_cache_claimed = true
 	_last_cache_reward = reward.duplicate(true)
+
+
+func _on_factory_hazard_area_entered(area: Area2D, hazard: Area2D) -> void:
+	var target: Node = _resolve_factory_hazard_target_from_area(area)
+	if target != null:
+		apply_factory_steam_vent_contact(hazard, target)
+
+
+func _on_factory_hazard_body_entered(body: Node2D, hazard: Area2D) -> void:
+	if body == _player:
+		apply_factory_steam_vent_contact(hazard, _player)
 
 
 func _setup_weapon_component() -> void:
@@ -277,3 +377,49 @@ func _get_cache_reward_payload() -> Dictionary:
 	if reward_variant is Dictionary:
 		return (reward_variant as Dictionary).duplicate(true)
 	return {}
+
+
+func _process_factory_hazard_overlaps() -> void:
+	if _steam_vent == null:
+		return
+	for area: Area2D in _steam_vent.get_overlapping_areas():
+		var target: Node = _resolve_factory_hazard_target_from_area(area)
+		if target != null:
+			apply_factory_steam_vent_contact(_steam_vent, target)
+	for body: Node2D in _steam_vent.get_overlapping_bodies():
+		if body == _player:
+			apply_factory_steam_vent_contact(_steam_vent, _player)
+
+
+func _resolve_factory_hazard_target_from_area(area: Area2D) -> Node:
+	if area == null:
+		return null
+	var parent: Node = area.get_parent()
+	if parent == _player:
+		return _player
+	if parent != null and parent.has_method("get_entity_id") \
+			and int(parent.call("get_entity_id")) == PlayerController.PLAYER_ENTITY_ID:
+		return _player
+	return null
+
+
+func _get_hazard_id(hazard: Area2D) -> StringName:
+	if hazard != null and hazard.has_method("get_hazard_id"):
+		return StringName(String(hazard.call("get_hazard_id")))
+	return &""
+
+
+func _get_hazard_damage(hazard: Area2D) -> int:
+	if hazard != null and hazard.has_method("get_damage"):
+		return int(hazard.call("get_damage"))
+	return FACTORY_STEAM_DAMAGE_FALLBACK
+
+
+func _get_hazard_cooldown_sec(hazard: Area2D) -> float:
+	if hazard != null and hazard.has_method("get_contact_cooldown_sec"):
+		return float(hazard.call("get_contact_cooldown_sec"))
+	return FACTORY_STEAM_CONTACT_COOLDOWN_FALLBACK_SEC
+
+
+func _factory_hazard_cooldown_key(hazard_id: StringName, target_id: int) -> String:
+	return "%s:%d" % [String(hazard_id), target_id]

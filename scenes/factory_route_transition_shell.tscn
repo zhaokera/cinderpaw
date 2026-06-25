@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" path="res://src/gameplay/rat_minion.tscn" id="5_rat_minion"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_combat_cache/factory_combat_cache.png" id="6_cache_texture"]
 [ext_resource type="Script" path="res://src/feature/factory_combat_cache.gd" id="7_cache_script"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/factory_steam_vent_hazard.png" id="8_vent_texture"]
+[ext_resource type="Script" path="res://src/feature/factory_steam_vent_hazard.gd" id="9_vent_script"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -22,6 +24,9 @@ size = Vector2(260, 20)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_cache_interaction"]
 radius = 96.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_steam_vent"]
+size = Vector2(152, 88)
 
 [node name="FactoryRouteTransitionShellScene" type="Node2D"]
 script = ExtResource("1_scene")
@@ -133,6 +138,27 @@ monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryCombatCache/InteractionArea"]
 shape = SubResource("CircleShape2D_cache_interaction")
+
+[node name="FactorySteamVentHazard" type="Area2D" parent="."]
+z_index = 18
+position = Vector2(642, 466)
+collision_layer = 16
+collision_mask = 12
+monitorable = false
+script = ExtResource("9_vent_script")
+hazard_id = &"old_factory_steam_vent"
+damage = 8
+contact_cooldown_sec = 1.0
+
+[node name="Visual" type="Sprite2D" parent="FactorySteamVentHazard"]
+z_index = 1
+position = Vector2(0, -78)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("8_vent_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactorySteamVentHazard"]
+position = Vector2(0, -36)
+shape = SubResource("RectangleShape2D_steam_vent")
 
 [node name="RouteLabel" type="Label" parent="."]
 visible = false

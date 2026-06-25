@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 8 stories tracked
+> **Stories**: 9 stories tracked
 
 ## Overview
 
@@ -46,6 +46,7 @@ recording the reward in progression state.
 | 006 | Factory Route Transition Shell | Integration + Gameplay Runtime + Visual | Complete | ADR-0007/0018/0021 |
 | 007 | Old Factory Entrance Combat Slice | Integration + Gameplay Runtime + Visual/Feel + Audio | Complete | ADR-0007/0018/0021 |
 | 008 | Old Factory Double Jump Combat Cache | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
+| 009 | Old Factory Steam Vent Hazard Route | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -65,6 +66,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-008 are complete. Continue skill-tree spending UI, the mainline Boss2
+Stories001-009 are complete. Continue skill-tree spending UI, the mainline Boss2
 Double Jump reward source, additional ExplorationGate ability doors, gate unlock
-SFX/VFX, deeper Old Factory content, and other player-visible ability consumers.
+SFX/VFX, deeper Old Factory route/combat content, and other player-visible
+ability consumers.
