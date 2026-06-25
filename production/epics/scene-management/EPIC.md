@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 9 stories tracked; future stories planned
+> **Stories**: 10 stories tracked; future stories planned
 
 ## Overview
 
@@ -27,7 +27,10 @@ scene changes. Story008 connects BossConfig arena-change adapter requests to
 playable MainScene arena mutation runtime nodes for Rat King phase transitions.
 Story009 turns the phase 3 `electric_leak` arena mutation into a real contact
 damage hazard with ADR-0004 environment collision, player damage feedback, and
-per boss/change/target cooldown.
+per boss/change/target cooldown. Story010 adds deterministic SceneManager
+runtime memory-budget diagnostics, platform budget normalization, one-shot
+over-budget warnings, and non-current deferred cache enforcement for
+TR-scene-007.
 
 ## Governing ADRs
 
@@ -46,7 +49,7 @@ per boss/change/target cooldown.
 | TR-scene-004 | Scene-local state persists through `get_local_state()` / `set_local_state()` and save serialization. | ADR-0007; local dictionary cache in Story001; runtime scene capture/restore in Story005 |
 | TR-scene-005 | Boss arena locks scene switching during boss fights. | ADR-0007 |
 | TR-scene-006 | Fast travel preloads target scenes during its portal animation. | ADR-0007; Story007 |
-| TR-scene-007 | Scene loading stays under 2 seconds and memory under platform budgets. | ADR-0007; Story003 timing diagnostics partial; Story005 runtime swap seam; memory budget future |
+| TR-scene-007 | Scene loading stays under 2 seconds and memory under platform budgets. | ADR-0007; Story003 timing diagnostics partial; Story005 runtime swap seam; Story010 deterministic memory-budget diagnostics/enforcement |
 | TR-scene-008 | Scene load timeout retries once, then fails back to hub. | ADR-0007; Story003 |
 
 ## Stories
@@ -62,6 +65,7 @@ per boss/change/target cooldown.
 | 007 | Fast Travel Preload + Scene Change | Integration | Complete | ADR-0007 |
 | 008 | Boss Arena Mutation Runtime | Integration | Complete | ADR-0007 |
 | 009 | Electric Leak Contact Damage | Integration | Complete | ADR-0007, ADR-0004, ADR-0019 |
+| 010 | Scene Memory Budget Diagnostics | Logic / Performance | Complete | ADR-0007 |
 
 ## Definition of Done
 
@@ -96,11 +100,16 @@ This epic is complete when:
 - Phase 3 electric leak damage zones apply rate-limited player contact damage
   through existing health/presentation/audio routes and are verified through
   Godot MCP runtime probes.
-- Later stories add loading audio fades and memory-budget verification.
+- SceneManager exposes deterministic runtime memory-budget diagnostics for
+  mobile/PC/console budgets, emits one-shot over-budget warnings, and can evict
+  non-current deferred runtime cache while preserving the current scene.
+- Later stories add real platform memory profiler evidence, low-memory UI
+  prompts, final arena VFX, and persistent boss arena mutation save state.
 - Godot CLI/GdUnit and Godot MCP verify the Autoload, runtime logs, and current
   scene visibility after SceneManager changes.
 
 ## Next Step
 
-Continue SceneManager memory-budget verification and later arena polish stories:
-final arena VFX and persistent boss arena mutation save-state behavior.
+Continue later arena polish stories: final arena VFX, persistent boss arena
+mutation save-state behavior, real platform profiler evidence, and low-memory
+UI prompt routing.

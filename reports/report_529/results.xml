@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-25" name="report_529" tests="7" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="main_scene_title_load_handoff_test" package="tests/unit/gameplay" timestamp="2026-06-25T04:06:55" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.070">
+		<testcase name="test_new_game_routes_default_playable_scene_through_scene_manager" classname="main_scene_title_load_handoff_test" time="0.029">
+		</testcase>
+		<testcase name="test_continue_loads_first_available_slot_and_hands_off_saved_spawn" classname="main_scene_title_load_handoff_test" time="0.005">
+		</testcase>
+		<testcase name="test_load_slot_uses_selected_slot_not_continue_default" classname="main_scene_title_load_handoff_test" time="0.004">
+		</testcase>
+		<testcase name="test_load_slot_rejection_keeps_menu_visible_and_does_not_restore_state" classname="main_scene_title_load_handoff_test" time="0.005">
+		</testcase>
+		<testcase name="test_load_slot_uses_scene_fallback_order_when_savepoint_is_missing" classname="main_scene_title_load_handoff_test" time="0.004">
+		</testcase>
+		<testcase name="test_locked_or_rejected_scene_manager_keeps_load_atomic" classname="main_scene_title_load_handoff_test" time="0.006">
+		</testcase>
+		<testcase name="test_registered_system_deserialize_is_skipped_until_scene_handoff_succeeds" classname="main_scene_title_load_handoff_test" time="0.006">
+		</testcase>
+	</testsuite>
+</testsuites>

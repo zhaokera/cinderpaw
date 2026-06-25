@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-25" name="report_527" tests="34" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="story_003_async_load_timeout_fallback_test" package="tests/unit/scene" timestamp="2026-06-25T04:06:36" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.023">
+		<testcase name="test_request_scene_change_starts_threaded_request_without_committing_current_scene" classname="story_003_async_load_timeout_fallback_test" time="0.004">
+		</testcase>
+		<testcase name="test_loaded_scene_waits_for_transition_gate_before_logical_commit" classname="story_003_async_load_timeout_fallback_test" time="0.002">
+		</testcase>
+		<testcase name="test_timeout_retries_once_then_records_failure_and_falls_back_to_hub" classname="story_003_async_load_timeout_fallback_test" time="0.002">
+		</testcase>
+		<testcase name="test_locked_unknown_or_active_loading_requests_are_rejected_without_loader_calls" classname="story_003_async_load_timeout_fallback_test" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="story_005_runtime_scene_tree_swap_test" package="tests/unit/scene" timestamp="2026-06-25T04:06:36" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_configure_runtime_root_enables_scene_tree_swap_diagnostics" classname="story_005_runtime_scene_tree_swap_test" time="0.002">
+		</testcase>
+		<testcase name="test_async_loaded_packed_scene_is_instantiated_into_runtime_root_after_transition_gate" classname="story_005_runtime_scene_tree_swap_test" time="0.008">
+		</testcase>
+		<testcase name="test_invalid_loaded_resource_fails_without_detaching_current_runtime_scene" classname="story_005_runtime_scene_tree_swap_test" time="0.006">
+		</testcase>
+		<testcase name="test_no_runtime_root_preserves_story003_logical_async_commit" classname="story_005_runtime_scene_tree_swap_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="story_001_scene_manager_registry_api_test" package="tests/unit/scene" timestamp="2026-06-25T04:06:36" hostname="localhost" tests="9" failures="0" errors="0" skipped="0" flaky="0" time="0.063">
+		<testcase name="test_project_autoload_registers_scene_manager_after_save_system_and_script_loads" classname="story_001_scene_manager_registry_api_test" time="0.001">
+		</testcase>
+		<testcase name="test_scene_registry_domain_contains_hub_and_main_existing_scene_paths" classname="story_001_scene_manager_registry_api_test" time="0.004">
+		</testcase>
+		<testcase name="test_configure_registry_and_preload_mark_logical_scene_loaded_without_tree_swap" classname="story_001_scene_manager_registry_api_test" time="0.008">
+		</testcase>
+		<testcase name="test_change_scene_records_current_scene_spawn_and_emits_expected_signals_once" classname="story_001_scene_manager_registry_api_test" time="0.005">
+		</testcase>
+		<testcase name="test_lock_and_invalid_scene_reject_change_without_state_or_signal_side_effects" classname="story_001_scene_manager_registry_api_test" time="0.007">
+		</testcase>
+		<testcase name="test_unlock_scene_allows_change_after_lock" classname="story_001_scene_manager_registry_api_test" time="0.006">
+		</testcase>
+		<testcase name="test_set_get_scene_state_deep_copies_json_safe_state" classname="story_001_scene_manager_registry_api_test" time="0.006">
+		</testcase>
+		<testcase name="test_serialize_deserialize_round_trip_preserves_current_scene_spawn_and_states" classname="story_001_scene_manager_registry_api_test" time="0.006">
+		</testcase>
+		<testcase name="test_save_system_can_register_scene_manager_and_call_deserialize_with_version" classname="story_001_scene_manager_registry_api_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="story_007_fast_travel_preload_scene_change_test" package="tests/unit/scene" timestamp="2026-06-25T04:06:36" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.055">
+		<testcase name="test_fast_travel_preload_waits_for_two_second_portal_gate_before_commit" classname="story_007_fast_travel_preload_scene_change_test" time="0.002">
+		</testcase>
+		<testcase name="test_fast_travel_runtime_swap_keeps_deferred_cache_contract" classname="story_007_fast_travel_preload_scene_change_test" time="0.008">
+		</testcase>
+		<testcase name="test_fast_travel_quick_return_reuses_deferred_cache_after_two_second_gate_without_new_loader_request" classname="story_007_fast_travel_preload_scene_change_test" time="0.014">
+		</testcase>
+		<testcase name="test_regular_scene_change_keeps_one_point_five_second_transition_gate" classname="story_007_fast_travel_preload_scene_change_test" time="0.004">
+		</testcase>
+		<testcase name="test_fast_travel_rejects_locked_unknown_or_active_loading_without_extra_loader_calls" classname="story_007_fast_travel_preload_scene_change_test" time="0.008">
+		</testcase>
+		<testcase name="test_fast_travel_timeout_retries_once_then_emits_failure_and_falls_back_to_hub" classname="story_007_fast_travel_preload_scene_change_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="story_010_scene_memory_budget_diagnostics_test" package="tests/unit/scene" timestamp="2026-06-25T04:06:36" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.077">
+		<testcase name="test_memory_budget_diagnostics_reports_platform_budget_and_resident_estimates" classname="story_010_scene_memory_budget_diagnostics_test" time="0.004">
+		</testcase>
+		<testcase name="test_enforce_memory_budget_evicts_previous_cache_without_removing_current_scene" classname="story_010_scene_memory_budget_diagnostics_test" time="0.015">
+		</testcase>
+		<testcase name="test_unknown_platform_defaults_to_pc_budget_and_missing_estimators_count_zero" classname="story_010_scene_memory_budget_diagnostics_test" time="0.005">
+		</testcase>
+		<testcase name="test_console_and_empty_platform_budgets_are_normalized" classname="story_010_scene_memory_budget_diagnostics_test" time="0.007">
+		</testcase>
+		<testcase name="test_memory_diagnostics_include_pending_reused_scene_and_update_after_deferred_unload" classname="story_010_scene_memory_budget_diagnostics_test" time="0.015">
+		</testcase>
+		<testcase name="test_enforce_memory_budget_returns_false_when_already_within_budget" classname="story_010_scene_memory_budget_diagnostics_test" time="0.004">
+		</testcase>
+		<testcase name="test_memory_budget_exceeded_signal_emits_once_until_budget_recovers" classname="story_010_scene_memory_budget_diagnostics_test" time="0.015">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="story_006_deferred_unload_cache_eviction_test" package="tests/unit/scene" timestamp="2026-06-25T04:06:36" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.041">
+		<testcase name="test_successful_swap_keeps_outgoing_scene_for_three_seconds_then_queues_free" classname="story_006_deferred_unload_cache_eviction_test" time="0.002">
+		</testcase>
+		<testcase name="test_quick_return_to_cached_scene_reuses_node_without_new_loader_request" classname="story_006_deferred_unload_cache_eviction_test" time="0.013">
+		</testcase>
+		<testcase name="test_third_scene_swap_evicts_older_cache_and_keeps_only_two_resident_scenes" classname="story_006_deferred_unload_cache_eviction_test" time="0.013">
+		</testcase>
+		<testcase name="test_no_runtime_root_keeps_deferred_cache_diagnostics_empty" classname="story_006_deferred_unload_cache_eviction_test" time="0.003">
+		</testcase>
+	</testsuite>
+</testsuites>

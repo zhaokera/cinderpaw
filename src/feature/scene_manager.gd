@@ -14,6 +14,7 @@ signal on_scene_load_failed(scene_id: StringName, reason: StringName)
 signal on_fast_travel_preload_started(scene_id: StringName, spawn_point: StringName, metadata: Dictionary)
 signal on_fast_travel_preload_completed(scene_id: StringName, spawn_point: StringName, metadata: Dictionary)
 signal on_fast_travel_preload_failed(scene_id: StringName, reason: StringName)
+signal on_memory_budget_exceeded(diagnostics: Dictionary)
 
 const SCENE_REGISTRY_DOMAIN: StringName = &"scene_registry"
 const DEFAULT_SCENE_ID: StringName = &"hub"
@@ -26,6 +27,10 @@ const LOAD_TIMEOUT_SECONDS: float = 10.0
 const MAX_LOAD_RETRIES: int = 1
 const DEFERRED_UNLOAD_SECONDS: float = 3.0
 const MAX_RESIDENT_RUNTIME_SCENES: int = 2
+const MEMORY_BUDGET_MOBILE_BYTES: int = 1_000_000_000
+const MEMORY_BUDGET_PC_BYTES: int = 2_000_000_000
+const MEMORY_BUDGET_CONSOLE_BYTES: int = 4_000_000_000
+const DEFAULT_MEMORY_BUDGET_PLATFORM: StringName = &"pc"
 const THREAD_LOAD_INVALID_RESOURCE: int = 0
 const THREAD_LOAD_IN_PROGRESS: int = 1
 const THREAD_LOAD_FAILED: int = 2
@@ -54,6 +59,7 @@ var _previous_runtime_scene: Node = null
 var _previous_runtime_scene_id: StringName = &""
 var _previous_runtime_scene_unload_seconds: float = 0.0
 var _pending_reused_runtime_scene: Node = null
+var _memory_budget_exceeded_latched: bool = false
 
 
 func _ready() -> void:
@@ -117,6 +123,7 @@ func configure_scene_registry(registry_data: Dictionary) -> bool:
 	_scene_states.clear()
 	_evict_previous_runtime_scene()
 	_reset_pending_load()
+	_memory_budget_exceeded_latched = false
 	for scene_id: StringName in _scene_registry.keys():
 		if bool(_scene_registry[scene_id].get("preload", false)):
 			_loaded_scenes[scene_id] = true
@@ -218,6 +225,37 @@ func get_resident_runtime_scene_count() -> int:
 	if reused_scene != null and reused_scene != current_scene and reused_scene != previous_scene:
 		resident_count += 1
 	return resident_count
+
+
+## Reports deterministic runtime scene residency against a platform budget.
+func get_memory_budget_diagnostics(
+	platform: StringName = DEFAULT_MEMORY_BUDGET_PLATFORM
+) -> Dictionary:
+	return _build_memory_budget_diagnostics(platform)
+
+
+## Checks the active memory budget and emits one warning per over-budget state.
+func check_runtime_memory_budget(
+	platform: StringName = DEFAULT_MEMORY_BUDGET_PLATFORM
+) -> bool:
+	var diagnostics: Dictionary = _build_memory_budget_diagnostics(platform)
+	return _apply_memory_budget_latch(diagnostics)
+
+
+## Evicts the non-current runtime cache when memory or resident count is over budget.
+func enforce_runtime_memory_budget(
+	platform: StringName = DEFAULT_MEMORY_BUDGET_PLATFORM
+) -> bool:
+	var diagnostics: Dictionary = _build_memory_budget_diagnostics(platform)
+	var over_budget: bool = not bool(diagnostics.get("within_budget", true))
+	var evicted_previous: bool = false
+	if over_budget and _get_valid_previous_runtime_scene() != null:
+		_evict_previous_runtime_scene()
+		evicted_previous = true
+
+	var updated_diagnostics: Dictionary = _build_memory_budget_diagnostics(platform)
+	_apply_memory_budget_latch(updated_diagnostics)
+	return evicted_previous
 
 
 ## Starts an asynchronous scene load request without immediately committing the
@@ -696,6 +734,133 @@ func _clear_previous_runtime_scene_reference() -> void:
 	_previous_runtime_scene = null
 	_previous_runtime_scene_id = &""
 	_previous_runtime_scene_unload_seconds = 0.0
+
+
+func _build_memory_budget_diagnostics(platform: StringName) -> Dictionary:
+	var normalized_platform: StringName = _normalize_memory_budget_platform(platform)
+	var resident_records: Array[Dictionary] = _collect_resident_runtime_scene_records()
+	var resident_scene_ids: Array[String] = []
+	var resident_scene_roles: Array[String] = []
+	var estimated_runtime_memory_bytes: int = 0
+	for record: Dictionary in resident_records:
+		resident_scene_ids.append(String(record.get("scene_id", "")))
+		resident_scene_roles.append(String(record.get("role", "")))
+		estimated_runtime_memory_bytes += int(record.get("estimated_memory_bytes", 0))
+
+	var platform_budget_bytes: int = _memory_budget_bytes_for_platform(normalized_platform)
+	var over_budget_bytes: int = maxi(estimated_runtime_memory_bytes - platform_budget_bytes, 0)
+	var within_memory_budget: bool = estimated_runtime_memory_bytes <= platform_budget_bytes
+	var within_resident_count_budget: bool = resident_records.size() <= MAX_RESIDENT_RUNTIME_SCENES
+	return {
+		"platform": String(normalized_platform),
+		"platform_budget_bytes": platform_budget_bytes,
+		"resident_runtime_scene_count": resident_records.size(),
+		"resident_runtime_scene_ids": resident_scene_ids,
+		"resident_runtime_scene_roles": resident_scene_roles,
+		"estimated_runtime_memory_bytes": estimated_runtime_memory_bytes,
+		"max_resident_runtime_scenes": MAX_RESIDENT_RUNTIME_SCENES,
+		"max_resident_runtime_scene_count": MAX_RESIDENT_RUNTIME_SCENES,
+		"within_resident_count_budget": within_resident_count_budget,
+		"within_memory_budget": within_memory_budget,
+		"within_budget": within_memory_budget and within_resident_count_budget,
+		"resident_count_passed": within_resident_count_budget,
+		"memory_budget_passed": within_memory_budget,
+		"passed": within_memory_budget and within_resident_count_budget,
+		"over_budget_bytes": over_budget_bytes,
+	}
+
+
+func _apply_memory_budget_latch(diagnostics: Dictionary) -> bool:
+	var within_budget: bool = bool(diagnostics.get("within_budget", true))
+	if within_budget:
+		_memory_budget_exceeded_latched = false
+		return true
+	if not _memory_budget_exceeded_latched:
+		_memory_budget_exceeded_latched = true
+		on_memory_budget_exceeded.emit(diagnostics.duplicate(true))
+	return false
+
+
+func _collect_resident_runtime_scene_records() -> Array[Dictionary]:
+	var records: Array[Dictionary] = []
+	var seen_instance_ids: Dictionary = {}
+	_append_runtime_scene_record(
+		records,
+		seen_instance_ids,
+		&"current",
+		_current_scene_id,
+		_get_valid_current_runtime_scene()
+	)
+	_append_runtime_scene_record(
+		records,
+		seen_instance_ids,
+		&"previous",
+		_previous_runtime_scene_id,
+		_get_valid_previous_runtime_scene()
+	)
+	_append_runtime_scene_record(
+		records,
+		seen_instance_ids,
+		&"pending_reused",
+		_pending_scene_id,
+		_get_valid_pending_reused_runtime_scene()
+	)
+	return records
+
+
+func _append_runtime_scene_record(
+	records: Array[Dictionary],
+	seen_instance_ids: Dictionary,
+	role: StringName,
+	scene_id: StringName,
+	scene: Node
+) -> void:
+	if scene == null or not is_instance_valid(scene):
+		return
+	var instance_id: int = scene.get_instance_id()
+	if seen_instance_ids.has(instance_id):
+		return
+	seen_instance_ids[instance_id] = true
+	records.append({
+		"role": String(role),
+		"scene_id": String(scene_id),
+		"node_name": scene.name,
+		"estimated_memory_bytes": _estimated_memory_bytes_for_scene(scene),
+	})
+
+
+func _estimated_memory_bytes_for_scene(scene: Node) -> int:
+	if scene == null or not is_instance_valid(scene):
+		return 0
+	if not scene.has_method("get_estimated_memory_bytes"):
+		return 0
+	var estimate_variant: Variant = scene.call("get_estimated_memory_bytes")
+	if estimate_variant is int or estimate_variant is float:
+		return maxi(int(estimate_variant), 0)
+	return 0
+
+
+func _normalize_memory_budget_platform(platform: StringName) -> StringName:
+	var normalized: String = String(platform).strip_edges().to_lower()
+	match normalized:
+		"mobile":
+			return &"mobile"
+		"console":
+			return &"console"
+		"pc":
+			return &"pc"
+		_:
+			return DEFAULT_MEMORY_BUDGET_PLATFORM
+
+
+func _memory_budget_bytes_for_platform(platform: StringName) -> int:
+	match _normalize_memory_budget_platform(platform):
+		&"mobile":
+			return MEMORY_BUDGET_MOBILE_BYTES
+		&"console":
+			return MEMORY_BUDGET_CONSOLE_BYTES
+		_:
+			return MEMORY_BUDGET_PC_BYTES
 
 
 func _resolve_spawn_point(scene_id: StringName, spawn_point: StringName) -> StringName:

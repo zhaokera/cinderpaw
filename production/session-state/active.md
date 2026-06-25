@@ -15,15 +15,31 @@
   BossConfig Story008 Rat King AI attack scheduler runtime integration、
   BossConfig Story009 Rat King live phase 2 summon runtime integration、
   SceneManagement Story008 boss arena mutation runtime、
-  SceneManagement Story009 electric leak contact damage 已完成；
-  下一步推进 SceneManager memory-budget verification、final arena VFX、
-  boss arena mutation save-state persistence、UI menu audio、Boss music state transitions、
+  SceneManagement Story009 electric leak contact damage、
+  SceneManagement Story010 scene memory budget diagnostics 已完成；
+  下一步推进 final arena VFX、boss arena mutation save-state persistence、
+  real platform profiler evidence、low-memory UI prompt routing、UI menu audio、
+  Boss music state transitions、
   same-SFX merge 和 real audio asset import stories，以及玩家可见角色/敌人帧动画
   持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Scene Management Story 010: Scene Memory Budget Diagnostics — `SceneManager`
+  现在暴露 `get_memory_budget_diagnostics()`、`check_runtime_memory_budget()`
+  和 `enforce_runtime_memory_budget()`，并新增
+  `on_memory_budget_exceeded(diagnostics)`。诊断 payload 覆盖 mobile/pc/console
+  十进制字节预算、unknown/empty -> pc fallback、resident runtime scene ids/roles/count、
+  current/previous/pending-reused 估算、pass/fail flags 和 over-budget bytes；
+  估算只通过可选 `get_estimated_memory_bytes()` seam，缺失或无效估算按 `0`。
+  Enforcement 只驱逐非当前 deferred previous cache，保留 current runtime scene；
+  warning latch 在同一超预算状态只 emit 一次，回到 in-budget 后可再次 emit。
+  通过 RED `report_520`、GREEN focused `report_526` `7/7`、SceneManager
+  regression `report_527` `34/34`、MainScene transition/title 回归
+  `report_528` `2/2` 和 `report_529` `7/7`、headless smoke、Godot MCP
+  autoload/runtime-root/warning-latch probes、clean logs 和非空截图验证。QA evidence:
+  `production/qa/evidence/scene-memory-budget-diagnostics-2026-06-25.md`。
 - Scene Management Story 009: Electric Leak Contact Damage — `MainScene`
   现在将 Rat King phase 3 `electric_leak` arena mutation 作为真实 contact
   damage hazard 处理：damage zone 使用 ADR-0004 environment layer/mask
