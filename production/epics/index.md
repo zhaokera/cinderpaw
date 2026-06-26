@@ -18,7 +18,7 @@ Engine: Godot 4.6.3
 | player-abilities | Core / Feature | Player Abilities | player-abilities.md | 20 stories tracked | In Progress |
 | save-system | Feature | Save System | save-system.md | 5 stories | Complete |
 | scene-management | Feature | Scene Management | scene-management.md | 13 stories tracked | In Progress |
-| death-respawn | Feature | Death & Respawn | death-respawn.md | 6 stories | Complete |
+| death-respawn | Feature | Death & Respawn | death-respawn.md | 7 stories | Complete |
 | hud-ui | Presentation | HUD/UI | hud-ui.md | 6 stories | Complete |
 | combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 15 stories tracked | Complete |
 | audio-system | Presentation | Audio System | audio-system.md | 8 stories tracked | In Progress |

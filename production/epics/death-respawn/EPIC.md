@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/death-respawn.md
 > **Architecture Module**: GameFlowController + HealthComponent adapters
 > **Status**: Complete
-> **Stories**: 6 stories
+> **Stories**: 7 stories
 
 ## Overview
 
@@ -44,6 +44,7 @@ surface a learning-focused battle summary.
 | 004 | Savepoint Respawn Selection | Integration | Complete | ADR-0007 |
 | 005 | Battle Summary Handoff | Integration | Complete | ADR-0002, ADR-0019 |
 | 006 | No-Loss Respawn State Contract | Integration | Complete | ADR-0007 |
+| 007 | Main Scene Savepoint Runtime | Integration | Complete | ADR-0007 |
 
 ## Definition of Done
 
@@ -54,9 +55,13 @@ This epic is complete when:
 - Boss arena reset has runtime evidence.
 - Optional battle-summary UI is settings-controlled.
 - No-loss rules are covered by save/economy integration tests.
+- The main scene includes at least one player-visible runtime savepoint that
+  writes autosave data and respawns non-boss deaths at the discovered point.
 
 ## Completion Evidence
 
-Death & Respawn Story 004 completed the remaining savepoint priority and
-SceneManager handoff. The epic is complete with QA evidence in
-`production/qa/evidence/savepoint-respawn-selection-2026-06-25.md`.
+Death & Respawn Story 004 completed the savepoint priority and SceneManager
+handoff. Story 007 adds the player-visible main-scene Scrap Roost savepoint
+runtime with generated art, autosave, and MCP evidence. QA evidence:
+`production/qa/evidence/savepoint-respawn-selection-2026-06-25.md` and
+`production/qa/evidence/main-scene-savepoint-runtime-2026-06-26.md`.

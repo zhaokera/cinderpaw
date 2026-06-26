@@ -47,6 +47,7 @@ const HIDDEN_DOUBLE_JUMP_REWARD_ID: StringName = &"hidden_boss_echo_double_jump"
 const HIDDEN_DOUBLE_JUMP_REWARD_ABILITY_ID: StringName = &"double_jump"
 const HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG: StringName = &"hidden_boss_echo_double_jump_claimed"
 const HIDDEN_DOUBLE_JUMP_REWARD_NOTIFICATION: String = "Double Jump unlocked"
+const SAVEPOINT_NOTIFICATION_SUFFIX: String = " saved"
 const CAT_CLAW_T1A_SKILL_ID: StringName = &"cat_claw_t1a"
 const FACTORY_ROUTE_SHELL_NODE_PATH: NodePath = ^"FactoryRouteTransitionShell"
 const FACTORY_ROUTE_SCENE_ID: StringName = &"area_03_factory"
@@ -160,6 +161,7 @@ func _ready() -> void:
 	_setup_enemy_attack_core_chain()
 	_game_flow.set_no_loss_state_adapter(self)
 	_game_flow.set_savepoint_adapter(self)
+	_setup_main_scene_savepoints()
 	_game_flow.configure_clan_base_respawn(&"hub", &"clan_base", _player.global_position)
 	_game_flow.configure_boss_entrance_respawn(
 		StringName(MAIN_SCENE_ID),
@@ -1079,18 +1081,32 @@ func _request_scene_manager_transition(scene_id: StringName, spawn_point: String
 	var scene_manager: Object = _resolve_scene_manager_for_runtime()
 	if scene_manager == null:
 		return true
+	if scene_manager.has_method("get_current_scene") \
+			and String(scene_manager.call("get_current_scene")) == String(scene_id):
+		return true
+	if _can_skip_pending_same_main_scene_transition(scene_manager, scene_id):
+		return true
 	if scene_manager.has_method("has_scene") and not bool(scene_manager.call("has_scene", scene_id)):
 		return false
 	if scene_manager.has_method("is_scene_locked") and bool(scene_manager.call("is_scene_locked")):
 		return false
-	if scene_manager.has_method("get_current_scene") \
-			and String(scene_manager.call("get_current_scene")) == String(scene_id):
-		return true
 	if scene_manager.has_method("request_scene_change"):
 		return bool(scene_manager.call("request_scene_change", scene_id, spawn_point))
 	if not scene_manager.has_method("change_scene"):
 		return false
 	return bool(scene_manager.call("change_scene", scene_id, spawn_point))
+
+
+func _can_skip_pending_same_main_scene_transition(scene_manager: Object, scene_id: StringName) -> bool:
+	if scene_id != StringName(MAIN_SCENE_ID):
+		return false
+	if scene_manager == null or not is_instance_valid(scene_manager):
+		return false
+	if not scene_manager.has_method("is_loading") or not bool(scene_manager.call("is_loading")):
+		return false
+	if not scene_manager.has_method("get_pending_scene"):
+		return false
+	return String(scene_manager.call("get_pending_scene")) == MAIN_SCENE_ID
 
 
 func _handoff_loaded_scene_to_scene_manager(snapshot: Dictionary) -> bool:
@@ -1286,6 +1302,26 @@ func discover_savepoint(
 		"position": _vector2_to_dictionary(world_position),
 	}
 	return true
+
+
+func activate_runtime_savepoint(
+	savepoint_id: StringName,
+	scene_id: StringName,
+	spawn_point: StringName,
+	world_position: Vector2,
+	context: Dictionary = {}
+) -> bool:
+	if not discover_savepoint(savepoint_id, scene_id, spawn_point, world_position):
+		return false
+	var save_context: Dictionary = context.duplicate(true)
+	save_context["savepoint_id"] = String(savepoint_id)
+	save_context["scene_id"] = String(scene_id)
+	save_context["spawn_point"] = String(spawn_point)
+	save_context["position"] = _vector2_to_dictionary(world_position)
+	var display_name: String = String(save_context.get("display_name", "")).strip_edges()
+	if not display_name.is_empty():
+		_hud.show_notification("%s%s" % [display_name, SAVEPOINT_NOTIFICATION_SUFFIX], 1.5)
+	return _trigger_runtime_autosave(&"savepoint", save_context)
 
 
 func get_last_discovered_savepoint() -> Dictionary:
@@ -1681,6 +1717,29 @@ func _trigger_runtime_autosave(reason: StringName, context: Dictionary) -> bool:
 	if _save_trigger_adapter == null:
 		return false
 	return _save_trigger_adapter.trigger_auto_save(reason, context)
+
+
+func _setup_main_scene_savepoints() -> void:
+	if not is_inside_tree():
+		return
+	for node: Node in get_tree().get_nodes_in_group("savepoint"):
+		if node == null or not is_instance_valid(node) or not is_ancestor_of(node):
+			continue
+		if not node.has_signal("savepoint_activated"):
+			continue
+		var callback: Callable = Callable(self, "_on_runtime_savepoint_activated")
+		if not node.is_connected("savepoint_activated", callback):
+			node.connect("savepoint_activated", callback)
+
+
+func _on_runtime_savepoint_activated(
+	savepoint_id: StringName,
+	scene_id: StringName,
+	spawn_point: StringName,
+	world_position: Vector2,
+	context: Dictionary
+) -> void:
+	activate_runtime_savepoint(savepoint_id, scene_id, spawn_point, world_position, context)
 
 
 func _sync_player_unlocked_abilities() -> void:
