@@ -117,7 +117,7 @@ func request_attack() -> bool:
 	velocity = Vector2.ZERO
 	_attack_sequence_id += 1
 	_state = State.ATTACK_TELL
-	_attack_timer = ATTACK_TELL_FRAMES
+	_attack_timer = _get_attack_tell_frames()
 	_play_character_animation(_get_attack_tell_animation(), true)
 	return true
 
@@ -207,6 +207,11 @@ func is_enemy_attack_active() -> bool:
 ## Returns a monotonically increasing id for the current attack attempt.
 func get_current_attack_sequence_id() -> int:
 	return _attack_sequence_id
+
+
+## Returns the startup duration before the bite hitbox becomes active.
+func get_attack_startup_frames() -> int:
+	return _get_attack_tell_frames()
 
 
 func _process_chase(delta: float) -> void:
@@ -400,6 +405,10 @@ func _build_enemy_damage_params() -> Dictionary:
 
 func _get_attack_tell_animation() -> StringName:
 	return ANIMATION_ATTACK
+
+
+func _get_attack_tell_frames() -> int:
+	return ATTACK_TELL_FRAMES
 
 
 func _can_auto_attack_target() -> bool:

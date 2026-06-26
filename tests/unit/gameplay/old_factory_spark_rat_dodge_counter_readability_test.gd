@@ -124,7 +124,7 @@ func test_spark_rat_bite_only_resolves_during_active_frames_and_once_per_attack(
 	assert_bool(bool(tell_result.get("damage_applied", true))).is_false()
 	assert_int(int(player.call("get_current_hp"))).is_equal(hp_before)
 
-	spark_rat.call("advance_attack_frames", 7)
+	spark_rat.call("advance_attack_frames", int(spark_rat.call("get_attack_startup_frames")))
 	var active_result: Dictionary = destination.call("resolve_factory_spark_rat_bite_against_player")
 	assert_bool(bool(active_result.get("resolved", false))).is_true()
 	assert_bool(bool(active_result.get("damage_applied", false))).is_true()
@@ -256,7 +256,7 @@ func _activate_spark_rat(destination: Node) -> Node:
 	if spark_rat == null:
 		return null
 	assert_bool(bool(spark_rat.call("request_attack"))).is_true()
-	spark_rat.call("advance_attack_frames", 7)
+	spark_rat.call("advance_attack_frames", int(spark_rat.call("get_attack_startup_frames")))
 	return spark_rat
 
 

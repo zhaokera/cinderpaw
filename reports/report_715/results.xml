@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-26" name="report_715" tests="32" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_spark_rat_pacing_polish_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:38:38" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.235">
+		<testcase name="test_spark_rat_waits_for_pacing_trigger_after_endpoint_open" classname="old_factory_spark_rat_pacing_polish_test" time="0.069">
+		</testcase>
+		<testcase name="test_spark_rat_activation_starts_with_opening_grace_before_first_bite" classname="old_factory_spark_rat_pacing_polish_test" time="0.045">
+		</testcase>
+		<testcase name="test_spark_rat_patrols_until_player_enters_alert_radius" classname="old_factory_spark_rat_pacing_polish_test" time="0.045">
+		</testcase>
+		<testcase name="test_spark_rat_first_bite_respects_extended_attack_tell_before_damage" classname="old_factory_spark_rat_pacing_polish_test" time="0.046">
+		</testcase>
+		<testcase name="test_spark_rat_pacing_state_restores_without_replaying_bite_state" classname="old_factory_spark_rat_pacing_polish_test" time="0.022">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="old_factory_spark_rat_patrol_encounter_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:38:38" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.095">
+		<testcase name="test_factory_spark_rat_character_assets_follow_frame_animation_rules" classname="old_factory_spark_rat_patrol_encounter_test" time="0.005">
+		</testcase>
+		<testcase name="test_old_factory_mounts_spark_rat_visible_but_inactive_until_deep_route_opens" classname="old_factory_spark_rat_patrol_encounter_test" time="0.023">
+		</testcase>
+		<testcase name="test_spark_rat_activates_after_endpoint_open_and_can_be_defeated" classname="old_factory_spark_rat_patrol_encounter_test" time="0.038">
+		</testcase>
+		<testcase name="test_spark_rat_defeat_state_restores_without_replaying_route_feedback" classname="old_factory_spark_rat_patrol_encounter_test" time="0.022">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="old_factory_spark_rat_attack_tell_feedback_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:38:38" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.030">
+		<testcase name="test_spark_rat_sprite_frames_include_generated_attack_tell_frames" classname="old_factory_spark_rat_attack_tell_feedback_test" time="0.007">
+		</testcase>
+		<testcase name="test_spark_rat_attack_startup_uses_attack_tell_then_active_uses_attack" classname="old_factory_spark_rat_attack_tell_feedback_test" time="0.006">
+		</testcase>
+		<testcase name="test_spark_rat_attack_metadata_contract_survives_attack_tell_split" classname="old_factory_spark_rat_attack_tell_feedback_test" time="0.006">
+		</testcase>
+		<testcase name="test_spark_rat_attack_tell_visual_uses_no_placeholder_nodes" classname="old_factory_spark_rat_attack_tell_feedback_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="old_factory_spark_rat_dodge_counter_readability_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:38:38" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.172">
+		<testcase name="test_spark_rat_bite_dodged_during_iframe_opens_cat_claw_counter_window" classname="old_factory_spark_rat_dodge_counter_readability_test" time="0.032">
+		</testcase>
+		<testcase name="test_spark_rat_bite_during_visible_dodge_before_iframe_still_damages_player" classname="old_factory_spark_rat_dodge_counter_readability_test" time="0.034">
+		</testcase>
+		<testcase name="test_spark_rat_bite_only_resolves_during_active_frames_and_once_per_attack" classname="old_factory_spark_rat_dodge_counter_readability_test" time="0.033">
+		</testcase>
+		<testcase name="test_cat_claw_hit_during_spark_rat_counter_window_consumes_bonus_once" classname="old_factory_spark_rat_dodge_counter_readability_test" time="0.032">
+		</testcase>
+		<testcase name="test_spark_rat_bite_without_dodge_damages_player_for_existing_contract" classname="old_factory_spark_rat_dodge_counter_readability_test" time="0.033">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="story_003_dodge_iframes_hurtbox_adapter_test" package="tests/unit/combat" timestamp="2026-06-26T04:38:38" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.042">
+		<testcase name="test_dodge_starts_from_idle_and_attack_recovery" classname="story_003_dodge_iframes_hurtbox_adapter_test" time="0.002">
+		</testcase>
+		<testcase name="test_dodge_iframe_boundaries_are_frames_three_through_ten" classname="story_003_dodge_iframes_hurtbox_adapter_test" time="0.008">
+		</testcase>
+		<testcase name="test_hurtbox_adapter_receives_gone_during_iframe_and_normal_on_end" classname="story_003_dodge_iframes_hurtbox_adapter_test" time="0.006">
+		</testcase>
+		<testcase name="test_dodge_iframe_exposes_invulnerability_for_health_integration" classname="story_003_dodge_iframes_hurtbox_adapter_test" time="0.007">
+		</testcase>
+		<testcase name="test_dodge_cooldown_and_airborne_rejection" classname="story_003_dodge_iframes_hurtbox_adapter_test" time="0.005">
+		</testcase>
+		<testcase name="test_cat_claw_dodge_end_opens_and_closes_counter_window" classname="story_003_dodge_iframes_hurtbox_adapter_test" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="story_005_cat_claw_counter_crit_test" package="tests/unit/weapon" timestamp="2026-06-26T04:38:38" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.027">
+		<testcase name="test_cat_claw_dodge_completion_opens_half_second_counter_window" classname="story_005_cat_claw_counter_crit_test" time="0.005">
+		</testcase>
+		<testcase name="test_qualifying_cat_claw_hit_injects_bonus_and_consumes_counter_window" classname="story_005_cat_claw_counter_crit_test" time="0.004">
+		</testcase>
+		<testcase name="test_non_cat_claw_weapon_does_not_open_counter_bonus" classname="story_005_cat_claw_counter_crit_test" time="0.004">
+		</testcase>
+		<testcase name="test_damage_calculator_treats_claw_counter_bonus_as_perfect_window_extension" classname="story_005_cat_claw_counter_crit_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="6" name="player_dodge_animation_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:38:38" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.020">
+		<testcase name="test_player_has_three_frame_dodge_animation_from_character_asset_pipeline" classname="player_dodge_animation_test" time="0.002">
+		</testcase>
+		<testcase name="test_request_dodge_plays_dodge_animation_and_emits_afterimage_metadata" classname="player_dodge_animation_test" time="0.007">
+		</testcase>
+		<testcase name="test_request_dodge_respects_cooldown_until_dodge_window_finishes" classname="player_dodge_animation_test" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="7" name="main_scene_player_dodge_afterimage_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:38:38" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.039">
+		<testcase name="test_player_dodge_spawns_three_presentation_afterimages_in_main_scene" classname="main_scene_player_dodge_afterimage_test" time="0.034">
+		</testcase>
+	</testsuite>
+</testsuites>

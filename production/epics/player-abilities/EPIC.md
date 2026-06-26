@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 16 stories tracked
+> **Stories**: 17 stories tracked
 
 ## Overview
 
@@ -54,6 +54,7 @@ recording the reward in progression state.
 | 014 | Old Factory Spark Rat Attack Tell Feedback | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0005/0007/0018 |
 | 015 | Old Factory Spark Rat Dodge-Counter Readability | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0005/0007/0018 |
 | 016 | Ability Gate Unlock Feedback | Integration + Gameplay Runtime + Visual/Feel + Audio | Complete | ADR-0002/0007/0010/0018/0021 |
+| 017 | Old Factory Spark Rat Pacing Polish | Integration + Gameplay Runtime + Combat Pacing | Complete | ADR-0004/0005/0006/0007/0018 |
 
 ## Definition of Done
 
@@ -73,8 +74,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-016 are complete. Continue another ACT-visible slice such as Spark
-Rat pacing polish, skill-tree spending UI, the mainline Boss2 Double Jump reward
-source, additional ExplorationGate ability doors, deeper Old Factory
-route/combat content, savepoint/minimap gameplay, and other player-visible
-ability consumers.
+Stories001-017 are complete. Continue another ACT-visible slice such as
+skill-tree spending UI, the mainline Boss2 Double Jump reward source,
+additional ExplorationGate ability doors, deeper Old Factory route/combat
+content, savepoint/minimap gameplay, and other player-visible ability consumers.

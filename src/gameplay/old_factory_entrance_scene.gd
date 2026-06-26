@@ -14,6 +14,8 @@ const FACTORY_DEEP_GUARD_ENTITY_ID: int = 2101
 const FACTORY_SPARK_RAT_ENTITY_ID: int = 2102
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
+const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
+const FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES: int = 18
 const FACTORY_RAT_MINION_COLLISION_LAYER: int = 2
 const FACTORY_RAT_MINION_COLLISION_MASK: int = 17
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
@@ -142,13 +144,16 @@ func try_activate_factory_spark_rat(provider: Node = null) -> bool:
 		return false
 	if not _deep_route_cleared:
 		return false
-	_spark_rat_activated = true
-	_sync_spark_rat_state()
 	var activation_provider: Node = provider
 	if activation_provider == null:
 		activation_provider = _player
+	if not _is_spark_rat_activation_provider_in_range(activation_provider):
+		return false
+	_spark_rat_activated = true
+	_sync_spark_rat_state()
 	if activation_provider != null:
 		_set_spark_rat_attack_target(activation_provider)
+	_begin_spark_rat_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	_update_route_label("Spark rat patrol active")
 	return true
 
@@ -252,6 +257,14 @@ func advance_factory_hazard_time(delta_sec: float) -> void:
 	_process_factory_hazard_overlaps()
 
 
+## Advances the Spark Rat pacing loop deterministically for tests and MCP probes.
+func advance_factory_spark_rat_pacing_frames(frames: int) -> void:
+	if _spark_rat == null or not _spark_rat_activated or _spark_rat_defeated:
+		return
+	if _spark_rat.has_method("advance_pacing_frames"):
+		_spark_rat.call("advance_pacing_frames", frames)
+
+
 ## Applies steam vent contact damage to the player with per-target cooldown.
 func apply_factory_steam_vent_contact(hazard: Area2D, target: Node) -> bool:
 	if hazard == null or target == null or _player == null or not is_instance_valid(hazard):
@@ -301,6 +314,7 @@ func get_local_state() -> Dictionary:
 		"factory_deep_route_cleared": _deep_route_cleared,
 		"factory_spark_rat_activated": _spark_rat_activated,
 		"factory_spark_rat_defeated": _spark_rat_defeated,
+		"factory_spark_rat_opening_grace_frames": _get_spark_rat_opening_grace_frames(),
 		"last_cache_reward": _last_cache_reward.duplicate(true),
 		"last_hazard_damage": _last_hazard_damage.duplicate(true),
 	}
@@ -315,6 +329,10 @@ func set_local_state(state: Dictionary) -> void:
 	_deep_route_cleared = bool(state.get("factory_deep_route_cleared", false))
 	_spark_rat_activated = bool(state.get("factory_spark_rat_activated", false))
 	_spark_rat_defeated = bool(state.get("factory_spark_rat_defeated", false))
+	var spark_rat_opening_grace_frames: int = int(state.get(
+		"factory_spark_rat_opening_grace_frames",
+		FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES if _spark_rat_activated and not _spark_rat_defeated else 0
+	))
 	var reward_variant: Variant = state.get("last_cache_reward", {})
 	_last_cache_reward = (
 		(reward_variant as Dictionary).duplicate(true)
@@ -330,6 +348,8 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_room_clear_state()
 	_sync_deep_route_state()
 	_sync_spark_rat_state()
+	if _spark_rat_activated and not _spark_rat_defeated:
+		_begin_spark_rat_pacing(spark_rat_opening_grace_frames)
 
 
 ## Returns deterministic room-clear/cache diagnostics for tests and MCP probes.
@@ -438,11 +458,15 @@ func get_factory_spark_rat_diagnostics() -> Dictionary:
 		if _spark_rat != null
 		else null
 	)
+	var pacing_diagnostics: Dictionary = _get_spark_rat_pacing_diagnostics()
 	return {
 		"present": _spark_rat != null,
 		"visible": _spark_rat.visible if _spark_rat != null else false,
 		"active": _spark_rat_activated and not _spark_rat_defeated,
 		"defeated": _spark_rat_defeated,
+		"activation_x": FACTORY_SPARK_RAT_ACTIVATION_X,
+		"activation_ready": _is_spark_rat_activation_provider_in_range(_player),
+		"distance_to_player": _get_spark_rat_distance_to_provider(_player),
 		"entity_id": (
 			int(_spark_rat.call("get_entity_id"))
 			if _spark_rat != null and _spark_rat.has_method("get_entity_id")
@@ -460,6 +484,7 @@ func get_factory_spark_rat_diagnostics() -> Dictionary:
 		),
 		"animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
 		"counter": get_factory_spark_rat_counter_diagnostics(),
+		"pacing": pacing_diagnostics,
 		"position": _spark_rat.global_position if _spark_rat != null else Vector2.ZERO,
 	}
 
@@ -919,6 +944,42 @@ func _set_spark_rat_attack_target(attack_target: Node) -> void:
 		_spark_rat.call("set_attack_target", attack_target)
 
 
+func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
+	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
+		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
+
+
+func _get_spark_rat_pacing_diagnostics() -> Dictionary:
+	if _spark_rat != null and _spark_rat.has_method("get_pacing_diagnostics"):
+		var pacing_variant: Variant = _spark_rat.call("get_pacing_diagnostics")
+		if pacing_variant is Dictionary:
+			return (pacing_variant as Dictionary).duplicate(true)
+	return {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+		"alert_radius_px": 0.0,
+		"target_distance": _get_spark_rat_distance_to_provider(_player),
+		"target_in_alert_radius": false,
+		"patrol_center_x": _spark_rat.global_position.x if _spark_rat != null else 0.0,
+		"patrol_left_x": _spark_rat.global_position.x if _spark_rat != null else 0.0,
+		"patrol_right_x": _spark_rat.global_position.x if _spark_rat != null else 0.0,
+		"attack_startup_frames": (
+			int(_spark_rat.call("get_attack_startup_frames"))
+			if _spark_rat != null and _spark_rat.has_method("get_attack_startup_frames")
+			else 0
+		),
+		"attack_sequence_id": _get_spark_rat_attack_sequence_id(),
+		"attack_active": _is_spark_rat_attack_active(),
+		"current_animation": "",
+	}
+
+
+func _get_spark_rat_opening_grace_frames() -> int:
+	var pacing: Dictionary = _get_spark_rat_pacing_diagnostics()
+	return int(pacing.get("opening_grace_frames", 0))
+
+
 func _does_deep_guard_have_target() -> bool:
 	if _deep_guard == null:
 		return false
@@ -939,6 +1000,18 @@ func _is_deep_guard_activation_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
 	return (provider as Node2D).global_position.x >= FACTORY_DEEP_GUARD_ACTIVATION_X
+
+
+func _is_spark_rat_activation_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (provider as Node2D).global_position.x >= FACTORY_SPARK_RAT_ACTIVATION_X
+
+
+func _get_spark_rat_distance_to_provider(provider: Node) -> float:
+	if _spark_rat == null or provider == null or not provider is Node2D:
+		return INF
+	return _spark_rat.global_position.distance_to((provider as Node2D).global_position)
 
 
 func _get_factory_enemy_by_entity_id(target_id: int) -> Node:

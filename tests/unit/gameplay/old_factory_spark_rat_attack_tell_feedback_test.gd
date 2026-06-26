@@ -8,7 +8,7 @@ const SPRITE_FRAMES_PATH: String = (
 const ATTACK_TELL_ANIMATION: StringName = &"attack_tell"
 const ATTACK_ANIMATION: StringName = &"attack"
 const EXPECTED_ATTACK_TELL_FRAME_COUNT: int = 3
-const ATTACK_TELL_FRAMES: int = 7
+const ATTACK_TELL_FRAMES: int = 12
 const REQUIRED_FRAME_SIZE: Vector2i = Vector2i(96, 96)
 
 var _spawned_nodes: Array[Node] = []

@@ -25,15 +25,47 @@
   Story008 music + ambience asset import baseline、BossConfig Story010 Rat King
   defeat reward runtime consumption、Player Abilities Story002
   ExplorationGate dash 门控、Player Abilities Story011 Old Factory deep guard
-  activation pacing 已完成；
+  activation pacing、Player Abilities Story017 Old Factory Spark Rat pacing
+  polish 已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
   routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
   area cue expansion、broader audio mix polish、skill-tree spending UI、
-  其他 ExplorationGate 能力门，以及玩家可见角色/敌人帧动画持续审计。
+  mainline Boss2 Double Jump reward source、其他 ExplorationGate 能力门、
+  更深 Old Factory route/combat content、savepoint/minimap gameplay，以及
+  玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 017: Old Factory Spark Rat Pacing Polish —
+  `FactorySparkRat` now has encounter pacing instead of behaving like an
+  immediate bite check after the endpoint opens. `OldFactoryEntranceScene` adds
+  `FACTORY_SPARK_RAT_ACTIVATION_X`, `advance_factory_spark_rat_pacing_frames()`,
+  scene-local `factory_spark_rat_opening_grace_frames` persistence, and
+  deterministic diagnostics for activation readiness, player distance, collision,
+  target binding, current animation, attack sequence, alert radius, patrol bounds,
+  and opening grace. `FactorySparkRat` now waits through an 18-frame opening
+  grace, patrols between bounded points with the existing `run` animation while
+  the player stays outside its 180px alert radius, and preserves the existing
+  chase / `attack_tell -> attack` bite chain once alerted. `RatMinion` gained a
+  small overridable `get_attack_startup_frames()` hook; Spark Rat overrides the
+  startup to 12 frames without changing shared Rat Minion constants. Story015's
+  9-damage `factory_spark_rat_bite` and dodge-counter contract remain intact. No
+  new image asset was required; the story reuses the existing image-generated
+  Factory Spark Rat `AnimatedSprite2D + SpriteFrames` assets. Verification:
+  RED `reports/report_712/`, GREEN focused `reports/report_714/` `5/5`, Spark
+  Rat/dodge-counter related regression `reports/report_715/` `32/32`, Old
+  Factory route related regression `reports/report_716/` `32/32`, final
+  pre-commit focused `reports/report_717/` `5/5`, `git diff --check`,
+  headless Factory and main scene smoke logs, clean keyword scans, and
+  Godot MCP runtime probe/log/screenshot evidence. MCP confirmed initial visible
+  inactive state, pressure-line blocked activation, active collision `2/17`,
+  opening grace `18`, startup `12`, `attack_tell.loop=false`, tell-phase no
+  damage, active bite `100 -> 91`, clean game/editor logs, and nonblank
+  screenshot
+  `reports/visual/cinderpaw-mcp-old-factory-spark-rat-pacing-polish-20260626.png`.
+  QA evidence:
+  `production/qa/evidence/old-factory-spark-rat-pacing-polish-2026-06-26.md`。
 - Player Abilities Story 011: Old Factory Deep Guard Activation Pacing —
   `FactoryDeepGuardRatMinion` now starts visible but inactive in the Old
   Factory deep route: no attack target, no physics/process ticking, and no
