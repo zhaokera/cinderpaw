@@ -27,7 +27,8 @@
   ExplorationGate dash 门控、Player Abilities Story011 Old Factory deep guard
   activation pacing、Player Abilities Story017 Old Factory Spark Rat pacing
   polish、Player Abilities Story018 Skill Tree Cat Claw T1-A First Spend、
-  Player Abilities Story019 Parry Laser Gate Runtime
+  Player Abilities Story019 Parry Laser Gate Runtime、Player Abilities
+  Story020 Parry Success Feedback Runtime
   已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
   routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
@@ -39,6 +40,33 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 020: Parry Success Feedback Runtime —
+  `MainScene` now connects the player's Core
+  `CombatComponent.on_parry_resolved` signal and forwards enriched parry
+  metadata to both `CombatPresentation.on_parry_event()` and
+  `AudioSystem.on_parry_event()`. The bridge preserves Core fields such as
+  `is_success`, `parry_type`, and `parry_frame`, adds the visible Cinderpaw
+  sprite `position`, and marks `source="player_parry"` so VFX/SFX do not land
+  at `(0,0)`. PERFECT parry now produces the existing GDD-tuned feedback in the
+  main runtime scene: 8 frames hitstop, 8.0 shake, one flash overlay, 22 radial
+  parry sparks, and `sfx_parry_perfect`; GOOD parry is forwarded without
+  triggering PERFECT-only flash/sparks. No new visual/audio assets were
+  generated; this story reuses the existing image-generated parry flash/spark
+  assets, Story019 Cinderpaw `parry` SpriteFrames, and imported parry SFX.
+  Verification: RED `reports/report_733/`; initial GREEN focused
+  `reports/report_734/` `8/8`; final focused after GOOD-parry negative coverage
+  `reports/report_736/` `9/9`; final related regression `reports/report_737/`
+  `72/72`; headless smoke
+  `reports/parry_success_feedback_runtime_main_scene_smoke.log` exited `0` and
+  keyword scan found no script/parse/invalid/resource-load errors. Godot MCP
+  runtime with `autosave=false` confirmed Player `AnimatedSprite2D +
+  SpriteFrames`, `parry` frame count `3`, `request_parry()` true, PERFECT
+  metadata, presentation flash/spark/hitstop/shake counts, `sfx_parry_perfect`
+  with `stream_found=true` at the sprite position, clean game/editor logs, and
+  screenshot
+  `reports/visual/cinderpaw-mcp-parry-success-feedback-runtime-20260626.png`.
+  QA evidence:
+  `production/qa/evidence/parry-success-feedback-runtime-2026-06-26.md`。
 - Player Abilities Story 019: Parry Laser Gate Runtime —
   新增 Cinderpaw `parry` 玩家可见帧动画，使用 image generation 生成
   source strip，保留
@@ -2565,3 +2593,14 @@
 - Verification: RED `reports/report_726/`; RED import refinement `reports/report_727/`; GREEN focused before cooldown-order refinement `reports/report_728/` `3/3`; related before refinement `reports/report_729/` `25/25`; blocked-combat cooldown-order RED `reports/report_730/`; final focused `reports/report_731/` `4/4`; final related `reports/report_732/` `26/26`; Godot import exited `0`; headless main-scene smoke `reports/parry_laser_gate_runtime_main_scene_smoke.log` exited `0` and keyword scan found no parse/invalid/missing-resource/resource-load failures. Godot MCP runtime with `autosave=false` confirmed `/Main/ParryLaserExplorationGate`, Player `AnimatedSprite2D`, SpriteFrames path `res://assets/characters/cinderpaw/cinderpaw_sprite_frames.tres`, `parry` has `3` frames from `assets/characters/cinderpaw/parry/`, `request_parry()` returns `true`, gate state changes `unlockable -> unlocked`, collision blocking changes `true -> false`, save flags are written, game/editor logs are clean, and screenshot `reports/visual/cinderpaw-mcp-parry-laser-gate-runtime-20260626.png` is nonblank.
 - Blockers: None. Full Central Tower scene, final laser-gate art replacement, full parry success/counterattack presentation, parry SFX, aerial attack gate, wall-climb gate, Boss2, minimap/fast travel, and parry skill-tree modifiers remain out of scope.
 - Next: continue another ACT-visible slice such as mainline Boss2 Double Jump reward source, another ExplorationGate ability door, deeper Old Factory route/combat content, savepoint/minimap gameplay, more skill-tree branches, parry success presentation/audio, or broader frame-animation audit.
+
+## Session Extract — /dev-story 2026-06-26
+
+- Story: `production/epics/player-abilities/story-020-parry-success-feedback-runtime.md` — Parry Success Feedback Runtime
+- Files changed: `src/gameplay/main_scene.gd`, `tests/unit/gameplay/main_scene_audio_event_adapter_test.gd`, `production/epics/index.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/player-abilities/story-020-parry-success-feedback-runtime.md`, `production/qa/evidence/parry-success-feedback-runtime-2026-06-26.md`, `reports/parry_success_feedback_runtime_main_scene_smoke.log`, `reports/visual/cinderpaw-mcp-parry-success-feedback-runtime-20260626.png`, `production/session-state/active.md`
+- Implementation: `MainScene` now connects the player's Core `CombatComponent.on_parry_resolved` signal and forwards enriched parry metadata to `CombatPresentation.on_parry_event()` and `AudioSystem.on_parry_event()`. The bridge preserves Core `is_success`, `parry_type`, and `parry_frame` fields, adds the visible Cinderpaw sprite `position`, and marks `source="player_parry"` so VFX/SFX land at the character instead of `(0,0)`. PERFECT parry now produces the existing GDD-tuned feedback in the main runtime scene: 8 frames hitstop, 8.0 shake, one flash overlay, 22 radial parry sparks, and `sfx_parry_perfect`; GOOD parry is forwarded without triggering PERFECT-only flash/sparks.
+- Asset pipeline: No new visual/audio assets were generated. This story reuses existing image-generated parry flash/spark assets, Story019 Cinderpaw `parry` SpriteFrames, and imported `sfx_parry_perfect` / `sfx_parry_good` cues.
+- Test written: `tests/unit/gameplay/main_scene_audio_event_adapter_test.gd` now covers PERFECT parry feedback bridge and GOOD parry no-perfect-visual behavior through the main-scene runtime player flow.
+- Verification: RED `reports/report_733/`; initial GREEN focused `reports/report_734/` `8/8`; final focused after GOOD-parry negative coverage `reports/report_736/` `9/9`; final related regression `reports/report_737/` `72/72`; headless main-scene smoke `reports/parry_success_feedback_runtime_main_scene_smoke.log` exited `0` and keyword scan found no script/parse/invalid/resource-load errors. Godot MCP runtime with `autosave=false` confirmed Player `AnimatedSprite2D + SpriteFrames`, `parry` frame count `3`, `request_parry()` true, PERFECT metadata, presentation flash/spark/hitstop/shake counts, `sfx_parry_perfect` with `stream_found=true` at the sprite position, clean game/editor logs, and screenshot `reports/visual/cinderpaw-mcp-parry-success-feedback-runtime-20260626.png`.
+- Blockers: None. New parry VFX/SFX assets, enemy stun/counter damage expansion, parry skill-tree modifiers, late-parry feedback, full performance profiling, global hitstop refactors, Central Tower route content, and laser-gate art replacement remain out of scope.
+- Next: continue another ACT-visible slice such as mainline Boss2 Double Jump reward source, additional ExplorationGate ability doors, deeper Old Factory route/combat content, savepoint/minimap gameplay, more skill-tree branches, broader frame-animation audit, or late-parry feedback design if prioritized.

@@ -17,6 +17,7 @@ class FakeAudioSystem:
 	var hit_events: Array[Dictionary] = []
 	var damage_taken_events: Array[Dictionary] = []
 	var dodge_events: Array[Dictionary] = []
+	var parry_events: Array[Dictionary] = []
 	var double_jump_events: Array[Dictionary] = []
 	var focus_events: Array[Dictionary] = []
 	var enemy_defeated_events: Array[Dictionary] = []
@@ -73,6 +74,10 @@ class FakeAudioSystem:
 			"facing": facing,
 		})
 		return false
+
+	func on_parry_event(parry_data: Dictionary) -> bool:
+		parry_events.append(parry_data.duplicate(true))
+		return true
 
 	func on_focus_mode_changed(entity_id: int, active: bool, metadata: Dictionary) -> bool:
 		focus_events.append({
@@ -383,6 +388,72 @@ func test_player_double_jump_event_routes_to_presentation_and_audio_system() -> 
 	if audio_system.double_jump_events.size() != 1:
 		return
 	assert_vector(audio_system.double_jump_events[0].get("position", Vector2.ZERO)).is_equal(
+		player.get_node("Sprite").global_position
+	)
+
+
+func test_player_perfect_parry_resolve_routes_to_presentation_and_audio_system() -> void:
+	var audio_system: FakeAudioSystem = _configure_fake_audio_system()
+	var player: Node = scene.get_node("Player")
+	var combat: CombatComponent = player.call("get_combat_component") as CombatComponent
+	var combat_presentation: Node = scene.get_node("CombatPresentation")
+
+	assert_that(combat).is_not_null()
+	assert_bool(combat_presentation.has_method("get_active_flash_count")).is_true()
+	assert_bool(combat_presentation.has_method("get_active_parry_spark_count")).is_true()
+	if (
+		combat == null
+		or not combat_presentation.has_method("get_active_flash_count")
+		or not combat_presentation.has_method("get_active_parry_spark_count")
+	):
+		return
+
+	assert_bool(bool(player.call("request_parry"))).is_true()
+	var metadata: Dictionary = combat.resolve_parry_result()
+
+	assert_bool(bool(metadata.get("is_success", false))).is_true()
+	assert_str(String(metadata.get("parry_type", &""))).is_equal("perfect")
+	assert_int(int(combat_presentation.call("get_active_flash_count"))).is_equal(1)
+	assert_int(int(combat_presentation.call("get_active_parry_spark_count"))).is_between(20, 25)
+	assert_int(audio_system.parry_events.size()).is_equal(1)
+	if audio_system.parry_events.size() != 1:
+		return
+	var event: Dictionary = audio_system.parry_events[0]
+	assert_str(String(event.get("parry_type", &""))).is_equal("perfect")
+	assert_bool(bool(event.get("is_success", false))).is_true()
+	assert_vector(event.get("position", Vector2.ZERO)).is_equal(
+		player.get_node("Sprite").global_position
+	)
+	assert_str(String(event.get("source", &""))).is_equal("player_parry")
+
+
+func test_player_good_parry_resolve_routes_without_perfect_visual_burst() -> void:
+	var audio_system: FakeAudioSystem = _configure_fake_audio_system()
+	var player: Node = scene.get_node("Player")
+	var combat: CombatComponent = player.call("get_combat_component") as CombatComponent
+	var combat_presentation: Node = scene.get_node("CombatPresentation")
+
+	assert_that(combat).is_not_null()
+	assert_bool(combat_presentation.has_method("get_active_flash_count")).is_true()
+	assert_bool(combat_presentation.has_method("get_active_parry_spark_count")).is_true()
+	if (
+		combat == null
+		or not combat_presentation.has_method("get_active_flash_count")
+		or not combat_presentation.has_method("get_active_parry_spark_count")
+	):
+		return
+
+	assert_bool(bool(player.call("request_parry"))).is_true()
+	combat.advance_parry_frames(7)
+	var good_metadata: Dictionary = combat.resolve_parry_result()
+
+	assert_bool(bool(good_metadata.get("is_success", false))).is_true()
+	assert_str(String(good_metadata.get("parry_type", &""))).is_equal("good")
+	assert_int(int(combat_presentation.call("get_active_flash_count"))).is_equal(0)
+	assert_int(int(combat_presentation.call("get_active_parry_spark_count"))).is_equal(0)
+	assert_int(audio_system.parry_events.size()).is_equal(1)
+	assert_str(String(audio_system.parry_events[0].get("parry_type", &""))).is_equal("good")
+	assert_vector(audio_system.parry_events[0].get("position", Vector2.ZERO)).is_equal(
 		player.get_node("Sprite").global_position
 	)
 

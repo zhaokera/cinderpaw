@@ -188,6 +188,7 @@ func _ready() -> void:
 	_player.attack_landed.connect(_on_player_attack_landed)
 	_player.attack_started.connect(_on_player_attack_started)
 	_player.dodge_started.connect(_on_player_dodge_started)
+	_connect_player_parry_signal()
 	if _player.has_signal("dash_started"):
 		_player.dash_started.connect(_on_player_dash_started)
 	if _player.has_signal("double_jump_started"):
@@ -271,6 +272,19 @@ func _on_player_dash_started(texture: Texture2D, world_position: Vector2, facing
 func _on_player_double_jump_started(texture: Texture2D, world_position: Vector2, facing: float) -> void:
 	_combat_presentation.on_double_jump_event(texture, world_position, facing)
 	_dispatch_audio_event(&"on_double_jump_event", [texture, world_position, facing])
+
+
+func _on_player_parry_resolved(parry_data: Dictionary) -> void:
+	var enriched_parry_data: Dictionary = parry_data.duplicate(true)
+	var parry_position: Vector2 = _player.global_position
+	var sprite: Node2D = _player.get_node_or_null("Sprite") as Node2D
+	if sprite != null:
+		parry_position = sprite.global_position
+	if not enriched_parry_data.has("position"):
+		enriched_parry_data["position"] = parry_position
+	enriched_parry_data["source"] = &"player_parry"
+	_combat_presentation.on_parry_event(enriched_parry_data)
+	_dispatch_audio_event(&"on_parry_event", [enriched_parry_data])
 
 
 func _on_enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool) -> void:
@@ -2212,6 +2226,16 @@ func _setup_player_attack_core_chain() -> void:
 			_weapon_component.set_combat_adapter(_player.get_combat_component())
 		if _player.has_method("get_collision_component"):
 			_weapon_component.set_collision_adapter(_player.get_collision_component())
+
+
+func _connect_player_parry_signal() -> void:
+	if _player == null or not _player.has_method("get_combat_component"):
+		return
+	var combat: CombatComponent = _player.get_combat_component() as CombatComponent
+	if combat == null:
+		return
+	if not combat.on_parry_resolved.is_connected(_on_player_parry_resolved):
+		combat.on_parry_resolved.connect(_on_player_parry_resolved)
 
 
 func _setup_enemy_attack_core_chain() -> void:

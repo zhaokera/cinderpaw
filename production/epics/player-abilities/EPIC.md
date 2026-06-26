@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 19 stories tracked
+> **Stories**: 20 stories tracked
 
 ## Overview
 
@@ -57,6 +57,7 @@ recording the reward in progression state.
 | 017 | Old Factory Spark Rat Pacing Polish | Integration + Gameplay Runtime + Combat Pacing | Complete | ADR-0004/0005/0006/0007/0018 |
 | 018 | Skill Tree Cat Claw T1-A First Spend | Integration + Gameplay Runtime + UI | Complete | ADR-0001/0003/0005/0009/0018/0021 |
 | 019 | Parry Laser Gate Runtime | Integration + Gameplay Runtime + Visual | Complete | ADR-0005/0007/0018/0021 |
+| 020 | Parry Success Feedback Runtime | Integration + Visual/Feel + Audio | Complete | ADR-0002/0005/0010/0018 |
 
 ## Definition of Done
 
@@ -76,7 +77,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-019 are complete. Continue another ACT-visible slice such as the
+Stories001-020 are complete. Continue another ACT-visible slice such as the
 mainline Boss2 Double Jump reward source, additional ExplorationGate ability
 doors, deeper Old Factory route/combat content, savepoint/minimap gameplay,
 more skill-tree branches, and other player-visible ability consumers.
