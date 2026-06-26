@@ -88,6 +88,7 @@ const DEFAULT_CORE_COMBAT_SFX_STREAMS: Dictionary = {
 	&"sfx_boss_phase": "res://assets/audio/sfx/sfx_boss_phase.wav",
 	&"sfx_focus_mode_activate": "res://assets/audio/sfx/sfx_focus_mode_activate.wav",
 	&"sfx_double_jump": "res://assets/audio/sfx/sfx_double_jump.wav",
+	&"sfx_door_unlock": "res://assets/audio/sfx/sfx_door_unlock_baseline_short.wav",
 }
 const DEFAULT_UI_AUDIO_STREAMS: Dictionary = {
 	&"ui_menu_open": "res://assets/audio/ui/ui_menu_open.wav",
@@ -687,6 +688,28 @@ func on_double_jump_event(
 		double_jump_position,
 		SFX_PRIORITY_DODGE,
 		metadata
+	)
+
+
+## Routes a fresh exploration gate unlock to the shared door-open SFX.
+func on_exploration_gate_unlocked(
+	gate_id: StringName,
+	required_ability: StringName,
+	target_area_id: StringName,
+	world_position: Vector2,
+	metadata: Dictionary = {}
+) -> bool:
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	event_metadata["gate_id"] = gate_id
+	event_metadata["required_ability"] = required_ability
+	event_metadata["target_area_id"] = target_area_id
+	event_metadata["world_position"] = world_position
+	return _request_gameplay_sfx(
+		&"exploration_gate_unlocked",
+		&"sfx_door_unlock",
+		world_position,
+		SFX_PRIORITY_HIGH,
+		event_metadata
 	)
 
 

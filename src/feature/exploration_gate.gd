@@ -8,11 +8,17 @@ const GROUP_NAME: StringName = &"exploration_gate"
 const STATE_LOCKED: StringName = &"locked"
 const STATE_UNLOCKABLE: StringName = &"unlockable"
 const STATE_UNLOCKED: StringName = &"unlocked"
+const DEFAULT_UNLOCK_FEEDBACK_TEXTURE_PATH: String = "res://assets/environment/ability_gate/vfx/vfx_ability_gate_unlock_dissolve_burst_256.png"
+const UNLOCK_FEEDBACK_ASSET_SOURCE: String = "image_generation"
+const UNLOCK_VFX_NODE_NAME: StringName = &"UnlockVfx"
 
 @export var gate_id: String = ""
 @export var required_ability: String = "dash"
 @export var target_area_id: String = "area_02_sewer"
 @export var unlock_radius_px: float = 96.0
+@export var unlock_feedback_texture_path: String = DEFAULT_UNLOCK_FEEDBACK_TEXTURE_PATH
+@export var unlock_feedback_duration_sec: float = 0.5
+@export var unlock_feedback_scale: float = 1.0
 @export var locked_prompt_text: String = "Requires Dash"
 @export var unlockable_prompt_text: String = "Dash through"
 @export var locked_modulate: Color = Color(1.0, 0.24, 0.16, 1.0)
@@ -24,9 +30,15 @@ var _state: StringName = STATE_LOCKED
 var _collision_shape: CollisionShape2D = null
 var _visual: CanvasItem = null
 var _prompt_label: Label = null
+var _unlock_feedback_texture: Texture2D = null
+var _unlock_feedback_vfx: Sprite2D = null
+var _unlock_feedback_elapsed_sec: float = 0.0
+var _unlock_feedback_spawn_count: int = 0
+var _last_unlock_feedback_spawn: Dictionary = {}
 
 
 func _ready() -> void:
+	set_process(false)
 	add_to_group(GROUP_NAME)
 	_resolve_child_nodes()
 	if _ability_provider == null:
@@ -35,6 +47,10 @@ func _ready() -> void:
 			set_ability_provider(provider)
 			return
 	refresh_gate_state()
+
+
+func _process(delta: float) -> void:
+	advance_unlock_feedback_time(delta)
 
 
 ## Sets the ability provider used for has_ability queries and ability signals.
@@ -64,6 +80,22 @@ func get_target_area_id() -> StringName:
 
 func get_gate_state() -> StringName:
 	return _state
+
+
+func get_unlock_feedback_texture_path() -> String:
+	return unlock_feedback_texture_path
+
+
+func get_unlock_feedback_snapshot() -> Dictionary:
+	return {
+		"texture_path": get_unlock_feedback_texture_path(),
+		"asset_source": UNLOCK_FEEDBACK_ASSET_SOURCE,
+		"duration_sec": maxf(0.01, unlock_feedback_duration_sec),
+		"active_count": 1 if _is_unlock_feedback_active() else 0,
+		"spawn_count": _unlock_feedback_spawn_count,
+		"elapsed_sec": _unlock_feedback_elapsed_sec,
+		"last_spawn": _last_unlock_feedback_spawn.duplicate(true),
+	}
 
 
 func is_unlocked() -> bool:
@@ -98,14 +130,28 @@ func refresh_gate_state() -> void:
 ## Restores a persisted open state; false falls back to current ability checks.
 func set_gate_unlocked(unlocked: bool) -> void:
 	if unlocked:
-		_apply_state(STATE_UNLOCKED)
+		_apply_state(STATE_UNLOCKED, false, false)
 		return
 	_state = STATE_LOCKED
 	refresh_gate_state()
 
 
-func unlock_gate() -> void:
-	_apply_state(STATE_UNLOCKED)
+func unlock_gate(play_feedback: bool = true) -> void:
+	_apply_state(STATE_UNLOCKED, true, play_feedback)
+
+
+func advance_unlock_feedback_time(delta_sec: float) -> void:
+	if not _is_unlock_feedback_active():
+		set_process(false)
+		return
+	_unlock_feedback_elapsed_sec += maxf(0.0, delta_sec)
+	var duration: float = maxf(0.01, unlock_feedback_duration_sec)
+	var progress: float = clampf(_unlock_feedback_elapsed_sec / duration, 0.0, 1.0)
+	_unlock_feedback_vfx.modulate = Color(1.0, 1.0, 1.0, 1.0 - progress)
+	var current_scale: float = lerpf(unlock_feedback_scale, unlock_feedback_scale * 1.12, progress)
+	_unlock_feedback_vfx.scale = Vector2(current_scale, current_scale)
+	if _unlock_feedback_elapsed_sec >= duration:
+		_clear_unlock_feedback_vfx()
 
 
 func _resolve_child_nodes() -> void:
@@ -185,7 +231,11 @@ func _on_ability_activated(ability_id: StringName) -> void:
 		unlock_gate()
 
 
-func _apply_state(next_state: StringName) -> void:
+func _apply_state(
+	next_state: StringName,
+	emit_state_signal: bool = true,
+	play_unlock_feedback: bool = false
+) -> void:
 	var state_changed: bool = _state != next_state
 	_state = next_state
 	if _collision_shape != null:
@@ -199,7 +249,9 @@ func _apply_state(next_state: StringName) -> void:
 	set_meta("required_ability", String(get_required_ability()))
 	set_meta("target_area_id", String(get_target_area_id()))
 	set_meta("gate_state", String(_state))
-	if state_changed:
+	if state_changed and _state == STATE_UNLOCKED and play_unlock_feedback:
+		_spawn_unlock_feedback_vfx()
+	if state_changed and emit_state_signal:
 		gate_state_changed.emit(get_gate_id(), _state)
 
 
@@ -221,3 +273,64 @@ func _prompt_for_state(state: StringName) -> String:
 			return unlockable_prompt_text
 		_:
 			return locked_prompt_text
+
+
+func _spawn_unlock_feedback_vfx() -> void:
+	_clear_unlock_feedback_vfx()
+	var texture: Texture2D = _load_unlock_feedback_texture()
+	if texture == null:
+		return
+	var vfx := Sprite2D.new()
+	vfx.name = String(UNLOCK_VFX_NODE_NAME)
+	vfx.texture = texture
+	vfx.centered = true
+	vfx.z_index = 40
+	vfx.scale = Vector2(unlock_feedback_scale, unlock_feedback_scale)
+	vfx.set_meta("asset_source", UNLOCK_FEEDBACK_ASSET_SOURCE)
+	vfx.set_meta("vfx_role", "ability_gate_unlock")
+	vfx.set_meta("gate_id", String(get_gate_id()))
+	vfx.set_meta("required_ability", String(get_required_ability()))
+	vfx.set_meta("target_area_id", String(get_target_area_id()))
+	add_child(vfx)
+	_unlock_feedback_vfx = vfx
+	_unlock_feedback_elapsed_sec = 0.0
+	_unlock_feedback_spawn_count += 1
+	_last_unlock_feedback_spawn = {
+		"gate_id": get_gate_id(),
+		"required_ability": get_required_ability(),
+		"target_area_id": get_target_area_id(),
+		"texture_path": get_unlock_feedback_texture_path(),
+		"asset_source": UNLOCK_FEEDBACK_ASSET_SOURCE,
+		"world_position": global_position,
+	}
+	set_process(true)
+
+
+func _load_unlock_feedback_texture() -> Texture2D:
+	if (
+		_unlock_feedback_texture != null
+		and is_instance_valid(_unlock_feedback_texture)
+		and _unlock_feedback_texture.resource_path == unlock_feedback_texture_path
+	):
+		return _unlock_feedback_texture
+	if unlock_feedback_texture_path.is_empty():
+		return null
+	var resource: Resource = load(unlock_feedback_texture_path)
+	if resource is Texture2D:
+		_unlock_feedback_texture = resource as Texture2D
+		return _unlock_feedback_texture
+	return null
+
+
+func _is_unlock_feedback_active() -> bool:
+	return _unlock_feedback_vfx != null and is_instance_valid(_unlock_feedback_vfx)
+
+
+func _clear_unlock_feedback_vfx() -> void:
+	if _is_unlock_feedback_active():
+		if _unlock_feedback_vfx.get_parent() != null:
+			_unlock_feedback_vfx.get_parent().remove_child(_unlock_feedback_vfx)
+		_unlock_feedback_vfx.free()
+	_unlock_feedback_vfx = null
+	_unlock_feedback_elapsed_sec = 0.0
+	set_process(false)

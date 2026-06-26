@@ -1694,6 +1694,20 @@ func _on_exploration_gate_state_changed(
 		if not area_flag.begins_with("area_"):
 			area_flag = "area_%s" % area_flag
 		set_world_progress_flag(StringName("%s_unlocked" % area_flag), true)
+	var required_ability: StringName = _exploration_gate_required_ability_id(gate)
+	var world_position: Vector2 = (gate as Node2D).global_position if gate is Node2D else Vector2.ZERO
+	_dispatch_audio_event(&"on_exploration_gate_unlocked", [
+		gate_id,
+		required_ability,
+		target_area,
+		world_position,
+		{
+			"gate_id": gate_id,
+			"required_ability": required_ability,
+			"target_area_id": target_area,
+			"world_position": world_position,
+		},
+	])
 
 
 func _capture_exploration_gate_save_state() -> Dictionary:
@@ -1731,6 +1745,12 @@ func _exploration_gate_id(gate: Node) -> String:
 func _exploration_gate_target_area_id(gate: Node) -> StringName:
 	if gate != null and gate.has_method("get_target_area_id"):
 		return StringName(String(gate.call("get_target_area_id")))
+	return &""
+
+
+func _exploration_gate_required_ability_id(gate: Node) -> StringName:
+	if gate != null and gate.has_method("get_required_ability"):
+		return StringName(String(gate.call("get_required_ability")))
 	return &""
 
 

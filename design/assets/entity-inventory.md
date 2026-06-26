@@ -59,7 +59,7 @@ All new visual assets in this inventory should be produced from image2 / image g
 | 4 | Parry Flash | Brief white/gold defensive flash with safe-color readability and radial parry spark burst. | design/gdd/feline-combat.md; design/gdd/combat-presentation.md; design/gdd/health-death.md; production/epics/combat-presentation/story-002-parry-flash-cat-claw-trail.md | Implemented |
 | 5 | Dodge Afterimage | Player dodge now spawns three textured translucent afterimages at 50%/30%/10% alpha; gold perfect-dodge variant remains pending. | design/art/art-bible.md; design/gdd/feline-combat.md; production/epics/combat-presentation/story-004-dodge-afterimage-cinderpaw-dodge-animation.md | Partial |
 | 6 | Enemy Telegraph Red Flash | Shadow Beast `attack_tell` frames now provide a signal-red pre-attack marker; broader enemy telegraph language and colorblind shape variants remain pending. | design/art/art-bible.md; design/gdd/health-death.md; production/epics/feline-combat/story-009-runtime-enemy-attack-animation.md | Partial |
-| 7 | Door Dissolve Particles | Ability gate unlock dissolve, 0.5s effect. | design/gdd/exploration-ability-gating.md | Needed |
+| 7 | Door Dissolve Particles | Shared ability-gate unlock dissolve burst with image-generated transparent 256x256 `Sprite2D` VFX. Story016 spawns it once when Dash or Double Jump `ExplorationGate` nodes transition from `unlockable` to `unlocked`, expires it after 0.5s, and suppresses replay on duplicate unlock or save restore. | design/gdd/exploration-ability-gating.md; production/epics/player-abilities/story-016-ability-gate-unlock-feedback.md | Implemented baseline |
 | 8 | Breakable Wall Debris | Small pixel debris burst as cracks expand and wall breaks. | design/gdd/exploration-ability-gating.md | Needed |
 | 9 | Death Dissolve | Player shadow dissolution with gold particles rising. | design/gdd/death-respawn.md; design/art/art-bible.md | Needed |
 | 10 | Revive Ring | Cat-eye gold ring expanding from respawn location. | design/gdd/death-respawn.md | Needed |
@@ -108,7 +108,7 @@ All new visual assets in this inventory should be produced from image2 / image g
 | 1 | Player Attack Hit | SFX | Sharp claw hit, short and readable. | design/gdd/feline-combat.md; design/gdd/audio-system.md | Needed |
 | 2 | Parry Success | SFX | Bright defensive chime synced to parry flash. | design/gdd/feline-combat.md | Needed |
 | 3 | Dodge | SFX | Soft whoosh with optional gold perfect-dodge accent. | design/gdd/feline-combat.md | Needed |
-| 4 | Door Unlock | SFX | Ability-themed unlock sound. | design/gdd/exploration-ability-gating.md | Needed |
+| 4 | Door Unlock | SFX | Replaceable 0.52s baseline door-unlock cue imported as `res://assets/audio/sfx/sfx_door_unlock_baseline_short.wav`; `AudioSystem.on_exploration_gate_unlocked` routes it with gate id, required ability, target area, and gate world position metadata. | design/gdd/exploration-ability-gating.md; design/gdd/audio-system.md; production/epics/player-abilities/story-016-ability-gate-unlock-feedback.md | Implemented baseline |
 | 5 | Secret Found | SFX | Mysterious discovery tone plus cat vocal accent. | design/gdd/exploration-ability-gating.md | Needed |
 | 6 | Menu Select / Confirm | SFX | Warm safe UI feedback. | design/gdd/hud-ui.md; design/art/art-bible.md | Needed |
 | 7 | Boss Theme | Music | Cold, high-pressure boss music with phase escalation. | design/gdd/boss-config.md; design/art/art-bible.md | Needed |

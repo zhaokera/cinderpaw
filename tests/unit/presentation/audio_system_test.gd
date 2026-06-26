@@ -19,6 +19,7 @@ const DEFAULT_CORE_COMBAT_SFX: Dictionary = {
 	&"sfx_boss_phase": "res://assets/audio/sfx/sfx_boss_phase.wav",
 	&"sfx_focus_mode_activate": "res://assets/audio/sfx/sfx_focus_mode_activate.wav",
 	&"sfx_double_jump": "res://assets/audio/sfx/sfx_double_jump.wav",
+	&"sfx_door_unlock": "res://assets/audio/sfx/sfx_door_unlock_baseline_short.wav",
 }
 const DEFAULT_UI_AUDIO_STREAMS: Dictionary = {
 	&"ui_menu_open": "res://assets/audio/ui/ui_menu_open.wav",
@@ -615,6 +616,40 @@ func test_double_jump_event_routes_bounce_sfx_with_spatial_metadata() -> void:
 	var gameplay_event: Dictionary = audio_system.call("get_last_gameplay_audio_event")
 	assert_str(String(gameplay_event.get("event_id", &""))).is_equal("double_jump")
 	assert_str(String(gameplay_event.get("sfx_id", &""))).is_equal("sfx_double_jump")
+
+
+func test_exploration_gate_unlock_event_routes_door_unlock_sfx_with_metadata() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	assert_bool(audio_system.has_method("on_exploration_gate_unlocked")).is_true()
+	if not audio_system.has_method("on_exploration_gate_unlocked"):
+		return
+
+	assert_bool(bool(audio_system.call(
+		"on_exploration_gate_unlocked",
+		&"dash_gate_commercial_street",
+		&"dash",
+		&"area_02_sewer",
+		Vector2(1035, 438),
+		{
+			"gate_id": &"dash_gate_commercial_street",
+			"required_ability": &"dash",
+			"target_area_id": &"area_02_sewer",
+		}
+	))).is_true()
+
+	var request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(request.get("sfx_id", &""))).is_equal("sfx_door_unlock")
+	assert_vector(request.get("position", Vector2.ZERO)).is_equal(Vector2(1035, 438))
+	assert_bool(bool(request.get("stream_found", false))).is_true()
+	var gameplay_event: Dictionary = audio_system.call("get_last_gameplay_audio_event")
+	assert_str(String(gameplay_event.get("event_id", &""))).is_equal("exploration_gate_unlocked")
+	assert_str(String(gameplay_event.get("sfx_id", &""))).is_equal("sfx_door_unlock")
+	var metadata: Dictionary = Dictionary(gameplay_event.get("metadata", {}))
+	assert_str(String(metadata.get("gate_id", &""))).is_equal("dash_gate_commercial_street")
+	assert_str(String(metadata.get("required_ability", &""))).is_equal("dash")
+	assert_str(String(metadata.get("target_area_id", &""))).is_equal("area_02_sewer")
 
 
 func test_boss_music_state_hard_cuts_phase_transitions_and_ends_cleanly() -> void:

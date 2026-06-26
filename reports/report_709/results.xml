@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-26" name="report_709" tests="21" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="exploration_gate_unlock_feedback_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:06:10" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.081">
+		<testcase name="test_dash_gate_unlock_spawns_generated_vfx_and_routes_audio_once" classname="exploration_gate_unlock_feedback_test" time="0.053">
+		</testcase>
+		<testcase name="test_double_jump_gate_unlock_uses_same_generated_feedback_contract" classname="exploration_gate_unlock_feedback_test" time="0.009">
+		</testcase>
+		<testcase name="test_restored_unlocked_gates_do_not_replay_vfx_or_sfx" classname="exploration_gate_unlock_feedback_test" time="0.012">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="exploration_dash_gate_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:06:10" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_exploration_gate_requires_dash_then_unlocks_on_dash_activation" classname="exploration_dash_gate_runtime_test" time="0.006">
+		</testcase>
+		<testcase name="test_main_scene_dash_gate_uses_runtime_dash_reward_and_persists_unlock" classname="exploration_dash_gate_runtime_test" time="0.013">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="player_dash_ability_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:06:10" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.021">
+		<testcase name="test_dash_animation_frames_are_imported_through_character_asset_pipeline" classname="player_dash_ability_runtime_test" time="0.003">
+		</testcase>
+		<testcase name="test_request_dash_requires_unlock_and_starts_one_second_cooldown" classname="player_dash_ability_runtime_test" time="0.004">
+		</testcase>
+		<testcase name="test_main_scene_unlock_synchronizes_dash_to_player_controller" classname="player_dash_ability_runtime_test" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="player_double_jump_gate_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:06:10" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.024">
+		<testcase name="test_double_jump_reuses_imported_jump_frames_for_runtime_activation" classname="player_double_jump_gate_runtime_test" time="0.002">
+		</testcase>
+		<testcase name="test_request_double_jump_requires_airborne_unlock_and_resets_after_landing" classname="player_double_jump_gate_runtime_test" time="0.004">
+		</testcase>
+		<testcase name="test_main_scene_double_jump_high_platform_gate_unlocks_and_persists" classname="player_double_jump_gate_runtime_test" time="0.010">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="hidden_double_jump_reward_source_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:06:10" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.020">
+		<testcase name="test_hidden_double_jump_reward_source_unlocks_double_jump_once_and_syncs_runtime" classname="hidden_double_jump_reward_source_runtime_test" time="0.005">
+		</testcase>
+		<testcase name="test_hidden_double_jump_reward_source_restore_keeps_reward_claimed_and_playable" classname="hidden_double_jump_reward_source_runtime_test" time="0.009">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="factory_route_transition_shell_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:06:10" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.026">
+		<testcase name="test_scene_registry_contains_loadable_factory_route_shell" classname="factory_route_transition_shell_runtime_test" time="0.005">
+		</testcase>
+		<testcase name="test_high_platform_route_trigger_requests_factory_shell_after_gate_unlocked" classname="factory_route_transition_shell_runtime_test" time="0.007">
+		</testcase>
+		<testcase name="test_factory_route_shell_scene_is_minimal_visible_destination" classname="factory_route_transition_shell_runtime_test" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="6" name="old_factory_deep_route_unlock_feedback_test" package="tests/unit/gameplay" timestamp="2026-06-26T04:06:10" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.077">
+		<testcase name="test_deep_route_endpoint_mounts_generated_unlock_vfx_texture" classname="old_factory_deep_route_unlock_feedback_test" time="0.002">
+		</testcase>
+		<testcase name="test_endpoint_activation_spawns_one_generated_unlock_vfx" classname="old_factory_deep_route_unlock_feedback_test" time="0.021">
+		</testcase>
+		<testcase name="test_duplicate_endpoint_activation_does_not_spawn_extra_unlock_vfx" classname="old_factory_deep_route_unlock_feedback_test" time="0.022">
+		</testcase>
+		<testcase name="test_unlock_vfx_expires_deterministically_after_lifetime" classname="old_factory_deep_route_unlock_feedback_test" time="0.018">
+		</testcase>
+		<testcase name="test_restoring_cleared_deep_route_does_not_replay_unlock_vfx" classname="old_factory_deep_route_unlock_feedback_test" time="0.005">
+		</testcase>
+	</testsuite>
+</testsuites>

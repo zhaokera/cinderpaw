@@ -1,0 +1,11 @@
+{
+  "asset_id": "sfx_door_unlock",
+  "runtime_path": "res://assets/audio/sfx/sfx_door_unlock_baseline_short.wav",
+  "generator": "deterministic procedural PCM synthesis",
+  "sample_rate_hz": 44100,
+  "channels": 1,
+  "duration_sec": 0.52,
+  "seed": 160626,
+  "sonic_summary": "0-45ms metallic latch click, 25-220ms rising gold chime, 120-520ms airy electric dissolve tail with light factory debris noise.",
+  "usage": "AudioSystem.on_exploration_gate_unlocked / Story016 ability gate unlock feedback"
+}
