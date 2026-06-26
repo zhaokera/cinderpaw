@@ -116,7 +116,7 @@ func request_attack() -> bool:
 	velocity = Vector2.ZERO
 	_state = State.ATTACK_TELL
 	_attack_timer = ATTACK_TELL_FRAMES
-	_play_character_animation(ANIMATION_ATTACK, true)
+	_play_character_animation(_get_attack_tell_animation(), true)
 	return true
 
 
@@ -220,7 +220,7 @@ func _process_hit(delta: float) -> void:
 func _process_attack_tell(_delta: float) -> void:
 	velocity.x = 0.0
 	_update_sprite_facing()
-	_play_character_animation(ANIMATION_ATTACK)
+	_play_character_animation(_get_attack_tell_animation())
 	_attack_timer -= 1
 	if _attack_timer <= 0:
 		_enter_attack_active()
@@ -379,6 +379,10 @@ func _build_enemy_damage_params() -> Dictionary:
 			},
 		},
 	}
+
+
+func _get_attack_tell_animation() -> StringName:
+	return ANIMATION_ATTACK
 
 
 func _can_auto_attack_target() -> bool:

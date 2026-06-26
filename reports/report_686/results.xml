@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-26" name="report_686" tests="4" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_spark_rat_attack_tell_feedback_test" package="tests/unit/gameplay" timestamp="2026-06-26T02:45:16" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.065">
+		<testcase name="test_spark_rat_sprite_frames_include_generated_attack_tell_frames" classname="old_factory_spark_rat_attack_tell_feedback_test" time="0.010">
+		</testcase>
+		<testcase name="test_spark_rat_attack_startup_uses_attack_tell_then_active_uses_attack" classname="old_factory_spark_rat_attack_tell_feedback_test" time="0.037">
+		</testcase>
+		<testcase name="test_spark_rat_attack_metadata_contract_survives_attack_tell_split" classname="old_factory_spark_rat_attack_tell_feedback_test" time="0.006">
+		</testcase>
+		<testcase name="test_spark_rat_attack_tell_visual_uses_no_placeholder_nodes" classname="old_factory_spark_rat_attack_tell_feedback_test" time="0.005">
+		</testcase>
+	</testsuite>
+</testsuites>

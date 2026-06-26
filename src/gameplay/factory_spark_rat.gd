@@ -5,6 +5,7 @@ extends "res://src/gameplay/rat_minion.gd"
 const SPARK_RAT_ATTACK_HITBOX_ID: StringName = &"factory_spark_rat_bite"
 const SPARK_RAT_BITE_DAMAGE: int = 9
 const SPARK_RAT_BITE_HIT_FRAME: int = 101
+const SPARK_RAT_ATTACK_TELL_ANIMATION: StringName = &"attack_tell"
 
 
 func get_enemy_family_id() -> StringName:
@@ -41,3 +42,7 @@ func _build_enemy_damage_params() -> Dictionary:
 			},
 		},
 	}
+
+
+func _get_attack_tell_animation() -> StringName:
+	return SPARK_RAT_ATTACK_TELL_ANIMATION

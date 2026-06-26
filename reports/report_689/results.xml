@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-26" name="report_689" tests="28" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_spark_rat_attack_tell_feedback_test" package="tests/unit/gameplay" timestamp="2026-06-26T02:51:14" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.089">
+		<testcase name="test_spark_rat_sprite_frames_include_generated_attack_tell_frames" classname="old_factory_spark_rat_attack_tell_feedback_test" time="0.009">
+		</testcase>
+		<testcase name="test_spark_rat_attack_startup_uses_attack_tell_then_active_uses_attack" classname="old_factory_spark_rat_attack_tell_feedback_test" time="0.057">
+		</testcase>
+		<testcase name="test_spark_rat_attack_metadata_contract_survives_attack_tell_split" classname="old_factory_spark_rat_attack_tell_feedback_test" time="0.006">
+		</testcase>
+		<testcase name="test_spark_rat_attack_tell_visual_uses_no_placeholder_nodes" classname="old_factory_spark_rat_attack_tell_feedback_test" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="old_factory_spark_rat_patrol_encounter_test" package="tests/unit/gameplay" timestamp="2026-06-26T02:51:15" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.214">
+		<testcase name="test_factory_spark_rat_character_assets_follow_frame_animation_rules" classname="old_factory_spark_rat_patrol_encounter_test" time="0.012">
+		</testcase>
+		<testcase name="test_old_factory_mounts_spark_rat_visible_but_inactive_until_deep_route_opens" classname="old_factory_spark_rat_patrol_encounter_test" time="0.101">
+		</testcase>
+		<testcase name="test_spark_rat_activates_after_endpoint_open_and_can_be_defeated" classname="old_factory_spark_rat_patrol_encounter_test" time="0.054">
+		</testcase>
+		<testcase name="test_spark_rat_defeat_state_restores_without_replaying_route_feedback" classname="old_factory_spark_rat_patrol_encounter_test" time="0.035">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="old_factory_deep_route_unlock_feedback_test" package="tests/unit/gameplay" timestamp="2026-06-26T02:51:15" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.199">
+		<testcase name="test_deep_route_endpoint_mounts_generated_unlock_vfx_texture" classname="old_factory_deep_route_unlock_feedback_test" time="0.034">
+		</testcase>
+		<testcase name="test_endpoint_activation_spawns_one_generated_unlock_vfx" classname="old_factory_deep_route_unlock_feedback_test" time="0.042">
+		</testcase>
+		<testcase name="test_duplicate_endpoint_activation_does_not_spawn_extra_unlock_vfx" classname="old_factory_deep_route_unlock_feedback_test" time="0.042">
+		</testcase>
+		<testcase name="test_unlock_vfx_expires_deterministically_after_lifetime" classname="old_factory_deep_route_unlock_feedback_test" time="0.040">
+		</testcase>
+		<testcase name="test_restoring_cleared_deep_route_does_not_replay_unlock_vfx" classname="old_factory_deep_route_unlock_feedback_test" time="0.033">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="old_factory_deep_guard_activation_pacing_test" package="tests/unit/gameplay" timestamp="2026-06-26T02:51:15" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.290">
+		<testcase name="test_deep_guard_stays_idle_until_player_reaches_route_pressure_point" classname="old_factory_deep_guard_activation_pacing_test" time="0.047">
+		</testcase>
+		<testcase name="test_deep_guard_activates_once_after_player_crosses_pressure_point" classname="old_factory_deep_guard_activation_pacing_test" time="0.050">
+		</testcase>
+		<testcase name="test_deep_guard_activation_restores_without_unlocking_endpoint" classname="old_factory_deep_guard_activation_pacing_test" time="0.122">
+		</testcase>
+		<testcase name="test_activated_guard_defeat_still_unlocks_deep_route_endpoint" classname="old_factory_deep_guard_activation_pacing_test" time="0.063">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="old_factory_deep_route_micro_slice_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-26T02:51:15" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.171">
+		<testcase name="test_factory_room_contains_generated_deep_route_endpoint_without_placeholder_art" classname="old_factory_deep_route_micro_slice_runtime_test" time="0.037">
+		</testcase>
+		<testcase name="test_factory_deep_route_uses_second_animated_rat_guard" classname="old_factory_deep_route_micro_slice_runtime_test" time="0.050">
+		</testcase>
+		<testcase name="test_deep_route_unlocks_after_second_guard_defeat_and_endpoint_activates_once" classname="old_factory_deep_route_micro_slice_runtime_test" time="0.039">
+		</testcase>
+		<testcase name="test_deep_route_state_restores_guard_and_endpoint_progress" classname="old_factory_deep_route_micro_slice_runtime_test" time="0.034">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="old_factory_entrance_combat_slice_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-26T02:51:15" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.147">
+		<testcase name="test_factory_entrance_scene_contains_player_spawn_platforms_and_generated_background" classname="old_factory_entrance_combat_slice_runtime_test" time="0.034">
+		</testcase>
+		<testcase name="test_factory_entrance_contains_visible_animated_combat_object" classname="old_factory_entrance_combat_slice_runtime_test" time="0.035">
+		</testcase>
+		<testcase name="test_factory_entrance_player_attack_damages_room_combat_object" classname="old_factory_entrance_combat_slice_runtime_test" time="0.035">
+		</testcase>
+		<testcase name="test_scene_manager_runtime_swap_reaches_old_factory_combat_slice" classname="old_factory_entrance_combat_slice_runtime_test" time="0.034">
+		</testcase>
+	</testsuite>
+	<testsuite id="6" name="old_factory_entrance_room_clear_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-26T02:51:16" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.110">
+		<testcase name="test_factory_entrance_has_double_jump_cache_platform_and_generated_cache_prop" classname="old_factory_entrance_room_clear_runtime_test" time="0.033">
+		</testcase>
+		<testcase name="test_factory_cache_unlocks_after_enemy_defeat_and_claims_once" classname="old_factory_entrance_room_clear_runtime_test" time="0.035">
+		</testcase>
+		<testcase name="test_factory_cache_state_restores_room_clear_and_claimed_state" classname="old_factory_entrance_room_clear_runtime_test" time="0.034">
+		</testcase>
+	</testsuite>
+</testsuites>
