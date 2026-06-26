@@ -12,6 +12,7 @@ const FACTORY_STEAM_CONTACT_COOLDOWN_FALLBACK_SEC: float = 1.0
 const FACTORY_ENTRY_GUARD_ENTITY_ID: int = 2100
 const FACTORY_DEEP_GUARD_ENTITY_ID: int = 2101
 const FACTORY_SPARK_RAT_ENTITY_ID: int = 2102
+const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_RAT_MINION_COLLISION_LAYER: int = 2
 const FACTORY_RAT_MINION_COLLISION_MASK: int = 17
@@ -29,6 +30,8 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 var _last_player_hit_metadata: Dictionary = {}
 var _last_cache_reward: Dictionary = {}
 var _last_hazard_damage: Dictionary = {}
+var _last_spark_rat_counter_diagnostics: Dictionary = {}
+var _last_spark_rat_bite_sequence_id_resolved: int = -1
 var _encounter_cleared: bool = false
 var _cache_claimed: bool = false
 var _deep_guard_activated: bool = false
@@ -148,6 +151,68 @@ func try_activate_factory_spark_rat(provider: Node = null) -> bool:
 		_set_spark_rat_attack_target(activation_provider)
 	_update_route_label("Spark rat patrol active")
 	return true
+
+
+## Resolves the active Factory Spark Rat bite against the current player dodge state.
+func resolve_factory_spark_rat_bite_against_player() -> Dictionary:
+	var result: Dictionary = {
+		"resolved": false,
+		"dodged": false,
+		"damage_applied": false,
+		"damage": 0,
+		"weapon_id": &"",
+		"source": &"",
+	}
+	if _spark_rat == null or _player == null or not _spark_rat_activated or _spark_rat_defeated:
+		_record_spark_rat_counter_result(result)
+		return result.duplicate(true)
+	var attack_sequence_id: int = _get_spark_rat_attack_sequence_id()
+	if (
+		not _is_spark_rat_attack_active()
+		or attack_sequence_id <= 0
+		or attack_sequence_id == _last_spark_rat_bite_sequence_id_resolved
+	):
+		result["attack_active"] = _is_spark_rat_attack_active()
+		result["attack_sequence_id"] = attack_sequence_id
+		result["already_resolved"] = attack_sequence_id == _last_spark_rat_bite_sequence_id_resolved
+		if bool(result["already_resolved"]) and not _last_spark_rat_counter_diagnostics.is_empty():
+			_last_spark_rat_counter_diagnostics["last_bite_already_resolved"] = true
+			_last_spark_rat_counter_diagnostics["last_bite_attack_active"] = bool(
+				result["attack_active"]
+			)
+			_last_spark_rat_counter_diagnostics["last_bite_attack_sequence_id"] = attack_sequence_id
+		else:
+			_record_spark_rat_counter_result(result)
+		return result.duplicate(true)
+
+	var bite_metadata: Dictionary = _get_spark_rat_bite_metadata()
+	var bite_damage: int = _get_spark_rat_bite_damage(bite_metadata)
+	var dodged: bool = _is_player_dodge_iframe_active()
+	var hp_before: int = _get_player_hp()
+	var hp_after: int = hp_before
+
+	if not dodged and _player.has_method("apply_damage"):
+		_player.call("apply_damage", bite_damage, bite_metadata)
+		hp_after = _get_player_hp()
+
+	result = {
+		"resolved": true,
+		"dodged": dodged,
+		"damage_applied": hp_after < hp_before,
+		"damage": bite_damage,
+		"weapon_id": StringName(bite_metadata.get("weapon_id", &"")),
+		"source": StringName(bite_metadata.get("source", &"")),
+		"player_hp_before": hp_before,
+		"player_hp_after": hp_after,
+		"counter_window_frames": _get_player_dodge_counter_window(),
+		"attack_active": true,
+		"attack_sequence_id": attack_sequence_id,
+		"already_resolved": false,
+	}
+	_last_spark_rat_bite_sequence_id_resolved = attack_sequence_id
+	_record_spark_rat_counter_result(result)
+	_update_route_label("Dodge counter ready" if dodged else "Spark rat bite hit")
+	return result.duplicate(true)
 
 
 ## Attempts to claim the room-clear cache with the player or supplied provider.
@@ -394,8 +459,28 @@ func get_factory_spark_rat_diagnostics() -> Dictionary:
 			else ""
 		),
 		"animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
+		"counter": get_factory_spark_rat_counter_diagnostics(),
 		"position": _spark_rat.global_position if _spark_rat != null else Vector2.ZERO,
 	}
+
+
+## Returns deterministic Spark Rat dodge-counter diagnostics for tests and MCP probes.
+func get_factory_spark_rat_counter_diagnostics() -> Dictionary:
+	var diagnostics: Dictionary = {
+		"last_bite_resolved": false,
+		"last_bite_dodged": false,
+		"last_bite_damage_applied": false,
+		"last_bite_damage": 0,
+		"last_bite_weapon_id": "",
+		"last_bite_source": "",
+	}
+	if not _last_spark_rat_counter_diagnostics.is_empty():
+		diagnostics.merge(_last_spark_rat_counter_diagnostics, true)
+	diagnostics["counter_window_frames"] = _get_player_dodge_counter_window()
+	diagnostics["counter_ready"] = int(diagnostics["counter_window_frames"]) > 0
+	diagnostics["player_dodge_iframe_active"] = _is_player_dodge_iframe_active()
+	diagnostics["spark_rat_active"] = _spark_rat_activated and not _spark_rat_defeated
+	return diagnostics
 
 
 func get_factory_entrance_diagnostics() -> Dictionary:
@@ -711,6 +796,93 @@ func _get_hazard_cooldown_sec(hazard: Area2D) -> float:
 	if hazard != null and hazard.has_method("get_contact_cooldown_sec"):
 		return float(hazard.call("get_contact_cooldown_sec"))
 	return FACTORY_STEAM_CONTACT_COOLDOWN_FALLBACK_SEC
+
+
+func _record_spark_rat_counter_result(result: Dictionary) -> void:
+	_last_spark_rat_counter_diagnostics = {
+		"last_bite_resolved": bool(result.get("resolved", false)),
+		"last_bite_dodged": bool(result.get("dodged", false)),
+		"last_bite_damage_applied": bool(result.get("damage_applied", false)),
+		"last_bite_damage": int(result.get("damage", 0)),
+		"last_bite_weapon_id": String(result.get("weapon_id", "")),
+		"last_bite_source": String(result.get("source", "")),
+		"last_bite_attack_active": bool(result.get("attack_active", false)),
+		"last_bite_already_resolved": bool(result.get("already_resolved", false)),
+		"last_bite_attack_sequence_id": int(result.get("attack_sequence_id", 0)),
+		"last_player_hp_before": int(result.get("player_hp_before", _get_player_hp())),
+		"last_player_hp_after": int(result.get("player_hp_after", _get_player_hp())),
+	}
+
+
+func _get_spark_rat_bite_metadata() -> Dictionary:
+	var metadata: Dictionary = {}
+	if _spark_rat != null and _spark_rat.has_method("get_current_enemy_attack_metadata"):
+		var metadata_variant: Variant = _spark_rat.call("get_current_enemy_attack_metadata")
+		if metadata_variant is Dictionary:
+			metadata = (metadata_variant as Dictionary).duplicate(true)
+	if metadata.is_empty():
+		metadata = {
+			"source": &"factory_spark_rat",
+			"weapon_id": &"factory_spark_rat_bite",
+			"attack_type": &"light",
+		}
+	metadata["attacker_id"] = FACTORY_SPARK_RAT_ENTITY_ID
+	metadata["target_id"] = PlayerController.PLAYER_ENTITY_ID
+	metadata["hit_position"] = _spark_rat.global_position if _spark_rat != null else Vector2.ZERO
+	metadata["scene_id"] = FACTORY_SCENE_ID
+	metadata["final_damage"] = _get_spark_rat_bite_damage(metadata)
+	metadata["damage"] = int(metadata["final_damage"])
+	return metadata
+
+
+func _get_spark_rat_bite_damage(metadata: Dictionary) -> int:
+	var weapon_id: String = String(metadata.get("weapon_id", "factory_spark_rat_bite"))
+	var damage_params: Dictionary = _dictionary_from_variant(metadata.get("injected_damage_params", {}))
+	var entries: Dictionary = _dictionary_from_variant(damage_params.get("entries", {}))
+	var bite_entry: Dictionary = _dictionary_from_variant(entries.get(weapon_id, {}))
+	return int(bite_entry.get("weapon_base", FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK))
+
+
+func _dictionary_from_variant(value: Variant) -> Dictionary:
+	return (value as Dictionary).duplicate(true) if value is Dictionary else {}
+
+
+func _get_player_hp() -> int:
+	if _player != null and _player.has_method("get_current_hp"):
+		return int(_player.call("get_current_hp"))
+	return 0
+
+
+func _is_player_dodge_iframe_active() -> bool:
+	if _player != null and _player.has_method("is_dodge_iframe_active"):
+		return bool(_player.call("is_dodge_iframe_active"))
+	var combat: CombatComponent = _get_player_combat_component()
+	return combat != null and combat.is_dodge_iframe_active()
+
+
+func _get_player_dodge_counter_window() -> int:
+	if _player != null and _player.has_method("get_dodge_counter_window"):
+		return int(_player.call("get_dodge_counter_window"))
+	var combat: CombatComponent = _get_player_combat_component()
+	return combat.get_dodge_counter_window() if combat != null else 0
+
+
+func _get_player_combat_component() -> CombatComponent:
+	if _player == null or not _player.has_method("get_combat_component"):
+		return null
+	return _player.call("get_combat_component") as CombatComponent
+
+
+func _is_spark_rat_attack_active() -> bool:
+	if _spark_rat != null and _spark_rat.has_method("is_enemy_attack_active"):
+		return bool(_spark_rat.call("is_enemy_attack_active"))
+	return false
+
+
+func _get_spark_rat_attack_sequence_id() -> int:
+	if _spark_rat != null and _spark_rat.has_method("get_current_attack_sequence_id"):
+		return int(_spark_rat.call("get_current_attack_sequence_id"))
+	return 0
 
 
 func _factory_hazard_cooldown_key(hazard_id: StringName, target_id: int) -> String:

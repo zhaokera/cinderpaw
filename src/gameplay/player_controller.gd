@@ -34,7 +34,7 @@ const JUMP_BUFFER_FRAMES: int = 5
 # ---------------------------------------------------------------------------
 
 const ATTACK_DURATION_FRAMES: int = 6
-const DODGE_DURATION_FRAMES: int = 8
+const DODGE_DURATION_FRAMES: int = 12
 const DODGE_COOLDOWN_FRAMES: int = 12
 const DODGE_SPEED: float = 400.0
 const DASH_DURATION_FRAMES: int = 10
@@ -321,6 +321,10 @@ func _on_attack_hit_body(body: Node2D) -> void:
 func request_dodge() -> bool:
 	if _control_locked or _state != State.IDLE or _dodge_cooldown_timer > 0:
 		return false
+	if _combat != null:
+		_combat.on_action_triggered(&"dodge", {})
+		if _combat.get_current_state() != CombatComponent.CombatState.DODGING:
+			return false
 	_start_dodge()
 	return true
 
@@ -457,8 +461,8 @@ func take_damage() -> void:
 func apply_damage(final_damage: int, metadata: Dictionary = {}) -> void:
 	if _control_locked:
 		return
-	if _state == State.DODGING or _state == State.DASHING:
-		return  # Invincible during burst movement
+	if _state == State.DASHING or is_dodge_iframe_active():
+		return  # Dash and Core dodge i-frames ignore incoming damage.
 	if final_damage <= 0:
 		return
 	_sprite.modulate = DAMAGE_MODULATE
@@ -485,6 +489,16 @@ func get_combat_component() -> CombatComponent:
 ## Returns the runtime CollisionComponent used by combat hitboxes and hurtbox state.
 func get_collision_component() -> CollisionComponent:
 	return _collision
+
+
+## Returns true while the Core combat dodge i-frame window is active.
+func is_dodge_iframe_active() -> bool:
+	return _combat != null and _combat.is_dodge_iframe_active()
+
+
+## Returns remaining Cat Claw dodge-counter frames from Core combat.
+func get_dodge_counter_window() -> int:
+	return _combat.get_dodge_counter_window() if _combat != null else 0
 
 
 ## Injects the active weapon component used to activate attack hitboxes.

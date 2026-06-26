@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-26" name="report_698" tests="5" failures="3" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_spark_rat_dodge_counter_readability_test" package="tests/unit/gameplay" timestamp="2026-06-26T03:39:27" hostname="localhost" tests="5" failures="3" errors="0" skipped="0" flaky="0" time="0.209">
+		<testcase name="test_spark_rat_bite_dodged_during_iframe_opens_cat_claw_counter_window" classname="old_factory_spark_rat_dodge_counter_readability_test" time="0.118">
+		</testcase>
+		<testcase name="test_spark_rat_bite_during_visible_dodge_before_iframe_still_damages_player" classname="old_factory_spark_rat_dodge_counter_readability_test" time="0.042">
+		</testcase>
+		<testcase name="test_spark_rat_bite_only_resolves_during_active_frames_and_once_per_attack" classname="old_factory_spark_rat_dodge_counter_readability_test" time="0.042">
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_spark_rat_dodge_counter_readability_test.gd:140" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_spark_rat_dodge_counter_readability_test.gd:141" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_spark_rat_dodge_counter_readability_test.gd:143" type="FAILURE">
+<![CDATA[
+Expecting:
+ '9'
+ but was
+ '0'
+]]>
+			</failure>
+		</testcase>
+	</testsuite>
+</testsuites>

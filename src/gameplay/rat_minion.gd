@@ -44,6 +44,7 @@ var _facing: float = -1.0
 var _hit_timer: int = 0
 var _attack_timer: int = 0
 var _attack_cooldown_timer: int = 0
+var _attack_sequence_id: int = 0
 var _attack_target: Node = null
 var _last_enemy_attack_metadata: Dictionary = {}
 var _damage_calculator_adapter: Object = null
@@ -114,6 +115,7 @@ func request_attack() -> bool:
 		return false
 	_face_attack_target()
 	velocity = Vector2.ZERO
+	_attack_sequence_id += 1
 	_state = State.ATTACK_TELL
 	_attack_timer = ATTACK_TELL_FRAMES
 	_play_character_animation(_get_attack_tell_animation(), true)
@@ -190,6 +192,21 @@ func get_status_effect_component() -> StatusEffectComponent:
 
 func get_last_enemy_attack_metadata() -> Dictionary:
 	return _last_enemy_attack_metadata.duplicate(true)
+
+
+## Returns the active attack metadata contract for deterministic scene probes.
+func get_current_enemy_attack_metadata() -> Dictionary:
+	return _build_attack_metadata().duplicate(true)
+
+
+## Returns true only while the bite hitbox should be active.
+func is_enemy_attack_active() -> bool:
+	return _state == State.ATTACK_ACTIVE
+
+
+## Returns a monotonically increasing id for the current attack attempt.
+func get_current_attack_sequence_id() -> int:
+	return _attack_sequence_id
 
 
 func _process_chase(delta: float) -> void:
