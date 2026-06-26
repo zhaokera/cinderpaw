@@ -276,6 +276,7 @@ func get_factory_hazard_diagnostics() -> Dictionary:
 
 ## Returns deterministic deep route diagnostics for tests and MCP probes.
 func get_factory_deep_route_diagnostics() -> Dictionary:
+	var unlock_vfx_snapshot: Dictionary = _get_deep_route_unlock_vfx_snapshot()
 	return {
 		"deep_guard_present": _deep_guard != null,
 		"deep_guard_entity_id": (
@@ -319,6 +320,10 @@ func get_factory_deep_route_diagnostics() -> Dictionary:
 			if _deep_endpoint != null and _deep_endpoint.has_method("get_visual_texture_path")
 			else ""
 		),
+		"unlock_feedback_texture_path": String(unlock_vfx_snapshot.get("texture_path", "")),
+		"unlock_feedback_active": int(unlock_vfx_snapshot.get("active_count", 0)) > 0,
+		"unlock_feedback_played": bool(unlock_vfx_snapshot.get("played", false)),
+		"unlock_feedback_spawn_count": int(unlock_vfx_snapshot.get("spawn_count", 0)),
 		"player_position": _player.global_position if _player != null else Vector2.ZERO,
 		"deep_guard_position": _deep_guard.global_position if _deep_guard != null else Vector2.ZERO,
 		"endpoint_position": (
@@ -352,6 +357,15 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		"deep_route": get_factory_deep_route_diagnostics(),
 		"last_player_hit_metadata": get_last_player_hit_metadata(),
 	}
+
+
+func _get_deep_route_unlock_vfx_snapshot() -> Dictionary:
+	if _deep_endpoint == null or not _deep_endpoint.has_method("get_unlock_vfx_snapshot"):
+		return {}
+	var snapshot_variant: Variant = _deep_endpoint.call("get_unlock_vfx_snapshot")
+	if snapshot_variant is Dictionary:
+		return (snapshot_variant as Dictionary).duplicate(true)
+	return {}
 
 
 func _align_player_to_spawn() -> void:

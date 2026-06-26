@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://src/feature/factory_steam_vent_hazard.gd" id="9_vent_script"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_deep_route/factory_deep_route_endpoint.png" id="10_endpoint_texture"]
 [ext_resource type="Script" path="res://src/feature/factory_deep_route_endpoint.gd" id="11_endpoint_script"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_deep_route/vfx/factory_deep_route_unlock_spark.png" id="12_unlock_vfx"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -178,6 +179,7 @@ activation_radius_px = 96.0
 locked_prompt_text = "Clear guard"
 available_prompt_text = "Open route"
 activated_prompt_text = "Route clear"
+unlock_vfx_texture = ExtResource("12_unlock_vfx")
 
 [node name="Visual" type="Sprite2D" parent="FactoryDeepRouteEndpoint"]
 scale = Vector2(0.7, 0.7)
