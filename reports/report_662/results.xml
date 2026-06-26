@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-26" name="report_662" tests="4" failures="11" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_deep_guard_activation_pacing_test" package="tests/unit/gameplay" timestamp="2026-06-25T23:35:56" hostname="localhost" tests="4" failures="11" errors="4" skipped="0" flaky="0" time="0.170">
+		<testcase name="test_deep_guard_stays_idle_until_player_reaches_route_pressure_point" classname="old_factory_deep_guard_activation_pacing_test" time="0.085">
+			<error message="ERROR: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:56" type="ABORT">
+<![CDATA[
+Godot Runtime Error !
+Error: 'Invalid call. Nonexistent function 'try_activate_factory_deep_guard (via call)' in base 'Node2D (OldFactoryEntranceScene)'.'
+	at res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:56
+]]>
+			</error>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:30" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:31" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:44" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:45" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:46" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:47" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:48" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:49" type="FAILURE">
+<![CDATA[
+Expecting: 'false' but is 'true'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:50" type="FAILURE">
+<![CDATA[
+Expecting: 'false' but is 'true'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:51" type="FAILURE">
+<![CDATA[
+Expecting: 'false' but is 'true'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:52" type="FAILURE">
+<![CDATA[
+Expecting: 'false' but is 'true'
+]]>
+			</failure>
+		</testcase>
+		<testcase name="test_deep_guard_activates_once_after_player_crosses_pressure_point" classname="old_factory_deep_guard_activation_pacing_test" time="0.028">
+			<error message="ERROR: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:56" type="ABORT">
+<![CDATA[
+Godot Runtime Error !
+Error: 'Invalid call. Nonexistent function 'try_activate_factory_deep_guard (via call)' in base 'Node2D (OldFactoryEntranceScene)'.'
+	at res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:80
+]]>
+			</error>
+		</testcase>
+		<testcase name="test_deep_guard_activation_restores_without_unlocking_endpoint" classname="old_factory_deep_guard_activation_pacing_test" time="0.025">
+			<error message="ERROR: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:107" type="ABORT">
+<![CDATA[
+Godot Runtime Error !
+Error: 'Invalid call. Nonexistent function 'is_factory_deep_guard_activated (via call)' in base 'Node2D (OldFactoryEntranceScene)'.'
+	at res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:107
+]]>
+			</error>
+		</testcase>
+		<testcase name="test_activated_guard_defeat_still_unlocks_deep_route_endpoint" classname="old_factory_deep_guard_activation_pacing_test" time="0.025">
+			<error message="ERROR: res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:107" type="ABORT">
+<![CDATA[
+Godot Runtime Error !
+Error: 'Invalid call. Nonexistent function 'try_activate_factory_deep_guard (via call)' in base 'Node2D (OldFactoryEntranceScene)'.'
+	at res://tests/unit/gameplay/old_factory_deep_guard_activation_pacing_test.gd:139
+]]>
+			</error>
+		</testcase>
+	</testsuite>
+</testsuites>

@@ -11,6 +11,9 @@ const FACTORY_STEAM_DAMAGE_FALLBACK: int = 8
 const FACTORY_STEAM_CONTACT_COOLDOWN_FALLBACK_SEC: float = 1.0
 const FACTORY_ENTRY_GUARD_ENTITY_ID: int = 2100
 const FACTORY_DEEP_GUARD_ENTITY_ID: int = 2101
+const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
+const FACTORY_RAT_MINION_COLLISION_LAYER: int = 2
+const FACTORY_RAT_MINION_COLLISION_MASK: int = 17
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
 @onready var _spawn: Marker2D = $FactoryGateEntrySpawn
@@ -26,6 +29,7 @@ var _last_cache_reward: Dictionary = {}
 var _last_hazard_damage: Dictionary = {}
 var _encounter_cleared: bool = false
 var _cache_claimed: bool = false
+var _deep_guard_activated: bool = false
 var _deep_guard_defeated: bool = false
 var _deep_route_cleared: bool = false
 var _factory_hazard_elapsed_sec: float = 0.0
@@ -95,6 +99,28 @@ func is_factory_cache_claimed() -> bool:
 ## Returns whether the deeper Old Factory route endpoint was activated.
 func is_factory_deep_route_cleared() -> bool:
 	return _deep_route_cleared
+
+
+## Returns whether the deeper Old Factory guard has been alerted.
+func is_factory_deep_guard_activated() -> bool:
+	return _deep_guard_activated
+
+
+## Attempts to alert the deep-route guard after the entrance encounter is clear.
+func try_activate_factory_deep_guard(provider: Node = null) -> bool:
+	if _deep_guard == null or _deep_guard_defeated or _deep_guard_activated:
+		return false
+	if not _encounter_cleared:
+		return false
+	var activation_provider: Node = provider
+	if activation_provider == null:
+		activation_provider = _player
+	if not _is_deep_guard_activation_provider_in_range(activation_provider):
+		return false
+	_deep_guard_activated = true
+	_sync_deep_route_state()
+	_update_route_label("Deep guard alerted")
+	return true
 
 
 ## Attempts to claim the room-clear cache with the player or supplied provider.
@@ -178,6 +204,7 @@ func get_local_state() -> Dictionary:
 	return {
 		"encounter_cleared": _encounter_cleared,
 		"factory_cache_claimed": _cache_claimed,
+		"factory_deep_guard_activated": _deep_guard_activated,
 		"factory_deep_guard_defeated": _deep_guard_defeated,
 		"factory_deep_route_cleared": _deep_route_cleared,
 		"last_cache_reward": _last_cache_reward.duplicate(true),
@@ -189,6 +216,7 @@ func get_local_state() -> Dictionary:
 func set_local_state(state: Dictionary) -> void:
 	_encounter_cleared = bool(state.get("encounter_cleared", false))
 	_cache_claimed = bool(state.get("factory_cache_claimed", false))
+	_deep_guard_activated = bool(state.get("factory_deep_guard_activated", false))
 	_deep_guard_defeated = bool(state.get("factory_deep_guard_defeated", false))
 	_deep_route_cleared = bool(state.get("factory_deep_route_cleared", false))
 	var reward_variant: Variant = state.get("last_cache_reward", {})
@@ -256,6 +284,19 @@ func get_factory_deep_route_diagnostics() -> Dictionary:
 			else 0
 		),
 		"deep_guard_defeated": _deep_guard_defeated,
+		"deep_guard_activated": _deep_guard_activated,
+		"deep_guard_activation_x": FACTORY_DEEP_GUARD_ACTIVATION_X,
+		"deep_guard_has_target": _does_deep_guard_have_target(),
+		"deep_guard_physics_enabled": (
+			_deep_guard.is_physics_processing()
+			if _deep_guard != null
+			else false
+		),
+		"deep_guard_process_enabled": (
+			_deep_guard.is_processing()
+			if _deep_guard != null
+			else false
+		),
 		"deep_route_cleared": _deep_route_cleared,
 		"endpoint_present": _deep_endpoint != null,
 		"endpoint_available": (
@@ -327,7 +368,8 @@ func _bind_enemy_to_player() -> void:
 		&"old_factory_entrance",
 		FACTORY_ENTRY_GUARD_ENTITY_ID,
 		&"factory_patrol",
-		_on_factory_enemy_defeated
+		_on_factory_enemy_defeated,
+		_player
 	)
 	_bind_factory_guard(
 		_deep_guard,
@@ -398,6 +440,7 @@ func _on_factory_enemy_defeated() -> void:
 
 
 func _on_factory_deep_guard_defeated() -> void:
+	_deep_guard_activated = true
 	_deep_guard_defeated = true
 	_sync_deep_route_state()
 	_update_route_label("Deep route switch unlocked")
@@ -474,6 +517,18 @@ func _sync_deep_route_state() -> void:
 		_deep_guard.set_process(false)
 		_deep_guard.set_deferred("collision_layer", 0)
 		_deep_guard.set_deferred("collision_mask", 0)
+	elif _deep_guard != null:
+		_deep_guard.visible = true
+		_deep_guard.set_physics_process(_deep_guard_activated)
+		_deep_guard.set_process(_deep_guard_activated)
+		if _deep_guard_activated:
+			_deep_guard.set_deferred("collision_layer", FACTORY_RAT_MINION_COLLISION_LAYER)
+			_deep_guard.set_deferred("collision_mask", FACTORY_RAT_MINION_COLLISION_MASK)
+			_set_deep_guard_attack_target(_player)
+		else:
+			_deep_guard.set_deferred("collision_layer", 0)
+			_deep_guard.set_deferred("collision_mask", 0)
+			_set_deep_guard_attack_target(null)
 
 
 func _update_route_label(text_value: String) -> void:
@@ -544,18 +599,38 @@ func _bind_factory_guard(
 	owner_id: StringName,
 	entity_id: int,
 	summon_id: StringName,
-	defeated_callback: Callable
+	defeated_callback: Callable,
+	attack_target: Node = null
 ) -> void:
 	if guard == null:
 		return
 	if guard.has_method("set_attack_target"):
-		guard.call("set_attack_target", _player)
+		guard.call("set_attack_target", attack_target)
 	if guard.has_method("configure_summon"):
 		guard.call("configure_summon", owner_id, entity_id, summon_id)
 	if guard.has_signal("enemy_defeated"):
 		var defeated_signal: Signal = guard.get("enemy_defeated")
 		if not defeated_signal.is_connected(defeated_callback):
 			defeated_signal.connect(defeated_callback)
+
+
+func _set_deep_guard_attack_target(attack_target: Node) -> void:
+	if _deep_guard != null and _deep_guard.has_method("set_attack_target"):
+		_deep_guard.call("set_attack_target", attack_target)
+
+
+func _does_deep_guard_have_target() -> bool:
+	if _deep_guard == null:
+		return false
+	if _deep_guard.has_method("has_attack_target"):
+		return bool(_deep_guard.call("has_attack_target"))
+	return _deep_guard_activated and not _deep_guard_defeated
+
+
+func _is_deep_guard_activation_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (provider as Node2D).global_position.x >= FACTORY_DEEP_GUARD_ACTIVATION_X
 
 
 func _get_factory_enemy_by_entity_id(target_id: int) -> Node:

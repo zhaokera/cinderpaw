@@ -24,7 +24,8 @@
   expansion、AudioSystem Story007 UI menu audio + same-SFX merge、AudioSystem
   Story008 music + ambience asset import baseline、BossConfig Story010 Rat King
   defeat reward runtime consumption、Player Abilities Story002
-  ExplorationGate dash 门控 已完成；
+  ExplorationGate dash 门控、Player Abilities Story011 Old Factory deep guard
+  activation pacing 已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
   routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
   area cue expansion、broader audio mix polish、skill-tree spending UI、
@@ -33,6 +34,26 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 011: Old Factory Deep Guard Activation Pacing —
+  `FactoryDeepGuardRatMinion` now starts visible but inactive in the Old
+  Factory deep route: no attack target, no physics/process ticking, and no
+  blocking collision until the entrance guard is defeated and the player crosses
+  `deep_guard_activation_x`. `OldFactoryEntranceScene` adds
+  `try_activate_factory_deep_guard()`, `is_factory_deep_guard_activated()`,
+  scene-local `factory_deep_guard_activated` persistence, and deterministic MCP
+  diagnostics for target/process/physics state. Activation restores the Rat
+  Minion target and layer/mask, duplicate activation is rejected, and defeating
+  the activated guard still unlocks the generated endpoint once. No new image
+  asset was required; the story reuses the Story010 generated endpoint prop and
+  existing Rat Minion `AnimatedSprite2D + SpriteFrames`. Through RED
+  `report_662`, GREEN focused `report_663` `4/4`, final related regression
+  `report_665` `26/26`, headless smoke
+  `reports/old_factory_deep_guard_activation_pacing_factory_scene_smoke.log`
+  and `reports/old_factory_deep_guard_activation_pacing_main_scene_smoke.log`,
+  plus Godot MCP runtime probe/log/screenshot evidence, the route now reads as
+  two sequential ACT encounters instead of an immediate mixed brawl. QA
+  evidence:
+  `production/qa/evidence/old-factory-deep-guard-activation-pacing-2026-06-26.md`。
 - Scene Management Story 013: Rat King Arena Placeholder Visual Removal —
   removed the remaining visible `Polygon2D` placeholder baseline from Rat King
   arena mutation runtime nodes while preserving Story008 collision/metadata,

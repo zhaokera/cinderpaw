@@ -99,6 +99,10 @@ func set_attack_target(target: Node) -> void:
 		_combat.set_health_adapter(_attack_target)
 
 
+func has_attack_target() -> bool:
+	return _attack_target != null
+
+
 func set_damage_calculator_adapter(damage_calculator_adapter: Object) -> void:
 	_damage_calculator_adapter = damage_calculator_adapter
 	if _combat != null:
