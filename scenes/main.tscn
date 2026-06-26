@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://main001"]
+[gd_scene load_steps=27 format=3 uid="uid://main001"]
 
 [ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://4j2ise5khuss" path="res://assets/generated/wasteland_alley_bg.png" id="3_bg"]
@@ -18,6 +18,8 @@
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="16_factory_route_shell"]
 [ext_resource type="Script" path="res://src/feature/savepoint_runtime.gd" id="17_savepoint"]
 [ext_resource type="Texture2D" path="res://assets/environment/savepoints/scrap_roost_savepoint.png" id="18_savepoint_texture"]
+[ext_resource type="PackedScene" path="res://src/gameplay/boss2_echo_guardian.tscn" id="19_boss2"]
+[ext_resource type="Texture2D" path="res://assets/environment/double_jump_reward/boss2_double_jump_reward_source.png" id="20_boss2_reward"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -175,6 +177,44 @@ offset_bottom = -72.0
 theme_override_colors/font_color = Color(0.93, 0.76, 1, 1)
 theme_override_font_sizes/font_size = 15
 text = "Claim Double Jump"
+horizontal_alignment = 1
+
+[node name="Boss2EchoGuardian" parent="." instance=ExtResource("19_boss2")]
+z_index = 33
+position = Vector2(520, 482)
+
+[node name="Boss2DoubleJumpRewardSource" type="Node2D" parent="."]
+z_index = 35
+position = Vector2(500, 382)
+script = ExtResource("13_reward_source")
+reward_id = "boss_02_double_jump"
+ability_id = "double_jump"
+world_flag_id = "boss_02_double_jump_claimed"
+starts_available = false
+claim_radius_px = 112.0
+locked_prompt_text = "Defeat Echo Guardian"
+available_prompt_text = "Claim Double Jump"
+claimed_prompt_text = "Boss echo claimed"
+
+[node name="Visual" type="Sprite2D" parent="Boss2DoubleJumpRewardSource"]
+scale = Vector2(0.46, 0.46)
+texture = ExtResource("20_boss2_reward")
+
+[node name="InteractionArea" type="Area2D" parent="Boss2DoubleJumpRewardSource"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Boss2DoubleJumpRewardSource/InteractionArea"]
+shape = SubResource("RectangleShape2D_hidden_double_jump_reward")
+
+[node name="PromptLabel" type="Label" parent="Boss2DoubleJumpRewardSource"]
+offset_left = -90.0
+offset_top = -104.0
+offset_right = 90.0
+offset_bottom = -78.0
+theme_override_colors/font_color = Color(0.93, 0.76, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "Defeat Echo Guardian"
 horizontal_alignment = 1
 
 [node name="FactoryRouteTransitionShell" type="Node2D" parent="."]

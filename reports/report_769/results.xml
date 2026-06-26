@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-26" name="report_769" tests="10" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="main_scene_audio_event_adapter_test" package="tests/unit/gameplay" timestamp="2026-06-26T07:19:32" hostname="localhost" tests="10" failures="0" errors="0" skipped="0" flaky="0" time="0.135">
+		<testcase name="test_player_attack_and_weapon_start_events_route_to_audio_system" classname="main_scene_audio_event_adapter_test" time="0.063">
+		</testcase>
+		<testcase name="test_enemy_damage_and_player_dodge_events_route_to_audio_system" classname="main_scene_audio_event_adapter_test" time="0.007">
+		</testcase>
+		<testcase name="test_focus_enemy_defeat_and_boss_phase_events_route_to_audio_system" classname="main_scene_audio_event_adapter_test" time="0.008">
+		</testcase>
+		<testcase name="test_rat_king_boss_music_start_and_end_events_route_to_audio_system" classname="main_scene_audio_event_adapter_test" time="0.005">
+		</testcase>
+		<testcase name="test_menu_open_close_save_and_load_route_to_audio_system" classname="main_scene_audio_event_adapter_test" time="0.006">
+		</testcase>
+		<testcase name="test_menu_load_main_snapshot_routes_audio_despite_stale_pending_scene_manager" classname="main_scene_audio_event_adapter_test" time="0.006">
+		</testcase>
+		<testcase name="test_incomplete_audio_system_does_not_block_existing_gameplay_presentation" classname="main_scene_audio_event_adapter_test" time="0.005">
+		</testcase>
+		<testcase name="test_player_double_jump_event_routes_to_presentation_and_audio_system" classname="main_scene_audio_event_adapter_test" time="0.005">
+		</testcase>
+		<testcase name="test_player_perfect_parry_resolve_routes_to_presentation_and_audio_system" classname="main_scene_audio_event_adapter_test" time="0.006">
+		</testcase>
+		<testcase name="test_player_good_parry_resolve_routes_without_perfect_visual_burst" classname="main_scene_audio_event_adapter_test" time="0.005">
+		</testcase>
+	</testsuite>
+</testsuites>

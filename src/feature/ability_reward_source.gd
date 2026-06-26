@@ -5,7 +5,9 @@ extends Node2D
 @export var reward_id: StringName = &""
 @export var ability_id: StringName = &""
 @export var world_flag_id: StringName = &""
+@export var starts_available: bool = true
 @export var claim_radius_px: float = 96.0
+@export var locked_prompt_text: String = "Locked"
 @export var available_prompt_text: String = "Claim ability"
 @export var claimed_prompt_text: String = "Echo claimed"
 
@@ -14,10 +16,12 @@ extends Node2D
 @onready var _interaction_area: Area2D = get_node_or_null("InteractionArea") as Area2D
 
 var _claimed: bool = false
+var _available: bool = true
 
 
 func _ready() -> void:
 	add_to_group("ability_reward_source")
+	_available = starts_available
 	_sync_claimed_state()
 
 
@@ -43,8 +47,17 @@ func is_claimed() -> bool:
 	return _claimed
 
 
+func is_available() -> bool:
+	return _available
+
+
 func is_claim_available() -> bool:
-	return not _claimed
+	return _available and not _claimed
+
+
+func set_available(available: bool) -> void:
+	_available = available
+	_sync_claimed_state()
 
 
 func set_claimed(claimed: bool) -> void:
@@ -63,7 +76,7 @@ func is_provider_in_reward_range(provider: Node) -> bool:
 
 
 func try_claim(provider: Node = null) -> bool:
-	if _claimed:
+	if not is_claim_available():
 		return false
 	if provider != null and not is_provider_in_reward_range(provider):
 		return false
@@ -73,10 +86,23 @@ func try_claim(provider: Node = null) -> bool:
 
 func _sync_claimed_state() -> void:
 	if _visual != null:
-		_visual.modulate = Color(0.42, 0.48, 0.62, 0.35) if _claimed else Color.WHITE
+		if _claimed:
+			_visual.modulate = Color(0.42, 0.48, 0.62, 0.35)
+		elif _available:
+			_visual.modulate = Color.WHITE
+		else:
+			_visual.modulate = Color(0.56, 0.62, 0.72, 0.48)
 	if _prompt_label != null:
-		_prompt_label.text = claimed_prompt_text if _claimed else available_prompt_text
+		_prompt_label.text = _prompt_text()
 		_prompt_label.visible = not _claimed
 	if _interaction_area != null:
-		_interaction_area.monitoring = not _claimed
-		_interaction_area.monitorable = not _claimed
+		_interaction_area.monitoring = is_claim_available()
+		_interaction_area.monitorable = is_claim_available()
+
+
+func _prompt_text() -> String:
+	if _claimed:
+		return claimed_prompt_text
+	if _available:
+		return available_prompt_text
+	return locked_prompt_text

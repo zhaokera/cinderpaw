@@ -3,6 +3,8 @@ extends Node2D
 
 @onready var _player: PlayerController = $Player
 @onready var _enemy = $Enemy
+@onready var _boss2_echo_guardian: Node = get_node_or_null("Boss2EchoGuardian")
+@onready var _boss2_reward_source: Node = get_node_or_null("Boss2DoubleJumpRewardSource")
 @onready var _hud = $HUD
 @onready var _combat_presentation = $CombatPresentation
 @onready var _game_flow = $GameFlowController
@@ -47,6 +49,14 @@ const HIDDEN_DOUBLE_JUMP_REWARD_ID: StringName = &"hidden_boss_echo_double_jump"
 const HIDDEN_DOUBLE_JUMP_REWARD_ABILITY_ID: StringName = &"double_jump"
 const HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG: StringName = &"hidden_boss_echo_double_jump_claimed"
 const HIDDEN_DOUBLE_JUMP_REWARD_NOTIFICATION: String = "Double Jump unlocked"
+const BOSS2_DOUBLE_JUMP_REWARD_NODE_PATH: NodePath = ^"Boss2DoubleJumpRewardSource"
+const BOSS2_ECHO_GUARDIAN_NODE_PATH: NodePath = ^"Boss2EchoGuardian"
+const BOSS2_ECHO_GUARDIAN_ENTITY_ID: int = 2200
+const BOSS2_DOUBLE_JUMP_REWARD_ID: StringName = &"boss_02_double_jump"
+const BOSS2_DOUBLE_JUMP_REWARD_ABILITY_ID: StringName = &"double_jump"
+const BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG: StringName = &"boss_02_double_jump_claimed"
+const BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG: StringName = &"boss_02_echo_guardian_defeated"
+const BOSS2_DOUBLE_JUMP_REWARD_NOTIFICATION: String = "Double Jump unlocked"
 const SAVEPOINT_NOTIFICATION_SUFFIX: String = " saved"
 const CAT_CLAW_T1A_SKILL_ID: StringName = &"cat_claw_t1a"
 const FACTORY_ROUTE_SHELL_NODE_PATH: NodePath = ^"FactoryRouteTransitionShell"
@@ -208,6 +218,7 @@ func _ready() -> void:
 	_sync_player_unlocked_abilities()
 	_sync_exploration_gates()
 	_sync_hidden_double_jump_reward_source()
+	_setup_boss2_double_jump_payoff()
 	_sync_factory_route_transition_shell()
 	_update_weapon_hud()
 	configure_save_system_runtime(get_node_or_null("/root/SaveSystem"))
@@ -228,6 +239,7 @@ func _process(delta: float) -> void:
 	_player.set_control_locked(_game_flow.is_player_control_locked())
 	advance_arena_hazard_time(delta)
 	_process_hidden_double_jump_reward_source_contact()
+	_process_boss2_double_jump_reward_source_contact()
 	_process_factory_route_transition_shell_contact()
 
 
@@ -643,6 +655,13 @@ func apply_damage(target_id: int, final_damage: int, metadata: Dictionary = {}) 
 			and int(_enemy.call("get_entity_id")) == target_id:
 		_enemy.call("apply_damage", final_damage, metadata)
 		return true
+	if (
+		is_instance_valid(_boss2_echo_guardian)
+		and _boss2_echo_guardian.has_method("get_entity_id")
+		and int(_boss2_echo_guardian.call("get_entity_id")) == target_id
+	):
+		_boss2_echo_guardian.call("apply_damage", final_damage, metadata)
+		return true
 	var minion: Node = _find_live_summon_by_entity_id(target_id)
 	if minion == null:
 		return false
@@ -864,6 +883,7 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 		_hud.restore_settings_state(Dictionary(snapshot.get("settings", {})))
 	_sync_combat_presentation_accessibility_settings()
 	_sync_hidden_double_jump_reward_source()
+	_sync_boss2_double_jump_payoff_state()
 	_sync_factory_route_transition_shell()
 
 
@@ -921,6 +941,80 @@ func claim_hidden_double_jump_reward_source(provider: Node = null) -> bool:
 		"source": &"hidden_boss_echo",
 	})
 	return true
+
+
+func claim_boss2_double_jump_reward_source(provider: Node = null) -> bool:
+	var source: Node = _get_boss2_double_jump_reward_source()
+	if source == null:
+		return false
+	_sync_boss2_double_jump_payoff_state()
+	if bool(_world_progress_flags.get(String(BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG), false)):
+		return false
+	var claim_provider: Node = _player if provider == null else provider
+	if not bool(source.call("try_claim", claim_provider)):
+		return false
+	set_world_progress_flag(BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG, true)
+	set_world_progress_flag(BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG, true)
+	unlock_ability(BOSS2_DOUBLE_JUMP_REWARD_ABILITY_ID)
+	_hud.show_notification(BOSS2_DOUBLE_JUMP_REWARD_NOTIFICATION, 2.5)
+	_trigger_runtime_autosave(&"ability_reward_claimed", {
+		"reward_id": String(BOSS2_DOUBLE_JUMP_REWARD_ID),
+		"ability_id": String(BOSS2_DOUBLE_JUMP_REWARD_ABILITY_ID),
+		"source": &"boss2_echo_guardian",
+	})
+	return true
+
+
+func get_boss2_double_jump_payoff_diagnostics() -> Dictionary:
+	var boss: Node = _get_boss2_echo_guardian()
+	var source: Node = _get_boss2_double_jump_reward_source()
+	var sprite: AnimatedSprite2D = (
+		boss.get_node_or_null("Sprite") as AnimatedSprite2D
+		if boss != null
+		else null
+	)
+	return {
+		"boss_present": boss != null,
+		"boss_entity_id": (
+			int(boss.call("get_entity_id"))
+			if boss != null and boss.has_method("get_entity_id")
+			else 0
+		),
+		"boss_defeated": _is_boss2_echo_guardian_defeated(),
+		"boss_visible": boss.visible if boss != null else false,
+		"sprite_frames_path": (
+			sprite.sprite_frames.resource_path
+			if sprite != null and sprite.sprite_frames != null
+			else ""
+		),
+		"animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
+		"reward_present": source != null,
+		"reward_id": (
+			String(source.call("get_reward_id"))
+			if source != null and source.has_method("get_reward_id")
+			else ""
+		),
+		"reward_available": (
+			bool(source.call("is_available"))
+			if source != null and source.has_method("is_available")
+			else false
+		),
+		"reward_claim_available": (
+			bool(source.call("is_claim_available"))
+			if source != null and source.has_method("is_claim_available")
+			else false
+		),
+		"reward_claimed": (
+			bool(source.call("is_claimed"))
+			if source != null and source.has_method("is_claimed")
+			else false
+		),
+		"reward_texture_path": (
+			String(source.call("get_visual_texture_path"))
+			if source != null and source.has_method("get_visual_texture_path")
+			else ""
+		),
+	}
 
 
 func request_factory_route_transition(provider: Node = null) -> bool:
@@ -1050,6 +1144,9 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 	_world_progress_flags[String(flag_id)] = enabled
 	if flag_id == HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG:
 		_sync_hidden_double_jump_reward_source()
+	if flag_id == BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG \
+			or flag_id == BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG:
+		_sync_boss2_double_jump_payoff_state()
 	if flag_id == FACTORY_ROUTE_UNLOCKED_FLAG:
 		_sync_factory_route_transition_shell()
 
@@ -1111,10 +1208,17 @@ func _can_skip_pending_same_main_scene_transition(scene_manager: Object, scene_i
 
 func _handoff_loaded_scene_to_scene_manager(snapshot: Dictionary) -> bool:
 	var target: Dictionary = _resolve_scene_target_from_snapshot(snapshot)
+	var scene_id: StringName = StringName(target.get("scene_id", ""))
+	if _can_restore_loaded_snapshot_in_current_scene(scene_id):
+		return true
 	return _request_scene_manager_transition(
-		StringName(target.get("scene_id", "")),
+		scene_id,
 		StringName(target.get("spawn_point", ""))
 	)
+
+
+func _can_restore_loaded_snapshot_in_current_scene(scene_id: StringName) -> bool:
+	return scene_id == StringName(MAIN_SCENE_ID) and is_inside_tree()
 
 
 func _resolve_scene_target_from_snapshot(snapshot: Dictionary) -> Dictionary:
@@ -1794,6 +1898,81 @@ func _process_hidden_double_jump_reward_source_contact() -> void:
 		return
 	if bool(source.call("is_provider_in_reward_range", _player)):
 		claim_hidden_double_jump_reward_source(_player)
+
+
+func _setup_boss2_double_jump_payoff() -> void:
+	_boss2_echo_guardian = _get_boss2_echo_guardian()
+	_boss2_reward_source = _get_boss2_double_jump_reward_source()
+	if _boss2_echo_guardian != null and _boss2_echo_guardian.has_signal("boss_defeated"):
+		var defeated_signal: Signal = _boss2_echo_guardian.get("boss_defeated")
+		if not defeated_signal.is_connected(_on_boss2_echo_guardian_defeated):
+			defeated_signal.connect(_on_boss2_echo_guardian_defeated)
+	_sync_boss2_double_jump_payoff_state()
+
+
+func _get_boss2_echo_guardian() -> Node:
+	var boss: Node = get_node_or_null(BOSS2_ECHO_GUARDIAN_NODE_PATH)
+	if boss == null or not boss.has_method("get_entity_id") or not boss.has_method("apply_damage"):
+		return null
+	return boss
+
+
+func _get_boss2_double_jump_reward_source() -> Node:
+	var source: Node = get_node_or_null(BOSS2_DOUBLE_JUMP_REWARD_NODE_PATH)
+	if source == null or not source.has_method("set_claimed") or not source.has_method("try_claim"):
+		return null
+	return source
+
+
+func _sync_boss2_double_jump_payoff_state() -> void:
+	var reward_claimed: bool = bool(_world_progress_flags.get(
+		String(BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG),
+		false
+	))
+	var boss_defeated: bool = _is_boss2_echo_guardian_defeated()
+	var boss: Node = _get_boss2_echo_guardian()
+	if boss != null and boss_defeated and not bool(boss.call("is_defeated")):
+		boss.visible = false
+		if boss is CollisionObject2D:
+			var collision_object := boss as CollisionObject2D
+			collision_object.collision_layer = 0
+			collision_object.collision_mask = 0
+	var source: Node = _get_boss2_double_jump_reward_source()
+	if source == null:
+		return
+	if source.has_method("set_available"):
+		source.call("set_available", boss_defeated and not reward_claimed)
+	source.call("set_claimed", reward_claimed)
+
+
+func _process_boss2_double_jump_reward_source_contact() -> void:
+	var source: Node = _get_boss2_double_jump_reward_source()
+	if source == null or not bool(source.call("is_claim_available")):
+		return
+	if bool(source.call("is_provider_in_reward_range", _player)):
+		claim_boss2_double_jump_reward_source(_player)
+
+
+func _on_boss2_echo_guardian_defeated() -> void:
+	set_world_progress_flag(BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG, true)
+	_combat_presentation.on_kill_event(
+		2,
+		_boss2_echo_guardian.global_position + Vector2(0, -40)
+	)
+	_dispatch_audio_event(&"on_enemy_defeated", [{
+		"target_id": &"boss_02_echo_guardian",
+		"position": _boss2_echo_guardian.global_position + Vector2(0, -40),
+	}])
+	_hud.show_notification("Echo Guardian defeated", 2.0)
+
+
+func _is_boss2_echo_guardian_defeated() -> bool:
+	if bool(_world_progress_flags.get(String(BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG), false)):
+		return true
+	if bool(_world_progress_flags.get(String(BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG), false)):
+		return true
+	var boss: Node = _get_boss2_echo_guardian()
+	return boss != null and boss.has_method("is_defeated") and bool(boss.call("is_defeated"))
 
 
 func _get_factory_route_transition_shell() -> Node:
@@ -2703,6 +2882,15 @@ func _read_string_name_array(value: Variant) -> Array[StringName]:
 		if entry_id != &"" and not result.has(entry_id):
 			result.append(entry_id)
 	return result
+
+
+func _get_sprite_animation_frame_counts(sprite: AnimatedSprite2D) -> Dictionary:
+	var counts: Dictionary = {}
+	if sprite == null or sprite.sprite_frames == null:
+		return counts
+	for animation_name: StringName in sprite.sprite_frames.get_animation_names():
+		counts[String(animation_name)] = sprite.sprite_frames.get_frame_count(animation_name)
+	return counts
 
 
 func _read_int(value: Variant, fallback: int) -> int:

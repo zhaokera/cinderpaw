@@ -178,6 +178,36 @@ class FakeSceneOnlyAudioSystem:
 		})
 
 
+class FakeStalePendingSceneManager:
+	extends RefCounted
+
+	var request_scene_change_calls: int = 0
+
+	func get_current_scene() -> StringName:
+		return &"area_03_factory"
+
+	func is_loading() -> bool:
+		return true
+
+	func get_pending_scene() -> StringName:
+		return &"area_02_sewer"
+
+	func has_scene(_scene_id: StringName) -> bool:
+		return true
+
+	func is_scene_locked() -> bool:
+		return false
+
+	func request_scene_change(_scene_id: StringName, _spawn_point: StringName) -> bool:
+		request_scene_change_calls += 1
+		return false
+
+	func get_scene_config(_scene_id: StringName) -> Dictionary:
+		return {
+			"default_spawn": "main_spawn",
+		}
+
+
 class FakeBossPhaseSource:
 	extends RefCounted
 
@@ -351,6 +381,27 @@ func test_menu_open_close_save_and_load_route_to_audio_system() -> void:
 		return
 	assert_int(int(audio_system.ui_load_events[0].get("slot", 0))).is_equal(1)
 
+	save_system.queue_free()
+
+
+func test_menu_load_main_snapshot_routes_audio_despite_stale_pending_scene_manager() -> void:
+	var audio_system: FakeAudioSystem = _configure_fake_audio_system()
+	var save_system := ImmediateMenuSaveSystem.new()
+	var scene_manager := FakeStalePendingSceneManager.new()
+	add_child(save_system)
+	assert_bool(bool(scene.call("configure_scene_manager_runtime", scene_manager))).is_true()
+	assert_bool(bool(scene.call("configure_save_system_runtime", save_system))).is_true()
+
+	var hud: Node = scene.get_node("HUD")
+	hud.emit_signal("menu_load_slot_requested", 1)
+
+	assert_int(save_system.load_game_calls).is_equal(1)
+	assert_int(scene_manager.request_scene_change_calls).is_equal(0)
+	assert_int(audio_system.ui_load_events.size()).is_equal(1)
+	if audio_system.ui_load_events.size() != 1:
+		save_system.queue_free()
+		return
+	assert_int(int(audio_system.ui_load_events[0].get("slot", 0))).is_equal(1)
 	save_system.queue_free()
 
 
