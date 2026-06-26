@@ -40,6 +40,7 @@ const RAT_KING_BOSS_ID: String = "boss_01_rat_king"
 const RAT_KING_BOSS_DISPLAY_NAME: String = "垃圾桶鼠王"
 const RAT_KING_ATTACK_SOURCE: StringName = &"rat_king_claw"
 const RAT_MINION_ATTACK_SOURCE: StringName = &"rat_minion_bite"
+const BOSS2_ATTACK_SOURCE: StringName = &"boss2_echo_swipe"
 const RAT_MINION_SUMMON_ID: StringName = &"summon_minion"
 const RAT_MINION_SUMMON_CAP: int = 2
 const RAT_MINION_ENTITY_ID_START: int = 2000
@@ -169,6 +170,7 @@ func _ready() -> void:
 	_ensure_arena_mutations_container()
 	_setup_player_attack_core_chain()
 	_setup_enemy_attack_core_chain()
+	_setup_boss2_attack_core_chain()
 	_game_flow.set_no_loss_state_adapter(self)
 	_game_flow.set_savepoint_adapter(self)
 	_setup_main_scene_savepoints()
@@ -320,6 +322,19 @@ func _on_summon_attack_landed(damage: int, hit_position: Vector2, is_crit: bool)
 		"hit_position": hit_position,
 		"is_crit": is_crit,
 		"source": RAT_MINION_ATTACK_SOURCE,
+		"show_damage_number": _hud.are_damage_numbers_enabled(),
+		"focus_mode_active": _is_player_focus_mode_active(),
+	}
+	_combat_presentation.on_hit_event(hit_data)
+	_dispatch_audio_event(&"on_damage_taken_event", [hit_data])
+
+
+func _on_boss2_attack_landed(damage: int, hit_position: Vector2, is_crit: bool) -> void:
+	var hit_data: Dictionary = {
+		"damage": damage,
+		"hit_position": hit_position,
+		"is_crit": is_crit,
+		"source": BOSS2_ATTACK_SOURCE,
 		"show_damage_number": _hud.are_damage_numbers_enabled(),
 		"focus_mode_active": _is_player_focus_mode_active(),
 	}
@@ -1910,6 +1925,20 @@ func _setup_boss2_double_jump_payoff() -> void:
 	_sync_boss2_double_jump_payoff_state()
 
 
+func _setup_boss2_attack_core_chain() -> void:
+	_boss2_echo_guardian = _get_boss2_echo_guardian()
+	if _boss2_echo_guardian == null:
+		return
+	if _boss2_echo_guardian.has_method("set_damage_calculator_adapter"):
+		_boss2_echo_guardian.call("set_damage_calculator_adapter", _damage_calculator_adapter)
+	if _boss2_echo_guardian.has_method("set_attack_target"):
+		_boss2_echo_guardian.call("set_attack_target", _player)
+	if _boss2_echo_guardian.has_signal("enemy_attack_landed"):
+		var attack_signal: Signal = _boss2_echo_guardian.get("enemy_attack_landed")
+		if not attack_signal.is_connected(_on_boss2_attack_landed):
+			attack_signal.connect(_on_boss2_attack_landed)
+
+
 func _get_boss2_echo_guardian() -> Node:
 	var boss: Node = get_node_or_null(BOSS2_ECHO_GUARDIAN_NODE_PATH)
 	if boss == null or not boss.has_method("get_entity_id") or not boss.has_method("apply_damage"):
@@ -1932,6 +1961,8 @@ func _sync_boss2_double_jump_payoff_state() -> void:
 	var boss_defeated: bool = _is_boss2_echo_guardian_defeated()
 	var boss: Node = _get_boss2_echo_guardian()
 	if boss != null and boss_defeated and not bool(boss.call("is_defeated")):
+		if boss.has_method("mark_defeated_from_progress"):
+			boss.call("mark_defeated_from_progress")
 		boss.visible = false
 		if boss is CollisionObject2D:
 			var collision_object := boss as CollisionObject2D
@@ -2780,6 +2811,14 @@ func _find_live_summon_by_entity_id(target_id: int) -> Node:
 
 func _resolve_player_hit_target(hit_data: Dictionary) -> Node:
 	var target_id: int = _read_int(hit_data.get("target_id", -1), -1)
+	if target_id == BOSS2_ECHO_GUARDIAN_ENTITY_ID:
+		var boss2: Node = _get_boss2_echo_guardian()
+		if (
+			boss2 != null
+			and boss2.has_method("get_current_hp")
+			and int(boss2.call("get_current_hp")) > 0
+		):
+			return boss2
 	var minion: Node = _find_live_summon_by_entity_id(target_id)
 	if minion != null:
 		return minion
