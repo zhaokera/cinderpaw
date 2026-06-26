@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 17 stories tracked
+> **Stories**: 18 stories tracked
 
 ## Overview
 
@@ -32,7 +32,7 @@ recording the reward in progression state.
 | TR-ability-003 | Abilities use different cooldowns: dodge 0.5s, dash 1.0s, parry 0.3s, double jump air-count reset. | ADR-0018 |
 | TR-ability-004 | Ability activation follows input, unlock, cooldown, prerequisite, activation/event, cooldown-start order. | ADR-0018 |
 | TR-ability-005 | Ability unlocks emit events for presentation, gates, HUD, and save recording. | ADR-0002, ADR-0018, ADR-0021 |
-| TR-ability-006 | Skill-tree modifiers can adjust ability parameters. | ADR-0018 |
+| TR-ability-006 | Skill-tree modifiers can adjust ability parameters. | ADR-0009, ADR-0018 |
 
 ## Stories
 
@@ -55,6 +55,7 @@ recording the reward in progression state.
 | 015 | Old Factory Spark Rat Dodge-Counter Readability | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0005/0007/0018 |
 | 016 | Ability Gate Unlock Feedback | Integration + Gameplay Runtime + Visual/Feel + Audio | Complete | ADR-0002/0007/0010/0018/0021 |
 | 017 | Old Factory Spark Rat Pacing Polish | Integration + Gameplay Runtime + Combat Pacing | Complete | ADR-0004/0005/0006/0007/0018 |
+| 018 | Skill Tree Cat Claw T1-A First Spend | Integration + Gameplay Runtime + UI | Complete | ADR-0001/0003/0005/0009/0018/0021 |
 
 ## Definition of Done
 
@@ -74,7 +75,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-017 are complete. Continue another ACT-visible slice such as
-skill-tree spending UI, the mainline Boss2 Double Jump reward source,
-additional ExplorationGate ability doors, deeper Old Factory route/combat
-content, savepoint/minimap gameplay, and other player-visible ability consumers.
+Stories001-018 are complete. Continue another ACT-visible slice such as the
+mainline Boss2 Double Jump reward source, additional ExplorationGate ability
+doors, deeper Old Factory route/combat content, savepoint/minimap gameplay,
+more skill-tree branches, and other player-visible ability consumers.

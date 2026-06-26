@@ -10,6 +10,7 @@ extends Node2D
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 const RUNTIME_DAMAGE_CALCULATOR_ADAPTER_SCRIPT: Script = preload("res://src/gameplay/runtime_damage_calculator_adapter.gd")
 const SAVE_TRIGGER_ADAPTER_SCRIPT: Script = preload("res://src/feature/save_trigger_adapter.gd")
+const SKILL_TREE_MANAGER_SCRIPT: Script = preload("res://src/feature/skill_tree_manager.gd")
 const RAT_MINION_SCENE: PackedScene = preload("res://src/gameplay/rat_minion.tscn")
 const GARBAGE_PILE_TEXTURE: Texture2D = preload(
 	"res://assets/environment/rat_king_arena/garbage_pile.png"
@@ -46,6 +47,7 @@ const HIDDEN_DOUBLE_JUMP_REWARD_ID: StringName = &"hidden_boss_echo_double_jump"
 const HIDDEN_DOUBLE_JUMP_REWARD_ABILITY_ID: StringName = &"double_jump"
 const HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG: StringName = &"hidden_boss_echo_double_jump_claimed"
 const HIDDEN_DOUBLE_JUMP_REWARD_NOTIFICATION: String = "Double Jump unlocked"
+const CAT_CLAW_T1A_SKILL_ID: StringName = &"cat_claw_t1a"
 const FACTORY_ROUTE_SHELL_NODE_PATH: NodePath = ^"FactoryRouteTransitionShell"
 const FACTORY_ROUTE_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_ROUTE_SPAWN_POINT: StringName = &"factory_gate_entry"
@@ -124,6 +126,7 @@ var _current_weapon_id: StringName = &"cat_claw"
 var _weapon_levels: Dictionary = {"cat_claw": 0}
 var _world_progress_flags: Dictionary = {}
 var _weapon_component: WeaponComponent = null
+var _skill_tree_manager = null
 var _damage_calculator_adapter: Object = null
 var _last_player_hit_metadata: Dictionary = {}
 var _save_system: Object = null
@@ -149,6 +152,7 @@ var _last_boss_reward_summary: Dictionary = {}
 
 
 func _ready() -> void:
+	_setup_skill_tree_manager()
 	_setup_weapon_component()
 	_ensure_summons_container()
 	_ensure_arena_mutations_container()
@@ -176,6 +180,8 @@ func _ready() -> void:
 	_hud.menu_exit_requested.connect(_on_menu_exit_requested)
 	_hud.menu_save_slot_requested.connect(_on_menu_save_slot_requested)
 	_hud.menu_load_slot_requested.connect(_on_menu_load_slot_requested)
+	_hud.menu_skill_tree_requested.connect(_on_menu_skill_tree_requested)
+	_hud.skill_unlock_requested.connect(_on_skill_unlock_requested)
 	_hud.colorblind_mode_changed.connect(_on_hud_colorblind_mode_changed)
 	_player.player_health_changed.connect(_on_player_health_changed)
 	_player.player_died.connect(_on_player_died)
@@ -372,6 +378,27 @@ func _on_menu_settings_requested() -> void:
 		"to_menu_mode": &"settings",
 	}])
 	_hud.show_settings_menu(_hud.get_menu_mode())
+
+
+func _on_menu_skill_tree_requested() -> void:
+	_dispatch_audio_event(&"on_ui_navigate", [{
+		"from_menu_mode": _hud.get_menu_mode(),
+		"to_menu_mode": &"skill_tree",
+	}])
+	show_skill_tree_menu()
+
+
+func _on_skill_unlock_requested(skill_id: StringName) -> void:
+	if try_unlock_skill(skill_id):
+		_dispatch_audio_event(&"on_ui_confirm", [{
+			"menu_mode": _hud.get_menu_mode(),
+			"skill_id": skill_id,
+		}])
+		return
+	_dispatch_audio_event(&"on_ui_cancel", [{
+		"menu_mode": _hud.get_menu_mode(),
+		"skill_id": skill_id,
+	}])
 
 
 func _on_menu_new_game_requested() -> void:
@@ -783,6 +810,7 @@ func capture_no_loss_state() -> Dictionary:
 	return {
 		"currency": _currency_amount,
 		"skill_points": _skill_points,
+		"unlocked_skills": _string_names_to_strings(_get_unlocked_skills()),
 		"unlocked_abilities": _string_names_to_strings(_unlocked_abilities),
 		"inventory": _string_names_to_strings(_inventory_items),
 		"weapons": {
@@ -799,6 +827,7 @@ func capture_no_loss_state() -> Dictionary:
 func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_currency_amount = maxi(0, _read_int(snapshot.get("currency", _currency_amount), _currency_amount))
 	_skill_points = maxi(0, _read_int(snapshot.get("skill_points", _skill_points), _skill_points))
+	_set_unlocked_skills_from_array(snapshot.get("unlocked_skills", _get_unlocked_skills()))
 	_unlocked_abilities = _read_string_name_array(
 		snapshot.get("unlocked_abilities", _unlocked_abilities)
 	)
@@ -813,6 +842,7 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_restore_last_savepoint_from_dictionary(Dictionary(snapshot.get("last_savepoint", {})))
 	_sync_weapon_component_from_runtime_state()
 	_hud.update_currency(_currency_amount)
+	_refresh_skill_tree_hud_if_visible()
 	_update_weapon_hud()
 	if snapshot.has("settings"):
 		_hud.restore_settings_state(Dictionary(snapshot.get("settings", {})))
@@ -837,6 +867,7 @@ func grant_skill_points(amount: int) -> void:
 		return
 	_skill_points += safe_amount
 	_record_boss_reward_skill_points(safe_amount)
+	_refresh_skill_tree_hud_if_visible()
 	_refresh_victory_reward_feedback_if_needed()
 
 
@@ -903,6 +934,64 @@ func request_factory_route_transition(provider: Node = null) -> bool:
 
 func get_skill_points() -> int:
 	return _skill_points
+
+
+## Opens the runtime skill tree menu through the HUD.
+func show_skill_tree_menu() -> void:
+	_hud.show_skill_tree_menu(_skill_points, _get_skill_tree_hud_entries())
+
+
+## Attempts to spend SP on a skill node and updates runtime presentation.
+func try_unlock_skill(skill_id: StringName) -> bool:
+	if _skill_tree_manager == null or not _skill_tree_manager.has_skill_definition(skill_id):
+		return false
+	if _skill_tree_manager.has_skill(skill_id):
+		_refresh_skill_tree_hud_if_visible()
+		return false
+	var cost: int = _skill_tree_manager.get_skill_cost(skill_id)
+	if cost < 0 or _skill_points < cost:
+		_hud.show_notification("Not enough SP", 1.5)
+		_refresh_skill_tree_hud_if_visible()
+		return false
+	if not _skill_tree_manager.unlock_skill(skill_id):
+		return false
+	_skill_points = maxi(0, _skill_points - cost)
+	_hud.show_notification("%s learned" % _skill_tree_manager.get_skill_display_name(skill_id), 2.0)
+	_refresh_skill_tree_hud_if_visible()
+	return true
+
+
+## Returns whether a skill is currently unlocked.
+func has_skill(skill_id: StringName) -> bool:
+	return _skill_tree_manager != null and _skill_tree_manager.has_skill(skill_id)
+
+
+## Returns current skill modifiers for diagnostics and tests.
+func get_skill_tree_modifiers(action_id: StringName = &"") -> Array[Dictionary]:
+	return _skill_tree_manager.get_modifiers(action_id) if _skill_tree_manager != null else []
+
+
+func _get_unlocked_skills() -> Array[StringName]:
+	return _skill_tree_manager.get_unlocked_skills() if _skill_tree_manager != null else []
+
+
+func _set_unlocked_skills_from_array(skill_ids: Variant) -> void:
+	if _skill_tree_manager == null:
+		return
+	var restored: Array = []
+	if skill_ids is Array:
+		restored = skill_ids as Array
+	_skill_tree_manager.set_unlocked_skills(restored)
+	_sync_skill_modifier_provider()
+
+
+func _get_skill_tree_hud_entries() -> Array[Dictionary]:
+	return _skill_tree_manager.get_hud_entries() if _skill_tree_manager != null else []
+
+
+func _refresh_skill_tree_hud_if_visible() -> void:
+	if _hud != null and _hud.has_method("get_menu_mode") and _hud.get_menu_mode() == &"skill_tree":
+		show_skill_tree_menu()
 
 
 func begin_boss_defeat_rewards(boss_id: StringName, _rewards: Dictionary = {}) -> void:
@@ -1488,6 +1577,7 @@ func _capture_player_state() -> Dictionary:
 		"weapon_levels": Dictionary(weapon_state.get("levels", _weapon_levels)).duplicate(true),
 		"currency": int(progress.get("currency", _currency_amount)),
 		"skill_points": int(progress.get("skill_points", _skill_points)),
+		"unlocked_skills": Array(progress.get("unlocked_skills", _string_names_to_strings(_get_unlocked_skills()))).duplicate(true),
 		"unlocked_abilities": Array(
 			progress.get("unlocked_abilities", _string_names_to_strings(_unlocked_abilities))
 		).duplicate(true),
@@ -1541,6 +1631,9 @@ func _restore_runtime_progress_state(player_state: Dictionary, world_state: Dict
 	restore_no_loss_state({
 		"currency": _read_int(player_state.get("currency", _currency_amount), _currency_amount),
 		"skill_points": _read_int(player_state.get("skill_points", _skill_points), _skill_points),
+		"unlocked_skills": Array(
+			player_state.get("unlocked_skills", _string_names_to_strings(_get_unlocked_skills()))
+		).duplicate(true),
 		"unlocked_abilities": Array(
 			player_state.get("unlocked_abilities", _string_names_to_strings(_unlocked_abilities))
 		).duplicate(true),
@@ -2074,6 +2167,24 @@ func _restore_last_savepoint_from_dictionary(savepoint: Dictionary) -> void:
 		_last_discovered_savepoint.clear()
 
 
+func _setup_skill_tree_manager() -> void:
+	_skill_tree_manager = get_node_or_null("SkillTreeManager")
+	if _skill_tree_manager == null:
+		var skill_tree_node: Node = SKILL_TREE_MANAGER_SCRIPT.new() as Node
+		skill_tree_node.name = "SkillTreeManager"
+		add_child(skill_tree_node)
+		_skill_tree_manager = skill_tree_node
+	var root_data_manager: Node = get_node_or_null("/root/DataManager")
+	if root_data_manager != null and _skill_tree_manager.has_method("set_data_manager"):
+		_skill_tree_manager.call("set_data_manager", root_data_manager)
+	_sync_skill_modifier_provider()
+
+
+func _sync_skill_modifier_provider() -> void:
+	if _player != null and _player.has_method("set_skill_modifier_provider"):
+		_player.set_skill_modifier_provider(_skill_tree_manager)
+
+
 func _setup_weapon_component() -> void:
 	_weapon_component = WEAPON_COMPONENT_SCRIPT.new() as WeaponComponent
 	_weapon_component.name = "WeaponComponent"
@@ -2089,6 +2200,7 @@ func _setup_weapon_component() -> void:
 func _setup_player_attack_core_chain() -> void:
 	var root_data_manager: Node = get_node_or_null("/root/DataManager")
 	_damage_calculator_adapter = RUNTIME_DAMAGE_CALCULATOR_ADAPTER_SCRIPT.new(root_data_manager)
+	_sync_skill_modifier_provider()
 	if _player.has_method("set_damage_calculator_adapter"):
 		_player.set_damage_calculator_adapter(_damage_calculator_adapter)
 	if _player.has_method("set_target_health_adapter"):

@@ -8,6 +8,7 @@
 		{"name": "input_config", "path": "input/input_config.json", "preload": false},
 		{"name": "scene_registry", "path": "scene_registry.json", "preload": true},
 		{"name": "tuning_knobs", "path": "tuning_knobs.json", "preload": true},
-		{"name": "abilities", "path": "abilities.json", "preload": true}
+		{"name": "abilities", "path": "abilities.json", "preload": true},
+		{"name": "skill_tree", "path": "skill_tree.json", "preload": true}
 	]
 }

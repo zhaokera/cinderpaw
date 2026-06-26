@@ -1,0 +1,25 @@
+{
+	"_meta": {"version": "1.0", "domain": "skill_tree"},
+	"entries": {
+		"cat_claw_t1a": {
+			"skill_id": "cat_claw_t1a",
+			"display_name": "Quickstep Claws",
+			"branch": "cat_claw",
+			"tier": "T1",
+			"node_type": "modifier",
+			"cost": 1,
+			"prerequisites": [],
+			"effect_summary": "Cat Claw light attack 2 lunges forward by 8px.",
+			"modifiers": [
+				{
+					"type": "movement_modifier",
+					"target_action": "light_attack_2",
+					"stat_key": "dash_distance",
+					"operation": "ADD",
+					"value": 8.0,
+					"condition": {"weapon": "cat_claw"}
+				}
+			]
+		}
+	}
+}

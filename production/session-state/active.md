@@ -26,10 +26,11 @@
   defeat reward runtime consumption、Player Abilities Story002
   ExplorationGate dash 门控、Player Abilities Story011 Old Factory deep guard
   activation pacing、Player Abilities Story017 Old Factory Spark Rat pacing
-  polish 已完成；
+  polish、Player Abilities Story018 Skill Tree Cat Claw T1-A First Spend
+  已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
   routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
-  area cue expansion、broader audio mix polish、skill-tree spending UI、
+  area cue expansion、broader audio mix polish、more skill-tree branches、
   mainline Boss2 Double Jump reward source、其他 ExplorationGate 能力门、
   更深 Old Factory route/combat content、savepoint/minimap gameplay，以及
   玩家可见角色/敌人帧动画持续审计。
@@ -37,6 +38,32 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 018: Skill Tree Cat Claw T1-A First Spend —
+  新增 `skill_tree` DataManager 域与 schema，创建场景级
+  `SkillTreeManager`，并把 Rat King 奖励的 SP 接入最小可见技能树菜单。
+  Cat Claw T1-A（GDD 名称 `疾步连爪`，当前 HUD 显示 `Quickstep Claws`）
+  现在可消耗 1SP 解锁，记录到 `unlocked_skills`，随 runtime progress、
+  no-loss state、save snapshot/restore 持久化，并向 `PlayerController`
+  注入 `light_attack_2` 的 `dash_distance ADD 8.0` modifier。玩家第二段
+  Cat Claw 轻攻击现在在 Core weapon hitbox 成功激活后前冲 8px，并把
+  `skill_lunge_px` / `hitbox_offset_x` 写入攻击 metadata。`HUDManager`
+  新增 Skill Tree 菜单入口、解锁按钮、技能树信号和诊断 API；`MainScene`
+  负责 SP 消耗、HUD 刷新、音频事件分发和 skill modifier provider 注入。
+  No new visual assets were generated; the story reuses existing
+  image-generated Cinderpaw/environment/gate-feedback assets. Verification:
+  RED `reports/report_719/`; GREEN focused before refactor `reports/report_720/`
+  `2/2`; related before refactor `reports/report_723/` `42/42`; final
+  focused `reports/report_724/` `2/2`; final related `reports/report_725/`
+  `42/42`; headless main-scene smoke
+  `reports/skill_tree_cat_claw_t1a_main_scene_smoke.log` exited `0` and log
+  keyword scan found no parse/invalid/missing-resource errors; Godot MCP
+  runtime confirmed `/Main/SkillTreeManager`, Player `AnimatedSprite2D` +
+  `SpriteFrames`, Rat King reward `0 -> 5` SP, Skill Tree HUD, unlock `true`,
+  SP `5 -> 4`, modifier payload, second attack `+8px` lunge and metadata,
+  clean game/editor logs, and screenshot
+  `reports/visual/cinderpaw-mcp-skill-tree-cat-claw-t1a-20260626.png`.
+  QA evidence:
+  `production/qa/evidence/skill-tree-cat-claw-t1a-first-spend-2026-06-26.md`。
 - Player Abilities Story 017: Old Factory Spark Rat Pacing Polish —
   `FactorySparkRat` now has encounter pacing instead of behaving like an
   immediate bite check after the endpoint opens. `OldFactoryEntranceScene` adds
@@ -2483,3 +2510,14 @@
 - Verification: RED focused failed as expected for missing gate feedback/API (`reports/report_702/`) and missing AudioSystem door-unlock cue/adapter (`reports/report_703/`); GREEN focused gate feedback passed `3/3` (`reports/report_705/`); GREEN focused AudioSystem passed `21/21` (`reports/report_706/`); related split regressions passed `7/7`, `21/21`, and `28/28` (`reports/report_708/`, `reports/report_709/`, `reports/report_710/`); pre-commit focused verification passed `24/24` across Story016 gate feedback and AudioSystem (`reports/report_711/`); Godot import exited `0`; headless main-scene smoke exited `0` with no parse/invalid/missing-resource/resource-load failures and only known cleanup-time ObjectDB/resource messages. Godot MCP runtime confirmed restore no-replay, Dash and Double Jump ability-triggered gate VFX as generated `Sprite2D` nodes, MainScene-to-AudioSystem `exploration_gate_unlocked -> sfx_door_unlock` events with `stream_found=true` and correct metadata for both gates, clean game/editor logs, and nonblank screenshot `reports/visual/cinderpaw-mcp-ability-gate-unlock-feedback-20260626.png`.
 - Blockers: None. New ability gates, ability acquisition feedback, minimap/fast travel, save schema changes, shader polish, final mastered audio, and Dash/Double Jump movement-feel changes remain out of scope.
 - Next: continue another ACT-visible slice such as Spark Rat pacing polish, skill-tree spending UI, mainline Boss2 Double Jump reward source, additional ExplorationGate ability doors, deeper Old Factory route/combat content, savepoint/minimap gameplay, or broader frame-animation audit.
+
+## Session Extract — /dev-story 2026-06-26
+
+- Story: `production/epics/player-abilities/story-018-skill-tree-cat-claw-t1a-first-spend.md` — Skill Tree Cat Claw T1-A First Spend
+- Files changed: `data/manifest.json`, `data/skill_tree.json`, `data/schemas/skill_tree.schema.json`, `src/feature/skill_tree_manager.gd`, `src/gameplay/main_scene.gd`, `src/gameplay/player_controller.gd`, `src/core/weapon_component.gd`, `src/presentation/hud_manager.gd`, `tests/unit/gameplay/skill_tree_spending_ui_runtime_test.gd`, `production/epics/index.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/player-abilities/story-018-skill-tree-cat-claw-t1a-first-spend.md`, `production/qa/evidence/skill-tree-cat-claw-t1a-first-spend-2026-06-26.md`, `reports/skill_tree_cat_claw_t1a_main_scene_smoke.log`, `reports/visual/cinderpaw-mcp-skill-tree-cat-claw-t1a-20260626.png`, `production/session-state/active.md`
+- Implementation: Added the `skill_tree` DataManager domain and a scene-local `SkillTreeManager` for unlocked skill state and modifier queries. `MainScene` now wires the manager, exposes Skill Tree runtime APIs, spends Rat King SP on Cat Claw T1-A once, persists `unlocked_skills`, refreshes HUD state, and forwards menu audio. `HUDManager` adds the minimal Skill Tree menu, signals, unlock button, and diagnostics. `PlayerController` consumes `light_attack_2` skill modifiers for Cat Claw and applies the 8px lunge only after the Core weapon hitbox activates; `WeaponComponent` carries the lunge metadata and hitbox offset into the collision chain.
+- Asset pipeline: No new visual assets were generated. This story reuses existing image-generated Cinderpaw, environment, and gate feedback assets; MCP evidence confirms the player remains `AnimatedSprite2D + SpriteFrames`.
+- Test written: `tests/unit/gameplay/skill_tree_spending_ui_runtime_test.gd` with two focused tests covering Rat King SP spend into Cat Claw T1-A, HUD state, modifier payload, attack lunge metadata, hitbox offset, runtime progress, save snapshot, and restore.
+- Verification: RED `reports/report_719/`; GREEN focused before refactor `reports/report_720/` `2/2`; related before refactor `reports/report_723/` `42/42`; final focused after refactor `reports/report_724/` `2/2`; final related `reports/report_725/` `42/42`; headless main-scene smoke `reports/skill_tree_cat_claw_t1a_main_scene_smoke.log` exited `0` and keyword scan found no parse/invalid/missing-resource errors. Godot MCP runtime with `autosave=false` confirmed `/Main/SkillTreeManager`, Player `AnimatedSprite2D + SpriteFrames`, Rat King reward `0 -> 5` SP, Skill Tree HUD, unlock `true`, SP `5 -> 4`, modifier payload, second Cat Claw attack `+8px` lunge and metadata, clean game/editor logs, and screenshot `reports/visual/cinderpaw-mcp-skill-tree-cat-claw-t1a-20260626.png`.
+- Blockers: None. Full 65-node skill tree, reset economy, graph UI, NPC mentor flow, other weapon branches, charm F8 combined bonus, Boss2, additional ability gates, savepoint/minimap gameplay, and final localization remain out of scope.
+- Next: continue another ACT-visible slice such as mainline Boss2 Double Jump reward source, additional ExplorationGate ability doors, deeper Old Factory route/combat content, savepoint/minimap gameplay, more skill-tree branches, or broader frame-animation audit.

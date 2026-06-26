@@ -1,0 +1,28 @@
+{
+	"entries": {
+		"cat_claw_t1a": {
+			"required": [
+				"skill_id",
+				"display_name",
+				"branch",
+				"tier",
+				"node_type",
+				"cost",
+				"prerequisites",
+				"effect_summary",
+				"modifiers"
+			],
+			"fields": {
+				"skill_id": {"type": "String", "enum": ["cat_claw_t1a"]},
+				"display_name": {"type": "String"},
+				"branch": {"type": "String", "enum": ["cat_claw"]},
+				"tier": {"type": "String", "enum": ["T1"]},
+				"node_type": {"type": "String", "enum": ["modifier"]},
+				"cost": {"type": "int", "min": 0, "max": 5},
+				"prerequisites": {"type": "Array"},
+				"effect_summary": {"type": "String"},
+				"modifiers": {"type": "Array"}
+			}
+		}
+	}
+}

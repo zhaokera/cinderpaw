@@ -96,6 +96,8 @@ var _collision: CollisionComponent = null
 var _ability: AbilityComponent = null
 var _weapon_component: Object = null
 var _damage_calculator_adapter: Object = null
+var _skill_modifier_provider: Object = null
+var _last_skill_lunge_px: float = 0.0
 
 # ---------------------------------------------------------------------------
 # Node References
@@ -234,15 +236,30 @@ func _apply_burst_movement_velocity(_delta: float) -> void:
 
 ## Requests a player light attack through the Core combat/collision/weapon chain.
 func request_attack() -> bool:
-	if _control_locked or _state != State.IDLE:
+	if _control_locked:
 		return false
-	if _combat != null and _combat.get_current_state() != CombatComponent.CombatState.IDLE:
+	if _state == State.IDLE:
+		var combo_index: int = _combat.get_combo_index() if _combat != null else 0
+		return _request_light_attack_stage(combo_index, false)
+	if _state == State.ATTACKING and _combat != null and _combat.is_in_attack_recovery():
+		_combat.on_action_triggered(&"attack", {})
+		return _request_light_attack_stage(_combat.get_combo_index(), true)
+	return false
+
+
+func _request_light_attack_stage(combo_index: int, combat_already_advanced: bool) -> bool:
+	if (
+		_combat != null
+		and not combat_already_advanced
+		and _combat.get_current_state() != CombatComponent.CombatState.IDLE
+	):
 		return false
-	var combo_index: int = _combat.get_combo_index() if _combat != null else 0
-	var core_hitbox_activated: bool = _activate_weapon_hitbox(combo_index)
+	var skill_lunge_px: float = _resolve_skill_lunge_px(combo_index)
+	var core_hitbox_activated: bool = _activate_weapon_hitbox(combo_index, skill_lunge_px)
 	if not core_hitbox_activated and _weapon_component != null:
 		return false
-	if _combat != null:
+	_apply_skill_lunge(skill_lunge_px)
+	if _combat != null and not combat_already_advanced:
 		_combat.on_action_triggered(&"attack", {"combo_index": combo_index})
 	_start_attack_visual()
 	attack_started.emit(_build_attack_started_metadata(combo_index))
@@ -258,14 +275,18 @@ func _start_attack_visual() -> void:
 	_play_character_animation(ANIMATION_ATTACK, true)
 
 
-func _activate_weapon_hitbox(combo_index: int) -> bool:
+func _activate_weapon_hitbox(combo_index: int, skill_lunge_px: float = 0.0) -> bool:
 	if _weapon_component == null or not _weapon_component.has_method("activate_current_attack_hitbox"):
 		return false
 	return bool(_weapon_component.call(
 		"activate_current_attack_hitbox",
 		&"light",
 		ATTACK_DURATION_FRAMES,
-		combo_index
+		combo_index,
+		{
+			"skill_lunge_px": skill_lunge_px,
+			"hitbox_offset_x": skill_lunge_px * _facing,
+		}
 	))
 
 
@@ -276,6 +297,7 @@ func _build_attack_started_metadata(combo_index: int) -> Dictionary:
 		"combo_index": combo_index,
 		"attack_position": global_position + Vector2(_facing * 34.0, -24.0),
 		"facing": _facing,
+		"skill_lunge_px": _last_skill_lunge_px,
 	}
 
 
@@ -520,6 +542,16 @@ func set_damage_calculator_adapter(damage_calculator_adapter: Object) -> void:
 		_combat.set_damage_calculator_adapter(_damage_calculator_adapter)
 
 
+## Injects a scene-level skill modifier provider.
+func set_skill_modifier_provider(skill_modifier_provider: Object) -> void:
+	_skill_modifier_provider = skill_modifier_provider
+
+
+## Returns the most recent skill-driven attack lunge distance in pixels.
+func get_last_skill_lunge_px() -> float:
+	return _last_skill_lunge_px
+
+
 func set_control_locked(locked: bool) -> void:
 	_control_locked = locked
 	if locked:
@@ -598,6 +630,41 @@ func _setup_core_combat_chain() -> void:
 
 func _on_core_attack_hit(metadata: Dictionary) -> void:
 	attack_landed.emit(metadata.duplicate(true))
+
+
+func _resolve_skill_lunge_px(combo_index: int) -> float:
+	_last_skill_lunge_px = 0.0
+	if _skill_modifier_provider == null or not _skill_modifier_provider.has_method("get_modifiers"):
+		return 0.0
+	var target_action: StringName = StringName("light_attack_%d" % (combo_index + 1))
+	var modifiers: Variant = _skill_modifier_provider.call("get_modifiers", target_action)
+	if not modifiers is Array:
+		return 0.0
+	var modifier_list: Array = modifiers as Array
+	for raw_modifier: Variant in modifier_list:
+		if not raw_modifier is Dictionary:
+			continue
+		var modifier: Dictionary = raw_modifier as Dictionary
+		if not _is_modifier_for_current_weapon(modifier):
+			continue
+		if StringName(String(modifier.get("operation", ""))) != &"ADD":
+			continue
+		if StringName(String(modifier.get("stat_key", ""))) != &"dash_distance":
+			continue
+		_last_skill_lunge_px += maxf(0.0, float(modifier.get("value", 0.0)))
+	return _last_skill_lunge_px
+
+
+func _is_modifier_for_current_weapon(modifier: Dictionary) -> bool:
+	var condition: Dictionary = Dictionary(modifier.get("condition", {}))
+	var weapon_condition: StringName = StringName(String(condition.get("weapon", "")))
+	return weapon_condition == &"" or weapon_condition == _get_current_weapon_id()
+
+
+func _apply_skill_lunge(skill_lunge_px: float) -> void:
+	if skill_lunge_px <= 0.0:
+		return
+	global_position.x += _facing * skill_lunge_px
 
 
 func _start_respawn_visual_feedback() -> void:

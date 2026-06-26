@@ -14,6 +14,8 @@ signal menu_exit_requested
 signal menu_save_slot_requested(slot: int)
 signal menu_load_slot_requested(slot: int)
 signal colorblind_mode_changed(mode: StringName)
+signal menu_skill_tree_requested
+signal skill_unlock_requested(skill_id: StringName)
 
 const HP_HEALTHY_COLOR: Color = Color("#ECC94B")
 const HP_MID_COLOR: Color = Color("#D9B84A")
@@ -38,6 +40,7 @@ const MENU_BATTLE_SUMMARY: StringName = &"battle_summary"
 const MENU_SETTINGS: StringName = &"settings"
 const MENU_MAIN: StringName = &"main_menu"
 const MENU_SAVE_LOAD: StringName = &"save_load"
+const MENU_SKILL_TREE: StringName = &"skill_tree"
 const COLORBLIND_NONE: StringName = &"none"
 const COLORBLIND_RED_GREEN: StringName = &"red_green"
 const COLORBLIND_BLUE_YELLOW: StringName = &"blue_yellow"
@@ -74,6 +77,8 @@ var _colorblind_mode: StringName = COLORBLIND_NONE
 var _boss_phase_marker_text: String = "I"
 var _scene_transition_scene_id: StringName = &""
 var _scene_transition_label_text: String = ""
+var _skill_tree_entries: Array[Dictionary] = []
+var _active_skill_tree_entry_id: StringName = &""
 
 var _root: Control
 var _player_panel: PanelContainer
@@ -98,6 +103,8 @@ var _new_game_button: Button
 var _continue_button: Button
 var _load_game_button: Button
 var _save_game_button: Button
+var _skill_tree_button: Button
+var _skill_unlock_button: Button
 var _settings_button: Button
 var _main_menu_button: Button
 var _retry_button: Button
@@ -284,6 +291,40 @@ func show_save_load_menu(slot_infos: Array, can_save: bool, save_unavailable_rea
 	_resume_button.grab_focus()
 
 
+## Displays the minimal skill-tree spending menu for the current runtime slice.
+func show_skill_tree_menu(skill_points: int, skill_entries: Array = []) -> void:
+	_menu_mode = MENU_SKILL_TREE
+	if _menu_overlay == null:
+		return
+	_settings_return_menu = MENU_NONE
+	_skill_tree_entries = _duplicate_skill_entries(skill_entries)
+	var entry: Dictionary = _first_skill_tree_entry()
+	_active_skill_tree_entry_id = StringName(String(entry.get("skill_id", "")))
+	var display_name: String = String(entry.get("display_name", "Quickstep Claws"))
+	var cost: int = maxi(0, int(entry.get("cost", 1)))
+	var unlocked: bool = bool(entry.get("unlocked", false))
+	var can_unlock: bool = not unlocked and maxi(0, skill_points) >= cost
+	if _settings_box != null:
+		_settings_box.visible = false
+	_menu_title_label.text = "Skill Tree"
+	_menu_subtitle_label.text = _format_skill_tree_summary(maxi(0, skill_points), entry)
+	_hide_menu_buttons()
+	_set_button_state(_resume_button, true, "Back")
+	_set_button_state(
+		_skill_unlock_button,
+		true,
+		"%s learned" % display_name if unlocked else "Learn %s" % display_name,
+		not can_unlock,
+		"Already learned" if unlocked else "Need %d SP" % cost
+	)
+	_resize_menu_panel(false)
+	_menu_overlay.visible = true
+	if can_unlock and _skill_unlock_button != null:
+		_skill_unlock_button.grab_focus()
+	else:
+		_resume_button.grab_focus()
+
+
 ## Displays settings controls grouped by audio, display, controls, and gameplay.
 func show_settings_menu(invoking_menu: StringName = MENU_PAUSE) -> void:
 	_settings_return_menu = invoking_menu
@@ -324,6 +365,8 @@ func hide_menu() -> void:
 	_settings_return_menu = MENU_NONE
 	_save_slot_labels.clear()
 	_main_menu_slot_infos.clear()
+	_skill_tree_entries.clear()
+	_active_skill_tree_entry_id = &""
 	if _menu_overlay != null:
 		_menu_overlay.visible = false
 	if _settings_box != null:
@@ -489,6 +532,18 @@ func get_settings_button_text() -> String:
 	if _settings_button == null:
 		return ""
 	return _settings_button.text
+
+
+## Returns the skill unlock button text for runtime diagnostics.
+func get_skill_unlock_button_text() -> String:
+	if _skill_unlock_button == null:
+		return ""
+	return _skill_unlock_button.text
+
+
+## Returns whether the skill unlock action is disabled.
+func is_skill_unlock_button_disabled() -> bool:
+	return _skill_unlock_button == null or _skill_unlock_button.disabled
 
 
 ## Returns visible menu button texts in traversal order.
@@ -845,6 +900,14 @@ func _build_menu_overlay() -> void:
 	_save_game_button.pressed.connect(_on_save_game_button_pressed)
 	button_box.add_child(_save_game_button)
 
+	_skill_tree_button = _new_menu_button("SkillTreeButton", "Skill Tree")
+	_skill_tree_button.pressed.connect(_on_skill_tree_button_pressed)
+	button_box.add_child(_skill_tree_button)
+
+	_skill_unlock_button = _new_menu_button("SkillUnlockButton", "Learn Skill")
+	_skill_unlock_button.pressed.connect(_on_skill_unlock_button_pressed)
+	button_box.add_child(_skill_unlock_button)
+
 	_settings_button = _new_menu_button("SettingsButton", "Settings")
 	_settings_button.pressed.connect(_on_settings_button_pressed)
 	button_box.add_child(_settings_button)
@@ -1064,6 +1127,7 @@ func _show_menu(
 	_set_button_state(_resume_button, true, resume_text)
 	if mode == MENU_PAUSE:
 		_set_button_state(_save_game_button, true, "Save / Load")
+		_set_button_state(_skill_tree_button, true, "Skill Tree")
 		_set_button_state(_settings_button, true, "Settings")
 		_set_button_state(_main_menu_button, true, "Main Menu")
 	_set_button_state(_retry_button, true, retry_text)
@@ -1080,6 +1144,8 @@ func _ordered_menu_buttons() -> Array[Button]:
 		_continue_button,
 		_load_game_button,
 		_save_game_button,
+		_skill_tree_button,
+		_skill_unlock_button,
 		_settings_button,
 		_main_menu_button,
 		_retry_button,
@@ -1144,6 +1210,46 @@ func _duplicate_slot_infos(slot_infos: Array) -> Array:
 		if slot_info is Dictionary:
 			duplicated.append((slot_info as Dictionary).duplicate(true))
 	return duplicated
+
+
+func _duplicate_skill_entries(skill_entries: Array) -> Array[Dictionary]:
+	var duplicated: Array[Dictionary] = []
+	for skill_entry: Variant in skill_entries:
+		if skill_entry is Dictionary:
+			duplicated.append((skill_entry as Dictionary).duplicate(true))
+	return duplicated
+
+
+func _first_skill_tree_entry() -> Dictionary:
+	if not _skill_tree_entries.is_empty():
+		return _skill_tree_entries[0].duplicate(true)
+	return {
+		"skill_id": &"cat_claw_t1a",
+		"display_name": "Quickstep Claws",
+		"branch": "Cat Claw",
+		"tier": "T1",
+		"cost": 1,
+		"effect_summary": "Cat Claw light attack 2 lunges forward by 8px.",
+		"unlocked": false,
+	}
+
+
+func _format_skill_tree_summary(skill_points: int, entry: Dictionary) -> String:
+	var branch: String = String(entry.get("branch", "cat_claw")).replace("_", " ").capitalize()
+	var tier: String = String(entry.get("tier", "T1"))
+	var display_name: String = String(entry.get("display_name", "Quickstep Claws"))
+	var cost: int = maxi(0, int(entry.get("cost", 1)))
+	var state: String = "Learned" if bool(entry.get("unlocked", false)) else "Available"
+	var effect_summary: String = String(entry.get("effect_summary", ""))
+	return "SP %d\n%s %s - %s\nCost %d SP | %s\n%s" % [
+		skill_points,
+		branch,
+		tier,
+		display_name,
+		cost,
+		state,
+		effect_summary,
+	]
 
 
 func _format_save_slot_label(slot_info: Dictionary) -> String:
@@ -1477,6 +1583,16 @@ func _on_save_game_button_pressed() -> void:
 		menu_load_menu_requested.emit()
 		return
 	menu_save_slot_requested.emit(1)
+
+
+func _on_skill_tree_button_pressed() -> void:
+	menu_skill_tree_requested.emit()
+
+
+func _on_skill_unlock_button_pressed() -> void:
+	if _active_skill_tree_entry_id == &"":
+		return
+	skill_unlock_requested.emit(_active_skill_tree_entry_id)
 
 
 func _on_main_menu_button_pressed() -> void:

@@ -201,7 +201,8 @@ func get_attack_parameters() -> Dictionary:
 func activate_current_attack_hitbox(
 	attack_type: StringName = &"light",
 	duration_frames: int = 3,
-	combo_index: int = 0
+	combo_index: int = 0,
+	extra_metadata: Dictionary = {}
 ) -> bool:
 	if _collision_adapter == null or not _collision_adapter.has_method("activate_hitbox"):
 		return false
@@ -209,13 +210,20 @@ func activate_current_attack_hitbox(
 	if weapon == null:
 		return false
 	var hitbox_id: StringName = StringName("%s_%s" % [String(weapon.weapon_id), String(attack_type)])
+	var metadata: Dictionary = _build_attack_hitbox_metadata(weapon, attack_type, combo_index)
+	for key: Variant in extra_metadata.keys():
+		metadata[key] = extra_metadata[key]
+	var hitbox_offset: Vector2 = weapon.hitbox_offset + Vector2(
+		float(extra_metadata.get("hitbox_offset_x", 0.0)),
+		float(extra_metadata.get("hitbox_offset_y", 0.0))
+	)
 	_collision_adapter.call(
 		"activate_hitbox",
 		hitbox_id,
 		maxi(1, duration_frames),
-		weapon.hitbox_offset,
+		hitbox_offset,
 		weapon.hitbox_size,
-		_build_attack_hitbox_metadata(weapon, attack_type, combo_index)
+		metadata
 	)
 	return true
 
