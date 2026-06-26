@@ -8,7 +8,9 @@ signal enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool)
 
 const ENTITY_ID: int = 2200
 const MAX_HP: int = 36
+const AGGRO_RANGE_PX: float = 360.0
 const ATTACK_RANGE_PX: float = 108.0
+const CHASE_STEP_PX: float = 3.0
 const ATTACK_TELL_FRAMES: int = 8
 const ATTACK_ACTIVE_FRAMES: int = 4
 const ATTACK_RECOVERY_FRAMES: int = 14
@@ -41,6 +43,7 @@ var _hit_timer: int = 0
 var _attack_timer: int = 0
 var _attack_cooldown_timer: int = 0
 var _attack_sequence_id: int = 0
+var _behavior_phase: StringName = &"idle"
 var _defeated: bool = false
 var _last_hit_metadata: Dictionary = {}
 var _last_enemy_attack_metadata: Dictionary = {}
@@ -91,7 +94,7 @@ func set_attack_target(target: Node) -> void:
 
 
 func has_attack_target() -> bool:
-	return _attack_target != null
+	return _has_valid_attack_target()
 
 
 func set_damage_calculator_adapter(damage_calculator_adapter: Object) -> void:
@@ -101,16 +104,41 @@ func set_damage_calculator_adapter(damage_calculator_adapter: Object) -> void:
 
 
 func request_attack() -> bool:
-	if _defeated or _state != State.IDLE or _attack_cooldown_timer > 0:
+	if _defeated or _state != State.IDLE or _attack_cooldown_timer > 0 or not _has_valid_attack_target():
 		return false
 	_face_attack_target()
 	_attack_sequence_id += 1
 	_attack_timer = ATTACK_TELL_FRAMES
 	_state = State.ATTACK_TELL
+	_behavior_phase = &"startup"
 	if _collision != null:
 		_collision.deactivate_hitbox(ATTACK_HITBOX_ID)
 	_play_animation(ANIMATION_ATTACK, true)
 	return true
+
+
+func advance_behavior_frames(frames: int) -> void:
+	for _index: int in range(maxi(0, frames)):
+		if _status_effects != null:
+			_status_effects.advance_time(1.0 / 60.0)
+		if _defeated:
+			_behavior_phase = &"defeated"
+			return
+		_attack_cooldown_timer = maxi(_attack_cooldown_timer - 1, 0)
+		match _state:
+			State.IDLE:
+				_process_idle()
+			State.HIT:
+				_process_hit()
+			State.ATTACK_TELL:
+				_process_attack_tell()
+			State.ATTACK_ACTIVE:
+				_process_attack_active()
+			State.ATTACK_RECOVERY:
+				_process_attack_recovery()
+			State.DEAD:
+				_behavior_phase = &"defeated"
+				return
 
 
 func advance_attack_frames(frames: int) -> void:
@@ -153,6 +181,7 @@ func break_shield() -> bool:
 func reset_encounter() -> void:
 	_defeated = false
 	_state = State.IDLE
+	_behavior_phase = &"idle"
 	_hit_timer = 0
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
@@ -173,6 +202,7 @@ func reset_encounter() -> void:
 func mark_defeated_from_progress() -> void:
 	_defeated = true
 	_state = State.DEAD
+	_behavior_phase = &"defeated"
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
 	if _collision != null:
@@ -259,15 +289,48 @@ func get_attack_phase() -> StringName:
 			return &"idle"
 
 
+func get_auto_pressure_diagnostics() -> Dictionary:
+	var distance_x: float = INF
+	var distance_y: float = INF
+	if _has_valid_attack_target():
+		var to_target: Vector2 = _attack_target.global_position - global_position
+		distance_x = absf(to_target.x)
+		distance_y = absf(to_target.y)
+	return {
+		"behavior_phase": _behavior_phase,
+		"is_chasing": _behavior_phase == &"chase",
+		"aggro_range_px": AGGRO_RANGE_PX,
+		"attack_range_px": ATTACK_RANGE_PX,
+		"chase_step_px": CHASE_STEP_PX,
+		"target_distance_x": distance_x,
+		"target_distance_y": distance_y,
+		"has_target": _has_valid_attack_target(),
+		"cooldown_frames": _attack_cooldown_timer,
+		"attack_phase": get_attack_phase(),
+		"defeated": _defeated,
+	}
+
+
 func _process_idle(auto_attack: bool = true) -> void:
 	velocity = Vector2.ZERO
 	_update_sprite_facing()
 	_play_animation(ANIMATION_IDLE)
-	if auto_attack and _can_auto_attack_target():
+	if not auto_attack:
+		_behavior_phase = &"idle"
+		return
+	if _can_auto_attack_target():
 		request_attack()
+		return
+	if _can_chase_attack_target():
+		_chase_attack_target()
+		if _can_auto_attack_target():
+			request_attack()
+		return
+	_behavior_phase = &"idle"
 
 
 func _process_hit() -> void:
+	_behavior_phase = &"hurt"
 	_hit_timer -= 1
 	if _hit_timer <= 0:
 		_state = State.IDLE
@@ -277,6 +340,7 @@ func _process_hit() -> void:
 
 
 func _process_attack_tell() -> void:
+	_behavior_phase = &"startup"
 	velocity = Vector2.ZERO
 	_update_sprite_facing()
 	_play_animation(ANIMATION_ATTACK)
@@ -287,6 +351,7 @@ func _process_attack_tell() -> void:
 
 func _enter_attack_active() -> void:
 	_state = State.ATTACK_ACTIVE
+	_behavior_phase = &"active"
 	_attack_timer = ATTACK_ACTIVE_FRAMES
 	_play_animation(ANIMATION_ATTACK, true)
 	if _collision == null:
@@ -301,6 +366,7 @@ func _enter_attack_active() -> void:
 
 
 func _process_attack_active() -> void:
+	_behavior_phase = &"active"
 	velocity = Vector2.ZERO
 	_play_animation(ANIMATION_ATTACK)
 	_attack_timer -= 1
@@ -310,12 +376,14 @@ func _process_attack_active() -> void:
 
 func _enter_attack_recovery() -> void:
 	_state = State.ATTACK_RECOVERY
+	_behavior_phase = &"recovery"
 	_attack_timer = ATTACK_RECOVERY_FRAMES
 	if _collision != null:
 		_collision.deactivate_hitbox(ATTACK_HITBOX_ID)
 
 
 func _process_attack_recovery() -> void:
+	_behavior_phase = &"recovery"
 	velocity = Vector2.ZERO
 	_attack_timer -= 1
 	if _attack_timer <= 0:
@@ -389,6 +457,7 @@ func _die(_metadata: Dictionary) -> void:
 		return
 	_defeated = true
 	_state = State.DEAD
+	_behavior_phase = &"defeated"
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
 	if _collision != null:
@@ -449,19 +518,43 @@ func _build_enemy_damage_params() -> Dictionary:
 
 
 func _can_auto_attack_target() -> bool:
-	if _attack_target == null or _attack_cooldown_timer > 0:
+	if not _has_valid_attack_target() or _attack_cooldown_timer > 0:
 		return false
 	var to_target: Vector2 = _attack_target.global_position - global_position
 	return absf(to_target.x) <= ATTACK_RANGE_PX and absf(to_target.y) <= 72.0
 
 
+func _can_chase_attack_target() -> bool:
+	if not _has_valid_attack_target():
+		return false
+	var to_target: Vector2 = _attack_target.global_position - global_position
+	if absf(to_target.y) > 72.0:
+		return false
+	return absf(to_target.x) <= AGGRO_RANGE_PX and absf(to_target.x) > ATTACK_RANGE_PX
+
+
+func _chase_attack_target() -> void:
+	var direction: float = _direction_to_target()
+	var distance_x: float = absf(_attack_target.global_position.x - global_position.x)
+	var step_px: float = minf(CHASE_STEP_PX, maxf(0.0, distance_x - ATTACK_RANGE_PX))
+	global_position.x += direction * step_px
+	velocity = Vector2(direction * CHASE_STEP_PX * 60.0, 0.0)
+	_behavior_phase = &"chase"
+	_update_sprite_facing()
+	_play_animation(ANIMATION_IDLE)
+
+
 func _direction_to_target() -> float:
-	if _attack_target == null:
+	if not _has_valid_attack_target():
 		return _facing
 	var delta_x: float = _attack_target.global_position.x - global_position.x
 	if absf(delta_x) > 1.0:
 		_facing = signf(delta_x)
 	return _facing
+
+
+func _has_valid_attack_target() -> bool:
+	return _attack_target != null and is_instance_valid(_attack_target)
 
 
 func _face_attack_target() -> void:
