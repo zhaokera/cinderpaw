@@ -58,6 +58,7 @@ const BOSS2_DOUBLE_JUMP_REWARD_ABILITY_ID: StringName = &"double_jump"
 const BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG: StringName = &"boss_02_double_jump_claimed"
 const BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG: StringName = &"boss_02_echo_guardian_defeated"
 const BOSS2_DOUBLE_JUMP_REWARD_NOTIFICATION: String = "Double Jump unlocked"
+const BOSS2_ECHO_GUARDIAN_DISPLAY_NAME: String = "Echo Guardian"
 const SAVEPOINT_NOTIFICATION_SUFFIX: String = " saved"
 const CAT_CLAW_T1A_SKILL_ID: StringName = &"cat_claw_t1a"
 const FACTORY_ROUTE_SHELL_NODE_PATH: NodePath = ^"FactoryRouteTransitionShell"
@@ -215,12 +216,12 @@ func _ready() -> void:
 	_sync_combat_presentation_accessibility_settings()
 
 	_hud.update_hp(_player.get_current_hp(), _player.get_max_hp())
-	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), 1, _get_enemy_display_name())
 	_hud.update_currency(_currency_amount)
 	_sync_player_unlocked_abilities()
 	_sync_exploration_gates()
 	_sync_hidden_double_jump_reward_source()
 	_setup_boss2_double_jump_payoff()
+	_refresh_boss_hud()
 	_sync_factory_route_transition_shell()
 	_update_weapon_hud()
 	configure_save_system_runtime(get_node_or_null("/root/SaveSystem"))
@@ -343,7 +344,11 @@ func _on_boss2_attack_landed(damage: int, hit_position: Vector2, is_crit: bool) 
 
 
 func _on_enemy_health_changed(current_hp: int, max_hp: int) -> void:
-	_hud.update_boss_hp(current_hp, max_hp, _get_enemy_phase(), _get_enemy_display_name())
+	_refresh_boss_hud(current_hp, max_hp)
+
+
+func _on_boss2_health_changed(_current_hp: int, _max_hp: int) -> void:
+	_refresh_boss_hud()
 
 
 func _on_enemy_defeated() -> void:
@@ -597,7 +602,7 @@ func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
 	cleanup_arena_mutations()
 	var enemy_snapshot: Dictionary = Dictionary(snapshot.get("enemy", {}))
 	_enemy.restore_respawn_snapshot(enemy_snapshot)
-	_hud.update_boss_hp(_enemy.get_current_hp(), _enemy.get_max_hp(), _get_enemy_phase(), _get_enemy_display_name())
+	_refresh_boss_hud()
 
 
 func cleanup_temporary_summons() -> void:
@@ -1689,7 +1694,7 @@ func _handle_boss_phase_transition_started(entity_id: int, phase: int, metadata:
 	enriched_metadata["boss_id"] = RAT_KING_BOSS_ID
 	if not enriched_metadata.has("world_position") and is_instance_valid(_enemy):
 		enriched_metadata["world_position"] = _enemy.global_position + Vector2(0, -24)
-	if is_instance_valid(_hud) and is_instance_valid(_enemy):
+	if is_instance_valid(_hud) and is_instance_valid(_enemy) and not _should_show_boss2_hud():
 		_hud.update_boss_hp(
 			_enemy.get_current_hp(),
 			_enemy.get_max_hp(),
@@ -1922,6 +1927,10 @@ func _setup_boss2_double_jump_payoff() -> void:
 		var defeated_signal: Signal = _boss2_echo_guardian.get("boss_defeated")
 		if not defeated_signal.is_connected(_on_boss2_echo_guardian_defeated):
 			defeated_signal.connect(_on_boss2_echo_guardian_defeated)
+	if _boss2_echo_guardian != null and _boss2_echo_guardian.has_signal("boss_health_changed"):
+		var health_signal: Signal = _boss2_echo_guardian.get("boss_health_changed")
+		if not health_signal.is_connected(_on_boss2_health_changed):
+			health_signal.connect(_on_boss2_health_changed)
 	_sync_boss2_double_jump_payoff_state()
 
 
@@ -1953,6 +1962,47 @@ func _get_boss2_double_jump_reward_source() -> Node:
 	return source
 
 
+func _refresh_boss_hud(enemy_current_hp: int = -1, enemy_max_hp: int = -1) -> void:
+	if not is_instance_valid(_hud):
+		return
+	var boss2: Node = _get_boss2_echo_guardian()
+	if _should_show_boss2_hud(boss2):
+		_hud.update_boss_hp(
+			int(boss2.call("get_current_hp")),
+			int(boss2.call("get_max_hp")),
+			1,
+			BOSS2_ECHO_GUARDIAN_DISPLAY_NAME
+		)
+		return
+	if not is_instance_valid(_enemy):
+		_hud.hide_boss_hp()
+		return
+	var current_hp: int = _enemy.get_current_hp() if enemy_current_hp < 0 else enemy_current_hp
+	var max_hp: int = _enemy.get_max_hp() if enemy_max_hp < 0 else enemy_max_hp
+	if current_hp <= 0:
+		_hud.hide_boss_hp()
+		return
+	_hud.update_boss_hp(current_hp, max_hp, _get_enemy_phase(), _get_enemy_display_name())
+
+
+func _should_show_boss2_hud(boss: Node = null) -> bool:
+	if boss == null:
+		boss = _get_boss2_echo_guardian()
+	if boss == null:
+		return false
+	if not boss.visible:
+		return false
+	if not boss.has_method("is_defeated") or bool(boss.call("is_defeated")):
+		return false
+	if not boss.has_method("get_current_hp") or int(boss.call("get_current_hp")) <= 0:
+		return false
+	if bool(_world_progress_flags.get(String(BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG), false)):
+		return false
+	if bool(_world_progress_flags.get(String(BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG), false)):
+		return false
+	return true
+
+
 func _sync_boss2_double_jump_payoff_state() -> void:
 	var reward_claimed: bool = bool(_world_progress_flags.get(
 		String(BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG),
@@ -1974,6 +2024,7 @@ func _sync_boss2_double_jump_payoff_state() -> void:
 	if source.has_method("set_available"):
 		source.call("set_available", boss_defeated and not reward_claimed)
 	source.call("set_claimed", reward_claimed)
+	_refresh_boss_hud()
 
 
 func _process_boss2_double_jump_reward_source_contact() -> void:

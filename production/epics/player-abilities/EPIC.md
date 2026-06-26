@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 22 stories tracked
+> **Stories**: 23 stories tracked
 
 ## Overview
 
@@ -60,6 +60,7 @@ recording the reward in progression state.
 | 020 | Parry Success Feedback Runtime | Integration + Visual/Feel + Audio | Complete | ADR-0002/0005/0010/0018 |
 | 021 | Mainline Boss2 Double Jump Payoff Shell | Integration + Gameplay Runtime + Visual | Complete | ADR-0007/0018/0021 |
 | 022 | Boss2 Echo Guardian Telegraph Strike | Integration + Gameplay Runtime + Combat Feel | Complete | ADR-0004/0005/0007/0018/0021 |
+| 023 | Boss2 HUD Focus Runtime | Integration + Gameplay Runtime + HUD/Feel | Complete | ADR-0002/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -79,7 +80,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-022 are complete. Continue another ACT-visible slice such as
+Stories001-023 are complete. Continue another ACT-visible slice such as
 additional ExplorationGate ability doors, deeper Old Factory route/combat
 content, savepoint/minimap gameplay, more skill-tree branches, Boss2 arena
 polish, authored audio replacement, and other player-visible ability consumers.
