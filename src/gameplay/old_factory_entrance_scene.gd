@@ -11,6 +11,7 @@ const FACTORY_STEAM_DAMAGE_FALLBACK: int = 8
 const FACTORY_STEAM_CONTACT_COOLDOWN_FALLBACK_SEC: float = 1.0
 const FACTORY_ENTRY_GUARD_ENTITY_ID: int = 2100
 const FACTORY_DEEP_GUARD_ENTITY_ID: int = 2101
+const FACTORY_SPARK_RAT_ENTITY_ID: int = 2102
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_RAT_MINION_COLLISION_LAYER: int = 2
 const FACTORY_RAT_MINION_COLLISION_MASK: int = 17
@@ -20,6 +21,7 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _player: Node2D = $Player
 @onready var _enemy: Node2D = $FactoryRatMinion
 @onready var _deep_guard: Node2D = get_node_or_null("FactoryDeepGuardRatMinion") as Node2D
+@onready var _spark_rat: Node2D = get_node_or_null("FactorySparkRat") as Node2D
 @onready var _cache: Node = $FactoryCombatCache
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
@@ -32,6 +34,8 @@ var _cache_claimed: bool = false
 var _deep_guard_activated: bool = false
 var _deep_guard_defeated: bool = false
 var _deep_route_cleared: bool = false
+var _spark_rat_activated: bool = false
+var _spark_rat_defeated: bool = false
 var _factory_hazard_elapsed_sec: float = 0.0
 var _factory_hazard_contact_cooldowns: Dictionary = {}
 var _weapon_component: WeaponComponent = null
@@ -44,6 +48,7 @@ func _ready() -> void:
 	_setup_factory_cache()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
+	_setup_factory_spark_rat()
 	_bind_player_combat_to_room()
 	_request_factory_audio()
 
@@ -106,6 +111,11 @@ func is_factory_deep_guard_activated() -> bool:
 	return _deep_guard_activated
 
 
+## Returns whether the Factory spark rat patrol enemy has been defeated.
+func is_factory_spark_rat_defeated() -> bool:
+	return _spark_rat_defeated
+
+
 ## Attempts to alert the deep-route guard after the entrance encounter is clear.
 func try_activate_factory_deep_guard(provider: Node = null) -> bool:
 	if _deep_guard == null or _deep_guard_defeated or _deep_guard_activated:
@@ -120,6 +130,23 @@ func try_activate_factory_deep_guard(provider: Node = null) -> bool:
 	_deep_guard_activated = true
 	_sync_deep_route_state()
 	_update_route_label("Deep guard alerted")
+	return true
+
+
+## Attempts to activate the Factory spark rat after the deep route endpoint opens.
+func try_activate_factory_spark_rat(provider: Node = null) -> bool:
+	if _spark_rat == null or _spark_rat_defeated or _spark_rat_activated:
+		return false
+	if not _deep_route_cleared:
+		return false
+	_spark_rat_activated = true
+	_sync_spark_rat_state()
+	var activation_provider: Node = provider
+	if activation_provider == null:
+		activation_provider = _player
+	if activation_provider != null:
+		_set_spark_rat_attack_target(activation_provider)
+	_update_route_label("Spark rat patrol active")
 	return true
 
 
@@ -207,6 +234,8 @@ func get_local_state() -> Dictionary:
 		"factory_deep_guard_activated": _deep_guard_activated,
 		"factory_deep_guard_defeated": _deep_guard_defeated,
 		"factory_deep_route_cleared": _deep_route_cleared,
+		"factory_spark_rat_activated": _spark_rat_activated,
+		"factory_spark_rat_defeated": _spark_rat_defeated,
 		"last_cache_reward": _last_cache_reward.duplicate(true),
 		"last_hazard_damage": _last_hazard_damage.duplicate(true),
 	}
@@ -219,6 +248,8 @@ func set_local_state(state: Dictionary) -> void:
 	_deep_guard_activated = bool(state.get("factory_deep_guard_activated", false))
 	_deep_guard_defeated = bool(state.get("factory_deep_guard_defeated", false))
 	_deep_route_cleared = bool(state.get("factory_deep_route_cleared", false))
+	_spark_rat_activated = bool(state.get("factory_spark_rat_activated", false))
+	_spark_rat_defeated = bool(state.get("factory_spark_rat_defeated", false))
 	var reward_variant: Variant = state.get("last_cache_reward", {})
 	_last_cache_reward = (
 		(reward_variant as Dictionary).duplicate(true)
@@ -233,6 +264,7 @@ func set_local_state(state: Dictionary) -> void:
 	)
 	_sync_room_clear_state()
 	_sync_deep_route_state()
+	_sync_spark_rat_state()
 
 
 ## Returns deterministic room-clear/cache diagnostics for tests and MCP probes.
@@ -334,6 +366,38 @@ func get_factory_deep_route_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic spark-rat diagnostics for tests and MCP probes.
+func get_factory_spark_rat_diagnostics() -> Dictionary:
+	var sprite: AnimatedSprite2D = (
+		_spark_rat.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _spark_rat != null
+		else null
+	)
+	return {
+		"present": _spark_rat != null,
+		"visible": _spark_rat.visible if _spark_rat != null else false,
+		"active": _spark_rat_activated and not _spark_rat_defeated,
+		"defeated": _spark_rat_defeated,
+		"entity_id": (
+			int(_spark_rat.call("get_entity_id"))
+			if _spark_rat != null and _spark_rat.has_method("get_entity_id")
+			else 0
+		),
+		"has_target": _does_spark_rat_have_target(),
+		"physics_enabled": _spark_rat.is_physics_processing() if _spark_rat != null else false,
+		"process_enabled": _spark_rat.is_processing() if _spark_rat != null else false,
+		"collision_layer": _spark_rat.collision_layer if _spark_rat != null else 0,
+		"collision_mask": _spark_rat.collision_mask if _spark_rat != null else 0,
+		"sprite_frames_path": (
+			sprite.sprite_frames.resource_path
+			if sprite != null and sprite.sprite_frames != null
+			else ""
+		),
+		"animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
+		"position": _spark_rat.global_position if _spark_rat != null else Vector2.ZERO,
+	}
+
+
 func get_factory_entrance_diagnostics() -> Dictionary:
 	var backdrop := get_node_or_null("Background") as TextureRect
 	var enemy_sprite := get_node_or_null("FactoryRatMinion/Sprite") as AnimatedSprite2D
@@ -355,6 +419,7 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		"room_clear": get_factory_room_clear_diagnostics(),
 		"hazards": get_factory_hazard_diagnostics(),
 		"deep_route": get_factory_deep_route_diagnostics(),
+		"spark_rat": get_factory_spark_rat_diagnostics(),
 		"last_player_hit_metadata": get_last_player_hit_metadata(),
 	}
 
@@ -392,6 +457,13 @@ func _bind_enemy_to_player() -> void:
 		&"factory_deep_guard",
 		_on_factory_deep_guard_defeated
 	)
+	_bind_factory_guard(
+		_spark_rat,
+		&"old_factory_spark_rat_patrol",
+		FACTORY_SPARK_RAT_ENTITY_ID,
+		&"factory_spark_rat_patrol",
+		_on_factory_spark_rat_defeated
+	)
 
 
 func _setup_factory_cache() -> void:
@@ -421,6 +493,10 @@ func _setup_factory_deep_route() -> void:
 	var endpoint_signal: Signal = _deep_endpoint.get("endpoint_activated")
 	if not endpoint_signal.is_connected(_on_factory_deep_route_endpoint_activated):
 		endpoint_signal.connect(_on_factory_deep_route_endpoint_activated)
+
+
+func _setup_factory_spark_rat() -> void:
+	_sync_spark_rat_state()
 
 
 func _bind_player_combat_to_room() -> void:
@@ -460,6 +536,13 @@ func _on_factory_deep_guard_defeated() -> void:
 	_update_route_label("Deep route switch unlocked")
 
 
+func _on_factory_spark_rat_defeated() -> void:
+	_spark_rat_activated = true
+	_spark_rat_defeated = true
+	_sync_spark_rat_state()
+	_update_route_label("Spark rat defeated")
+
+
 func _on_factory_cache_claimed(_cache_id: StringName, reward: Dictionary) -> void:
 	_cache_claimed = true
 	_last_cache_reward = reward.duplicate(true)
@@ -468,6 +551,7 @@ func _on_factory_cache_claimed(_cache_id: StringName, reward: Dictionary) -> voi
 func _on_factory_deep_route_endpoint_activated(_endpoint_id: StringName) -> void:
 	_deep_route_cleared = true
 	_sync_deep_route_state()
+	_sync_spark_rat_state()
 	_update_route_label("Deep route opened")
 
 
@@ -543,6 +627,31 @@ func _sync_deep_route_state() -> void:
 			_deep_guard.set_deferred("collision_layer", 0)
 			_deep_guard.set_deferred("collision_mask", 0)
 			_set_deep_guard_attack_target(null)
+
+
+func _sync_spark_rat_state() -> void:
+	if _spark_rat == null:
+		return
+	if _spark_rat_defeated:
+		_spark_rat.visible = false
+		_spark_rat.set_physics_process(false)
+		_spark_rat.set_process(false)
+		_spark_rat.collision_layer = 0
+		_spark_rat.collision_mask = 0
+		_set_spark_rat_attack_target(null)
+		return
+	_spark_rat.visible = true
+	var active: bool = _deep_route_cleared and _spark_rat_activated
+	_spark_rat.set_physics_process(active)
+	_spark_rat.set_process(active)
+	if active:
+		_spark_rat.collision_layer = FACTORY_RAT_MINION_COLLISION_LAYER
+		_spark_rat.collision_mask = FACTORY_RAT_MINION_COLLISION_MASK
+		_set_spark_rat_attack_target(_player)
+	else:
+		_spark_rat.collision_layer = 0
+		_spark_rat.collision_mask = 0
+		_set_spark_rat_attack_target(null)
 
 
 func _update_route_label(text_value: String) -> void:
@@ -633,12 +742,25 @@ func _set_deep_guard_attack_target(attack_target: Node) -> void:
 		_deep_guard.call("set_attack_target", attack_target)
 
 
+func _set_spark_rat_attack_target(attack_target: Node) -> void:
+	if _spark_rat != null and _spark_rat.has_method("set_attack_target"):
+		_spark_rat.call("set_attack_target", attack_target)
+
+
 func _does_deep_guard_have_target() -> bool:
 	if _deep_guard == null:
 		return false
 	if _deep_guard.has_method("has_attack_target"):
 		return bool(_deep_guard.call("has_attack_target"))
 	return _deep_guard_activated and not _deep_guard_defeated
+
+
+func _does_spark_rat_have_target() -> bool:
+	if _spark_rat == null:
+		return false
+	if _spark_rat.has_method("has_attack_target"):
+		return bool(_spark_rat.call("has_attack_target"))
+	return _spark_rat_activated and not _spark_rat_defeated
 
 
 func _is_deep_guard_activation_provider_in_range(provider: Node) -> bool:
@@ -648,9 +770,18 @@ func _is_deep_guard_activation_provider_in_range(provider: Node) -> bool:
 
 
 func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
-	for guard: Node in [_enemy, _deep_guard]:
+	for guard: Node in [_enemy, _deep_guard, _spark_rat]:
 		if guard == null or not guard.has_method("get_entity_id"):
 			continue
 		if int(guard.call("get_entity_id")) == target_id:
 			return guard
 	return null
+
+
+func _get_sprite_animation_frame_counts(sprite: AnimatedSprite2D) -> Dictionary:
+	if sprite == null or sprite.sprite_frames == null:
+		return {}
+	var frame_counts: Dictionary = {}
+	for animation_name: StringName in sprite.sprite_frames.get_animation_names():
+		frame_counts[String(animation_name)] = sprite.sprite_frames.get_frame_count(animation_name)
+	return frame_counts

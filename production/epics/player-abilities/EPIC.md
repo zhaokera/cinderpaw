@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 12 stories tracked
+> **Stories**: 13 stories tracked
 
 ## Overview
 
@@ -50,6 +50,7 @@ recording the reward in progression state.
 | 010 | Old Factory Deep Route Micro-Slice | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 011 | Old Factory Deep Guard Activation Pacing | Integration + Gameplay Runtime + Combat Pacing | Complete | ADR-0004/0007/0018/0021 |
 | 012 | Old Factory Deep Route Unlock Feedback | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0002/0007/0018/0021 |
+| 013 | Old Factory Spark Rat Patrol Encounter | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -69,7 +70,8 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-012 are complete. Continue skill-tree spending UI, the mainline Boss2
+Stories001-013 are complete. Continue skill-tree spending UI, the mainline Boss2
 Double Jump reward source, additional ExplorationGate ability doors, broader
-gate unlock SFX/VFX, deeper Old Factory route/combat content, and other
+gate unlock SFX/VFX, deeper Old Factory route/combat content, savepoint/minimap
+gameplay, and other
 player-visible ability consumers.

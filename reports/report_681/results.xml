@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-26" name="report_681" tests="4" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_spark_rat_patrol_encounter_test" package="tests/unit/gameplay" timestamp="2026-06-26T00:58:11" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.185">
+		<testcase name="test_factory_spark_rat_character_assets_follow_frame_animation_rules" classname="old_factory_spark_rat_patrol_encounter_test" time="0.008">
+		</testcase>
+		<testcase name="test_old_factory_mounts_spark_rat_visible_but_inactive_until_deep_route_opens" classname="old_factory_spark_rat_patrol_encounter_test" time="0.095">
+		</testcase>
+		<testcase name="test_spark_rat_activates_after_endpoint_open_and_can_be_defeated" classname="old_factory_spark_rat_patrol_encounter_test" time="0.046">
+		</testcase>
+		<testcase name="test_spark_rat_defeat_state_restores_without_replaying_route_feedback" classname="old_factory_spark_rat_patrol_encounter_test" time="0.029">
+		</testcase>
+	</testsuite>
+</testsuites>
