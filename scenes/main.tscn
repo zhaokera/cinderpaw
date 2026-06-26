@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://main001"]
+[gd_scene load_steps=22 format=3 uid="uid://main001"]
 
 [ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://4j2ise5khuss" path="res://assets/generated/wasteland_alley_bg.png" id="3_bg"]
@@ -31,6 +31,9 @@ size = Vector2(44, 124)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_double_jump_gate"]
 size = Vector2(64, 124)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_parry_laser_gate"]
+size = Vector2(48, 118)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hidden_double_jump_reward"]
 size = Vector2(112, 112)
@@ -231,6 +234,43 @@ offset_bottom = -72.0
 theme_override_colors/font_color = Color(1, 0.86, 0.2, 1)
 theme_override_font_sizes/font_size = 16
 text = "Requires Dash"
+horizontal_alignment = 1
+
+[node name="ParryLaserExplorationGate" type="Node2D" parent="."]
+z_index = 31
+position = Vector2(1160, 438)
+script = ExtResource("10_gate")
+gate_id = "parry_laser_central_tower"
+required_ability = "parry"
+target_area_id = "area_05_central_tower"
+unlock_radius_px = 104.0
+locked_prompt_text = "Requires Parry"
+unlockable_prompt_text = "Parry the laser"
+locked_modulate = Color(0.96, 0.14, 0.22, 1)
+unlockable_modulate = Color(0.28, 0.9, 1, 1)
+unlocked_modulate = Color(0.42, 0.9, 1, 0.24)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="ParryLaserExplorationGate"]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParryLaserExplorationGate/StaticBody2D"]
+shape = SubResource("RectangleShape2D_parry_laser_gate")
+
+[node name="Visual" type="Sprite2D" parent="ParryLaserExplorationGate"]
+rotation = 1.5708
+scale = Vector2(0.42, 0.62)
+modulate = Color(0.4, 0.92, 1, 1)
+texture = ExtResource("11_gate_texture")
+
+[node name="PromptLabel" type="Label" parent="ParryLaserExplorationGate"]
+offset_left = -86.0
+offset_top = -96.0
+offset_right = 86.0
+offset_bottom = -72.0
+theme_override_colors/font_color = Color(0.5, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "Parry the laser"
 horizontal_alignment = 1
 
 [node name="Player" parent="." unique_id=1203527687 instance=ExtResource("1_player")]

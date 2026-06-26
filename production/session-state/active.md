@@ -26,7 +26,8 @@
   defeat reward runtime consumption、Player Abilities Story002
   ExplorationGate dash 门控、Player Abilities Story011 Old Factory deep guard
   activation pacing、Player Abilities Story017 Old Factory Spark Rat pacing
-  polish、Player Abilities Story018 Skill Tree Cat Claw T1-A First Spend
+  polish、Player Abilities Story018 Skill Tree Cat Claw T1-A First Spend、
+  Player Abilities Story019 Parry Laser Gate Runtime
   已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
   routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
@@ -38,6 +39,38 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 019: Parry Laser Gate Runtime —
+  新增 Cinderpaw `parry` 玩家可见帧动画，使用 image generation 生成
+  source strip，保留
+  `assets/characters/cinderpaw/source/cinderpaw_parry_strip_imagegen_20260626.png`
+  和 alpha source，并切成
+  `assets/characters/cinderpaw/parry/cinderpaw_parry_000.png` 至 `_002.png`
+  三张透明 96x96 PNG，接入
+  `assets/characters/cinderpaw/cinderpaw_sprite_frames.tres` 的 `parry`
+  动画。`PlayerController.request_parry()` 现在通过 AbilityComponent 的
+  初始 `parry` 能力和 0.3s 冷却，同时要求 Core `CombatComponent` 可以从
+  IDLE 进入 `PARRYING`；如果 Core combat 正在 CHARGING 等阻塞状态，parry
+  会失败且不会发出 `ability_activated` 或消耗冷却。`scenes/main.tscn`
+  新增 `ParryLaserExplorationGate`，配置
+  `gate_id="parry_laser_central_tower"`、
+  `required_ability="parry"`、`target_area_id="area_05_central_tower"`，
+  初始为 `unlockable`，玩家在范围内执行 parry 后变为 unlocked，关闭碰撞，
+  并把 `exploration_gates.unlocked`、`gate_parry_laser_central_tower_unlocked`
+  和 `area_05_central_tower_unlocked` 写入存档快照。Verification: RED
+  `reports/report_726/`；RED import refinement `reports/report_727/`；
+  initial GREEN focused `reports/report_728/` `3/3`；initial related
+  `reports/report_729/` `25/25`；blocked-combat cooldown-order RED
+  `reports/report_730/`；final focused `reports/report_731/` `4/4`；final
+  related `reports/report_732/` `26/26`；headless main-scene smoke
+  `reports/parry_laser_gate_runtime_main_scene_smoke.log` exited `0` and log
+  keyword scan found no parse/invalid/missing-resource errors. Godot MCP
+  runtime with `autosave=false` confirmed `/Main/ParryLaserExplorationGate`,
+  Player `AnimatedSprite2D + SpriteFrames`, `parry` frame count `3`, runtime
+  `request_parry()` unlocks the gate and save flags, clean game/editor logs,
+  and screenshot
+  `reports/visual/cinderpaw-mcp-parry-laser-gate-runtime-20260626.png`。
+  QA evidence:
+  `production/qa/evidence/parry-laser-gate-runtime-2026-06-26.md`。
 - Player Abilities Story 018: Skill Tree Cat Claw T1-A First Spend —
   新增 `skill_tree` DataManager 域与 schema，创建场景级
   `SkillTreeManager`，并把 Rat King 奖励的 SP 接入最小可见技能树菜单。
@@ -2521,3 +2554,14 @@
 - Verification: RED `reports/report_719/`; GREEN focused before refactor `reports/report_720/` `2/2`; related before refactor `reports/report_723/` `42/42`; final focused after refactor `reports/report_724/` `2/2`; final related `reports/report_725/` `42/42`; headless main-scene smoke `reports/skill_tree_cat_claw_t1a_main_scene_smoke.log` exited `0` and keyword scan found no parse/invalid/missing-resource errors. Godot MCP runtime with `autosave=false` confirmed `/Main/SkillTreeManager`, Player `AnimatedSprite2D + SpriteFrames`, Rat King reward `0 -> 5` SP, Skill Tree HUD, unlock `true`, SP `5 -> 4`, modifier payload, second Cat Claw attack `+8px` lunge and metadata, clean game/editor logs, and screenshot `reports/visual/cinderpaw-mcp-skill-tree-cat-claw-t1a-20260626.png`.
 - Blockers: None. Full 65-node skill tree, reset economy, graph UI, NPC mentor flow, other weapon branches, charm F8 combined bonus, Boss2, additional ability gates, savepoint/minimap gameplay, and final localization remain out of scope.
 - Next: continue another ACT-visible slice such as mainline Boss2 Double Jump reward source, additional ExplorationGate ability doors, deeper Old Factory route/combat content, savepoint/minimap gameplay, more skill-tree branches, or broader frame-animation audit.
+
+## Session Extract — /dev-story 2026-06-26
+
+- Story: `production/epics/player-abilities/story-019-parry-laser-gate-runtime.md` — Parry Laser Gate Runtime
+- Files changed: `src/gameplay/player_controller.gd`, `scenes/main.tscn`, `assets/characters/cinderpaw/cinderpaw_sprite_frames.tres`, `assets/characters/cinderpaw/parry/cinderpaw_parry_000.png`, `assets/characters/cinderpaw/parry/cinderpaw_parry_001.png`, `assets/characters/cinderpaw/parry/cinderpaw_parry_002.png`, `assets/characters/cinderpaw/source/cinderpaw_parry_strip_imagegen_20260626.png`, `assets/characters/cinderpaw/source/cinderpaw_parry_strip_alpha_20260626.png`, `tests/unit/gameplay/player_parry_laser_gate_runtime_test.gd`, `design/assets/asset-manifest.md`, `production/epics/index.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/player-abilities/story-019-parry-laser-gate-runtime.md`, `production/qa/evidence/parry-laser-gate-runtime-2026-06-26.md`, `reports/parry_laser_gate_runtime_main_scene_smoke.log`, `reports/visual/cinderpaw-mcp-parry-laser-gate-runtime-20260626.png`, `production/session-state/active.md`
+- Implementation: Added a generated three-frame Cinderpaw `parry` animation to the player SpriteFrames resource and connected `PlayerController.request_parry()` to AbilityComponent's initial `parry` ability plus Core CombatComponent `PARRYING`. The method now checks Core combat readiness before consuming the 0.3s ability cooldown, so blocked states such as CHARGING reject parry without emitting `ability_activated`. `scenes/main.tscn` now includes `ParryLaserExplorationGate` with `gate_id="parry_laser_central_tower"`, `required_ability="parry"`, and `target_area_id="area_05_central_tower"`; runtime parry in range unlocks it, disables collision, and persists the gate and area flags into the save snapshot.
+- Asset pipeline: Generated the Cinderpaw parry strip through image generation, preserved source at `assets/characters/cinderpaw/source/cinderpaw_parry_strip_imagegen_20260626.png`, removed chroma key to `assets/characters/cinderpaw/source/cinderpaw_parry_strip_alpha_20260626.png`, sliced it into transparent 96x96 PNG frames under `assets/characters/cinderpaw/parry/`, imported those PNGs through Godot, and recorded the asset in the manifest and QA evidence.
+- Test written: `tests/unit/gameplay/player_parry_laser_gate_runtime_test.gd` with four focused tests covering generated parry frames, parry activation/cooldown/combat state, blocked-combat cooldown ordering, MainScene parry laser gate unlock, collision state, and save/restore persistence.
+- Verification: RED `reports/report_726/`; RED import refinement `reports/report_727/`; GREEN focused before cooldown-order refinement `reports/report_728/` `3/3`; related before refinement `reports/report_729/` `25/25`; blocked-combat cooldown-order RED `reports/report_730/`; final focused `reports/report_731/` `4/4`; final related `reports/report_732/` `26/26`; Godot import exited `0`; headless main-scene smoke `reports/parry_laser_gate_runtime_main_scene_smoke.log` exited `0` and keyword scan found no parse/invalid/missing-resource/resource-load failures. Godot MCP runtime with `autosave=false` confirmed `/Main/ParryLaserExplorationGate`, Player `AnimatedSprite2D`, SpriteFrames path `res://assets/characters/cinderpaw/cinderpaw_sprite_frames.tres`, `parry` has `3` frames from `assets/characters/cinderpaw/parry/`, `request_parry()` returns `true`, gate state changes `unlockable -> unlocked`, collision blocking changes `true -> false`, save flags are written, game/editor logs are clean, and screenshot `reports/visual/cinderpaw-mcp-parry-laser-gate-runtime-20260626.png` is nonblank.
+- Blockers: None. Full Central Tower scene, final laser-gate art replacement, full parry success/counterattack presentation, parry SFX, aerial attack gate, wall-climb gate, Boss2, minimap/fast travel, and parry skill-tree modifiers remain out of scope.
+- Next: continue another ACT-visible slice such as mainline Boss2 Double Jump reward source, another ExplorationGate ability door, deeper Old Factory route/combat content, savepoint/minimap gameplay, more skill-tree branches, parry success presentation/audio, or broader frame-animation audit.

@@ -49,11 +49,13 @@ const ANIMATION_RUN: StringName = &"run"
 const ANIMATION_ATTACK: StringName = &"attack"
 const ANIMATION_DODGE: StringName = &"dodge"
 const ANIMATION_DASH: StringName = &"dash"
+const ANIMATION_PARRY: StringName = &"parry"
 const ANIMATION_HURT: StringName = &"hurt"
 const ANIMATION_DEATH: StringName = &"death"
 const ANIMATION_REVIVE: StringName = &"revive"
 const ANIMATION_JUMP: StringName = &"jump"
 const ANIMATION_FALL: StringName = &"fall"
+const PARRY_DURATION_FRAMES: int = 18
 const RUN_ANIMATION_MIN_SPEED: float = 5.0
 const HURT_ANIMATION_LOCK_FRAMES: int = 12
 const DEATH_ANIMATION_LOCK_FRAMES: int = 90
@@ -72,12 +74,13 @@ const COLLISION_COMPONENT_SCRIPT: Script = preload("res://src/core/collision_com
 const ABILITY_COMPONENT_SCRIPT: Script = preload("res://src/core/ability_component.gd")
 const ABILITY_DASH: StringName = &"dash"
 const ABILITY_DOUBLE_JUMP: StringName = &"double_jump"
+const ABILITY_PARRY: StringName = &"parry"
 
 # ---------------------------------------------------------------------------
 # State
 # ---------------------------------------------------------------------------
 
-enum State { IDLE, ATTACKING, DODGING, DASHING }
+enum State { IDLE, ATTACKING, DODGING, DASHING, PARRYING }
 
 var _state: State = State.IDLE
 var _facing: float = 1.0  # 1 = right, -1 = left
@@ -87,6 +90,7 @@ var _attack_timer: int = 0
 var _dodge_timer: int = 0
 var _dodge_cooldown_timer: int = 0
 var _dash_timer: int = 0
+var _parry_timer: int = 0
 var _control_locked: bool = false
 var _respawn_visual_remaining_frames: int = 0
 var _respawn_visual_elapsed_frames: int = 0
@@ -149,6 +153,12 @@ func _physics_process(delta: float) -> void:
 			_state = State.IDLE
 			_sprite.modulate = NORMAL_MODULATE
 
+	if _state == State.PARRYING:
+		_parry_timer -= 1
+		if _parry_timer <= 0:
+			_state = State.IDLE
+			_sprite.modulate = NORMAL_MODULATE
+
 	# Input + movement
 	_handle_input()
 	_apply_gravity(delta)
@@ -180,7 +190,12 @@ func _handle_input() -> void:
 	var input_dir: float = Input.get_axis("move_left", "move_right")
 
 	# Horizontal movement (disabled during attack/dodge)
-	if _state != State.ATTACKING and _state != State.DODGING and _state != State.DASHING:
+	if (
+		_state != State.ATTACKING
+		and _state != State.DODGING
+		and _state != State.DASHING
+		and _state != State.PARRYING
+	):
 		if input_dir != 0.0:
 			velocity.x = move_toward(velocity.x, input_dir * MAX_RUN_SPEED, ACCELERATION * get_physics_process_delta_time())
 			_facing = input_dir
@@ -214,6 +229,10 @@ func _handle_input() -> void:
 	# Dash
 	if Input.is_action_just_pressed("dash"):
 		request_dash()
+
+	# Parry
+	if Input.is_action_just_pressed("parry"):
+		request_parry()
 
 # ---------------------------------------------------------------------------
 # Physics Helpers
@@ -458,6 +477,30 @@ func request_double_jump() -> bool:
 	return true
 
 
+## Requests a player parry through AbilityComponent cooldowns and Core combat timing.
+func request_parry() -> bool:
+	if _control_locked or _state != State.IDLE:
+		return false
+	_ensure_ability_component()
+	if _combat != null and _combat.get_current_state() != CombatComponent.CombatState.IDLE:
+		return false
+	if _ability == null or not _ability.try_activate_ability(ABILITY_PARRY):
+		return false
+	if _combat != null:
+		_combat.on_action_triggered(&"parry", {})
+		if _combat.get_current_state() != CombatComponent.CombatState.PARRYING:
+			return false
+	_start_parry()
+	return true
+
+
+func _start_parry() -> void:
+	_state = State.PARRYING
+	_parry_timer = PARRY_DURATION_FRAMES
+	_sprite.modulate = Color(0.72, 0.95, 1.0, 0.82)
+	_play_character_animation(ANIMATION_PARRY, true)
+
+
 # ---------------------------------------------------------------------------
 # Facing
 # ---------------------------------------------------------------------------
@@ -557,6 +600,7 @@ func set_control_locked(locked: bool) -> void:
 	if locked:
 		velocity = Vector2.ZERO
 		_hitbox_shape.disabled = true
+		_parry_timer = 0
 
 
 func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
@@ -567,6 +611,7 @@ func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
 	_dodge_timer = 0
 	_dodge_cooldown_timer = 0
 	_dash_timer = 0
+	_parry_timer = 0
 	advance_ability_cooldowns(999.0)
 	reset_air_abilities()
 	_jump_buffer_timer = 0
@@ -710,6 +755,9 @@ func _update_character_animation() -> void:
 		return
 	if _state == State.DASHING:
 		_play_character_animation(ANIMATION_DASH)
+		return
+	if _state == State.PARRYING:
+		_play_character_animation(ANIMATION_PARRY)
 		return
 	_play_character_animation(_get_locomotion_animation(is_on_floor(), velocity))
 
