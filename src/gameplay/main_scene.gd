@@ -1163,6 +1163,84 @@ func get_boss2_double_jump_payoff_diagnostics() -> Dictionary:
 			if source != null and source.has_method("get_visual_texture_path")
 			else ""
 		),
+		"reward_prompt_text": (
+			String(source.call("get_prompt_text"))
+			if source != null and source.has_method("get_prompt_text")
+			else ""
+		),
+		"reward_prompt_visible": (
+			bool(source.call("is_prompt_visible"))
+			if source != null and source.has_method("is_prompt_visible")
+			else false
+		),
+		"reward_visual_modulate": (
+			source.call("get_visual_modulate")
+			if source != null and source.has_method("get_visual_modulate")
+			else Color.TRANSPARENT
+		),
+	}
+
+
+func get_boss2_victory_route_handoff_diagnostics() -> Dictionary:
+	var payoff: Dictionary = get_boss2_double_jump_payoff_diagnostics()
+	var route_shell: Node = _get_factory_route_transition_shell()
+	var gate: Node = get_node_or_null("DoubleJumpExplorationGate")
+	var room_seals: Dictionary = get_boss2_room_seal_diagnostics()
+	return {
+		"boss_defeated": bool(payoff.get("boss_defeated", false)),
+		"boss_visible": bool(payoff.get("boss_visible", false)),
+		"reward_claim_available": bool(payoff.get("reward_claim_available", false)),
+		"reward_claimed": bool(payoff.get("reward_claimed", false)),
+		"reward_prompt_text": String(payoff.get("reward_prompt_text", "")),
+		"reward_prompt_visible": bool(payoff.get("reward_prompt_visible", false)),
+		"reward_visual_modulate": payoff.get("reward_visual_modulate", Color.TRANSPARENT),
+		"room_seals_enabled": bool(room_seals.get("enabled", false)),
+		"room_seal_reason": String(room_seals.get("reason", "")),
+		"gate_state": (
+			String(gate.call("get_gate_state"))
+			if gate != null and gate.has_method("get_gate_state")
+			else ""
+		),
+		"gate_required_ability": (
+			String(gate.call("get_required_ability"))
+			if gate != null and gate.has_method("get_required_ability")
+			else ""
+		),
+		"gate_target_area": (
+			String(gate.call("get_target_area_id"))
+			if gate != null and gate.has_method("get_target_area_id")
+			else ""
+		),
+		"factory_route_available": (
+			bool(route_shell.call("is_route_available"))
+			if route_shell != null and route_shell.has_method("is_route_available")
+			else false
+		),
+		"factory_route_transition_requested": (
+			bool(route_shell.call("is_transition_requested"))
+			if route_shell != null and route_shell.has_method("is_transition_requested")
+			else false
+		),
+		"factory_route_prompt_text": (
+			String(route_shell.call("get_prompt_text"))
+			if route_shell != null and route_shell.has_method("get_prompt_text")
+			else ""
+		),
+		"factory_route_target_scene": (
+			String(route_shell.call("get_target_scene_id"))
+			if route_shell != null and route_shell.has_method("get_target_scene_id")
+			else ""
+		),
+		"factory_route_spawn_point": (
+			String(route_shell.call("get_spawn_point"))
+			if route_shell != null and route_shell.has_method("get_spawn_point")
+			else ""
+		),
+		"hud_notification_text": (
+			String(_hud.call("get_notification_text"))
+			if _hud != null and _hud.has_method("get_notification_text")
+			else ""
+		),
 	}
 
 
@@ -2352,7 +2430,10 @@ func _on_boss2_echo_guardian_defeated() -> void:
 		2,
 		_boss2_echo_guardian.global_position + Vector2(0, -40)
 	)
-	_hud.show_notification("Echo Guardian defeated", 2.0)
+	_sync_boss2_double_jump_payoff_state()
+	refresh_boss2_camera_lock()
+	refresh_boss2_room_seals()
+	_hud.show_notification("Echo Guardian defeated - Claim Double Jump", 2.5)
 
 
 func _on_boss2_audio_event_requested(event_id: StringName, metadata: Dictionary) -> void:

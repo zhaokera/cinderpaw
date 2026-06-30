@@ -49,6 +49,18 @@ func get_visual_texture_path() -> String:
 	return _visual.texture.resource_path
 
 
+func get_visual_modulate() -> Color:
+	return _visual.modulate if _visual != null else Color.TRANSPARENT
+
+
+func get_prompt_text() -> String:
+	return available_prompt_text if _route_available else locked_prompt_text
+
+
+func is_prompt_visible() -> bool:
+	return _prompt_label != null and _prompt_label.visible
+
+
 func is_route_available() -> bool:
 	return _route_available
 

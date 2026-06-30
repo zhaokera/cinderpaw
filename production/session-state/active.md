@@ -33,18 +33,42 @@
   Hit Feedback + Arena Visual Runtime、Player Abilities Story029 Boss2 Arena
   Camera Lock Runtime、Player Abilities Story030 Boss2 Room Seal Runtime、
   Player Abilities Story031 Boss2 HUD Portrait Runtime、Player Abilities
-  Story032 Boss2 Phase II Runtime Pressure Mix
+  Story032 Boss2 Phase II Runtime Pressure Mix、Player Abilities Story033
+  Boss2 Victory Route Handoff
   已完成；
-  下一步推进 real platform profiler evidence、low-memory UI prompt
-  routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
-  area cue expansion、broader audio mix polish、more skill-tree branches、
-  mainline Boss2 Double Jump reward source、其他 ExplorationGate 能力门、
-  更深 Old Factory route/combat content、savepoint/minimap gameplay、final
-  Boss2 balancing/cutscene polish，以及玩家可见角色/敌人帧动画持续审计。
+  下一步推进更深 Old Factory route/combat content、authored Factory Route
+  progression、savepoint/minimap gameplay、其他 ExplorationGate 能力门、more
+  skill-tree branches、final Boss2 balancing/cutscene polish、authored/final
+  audio replacement、DEATH/CUTSCENE audio states，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 033: Boss2 Victory Route Handoff —
+  `MainScene` now exposes deterministic Boss2 victory handoff diagnostics that
+  cover Boss2 defeat, reward prompt/claimability, room-seal release,
+  `DoubleJumpExplorationGate`, `FactoryRouteTransitionShell`, and HUD
+  notification state. Defeating `Boss2EchoGuardian` now immediately refreshes
+  the Boss2 payoff state and shows `Echo Guardian defeated - Claim Double Jump`;
+  claiming the reward unlocks Double Jump, using it at the high-platform gate
+  unlocks `area_03_factory_unlocked`, and requesting the route transition
+  targets `area_03_factory / factory_gate_entry` while rejecting duplicate
+  requests during loading. No new visual or audio assets were generated; this
+  slice reuses existing Boss2 reward, room-seal, gate, and Factory Route shell
+  assets. Verification: RED `reports/report_879/`; focused GREEN
+  `reports/report_880/` `1/1`; related Boss2/route regression
+  `reports/report_881/` `14/14`; headless main-scene smoke
+  `reports/boss2_victory_route_handoff_main_scene_smoke.log` exited `0` with
+  no script/parse/invalid/missing-resource/resource-load errors and only
+  Godot's known cleanup-time `resources still in use at exit` message. Godot
+  MCP 2.8.1 clean runtime with `autosave=false` confirmed
+  `defeat_ok=true`, `claim_ok=true`, `double_jump_ok=true`, `route_ok=true`,
+  reward prompt `Claim Double Jump`, gate state `unlocked`, route prompt
+  `Enter Factory Route`, `factory_route_transition_requested=true`, clean game
+  logs, clean editor logs, and screenshot
+  `reports/visual/cinderpaw-mcp-boss2-victory-route-handoff-20260630.png`.
+  QA evidence:
+  `production/qa/evidence/boss2-victory-route-handoff-2026-06-30.md`。
 - Player Abilities Story 032: Boss2 Phase II Runtime Pressure Mix —
   `Boss2EchoGuardian` now enters Phase II at half HP (`18/36`), updates the Boss
   HUD to `Echo Guardian  Phase II  18/36`, raises chase pressure from `3.0` to
