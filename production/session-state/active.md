@@ -37,7 +37,8 @@
   Boss2 Victory Route Handoff、Player Abilities Story034 Factory Route Arrival
   Objective Handoff、Player Abilities Story035 Old Factory Service Lift Handoff、
   Player Abilities Story036 Old Factory Service Lift SceneManager Exit、
-  Player Abilities Story037 Factory Route Runtime Roundtrip
+  Player Abilities Story037 Factory Route Runtime Roundtrip、Player Abilities
+  Story038 Factory Route Return Prompt
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -47,6 +48,29 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 038: Factory Route Return Prompt —
+  `MainScene` now changes the existing main-scene `FactoryRouteTransitionShell`
+  prompt from `Enter Factory Route` to `Return to Factory Route` when
+  `SceneManager.get_scene_state(&"area_03_factory")` records the full service
+  lift return contract back to `main / scrap_roost`. Locked routes remain
+  locked, incomplete return state keeps the first-entry prompt, and activation
+  still requests `area_03_factory / factory_gate_entry`. No new visual/audio
+  assets or character animation states were generated; this story reuses the
+  existing Factory route shell prompt, Cinderpaw/Boss2/Spark Rat animation
+  assets, and Story037 route loop. Verification: RED focused
+  `reports/report_908/`; initial GREEN `reports/report_909/` `1/1`;
+  negative-coverage RED `reports/report_911/`; final focused GREEN
+  `reports/report_912/` `2/2`; related regression `reports/report_913/`
+  `7/7`; headless main-scene smoke
+  `reports/factory_route_return_prompt_main_scene_smoke.log` exited `0` with
+  no script/parse/invalid/missing-resource/resource-load errors by keyword
+  scan. Godot MCP 4.7 runtime launched main with `autosave=false`, confirmed
+  prompt/label `Return to Factory Route`, target `area_03_factory`,
+  spawn `factory_gate_entry`, request success, clean game logs, only unrelated
+  `.uid` editor warnings, and screenshot
+  `reports/visual/cinderpaw-mcp-factory-route-return-prompt-20260630.png`.
+  QA evidence:
+  `production/qa/evidence/factory-route-return-prompt-2026-06-30.md`。
 - Player Abilities Story 037: Factory Route Runtime Roundtrip —
   `SceneManager` runtime swaps now inject themselves into scenes that expose
   `configure_scene_manager_runtime(self)`, so cached scenes removed from and

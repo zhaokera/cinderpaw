@@ -79,6 +79,8 @@ const SCRAP_ROOST_SAVEPOINT_NODE_PATH: NodePath = ^"ScrapRoostSavepoint"
 const FACTORY_ROUTE_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_ROUTE_SPAWN_POINT: StringName = &"factory_gate_entry"
 const FACTORY_ROUTE_UNLOCKED_FLAG: StringName = &"area_03_factory_unlocked"
+const FACTORY_ROUTE_ENTRY_PROMPT: String = "Enter Factory Route"
+const FACTORY_ROUTE_RETURN_PROMPT: String = "Return to Factory Route"
 const ARENA_OBSTACLE_LAYER: int = 16
 const ARENA_DAMAGE_ZONE_LAYER: int = CollisionComponent.COLLISION_LAYER_ENVIRONMENT
 const ARENA_DAMAGE_ZONE_MASK: int = CollisionComponent.COLLISION_MASK_ENVIRONMENT
@@ -2509,6 +2511,12 @@ func _sync_factory_route_transition_shell() -> void:
 	if route_shell == null:
 		return
 	var available: bool = bool(_world_progress_flags.get(String(FACTORY_ROUTE_UNLOCKED_FLAG), false))
+	var prompt_text: String = (
+		FACTORY_ROUTE_RETURN_PROMPT
+		if available and _has_factory_service_lift_returned_to_scrap_roost()
+		else FACTORY_ROUTE_ENTRY_PROMPT
+	)
+	route_shell.set("available_prompt_text", prompt_text)
 	route_shell.call("set_route_available", available)
 
 
@@ -2532,6 +2540,21 @@ func _ensure_factory_route_runtime_scene_root(scene_manager: Object) -> bool:
 	if runtime_root == null:
 		return false
 	return bool(scene_manager.call("configure_runtime_scene_root", runtime_root, self))
+
+
+func _has_factory_service_lift_returned_to_scrap_roost() -> bool:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if scene_manager == null or not scene_manager.has_method("get_scene_state"):
+		return false
+	var factory_state_variant: Variant = scene_manager.call("get_scene_state", FACTORY_ROUTE_SCENE_ID)
+	if not factory_state_variant is Dictionary:
+		return false
+	var factory_state: Dictionary = factory_state_variant as Dictionary
+	return (
+		bool(factory_state.get("factory_service_lift_exit_requested", false))
+		and String(factory_state.get("factory_service_lift_exit_scene_id", "")) == MAIN_SCENE_ID
+		and String(factory_state.get("factory_service_lift_exit_spawn_point", "")) == "scrap_roost"
+	)
 
 
 func _connect_exploration_gate_signal(gate: Node) -> void:
