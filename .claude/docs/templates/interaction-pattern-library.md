@@ -4,7 +4,7 @@
 > **Author**: [ux-designer]
 > **Last Updated**: [Date]
 > **Version**: [1.0]
-> **Engine**: [Godot 4.6 / Unity 6 / Unreal Engine 5]
+> **Engine**: [Godot 4.7 / Unity 6 / Unreal Engine 5]
 > **UI Framework**: [Godot Control nodes / Unity UI Toolkit / Unreal UMG]
 > **Related Documents**:
 > - `design/art/art-bible.md` — visual standards (colors, typography, iconography)
@@ -610,7 +610,7 @@ which is high friction.
 but always include a visible `Label` node as the field's accessible name. Bind
 `text_changed` signal for real-time validation. Bind `text_submitted` for form
 submission on Enter. On console, `LineEdit.call("_popup_keyboard")` or use the OS
-virtual keyboard API — verify against engine-reference/godot/ for Godot 4.6
+virtual keyboard API — verify against engine-reference/godot/ for Godot 4.7
 console keyboard API specifics.]
 
 ---
@@ -746,7 +746,7 @@ any context where an ability must show availability state.
 `Control` nodes for cooldown radial and charge pips. The cooldown radial uses a
 custom shader on a `ColorRect` rotating a mask — or implement with a
 `ProgressBar` styled as circular if engine supports it. Verify against
-engine-reference/godot/ for Godot 4.6 shader support for this pattern.]
+engine-reference/godot/ for Godot 4.7 shader support for this pattern.]
 
 ---
 
@@ -1065,7 +1065,7 @@ Store the "return focus" element reference before pushing so it can be restored 
 
 | Question | Owner | Deadline | Resolution |
 |----------|-------|----------|-----------|
-| [Does the engine's accessibility node system support screen reader announcements for toast notifications without requiring focus? Verify against engine-reference/godot/ for Godot 4.6.] | [ux-designer] | [Before first menu implementation] | [Unresolved] |
+| [Does the engine's accessibility node system support screen reader announcements for toast notifications without requiring focus? Verify against engine-reference/godot/ for Godot 4.7.] | [ux-designer] | [Before first menu implementation] | [Unresolved] |
 | [What is the platform-correct confirm/cancel button mapping for Nintendo Switch release? Nintendo first-party convention differs from Xbox/PlayStation.] | [producer] | [Before platform certification submission] | [Unresolved] |
 | [Should damage numbers be pooled as Label3D nodes or rendered in a SubViewport? Verify performance budget in coordination with technical-director.] | [lead-programmer, ux-designer] | [Before combat HUD implementation] | [Unresolved] |
 | [What is the maximum number of simultaneous toast notifications before the queue becomes visually overwhelming? Needs playtesting.] | [ux-designer] | [First playtesting session] | [Unresolved] |
