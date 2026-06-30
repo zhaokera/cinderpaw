@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 38 stories tracked
+> **Stories**: 40 stories tracked
 
 ## Overview
 
@@ -76,6 +76,8 @@ recording the reward in progression state.
 | 036 | Old Factory Service Lift SceneManager Exit | Integration + Gameplay Runtime + Scene Management | Complete | ADR-0007/0018/0021 |
 | 037 | Factory Route Runtime Roundtrip | Integration + Gameplay Runtime + Scene Management | Complete | ADR-0007/0018/0021 |
 | 038 | Factory Route Return Prompt | Integration + Gameplay Runtime + Scene Management + UI | Complete | ADR-0007/0018/0021 |
+| 039 | Scrap Roost Return Hub Runtime | Integration + Gameplay Runtime + UI | Complete | ADR-0007/0018/0021 |
+| 040 | Old Factory Return Patrol Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
 
 ## Definition of Done
 
@@ -95,7 +97,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-039 are complete. Continue with the next playable ACT slice:
+Stories001-040 are complete. Continue with the next playable ACT slice:
 deeper Old Factory combat encounters, savepoint/minimap gameplay, additional
 player-visible character/enemy frame-animation replacement, more skill-tree
 branches, or final Boss2 balancing/cutscene polish.

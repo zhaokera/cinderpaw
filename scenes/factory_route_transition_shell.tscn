@@ -119,6 +119,10 @@ position = Vector2(1120, 482)
 z_index = 20
 position = Vector2(1210, 482)
 
+[node name="FactoryReturnSparkRat" parent="." instance=ExtResource("13_spark_rat")]
+z_index = 20
+position = Vector2(1048, 482)
+
 [node name="FactoryCombatCache" type="Node2D" parent="."]
 z_index = 22
 position = Vector2(1040, 286)
