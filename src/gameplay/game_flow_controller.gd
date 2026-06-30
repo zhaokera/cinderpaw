@@ -321,12 +321,16 @@ func _build_respawn_point(
 
 
 func _apply_scene_transition(respawn_point: Dictionary) -> bool:
-	if _scene_transition_adapter == null or not _scene_transition_adapter.has_method("change_scene"):
+	if _scene_transition_adapter == null:
 		return true
 	var scene_id: StringName = StringName(respawn_point.get("scene_id", ""))
 	var spawn_point: StringName = StringName(respawn_point.get("spawn_point", ""))
 	if scene_id == &"" or spawn_point == &"":
 		return false
+	if _scene_transition_adapter.has_method("request_scene_change"):
+		return bool(_scene_transition_adapter.call("request_scene_change", scene_id, spawn_point))
+	if not _scene_transition_adapter.has_method("change_scene"):
+		return true
 	return bool(_scene_transition_adapter.call("change_scene", scene_id, spawn_point))
 
 

@@ -1,0 +1,80 @@
+Godot Engine v4.7.stable.official.5b4e0cb0f - https://godotengine.org
+
+DataManager: manifest loaded, 9 domain(s) registered
+DataManager: domain 'damage_params' loaded
+DataManager: domain 'weapon_configs' loaded
+DataManager: domain 'scene_registry' loaded
+DataManager: domain 'tuning_knobs' loaded
+DataManager: domain 'abilities' loaded
+DataManager: domain 'skill_tree' loaded
+[godot_ai game_helper] registered mcp capture (debugger active=false, logger=true)
+[2J[H[38;2;233;150;122m
+--------------------------------------------------------------------------------------------------
+GdUnit4 Comandline Tool
+--------------------------------------------------------------------------------------------------[0m
+[38;2;218;165;32m
+Headless mode is ignored by option '--ignoreHeadlessMode'"
+
+Please note that tests that use UI interaction do not work correctly in headless mode.
+Godot 'InputEvents' are not transported by the Godot engine in headless mode and therefore
+have no effect in the test!
+[0m
+[38;2;100;149;237mInstalling GdUnit4 session system hooks.[0m
+[38;2;100;149;237mSession hook 'GdUnitHtmlTestReporter' installed.[0m
+[38;2;100;149;237mSession hook 'GdUnitXMLTestReporter' installed.[0m
+[38;2;0;206;209mRun Test Suite: [0m[38;2;250;235;215mres://tests/unit/gameplay/story_004_savepoint_respawn_selection_test.gd[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/story_004_savepoint_respawn_selection_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_last_discovered_savepoint_is_preferred_and_routed_through_scene_manager[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/story_004_savepoint_respawn_selection_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_last_discovered_savepoint_is_preferred_and_routed_through_scene_manager[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 5ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/story_004_savepoint_respawn_selection_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_missing_or_invalid_savepoint_falls_back_to_clan_base[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/story_004_savepoint_respawn_selection_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_missing_or_invalid_savepoint_falls_back_to_clan_base[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 2ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/story_004_savepoint_respawn_selection_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_boss_entrance_remains_higher_priority_than_discovered_savepoint[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/story_004_savepoint_respawn_selection_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_boss_entrance_remains_higher_priority_than_discovered_savepoint[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 1ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/story_004_savepoint_respawn_selection_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_main_scene_save_system_round_trips_last_discovered_savepoint[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+DataManager: domain 'boss_configs' loaded
+DataManager: domain 'enemy_stats' loaded
+  [38;2;250;235;215mres://tests/unit/gameplay/story_004_savepoint_respawn_selection_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_main_scene_save_system_round_trips_last_discovered_savepoint[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 27ms[0m
+[38;2;250;235;215m[0m
+[38;2;30;144;255mStatistics:[0m[38;2;250;235;215m 4 test cases | 0 errors | 0 failures | 0 flaky | 0 skipped | 0 orphans |[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 43ms[0m
+[38;2;250;235;215m[0m
+[38;2;250;235;215m[0m
+[38;2;0;206;209mRun Test Suite: [0m[38;2;250;235;215mres://tests/unit/gameplay/factory_route_runtime_roundtrip_test.gd[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/factory_route_runtime_roundtrip_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_factory_route_roundtrips_through_runtime_scene_root_to_scrap_roost[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/factory_route_runtime_roundtrip_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_factory_route_roundtrips_through_runtime_scene_root_to_scrap_roost[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 31ms[0m
+[38;2;250;235;215m[0m
+[38;2;30;144;255mStatistics:[0m[38;2;250;235;215m 1 test cases | 0 errors | 0 failures | 0 flaky | 0 skipped | 0 orphans |[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 36ms[0m
+[38;2;250;235;215m[0m
+[38;2;250;235;215m[0m
+[38;2;0;206;209mRun Test Suite: [0m[38;2;250;235;215mres://tests/unit/gameplay/old_factory_service_lift_scene_manager_exit_test.gd[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_service_lift_scene_manager_exit_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_service_lift_requests_main_scrap_roost_exit_after_factory_route_clear[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_service_lift_scene_manager_exit_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_service_lift_requests_main_scrap_roost_exit_after_factory_route_clear[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 25ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_service_lift_scene_manager_exit_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_service_lift_does_not_activate_when_scene_manager_rejects_exit[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_service_lift_scene_manager_exit_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_service_lift_does_not_activate_when_scene_manager_rejects_exit[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 27ms[0m
+[38;2;250;235;215m[0m
+[38;2;30;144;255mStatistics:[0m[38;2;250;235;215m 2 test cases | 0 errors | 0 failures | 0 flaky | 0 skipped | 0 orphans |[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 57ms[0m
+[38;2;250;235;215m[0m
+[38;2;250;235;215m[0m
+[38;2;0;206;209mRun Test Suite: [0m[38;2;250;235;215mres://tests/unit/gameplay/player_respawn_visual_feedback_test.gd[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/player_respawn_visual_feedback_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_respawn_starts_visible_transparent_flash_for_invincibility_window[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/player_respawn_visual_feedback_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_respawn_starts_visible_transparent_flash_for_invincibility_window[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 3ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/player_respawn_visual_feedback_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_respawn_visual_stops_when_game_flow_unlocks[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/player_respawn_visual_feedback_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_respawn_visual_stops_when_game_flow_unlocks[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 7ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/player_respawn_visual_feedback_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_respawn_visual_does_not_override_damage_color_after_window[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/player_respawn_visual_feedback_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_respawn_visual_does_not_override_damage_color_after_window[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 6ms[0m
+[38;2;250;235;215m[0m
+[38;2;30;144;255mStatistics:[0m[38;2;250;235;215m 3 test cases | 0 errors | 0 failures | 0 flaky | 0 skipped | 0 orphans |[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 21ms[0m
+[38;2;250;235;215m[0m
+[38;2;250;235;215m[0m
+[38;2;30;144;255mOverall Summary:[0m[38;2;255;255;255m 10 test cases | 0 errors | 0 failures | 0 flaky | 0 skipped | 0 orphans |[0m
+[38;2;233;150;122mExecuted test suites: (4/4)[0m
+[38;2;233;150;122mExecuted test cases : (10/10)[0m
+[38;2;233;150;122mTotal execution time: 157ms[0m
+[38;2;255;255;255m [0m[38;2;100;149;237mOpen XML Report at: file:///Users/zhaok/Desktop/wxgame/cinderpaw/reports/report_964/results.xml[0m
+[38;2;100;149;237mOpen HTML Report at: file:///Users/zhaok/Desktop/wxgame/cinderpaw/reports/report_964/index.html[0m
+[38;2;233;150;122mExit code: 0[0m
+Finallize .. done

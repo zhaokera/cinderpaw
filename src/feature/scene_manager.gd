@@ -526,6 +526,7 @@ func _finish_pending_load() -> void:
 		)
 	_reset_pending_load()
 	_commit_logical_scene(scene_id, spawn_point)
+	_refresh_current_runtime_scene_manager_binding()
 
 
 func _handle_load_timeout() -> void:
@@ -662,6 +663,14 @@ func _restore_runtime_scene_state(scene_id: StringName, runtime_scene: Node) -> 
 	if not _scene_states.has(scene_id):
 		return
 	runtime_scene.call("set_local_state", Dictionary(_scene_states[scene_id]).duplicate(true))
+
+
+func _refresh_current_runtime_scene_manager_binding() -> void:
+	var current_scene: Node = _get_valid_current_runtime_scene()
+	if current_scene == null:
+		return
+	if current_scene.has_method("configure_scene_manager_runtime"):
+		current_scene.call("configure_scene_manager_runtime", self)
 
 
 func _is_runtime_scene_swap_enabled() -> bool:

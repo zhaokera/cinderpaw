@@ -1,0 +1,56 @@
+Godot Engine v4.7.stable.official.5b4e0cb0f - https://godotengine.org
+
+DataManager: manifest loaded, 9 domain(s) registered
+DataManager: domain 'damage_params' loaded
+DataManager: domain 'weapon_configs' loaded
+DataManager: domain 'scene_registry' loaded
+DataManager: domain 'tuning_knobs' loaded
+DataManager: domain 'abilities' loaded
+DataManager: domain 'skill_tree' loaded
+[godot_ai game_helper] registered mcp capture (debugger active=false, logger=true)
+[2J[H[38;2;233;150;122m
+--------------------------------------------------------------------------------------------------
+GdUnit4 Comandline Tool
+--------------------------------------------------------------------------------------------------[0m
+[38;2;218;165;32m
+Headless mode is ignored by option '--ignoreHeadlessMode'"
+
+Please note that tests that use UI interaction do not work correctly in headless mode.
+Godot 'InputEvents' are not transported by the Godot engine in headless mode and therefore
+have no effect in the test!
+[0m
+[38;2;100;149;237mInstalling GdUnit4 session system hooks.[0m
+[38;2;100;149;237mSession hook 'GdUnitHtmlTestReporter' installed.[0m
+[38;2;100;149;237mSession hook 'GdUnitXMLTestReporter' installed.[0m
+[38;2;0;206;209mRun Test Suite: [0m[38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_return_checkpoint_stays_hidden_until_return_patrol_clear[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_return_checkpoint_stays_hidden_until_return_patrol_clear[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 10ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_return_checkpoint_activation_records_scene_local_checkpoint[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_return_checkpoint_activation_records_scene_local_checkpoint[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 4ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_return_checkpoint_drives_non_boss_respawn_scene_selection[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_return_checkpoint_drives_non_boss_respawn_scene_selection[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 2ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_scene_manager_return_checkpoint_spawn_moves_player_to_checkpoint[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_scene_manager_return_checkpoint_spawn_moves_player_to_checkpoint[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 3ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_non_boss_death_runtime_swaps_to_factory_checkpoint_spawn[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+DataManager: domain 'boss_configs' loaded
+DataManager: domain 'enemy_stats' loaded
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_non_boss_death_runtime_swaps_to_factory_checkpoint_spawn[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 14ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_factory_runtime_death_preserves_checkpoint_state_on_same_scene_respawn[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_factory_runtime_death_preserves_checkpoint_state_on_same_scene_respawn[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 13ms[0m
+[38;2;250;235;215m[0m
+[38;2;30;144;255mStatistics:[0m[38;2;250;235;215m 6 test cases | 0 errors | 0 failures | 0 flaky | 0 skipped | 0 orphans |[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 59ms[0m
+[38;2;250;235;215m[0m
+[38;2;250;235;215m[0m
+[38;2;30;144;255mOverall Summary:[0m[38;2;255;255;255m 6 test cases | 0 errors | 0 failures | 0 flaky | 0 skipped | 0 orphans |[0m
+[38;2;233;150;122mExecuted test suites: (1/1)[0m
+[38;2;233;150;122mExecuted test cases : (6/6)[0m
+[38;2;233;150;122mTotal execution time: 59ms[0m
+[38;2;255;255;255m [0m[38;2;100;149;237mOpen XML Report at: file:///Users/zhaok/Desktop/wxgame/cinderpaw/reports/report_965/results.xml[0m
+[38;2;100;149;237mOpen HTML Report at: file:///Users/zhaok/Desktop/wxgame/cinderpaw/reports/report_965/index.html[0m
+[38;2;233;150;122mExit code: 0[0m
+Finallize .. done

@@ -31,7 +31,9 @@ const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
 const FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT: StringName = &"scrap_roost"
 const FACTORY_RETURN_CHECKPOINT_ID: StringName = &"old_factory_return_checkpoint"
 const FACTORY_RETURN_CHECKPOINT_SPAWN_POINT: StringName = &"return_checkpoint"
+const FACTORY_GATE_ENTRY_SPAWN_POINT: StringName = &"factory_gate_entry"
 const FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS: float = 112.0
+const FACTORY_RETURN_CHECKPOINT_RESPAWN_LABEL: String = "Returned to Factory Savepoint"
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
 @onready var _spawn: Marker2D = $FactoryGateEntrySpawn
@@ -291,7 +293,10 @@ func try_activate_factory_service_lift(provider: Node = null) -> bool:
 ## Injects or refreshes the SceneManager adapter used by the service lift exit.
 func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 	_scene_manager = scene_manager
-	return _is_valid_scene_manager(_scene_manager)
+	var valid_scene_manager: bool = _is_valid_scene_manager(_scene_manager)
+	if valid_scene_manager:
+		_apply_current_scene_manager_spawn_point()
+	return valid_scene_manager
 
 
 ## Resolves the active Factory Spark Rat bite against the current player dodge state.
@@ -605,6 +610,7 @@ func set_local_state(state: Dictionary) -> void:
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
 		_update_route_label("Service Lift Departing")
+	_apply_current_scene_manager_spawn_point()
 
 
 ## Returns deterministic room-clear/cache diagnostics for tests and MCP probes.
@@ -1119,6 +1125,41 @@ func _is_scene_manager_loading() -> bool:
 		if scene_manager != null and scene_manager.has_method("is_loading")
 		else false
 	)
+
+
+func _apply_current_scene_manager_spawn_point() -> bool:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if scene_manager == null or not scene_manager.has_method("get_current_scene"):
+		return false
+	return _apply_scene_manager_spawn_point(StringName(scene_manager.call("get_current_scene")))
+
+
+func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
+	if scene_id != FACTORY_SCENE_ID:
+		return false
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if scene_manager == null or not scene_manager.has_method("get_current_spawn_point"):
+		return false
+	var spawn_point: StringName = StringName(scene_manager.call("get_current_spawn_point"))
+	if not _move_player_to_spawn_point(spawn_point):
+		return false
+	if spawn_point == FACTORY_RETURN_CHECKPOINT_SPAWN_POINT:
+		_update_route_label(FACTORY_RETURN_CHECKPOINT_RESPAWN_LABEL)
+	return true
+
+
+func _move_player_to_spawn_point(spawn_point: StringName) -> bool:
+	if _player == null or not is_instance_valid(_player):
+		return false
+	var spawn_node: Node2D = null
+	if spawn_point == FACTORY_GATE_ENTRY_SPAWN_POINT:
+		spawn_node = _spawn
+	elif spawn_point == FACTORY_RETURN_CHECKPOINT_SPAWN_POINT:
+		spawn_node = _return_checkpoint as Node2D
+	if spawn_node == null:
+		return false
+	_player.global_position = spawn_node.global_position
+	return true
 
 
 func _get_scene_manager_pending_scene() -> String:

@@ -1,0 +1,73 @@
+Godot Engine v4.7.stable.official.5b4e0cb0f - https://godotengine.org
+
+DataManager: manifest loaded, 9 domain(s) registered
+DataManager: domain 'damage_params' loaded
+DataManager: domain 'weapon_configs' loaded
+DataManager: domain 'scene_registry' loaded
+DataManager: domain 'tuning_knobs' loaded
+DataManager: domain 'abilities' loaded
+DataManager: domain 'skill_tree' loaded
+[godot_ai game_helper] registered mcp capture (debugger active=false, logger=true)
+[2J[H[38;2;233;150;122m
+--------------------------------------------------------------------------------------------------
+GdUnit4 Comandline Tool
+--------------------------------------------------------------------------------------------------[0m
+[38;2;218;165;32m
+Headless mode is ignored by option '--ignoreHeadlessMode'"
+
+Please note that tests that use UI interaction do not work correctly in headless mode.
+Godot 'InputEvents' are not transported by the Godot engine in headless mode and therefore
+have no effect in the test!
+[0m
+[38;2;100;149;237mInstalling GdUnit4 session system hooks.[0m
+[38;2;100;149;237mSession hook 'GdUnitHtmlTestReporter' installed.[0m
+[38;2;100;149;237mSession hook 'GdUnitXMLTestReporter' installed.[0m
+[38;2;0;206;209mRun Test Suite: [0m[38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_return_checkpoint_stays_hidden_until_return_patrol_clear[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_return_checkpoint_stays_hidden_until_return_patrol_clear[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 13ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_return_checkpoint_activation_records_scene_local_checkpoint[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_return_checkpoint_activation_records_scene_local_checkpoint[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 5ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_return_checkpoint_drives_non_boss_respawn_scene_selection[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_return_checkpoint_drives_non_boss_respawn_scene_selection[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 3ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_scene_manager_return_checkpoint_spawn_moves_player_to_checkpoint[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_scene_manager_return_checkpoint_spawn_moves_player_to_checkpoint[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 3ms[0m
+[38;2;250;235;215m[0m
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_non_boss_death_runtime_swaps_to_factory_checkpoint_spawn[0m[38;2;34;139;34m STARTED[0m[38;2;250;235;215m[0m
+DataManager: domain 'boss_configs' loaded
+DataManager: domain 'enemy_stats' loaded
+  [38;2;250;235;215mres://tests/unit/gameplay/old_factory_return_checkpoint_test.gd[0m[38;2;250;235;215m > [0m[38;2;250;235;215mtest_non_boss_death_runtime_swaps_to_factory_checkpoint_spawn[0m[38;2;178;34;34m[1m FAILED[0m[38;2;100;149;237m 61ms[0m
+  [38;2;0;206;209m[1m[4mReport:[0m
+    [38;2;0;206;209m[38;2;0;255;0mline [0m[38;2;0;255;255m298:[0m [38;2;205;92;92mExpecting:[0m '[38;2;30;144;255mtrue[0m' but is '[38;2;30;144;255mfalse[0m'[0m
+  [38;2;0;206;209m[1m[4mReport:[0m
+    [38;2;0;206;209m[38;2;0;255;0mline [0m[38;2;0;255;255m299:[0m [38;2;205;92;92mExpecting:[0m[0m
+    [38;2;0;206;209m '[38;2;30;144;255marea_03_factory[0m'[0m
+    [38;2;0;206;209m but was[0m
+    [38;2;0;206;209m '[38;2;30;144;255m[48;2;38;0;0m[38;2;255;255;255marea_03_factory[0m[38;2;30;144;255m[48;2;38;0;0m[0m[38;2;30;144;255m[0m'[0m
+  [38;2;0;206;209m[1m[4mReport:[0m
+    [38;2;0;206;209m[38;2;0;255;0mline [0m[38;2;0;255;255m300:[0m [38;2;205;92;92mExpecting:[0m[0m
+    [38;2;0;206;209m '[38;2;30;144;255mreturn_checkpoint[0m'[0m
+    [38;2;0;206;209m but was[0m
+    [38;2;0;206;209m '[38;2;30;144;255m[48;2;38;0;0m[38;2;255;255;255mr[0m[38;2;30;144;255m[48;2;38;0;0m[0m[38;2;30;144;255m[48;2;0;38;0m[38;2;255;255;255md[0m[38;2;30;144;255m[48;2;0;38;0m[0m[38;2;30;144;255me[48;2;38;0;0m[38;2;255;255;255mt[0m[38;2;30;144;255m[48;2;38;0;0m[0m[38;2;30;144;255m[48;2;0;38;0m[38;2;255;255;255mfa[0m[38;2;30;144;255m[48;2;0;38;0m[0m[38;2;30;144;255mu[48;2;38;0;0m[38;2;255;255;255mrn_checkpoin[0m[38;2;30;144;255m[48;2;38;0;0m[0m[38;2;30;144;255m[48;2;0;38;0m[38;2;255;255;255ml[0m[38;2;30;144;255m[48;2;0;38;0m[0m[38;2;30;144;255mt[0m'[0m
+  [38;2;0;206;209m[1m[4mReport:[0m
+    [38;2;0;206;209m[38;2;0;255;0mline [0m[38;2;0;255;255m304:[0m [38;2;205;92;92mExpecting:[0m[0m
+    [38;2;0;206;209m '[38;2;30;144;255mFactoryRouteTransitionShellScene[0m'[0m
+    [38;2;0;206;209m but was[0m
+    [38;2;0;206;209m '[38;2;30;144;255m[48;2;38;0;0m[38;2;255;255;255mF[0m[38;2;30;144;255m[48;2;38;0;0m[0m[38;2;30;144;255m[48;2;0;38;0m[38;2;255;255;255mM[0m[38;2;30;144;255m[48;2;0;38;0m[0m[38;2;30;144;255ma[48;2;38;0;0m[38;2;255;255;255mctoryRouteTrans[0m[38;2;30;144;255m[48;2;38;0;0m[0m[38;2;30;144;255mi[48;2;38;0;0m[38;2;255;255;255mtio[0m[38;2;30;144;255m[48;2;38;0;0m[0m[38;2;30;144;255mn[48;2;38;0;0m[38;2;255;255;255mShellScene[0m[38;2;30;144;255m[48;2;38;0;0m[0m[38;2;30;144;255m[0m'[0m
+  [38;2;0;206;209m[1m[4mReport:[0m
+    [38;2;0;206;209m[38;2;0;255;0mline [0m[38;2;0;255;255m313:[0m [38;2;205;92;92mExpecting: not to be[0m '[38;2;30;144;255m<null>[0m'[0m
+[38;2;250;235;215m[0m
+[38;2;250;235;215m[0m
+[38;2;30;144;255mStatistics:[0m[38;2;250;235;215m 5 test cases | 0 errors | 5 failures | 0 flaky | 0 skipped | 0 orphans |[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 103ms[0m
+[38;2;250;235;215m[0m
+[38;2;250;235;215m[0m
+[38;2;30;144;255mOverall Summary:[0m[38;2;255;255;255m 5 test cases | 0 errors | 5 failures | 0 flaky | 0 skipped | 0 orphans |[0m
+[38;2;233;150;122mExecuted test suites: (1/1)[0m
+[38;2;233;150;122mExecuted test cases : (5/5)[0m
+[38;2;233;150;122mTotal execution time: 103ms[0m
+[38;2;255;255;255m [0m[38;2;100;149;237mOpen XML Report at: file:///Users/zhaok/Desktop/wxgame/cinderpaw/reports/report_960/results.xml[0m
+[38;2;100;149;237mOpen HTML Report at: file:///Users/zhaok/Desktop/wxgame/cinderpaw/reports/report_960/index.html[0m
+[38;2;178;34;34mExit code: 100[0m
+Finallize .. done
