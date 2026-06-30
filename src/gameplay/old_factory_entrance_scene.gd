@@ -47,7 +47,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 
 var _last_player_hit_metadata: Dictionary = {}
 var _last_cache_reward: Dictionary = {}
+var _last_cache_claim_feedback: Dictionary = {}
 var _last_return_patrol_reward_cache_reward: Dictionary = {}
+var _last_return_patrol_reward_cache_claim_feedback: Dictionary = {}
 var _last_hazard_damage: Dictionary = {}
 var _last_spark_rat_counter_diagnostics: Dictionary = {}
 var _last_spark_rat_bite_sequence_id_resolved: int = -1
@@ -317,8 +319,11 @@ func try_claim_factory_cache(provider: Node = null) -> bool:
 	if not _cache.has_method("try_claim") or not bool(_cache.call("try_claim", claim_provider)):
 		return false
 	_cache_claimed = true
-	_last_cache_reward = _get_cache_reward_payload()
-	_refresh_factory_route_objective()
+	var reward_payload: Dictionary = _get_cache_reward_payload()
+	if _last_cache_reward.is_empty():
+		_last_cache_reward = reward_payload
+	if _last_cache_claim_feedback.is_empty():
+		_record_cache_claim_feedback(reward_payload, "Cache Claimed")
 	return true
 
 
@@ -335,8 +340,15 @@ func try_claim_factory_return_patrol_reward_cache(provider: Node = null) -> bool
 	):
 		return false
 	_return_patrol_reward_cache_claimed = true
-	_last_return_patrol_reward_cache_reward = _get_return_patrol_reward_cache_payload()
+	var reward_payload: Dictionary = _get_return_patrol_reward_cache_payload()
+	if _last_return_patrol_reward_cache_reward.is_empty():
+		_last_return_patrol_reward_cache_reward = reward_payload
 	_sync_return_patrol_reward_cache_state()
+	if _last_return_patrol_reward_cache_claim_feedback.is_empty():
+		_record_return_patrol_reward_cache_claim_feedback(
+			reward_payload,
+			"Return Cache Claimed"
+		)
 	return true
 
 
@@ -431,8 +443,12 @@ func get_local_state() -> Dictionary:
 		"factory_service_lift_exit_rejected_reason": String(_last_service_lift_exit_rejected_reason),
 		"factory_service_lift_exit_request": _last_service_lift_exit_request.duplicate(true),
 		"last_cache_reward": _last_cache_reward.duplicate(true),
+		"last_cache_claim_feedback": _last_cache_claim_feedback.duplicate(true),
 		"last_return_patrol_reward_cache_reward": (
 			_last_return_patrol_reward_cache_reward.duplicate(true)
+		),
+		"last_return_patrol_reward_cache_claim_feedback": (
+			_last_return_patrol_reward_cache_claim_feedback.duplicate(true)
 		),
 		"last_hazard_damage": _last_hazard_damage.duplicate(true),
 	}
@@ -481,10 +497,25 @@ func set_local_state(state: Dictionary) -> void:
 		if reward_variant is Dictionary
 		else {}
 	)
+	var cache_feedback_variant: Variant = state.get("last_cache_claim_feedback", {})
+	_last_cache_claim_feedback = (
+		(cache_feedback_variant as Dictionary).duplicate(true)
+		if cache_feedback_variant is Dictionary
+		else {}
+	)
 	var return_reward_variant: Variant = state.get("last_return_patrol_reward_cache_reward", {})
 	_last_return_patrol_reward_cache_reward = (
 		(return_reward_variant as Dictionary).duplicate(true)
 		if return_reward_variant is Dictionary
+		else {}
+	)
+	var return_feedback_variant: Variant = state.get(
+		"last_return_patrol_reward_cache_claim_feedback",
+		{}
+	)
+	_last_return_patrol_reward_cache_claim_feedback = (
+		(return_feedback_variant as Dictionary).duplicate(true)
+		if return_feedback_variant is Dictionary
 		else {}
 	)
 	var hazard_variant: Variant = state.get("last_hazard_damage", {})
@@ -531,6 +562,7 @@ func get_factory_room_clear_diagnostics() -> Dictionary:
 		"player_position": _player.global_position if _player != null else Vector2.ZERO,
 		"cache_position": _cache.global_position if _cache != null else Vector2.ZERO,
 		"last_cache_reward": _last_cache_reward.duplicate(true),
+		"last_cache_claim_feedback": _last_cache_claim_feedback.duplicate(true),
 	}
 
 
@@ -737,6 +769,7 @@ func get_factory_return_patrol_reward_cache_diagnostics() -> Dictionary:
 			else Vector2.ZERO
 		),
 		"last_reward": _last_return_patrol_reward_cache_reward.duplicate(true),
+		"last_claim_feedback": _last_return_patrol_reward_cache_claim_feedback.duplicate(true),
 	}
 
 
@@ -1173,6 +1206,7 @@ func _on_factory_return_spark_rat_defeated() -> void:
 func _on_factory_cache_claimed(_cache_id: StringName, reward: Dictionary) -> void:
 	_cache_claimed = true
 	_last_cache_reward = reward.duplicate(true)
+	_record_cache_claim_feedback(_last_cache_reward, "Cache Claimed")
 
 
 func _on_factory_return_patrol_reward_cache_claimed(
@@ -1181,6 +1215,10 @@ func _on_factory_return_patrol_reward_cache_claimed(
 ) -> void:
 	_return_patrol_reward_cache_claimed = true
 	_last_return_patrol_reward_cache_reward = reward.duplicate(true)
+	_record_return_patrol_reward_cache_claim_feedback(
+		_last_return_patrol_reward_cache_reward,
+		"Return Cache Claimed"
+	)
 
 
 func _on_factory_deep_route_endpoint_activated(_endpoint_id: StringName) -> void:
@@ -1404,6 +1442,35 @@ func _get_return_patrol_reward_cache_payload() -> Dictionary:
 	if reward_variant is Dictionary:
 		return (reward_variant as Dictionary).duplicate(true)
 	return {}
+
+
+func _record_cache_claim_feedback(reward: Dictionary, label_prefix: String) -> void:
+	_last_cache_claim_feedback = _build_cache_claim_feedback(reward, label_prefix)
+	_update_route_label(String(_last_cache_claim_feedback.get("text", "")))
+
+
+func _record_return_patrol_reward_cache_claim_feedback(
+	reward: Dictionary,
+	label_prefix: String
+) -> void:
+	_last_return_patrol_reward_cache_claim_feedback = _build_cache_claim_feedback(
+		reward,
+		label_prefix
+	)
+	_update_route_label(String(
+		_last_return_patrol_reward_cache_claim_feedback.get("text", "")
+	))
+
+
+func _build_cache_claim_feedback(reward: Dictionary, label_prefix: String) -> Dictionary:
+	var gears: int = int(reward.get("gears", 0))
+	var text: String = "%s +%d Gears" % [label_prefix, gears]
+	return {
+		"cache_id": String(reward.get("cache_id", "")),
+		"gears": gears,
+		"source": String(reward.get("source", "")),
+		"text": text,
+	}
 
 
 func _get_return_patrol_reward_cache_prompt_text() -> String:

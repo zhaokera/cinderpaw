@@ -40,7 +40,8 @@
   Player Abilities Story037 Factory Route Runtime Roundtrip、Player Abilities
   Story038 Factory Route Return Prompt、Player Abilities Story039 Scrap Roost
   Return Hub Runtime、Player Abilities Story040 Old Factory Return Patrol
-  Ambush、Player Abilities Story041 Old Factory Return Patrol Reward Cache
+  Ambush、Player Abilities Story041 Old Factory Return Patrol Reward Cache、
+  Player Abilities Story042 Old Factory Cache Claim Feedback
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -50,6 +51,23 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 042: Old Factory Cache Claim Feedback —
+  `OldFactoryEntranceScene` now records scene-local claim feedback for both
+  Old Factory caches and keeps the success text visible on `RouteLabel` after a
+  claim instead of immediately refreshing back to the route objective. Entrance
+  cache claims show `Cache Claimed +10 Gears` with feedback payload
+  `old_factory_entrance_cache` / `old_factory_combat_cache`; return patrol
+  reward cache claims show `Return Cache Claimed +15 Gears` with feedback
+  payload `old_factory_return_patrol_cache`. Duplicate claims return false and
+  preserve the last successful feedback. Verification: RED `reports/report_934/`;
+  focused GREEN `reports/report_935/` `2/2`; related Old Factory regression
+  `reports/report_936/` through `reports/report_945/` `22/22`; post-refactor
+  focused/high-risk regression `reports/report_946/` through `reports/report_950/`
+  `13/13`; Godot MCP 4.7 runtime launched the Factory scene, confirmed target
+  cache nodes, claim and duplicate-claim behavior for both cache paths, visible
+  RouteLabel feedback, unchanged feedback after duplicate claims, clean
+  game/editor logs, and a non-empty screenshot. QA evidence:
+  `production/qa/evidence/old-factory-cache-claim-feedback-2026-06-30.md`。
 - Player Abilities Story 041: Old Factory Return Patrol Reward Cache —
   `FactoryReturnPatrolRewardCache` now adds a generated transparent reward
   lockbox prop to `factory_route_transition_shell.tscn`, reusing

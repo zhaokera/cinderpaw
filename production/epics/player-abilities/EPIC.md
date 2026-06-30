@@ -79,6 +79,7 @@ recording the reward in progression state.
 | 039 | Scrap Roost Return Hub Runtime | Integration + Gameplay Runtime + UI | Complete | ADR-0007/0018/0021 |
 | 040 | Old Factory Return Patrol Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
 | 041 | Old Factory Return Patrol Reward Cache | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
+| 042 | Old Factory Cache Claim Feedback | Integration + UI/Visual | Complete | ADR-0007/0018/0021 |
 
 ## Definition of Done
 
@@ -98,7 +99,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-041 are complete. Continue with the next playable ACT slice:
+Stories001-042 are complete. Continue with the next playable ACT slice:
 deeper Old Factory combat encounters, savepoint/minimap gameplay, additional
 player-visible character/enemy frame-animation replacement, more skill-tree
 branches, or final Boss2 balancing/cutscene polish.
