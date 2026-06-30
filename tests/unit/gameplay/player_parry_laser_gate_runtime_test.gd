@@ -9,6 +9,12 @@ const REQUIRED_PARRY_FRAME_COUNT: int = 3
 const PARRY_GATE_NODE_NAME: String = "ParryLaserExplorationGate"
 const PARRY_GATE_ID: StringName = &"parry_laser_central_tower"
 const TARGET_AREA_ID: StringName = &"area_05_central_tower"
+const PARRY_LASER_GATE_TEXTURE_PATH: String = (
+	"res://assets/environment/parry_laser_gate/parry_laser_gate_marker.png"
+)
+const REPLACED_RAT_KING_ELECTRIC_LEAK_PATH: String = (
+	"res://assets/environment/rat_king_arena/electric_leak.png"
+)
 const STATE_UNLOCKABLE: StringName = &"unlockable"
 const STATE_UNLOCKED: StringName = &"unlocked"
 
@@ -147,6 +153,37 @@ func test_main_scene_parry_laser_gate_unlocks_when_parry_is_used_in_range() -> v
 
 	scene.queue_free()
 	restored_scene.queue_free()
+
+
+func test_main_scene_parry_laser_gate_uses_authored_laser_visual_asset() -> void:
+	var scene := MAIN_SCENE.instantiate() as Node2D
+	add_child(scene)
+
+	var gate: Node = scene.get_node_or_null(PARRY_GATE_NODE_NAME)
+	assert_that(gate).is_not_null()
+	if gate == null:
+		scene.queue_free()
+		return
+
+	var visual := gate.get_node_or_null("Visual") as Sprite2D
+	assert_that(visual).is_not_null()
+	if visual == null:
+		scene.queue_free()
+		return
+
+	assert_that(visual.texture).is_not_null()
+	if visual.texture == null:
+		scene.queue_free()
+		return
+
+	assert_str(visual.texture.resource_path).is_equal(PARRY_LASER_GATE_TEXTURE_PATH)
+	assert_str(visual.texture.resource_path).is_not_equal(REPLACED_RAT_KING_ELECTRIC_LEAK_PATH)
+	assert_bool(FileAccess.file_exists(PARRY_LASER_GATE_TEXTURE_PATH)).is_true()
+	assert_bool(FileAccess.file_exists("%s.import" % PARRY_LASER_GATE_TEXTURE_PATH)).is_true()
+	assert_vector(visual.texture.get_size()).is_equal(Vector2(256, 256))
+	assert_float(visual.rotation).is_equal_approx(0.0, 0.001)
+
+	scene.queue_free()
 
 
 func _animation_frames_are_textured_and_same_size(

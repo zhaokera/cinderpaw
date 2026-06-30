@@ -1,0 +1,14 @@
+{
+  "asset_id": "parry_laser_gate_marker",
+  "date": "2026-06-30",
+  "source": "image generation prompt plus local alpha/runtime normalization",
+  "image_generation_prompt": "Pixel art side-scroller parry laser gate marker for an indie action game. Transparent background. A scrap-metal vertical emitter frame with two compact side pylons, cyan laser barrier bars, a glowing cat-eye gold parry core in the center, signal-red locked accents, Central Tower tech silhouette cues, readable at 256x256, no text, no ground, no UI, clean alpha edges.",
+  "runtime_path": "res://assets/environment/parry_laser_gate/parry_laser_gate_marker.png",
+  "source_path": "res://assets/generated/source/parry_laser_gate_marker_imagegen_20260630.png",
+  "dimensions": [
+    256,
+    256
+  ],
+  "background": "transparent RGBA",
+  "usage": "ParryLaserExplorationGate/Visual in res://scenes/main.tscn"
+}

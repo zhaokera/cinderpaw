@@ -28,7 +28,8 @@
   activation pacing、Player Abilities Story017 Old Factory Spark Rat pacing
   polish、Player Abilities Story018 Skill Tree Cat Claw T1-A First Spend、
   Player Abilities Story019 Parry Laser Gate Runtime、Player Abilities
-  Story020 Parry Success Feedback Runtime
+  Story020 Parry Success Feedback Runtime、Player Abilities Story027 Parry
+  Laser Gate Authored Visual Replacement
   已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
   routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
@@ -40,6 +41,30 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 027: Parry Laser Gate Authored Visual Replacement —
+  `ParryLaserExplorationGate/Visual` now uses a dedicated image-generated
+  transparent 256x256 marker at
+  `assets/environment/parry_laser_gate/parry_laser_gate_marker.png` instead of
+  reusing `assets/environment/rat_king_arena/electric_leak.png`. The authored
+  gate art has scrap-metal emitters, cyan laser bars, a cat-eye gold parry core,
+  and signal-red lock accents, with source PNG and metadata under
+  `assets/generated/source/parry_laser_gate_marker_imagegen_20260630.*`.
+  Story019 parry unlock behavior is preserved: the gate starts `unlockable`,
+  blocks collision before use, unlocks when Cinderpaw parries in range, and
+  records the gate/world flags in save snapshots. Verification: RED
+  `reports/report_827/` failed as expected on old electric-leak texture reuse,
+  missing new PNG/import, old texture size, and rotation. Godot import exited
+  `0`. GREEN focused `reports/report_828/` passed `5/5`; related visual/parry
+  regression `reports/report_829/` passed `9/9`; headless main-scene smoke
+  `reports/parry_laser_gate_authored_visual_replacement_main_scene_smoke.log`
+  exited `0` and keyword scan found no script/parse/invalid/resource-load
+  errors. Godot MCP runtime with `autosave=false` confirmed the main scene,
+  authored gate texture path and `256x256` size, rotation `0`, visible
+  `Sprite2D`, Player `AnimatedSprite2D + SpriteFrames`, `parry` frame count `3`,
+  `request_parry()` unlock flow, clean game/editor logs, and nonblank screenshot
+  `reports/visual/cinderpaw-mcp-parry-laser-gate-authored-visual-replacement-20260630.png`.
+  QA evidence:
+  `production/qa/evidence/parry-laser-gate-authored-visual-replacement-2026-06-30.md`。
 - Player Abilities Story 020: Parry Success Feedback Runtime —
   `MainScene` now connects the player's Core
   `CombatComponent.on_parry_resolved` signal and forwards enriched parry

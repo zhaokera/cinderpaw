@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://main001"]
+[gd_scene load_steps=28 format=3 uid="uid://main001"]
 
 [ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://4j2ise5khuss" path="res://assets/generated/wasteland_alley_bg.png" id="3_bg"]
@@ -20,6 +20,7 @@
 [ext_resource type="Texture2D" path="res://assets/environment/savepoints/scrap_roost_savepoint.png" id="18_savepoint_texture"]
 [ext_resource type="PackedScene" path="res://src/gameplay/boss2_echo_guardian.tscn" id="19_boss2"]
 [ext_resource type="Texture2D" path="res://assets/environment/double_jump_reward/boss2_double_jump_reward_source.png" id="20_boss2_reward"]
+[ext_resource type="Texture2D" path="res://assets/environment/parry_laser_gate/parry_laser_gate_marker.png" id="21_parry_laser_gate"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -303,10 +304,9 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_parry_laser_gate")
 
 [node name="Visual" type="Sprite2D" parent="ParryLaserExplorationGate"]
-rotation = 1.5708
-scale = Vector2(0.42, 0.62)
+scale = Vector2(0.52, 0.52)
 modulate = Color(0.4, 0.92, 1, 1)
-texture = ExtResource("11_gate_texture")
+texture = ExtResource("21_parry_laser_gate")
 
 [node name="PromptLabel" type="Label" parent="ParryLaserExplorationGate"]
 offset_left = -86.0
