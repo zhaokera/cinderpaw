@@ -23,6 +23,7 @@ const FACTORY_OBJECTIVE_REACH_DEEP_GUARD: StringName = &"reach_deep_guard"
 const FACTORY_OBJECTIVE_OPEN_DEEP_ROUTE: StringName = &"open_deep_route_endpoint"
 const FACTORY_OBJECTIVE_DEFEAT_SPARK_RAT: StringName = &"defeat_spark_rat_patrol"
 const FACTORY_OBJECTIVE_ROUTE_CLEARED: StringName = &"factory_route_cleared"
+const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
 @onready var _spawn: Marker2D = $FactoryGateEntrySpawn
@@ -33,6 +34,7 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _cache: Node = $FactoryCombatCache
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
+@onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
 
 var _last_player_hit_metadata: Dictionary = {}
 var _last_cache_reward: Dictionary = {}
@@ -46,6 +48,7 @@ var _deep_guard_defeated: bool = false
 var _deep_route_cleared: bool = false
 var _spark_rat_activated: bool = false
 var _spark_rat_defeated: bool = false
+var _service_lift_activated: bool = false
 var _factory_hazard_elapsed_sec: float = 0.0
 var _factory_hazard_contact_cooldowns: Dictionary = {}
 var _weapon_component: WeaponComponent = null
@@ -59,6 +62,7 @@ func _ready() -> void:
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
 	_setup_factory_spark_rat()
+	_setup_factory_service_lift()
 	_bind_player_combat_to_room()
 	_refresh_factory_route_objective()
 	_request_factory_audio()
@@ -132,6 +136,11 @@ func is_factory_route_objective_complete() -> bool:
 	return _get_factory_route_objective_id() == FACTORY_OBJECTIVE_ROUTE_CLEARED
 
 
+## Returns whether the post-route service lift handoff has been activated.
+func is_factory_service_lift_activated() -> bool:
+	return _service_lift_activated
+
+
 ## Attempts to alert the deep-route guard after the entrance encounter is clear.
 func try_activate_factory_deep_guard(provider: Node = null) -> bool:
 	if _deep_guard == null or _deep_guard_defeated or _deep_guard_activated:
@@ -166,6 +175,26 @@ func try_activate_factory_spark_rat(provider: Node = null) -> bool:
 		_set_spark_rat_attack_target(activation_provider)
 	_begin_spark_rat_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	_refresh_factory_route_objective()
+	return true
+
+
+## Attempts to call the visual-only service lift after the Spark Rat patrol is defeated.
+func try_activate_factory_service_lift(provider: Node = null) -> bool:
+	if _service_lift == null or _service_lift_activated or not _spark_rat_defeated:
+		return false
+	var activation_provider: Node = provider
+	if activation_provider == null:
+		activation_provider = _player
+	if _service_lift.has_method("set_available"):
+		_service_lift.call("set_available", true)
+	if not _service_lift.has_method("try_activate"):
+		return false
+	var activated: bool = bool(_service_lift.call("try_activate", activation_provider))
+	if not activated:
+		return false
+	_service_lift_activated = true
+	_sync_service_lift_state()
+	_update_route_label("Service Lift Online")
 	return true
 
 
@@ -327,6 +356,7 @@ func get_local_state() -> Dictionary:
 		"factory_spark_rat_defeated": _spark_rat_defeated,
 		"factory_spark_rat_opening_grace_frames": _get_spark_rat_opening_grace_frames(),
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
+		"factory_service_lift_activated": _service_lift_activated,
 		"last_cache_reward": _last_cache_reward.duplicate(true),
 		"last_hazard_damage": _last_hazard_damage.duplicate(true),
 	}
@@ -341,6 +371,7 @@ func set_local_state(state: Dictionary) -> void:
 	_deep_route_cleared = bool(state.get("factory_deep_route_cleared", false))
 	_spark_rat_activated = bool(state.get("factory_spark_rat_activated", false))
 	_spark_rat_defeated = bool(state.get("factory_spark_rat_defeated", false))
+	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
 	var spark_rat_opening_grace_frames: int = int(state.get(
 		"factory_spark_rat_opening_grace_frames",
 		FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES if _spark_rat_activated and not _spark_rat_defeated else 0
@@ -360,9 +391,12 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_room_clear_state()
 	_sync_deep_route_state()
 	_sync_spark_rat_state()
+	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
 		_begin_spark_rat_pacing(spark_rat_opening_grace_frames)
 	_refresh_factory_route_objective()
+	if _service_lift_activated:
+		_update_route_label("Service Lift Online")
 
 
 ## Returns deterministic room-clear/cache diagnostics for tests and MCP probes.
@@ -543,6 +577,31 @@ func get_factory_route_objective_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic service-lift handoff diagnostics for tests and MCP probes.
+func get_factory_service_lift_diagnostics() -> Dictionary:
+	var route_label := get_node_or_null("RouteLabel") as Label
+	var unlock_vfx_snapshot: Dictionary = _get_service_lift_unlock_vfx_snapshot()
+	var available: bool = _is_service_lift_available()
+	return {
+		"present": _service_lift != null,
+		"available": available,
+		"activated": _service_lift_activated,
+		"activation_ready": _is_service_lift_activation_ready(available),
+		"endpoint_id": _get_service_lift_endpoint_id(),
+		"expected_endpoint_id": String(FACTORY_SERVICE_LIFT_ENDPOINT_ID),
+		"texture_path": _get_service_lift_texture_path(),
+		"prompt_text": _get_service_lift_prompt_text(),
+		"route_cleared": is_factory_route_objective_complete(),
+		"route_label_text": route_label.text if route_label != null else "",
+		"position": _get_service_lift_position(),
+		"player_position": _player.global_position if _player != null else Vector2.ZERO,
+		"unlock_feedback_texture_path": String(unlock_vfx_snapshot.get("texture_path", "")),
+		"unlock_feedback_active": int(unlock_vfx_snapshot.get("active_count", 0)) > 0,
+		"unlock_feedback_played": bool(unlock_vfx_snapshot.get("played", false)),
+		"unlock_feedback_spawn_count": int(unlock_vfx_snapshot.get("spawn_count", 0)),
+	}
+
+
 func get_factory_entrance_diagnostics() -> Dictionary:
 	var backdrop := get_node_or_null("Background") as TextureRect
 	var enemy_sprite := get_node_or_null("FactoryRatMinion/Sprite") as AnimatedSprite2D
@@ -566,6 +625,7 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		"deep_route": get_factory_deep_route_diagnostics(),
 		"spark_rat": get_factory_spark_rat_diagnostics(),
 		"route_objective": get_factory_route_objective_diagnostics(),
+		"service_lift": get_factory_service_lift_diagnostics(),
 		"last_player_hit_metadata": get_last_player_hit_metadata(),
 	}
 
@@ -577,6 +637,66 @@ func _get_deep_route_unlock_vfx_snapshot() -> Dictionary:
 	if snapshot_variant is Dictionary:
 		return (snapshot_variant as Dictionary).duplicate(true)
 	return {}
+
+
+func _get_service_lift_unlock_vfx_snapshot() -> Dictionary:
+	if _service_lift == null or not _service_lift.has_method("get_unlock_vfx_snapshot"):
+		return {}
+	var snapshot_variant: Variant = _service_lift.call("get_unlock_vfx_snapshot")
+	if snapshot_variant is Dictionary:
+		return (snapshot_variant as Dictionary).duplicate(true)
+	return {}
+
+
+func _is_service_lift_available() -> bool:
+	return (
+		bool(_service_lift.call("is_available"))
+		if _service_lift != null and _service_lift.has_method("is_available")
+		else false
+	)
+
+
+func _is_service_lift_activation_ready(available: bool) -> bool:
+	if (
+		not available
+		or _service_lift == null
+		or not _service_lift.has_method("is_provider_in_activation_range")
+	):
+		return false
+	return bool(_service_lift.call("is_provider_in_activation_range", _player))
+
+
+func _get_service_lift_endpoint_id() -> String:
+	return (
+		String(_service_lift.call("get_endpoint_id"))
+		if _service_lift != null and _service_lift.has_method("get_endpoint_id")
+		else ""
+	)
+
+
+func _get_service_lift_texture_path() -> String:
+	return (
+		String(_service_lift.call("get_visual_texture_path"))
+		if _service_lift != null and _service_lift.has_method("get_visual_texture_path")
+		else ""
+	)
+
+
+func _get_service_lift_prompt_text() -> String:
+	var prompt_label := (
+		_service_lift.get_node_or_null("PromptLabel") as Label
+		if _service_lift != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_service_lift_position() -> Vector2:
+	return (
+		(_service_lift as Node2D).global_position
+		if _service_lift != null and _service_lift is Node2D
+		else Vector2.ZERO
+	)
 
 
 func _align_player_to_spawn() -> void:
@@ -645,6 +765,15 @@ func _setup_factory_spark_rat() -> void:
 	_sync_spark_rat_state()
 
 
+func _setup_factory_service_lift() -> void:
+	_sync_service_lift_state()
+	if _service_lift == null or not _service_lift.has_signal("endpoint_activated"):
+		return
+	var endpoint_signal: Signal = _service_lift.get("endpoint_activated")
+	if not endpoint_signal.is_connected(_on_factory_service_lift_activated):
+		endpoint_signal.connect(_on_factory_service_lift_activated)
+
+
 func _bind_player_combat_to_room() -> void:
 	if _player == null:
 		return
@@ -686,6 +815,7 @@ func _on_factory_spark_rat_defeated() -> void:
 	_spark_rat_activated = true
 	_spark_rat_defeated = true
 	_sync_spark_rat_state()
+	_sync_service_lift_state()
 	_refresh_factory_route_objective()
 
 
@@ -698,7 +828,16 @@ func _on_factory_deep_route_endpoint_activated(_endpoint_id: StringName) -> void
 	_deep_route_cleared = true
 	_sync_deep_route_state()
 	_sync_spark_rat_state()
+	_sync_service_lift_state()
 	_refresh_factory_route_objective()
+
+
+func _on_factory_service_lift_activated(endpoint_id: StringName) -> void:
+	if endpoint_id != FACTORY_SERVICE_LIFT_ENDPOINT_ID:
+		return
+	_service_lift_activated = true
+	_sync_service_lift_state()
+	_update_route_label("Service Lift Online")
 
 
 func _on_factory_hazard_area_entered(area: Area2D, hazard: Area2D) -> void:
@@ -798,6 +937,15 @@ func _sync_spark_rat_state() -> void:
 		_spark_rat.collision_layer = 0
 		_spark_rat.collision_mask = 0
 		_set_spark_rat_attack_target(null)
+
+
+func _sync_service_lift_state() -> void:
+	if _service_lift == null:
+		return
+	if _service_lift.has_method("set_available"):
+		_service_lift.call("set_available", _spark_rat_defeated)
+	if _service_lift.has_method("set_activated"):
+		_service_lift.call("set_activated", _service_lift_activated)
 
 
 func _update_route_label(text_value: String) -> void:

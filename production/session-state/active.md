@@ -35,16 +35,43 @@
   Player Abilities Story031 Boss2 HUD Portrait Runtime、Player Abilities
   Story032 Boss2 Phase II Runtime Pressure Mix、Player Abilities Story033
   Boss2 Victory Route Handoff、Player Abilities Story034 Factory Route Arrival
-  Objective Handoff
+  Objective Handoff、Player Abilities Story035 Old Factory Service Lift Handoff
   已完成；
-  下一步推进更深 Old Factory route/combat content、authored Factory Route
-  progression、savepoint/minimap gameplay、其他 ExplorationGate 能力门、more
-  skill-tree branches、final Boss2 balancing/cutscene polish、authored/final
+  下一步推进真实 SceneManager-backed Factory exit、更深 Old Factory
+  route/combat content、savepoint/minimap gameplay、其他 ExplorationGate 能力门、
+  more skill-tree branches、final Boss2 balancing/cutscene polish、authored/final
   audio replacement、DEATH/CUTSCENE audio states，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 035: Old Factory Service Lift Handoff —
+  `FactoryServiceLift` now mounts a visible image-generated transparent
+  service lift call console in `res://scenes/factory_route_transition_shell.tscn`
+  using the existing `FactoryDeepRouteEndpoint` interactable component with
+  endpoint id `old_factory_service_lift`. It starts locked with prompt
+  `Clear patrol`, becomes available only after Factory Spark Rat defeat /
+  `factory_route_cleared`, activates once with prompt `Lift online`, updates
+  `RouteLabel` to `Service Lift Online`, and persists
+  `factory_service_lift_activated` through `get_local_state()` /
+  `set_local_state()` without adding a global quest system, new SaveSystem
+  schema, real scene transition, or moving platform. New image generation asset:
+  `assets/environment/old_factory_service_lift/factory_service_lift_console.png`
+  with source/alpha/metadata under `assets/generated/source/`. Verification:
+  RED `reports/report_886/`; focused GREEN `reports/report_889/` `2/2`;
+  related Old Factory regression `reports/report_890/` `14/14`; headless
+  Factory scene smoke
+  `reports/old_factory_service_lift_handoff_factory_scene_smoke.log` exited
+  `0` with no script/parse/invalid/missing-resource/resource-load errors and
+  only Godot's cleanup-time `2 resources still in use at exit` message. Godot
+  MCP runtime launched the Factory custom scene, confirmed
+  `/FactoryRouteTransitionShellScene/FactoryServiceLift` exists with `Visual`,
+  `PromptLabel`, `InteractionArea`, endpoint id `old_factory_service_lift`,
+  prompt `Clear patrol`, texture path
+  `res://assets/environment/old_factory_service_lift/factory_service_lift_console.png`,
+  clean game logs, and a nonblank game screenshot showing the service lift
+  console in the Old Factory scene. QA evidence:
+  `production/qa/evidence/old-factory-service-lift-handoff-2026-06-30.md`。
 - Player Abilities Story 034: Factory Route Arrival Objective Handoff —
   `OldFactoryEntranceScene` now exposes a scene-local Factory Route objective
   chain with `get_factory_route_objective_diagnostics()` and

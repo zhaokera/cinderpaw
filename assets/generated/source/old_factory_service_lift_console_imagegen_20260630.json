@@ -1,0 +1,19 @@
+{
+  "asset_id": "old_factory_service_lift_console",
+  "generated_at": "2026-06-30",
+  "generator": "image generation",
+  "source_image": "assets/generated/source/old_factory_service_lift_console_imagegen_20260630.png",
+  "alpha_image": "assets/generated/source/old_factory_service_lift_console_alpha_20260630.png",
+  "runtime_image": "assets/environment/old_factory_service_lift/factory_service_lift_console.png",
+  "source_prompt_summary": "Pixel-art Old Factory service lift call console with rusted industrial metal body, amber cat-paw indicator, caution stripe details, blue cable accents, and flat green chroma-key background for transparent runtime use.",
+  "processing": [
+    "Removed #00ff00 chroma-key background with local alpha matte.",
+    "Cropped visible subject with padding.",
+    "Centered and resized into a transparent 256x256 PNG for Godot runtime use."
+  ],
+  "usage": [
+    "scenes/factory_route_transition_shell.tscn",
+    "src/gameplay/old_factory_entrance_scene.gd",
+    "production/epics/player-abilities/story-035-old-factory-service-lift-handoff.md"
+  ]
+}
