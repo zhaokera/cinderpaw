@@ -35,16 +35,42 @@
   Player Abilities Story031 Boss2 HUD Portrait Runtime、Player Abilities
   Story032 Boss2 Phase II Runtime Pressure Mix、Player Abilities Story033
   Boss2 Victory Route Handoff、Player Abilities Story034 Factory Route Arrival
-  Objective Handoff、Player Abilities Story035 Old Factory Service Lift Handoff
+  Objective Handoff、Player Abilities Story035 Old Factory Service Lift Handoff、
+  Player Abilities Story036 Old Factory Service Lift SceneManager Exit
   已完成；
-  下一步推进真实 SceneManager-backed Factory exit、更深 Old Factory
-  route/combat content、savepoint/minimap gameplay、其他 ExplorationGate 能力门、
-  more skill-tree branches、final Boss2 balancing/cutscene polish、authored/final
-  audio replacement、DEATH/CUTSCENE audio states，以及玩家可见角色/敌人帧动画持续审计。
+  下一步推进更深 Old Factory route/combat content、main/runtime-root Factory
+  exit end-to-end validation、savepoint/minimap gameplay、其他 ExplorationGate
+  能力门、more skill-tree branches、final Boss2 balancing/cutscene polish、
+  authored/final audio replacement、DEATH/CUTSCENE audio states，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 036: Old Factory Service Lift SceneManager Exit —
+  `FactoryServiceLift` now requests `SceneManager.request_scene_change(&"main",
+  &"scrap_roost")` after the authored Old Factory route is cleared and the
+  player is in activation range. `OldFactoryEntranceScene` exposes
+  `configure_scene_manager_runtime()` for tests/probes and production resolves
+  `/root/SceneManager`; loading/locked/missing/unknown-scene rejections keep the
+  lift unactivated, skip the one-shot VFX, and record deterministic rejection
+  reasons. Local state now records `factory_service_lift_exit_requested`,
+  `factory_service_lift_exit_scene_id`, `factory_service_lift_exit_spawn_point`,
+  and the last exit request diagnostics. No new visual assets were generated;
+  the story reuses the Story035 image-generated service lift console.
+  Verification: RED `reports/report_893/`; focused GREEN
+  `reports/report_894/` `2/2`; Story035+036 focused regression
+  `reports/report_895/` `4/4`; related Old Factory/Boss2/SceneManager
+  regression `reports/report_896/` `28/28`; headless Factory scene smoke
+  `reports/old_factory_service_lift_scene_manager_exit_factory_scene_smoke.log`
+  exited `0` with no script/parse/invalid/missing-resource/resource-load
+  errors by keyword scan. Godot MCP 4.7 runtime launched
+  `res://scenes/factory_route_transition_shell.tscn`, cleared the Factory route,
+  activated the service lift, and confirmed `activation_result=true`,
+  `exit_requested=true`, target `main`, spawn `scrap_roost`, route label
+  `Service Lift Departing`, SceneManager pending scene `main`, pending spawn
+  `scrap_roost`, clean game logs, and a nonblank screenshot showing the service
+  lift. QA evidence:
+  `production/qa/evidence/old-factory-service-lift-scene-manager-exit-2026-06-30.md`。
 - Technical Maintenance: Godot 4.7 Engine Baseline Upgrade —
   项目基准已从 Godot 4.6.3 升级到 Godot 4.7。
   `project.godot` 现在 pin `config/features=PackedStringArray("4.7")`；

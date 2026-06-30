@@ -22,8 +22,9 @@ Scene management; ADR-0018 Player abilities; ADR-0021 Save system.
 Story034 closes the authored Factory Route objective chain when the player
 defeats the Factory Spark Rat. This story adds a visible service lift call
 console after that clear state so the Old Factory route has a concrete exit
-handoff prop instead of ending only as text. This is a visual and scene-local
-progression handoff only; it does not request a scene change.
+handoff prop instead of ending only as text. Story036 extends this prop into a
+SceneManager-backed exit request; this story remains the visual and scene-local
+state contract.
 
 ## Acceptance Criteria
 
@@ -38,10 +39,10 @@ progression handoff only; it does not request a scene change.
   prompt text `Call lift`.
 - [x] Calling the service lift once sets scene-local
   `factory_service_lift_activated == true`, updates the prop prompt to
-  `Lift online`, shows `Service Lift Online`, and plays the existing one-shot
+  `Lift online`, shows a departing route label, and plays the existing one-shot
   unlock VFX once.
 - [x] Repeated activation is idempotent: it returns false, does not replay the
-  one-shot feedback, and does not grant rewards or request scene changes.
+  one-shot feedback, and does not grant rewards.
 - [x] `get_local_state()` / `set_local_state()` preserve
   `factory_service_lift_activated` without adding SaveSystem schema fields,
   global quests, fast travel, or SceneManager registry entries.
@@ -52,9 +53,10 @@ progression handoff only; it does not request a scene change.
 
 ## Out of Scope
 
-- New rooms, real service lift movement, scene transitions, cutscenes, minimap,
-  savepoint/fast travel, new enemies, Spark Rat stat/AI tuning, global objective
-  manager, SceneManager registry changes, and SaveSystem schema changes.
+- New rooms, real service lift movement, cutscenes, minimap, savepoint/fast
+  travel, new enemies, Spark Rat stat/AI tuning, global objective manager,
+  SceneManager registry changes, and SaveSystem schema changes. The real
+  SceneManager exit request is covered by Story036.
 
 ## Implementation Notes
 
@@ -81,5 +83,8 @@ progression handoff only; it does not request a scene change.
   `2 resources still in use at exit`.
 - Godot MCP runtime evidence:
   `production/qa/evidence/old-factory-service-lift-handoff-2026-06-30.md`.
+- Story036 follow-up regression: `reports/report_895/` passed updated Story035
+  + Story036 focused coverage `4/4`, including the new SceneManager request
+  target `main / scrap_roost`.
 
 **Status**: [x] Complete.

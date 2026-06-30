@@ -24,6 +24,8 @@ const FACTORY_OBJECTIVE_OPEN_DEEP_ROUTE: StringName = &"open_deep_route_endpoint
 const FACTORY_OBJECTIVE_DEFEAT_SPARK_RAT: StringName = &"defeat_spark_rat_patrol"
 const FACTORY_OBJECTIVE_ROUTE_CLEARED: StringName = &"factory_route_cleared"
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
+const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
+const FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT: StringName = &"scrap_roost"
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
 @onready var _spawn: Marker2D = $FactoryGateEntrySpawn
@@ -49,9 +51,13 @@ var _deep_route_cleared: bool = false
 var _spark_rat_activated: bool = false
 var _spark_rat_defeated: bool = false
 var _service_lift_activated: bool = false
+var _service_lift_exit_requested: bool = false
+var _last_service_lift_exit_rejected_reason: StringName = &""
+var _last_service_lift_exit_request: Dictionary = {}
 var _factory_hazard_elapsed_sec: float = 0.0
 var _factory_hazard_contact_cooldowns: Dictionary = {}
 var _weapon_component: WeaponComponent = null
+var _scene_manager: Object = null
 
 
 func _ready() -> void:
@@ -178,9 +184,12 @@ func try_activate_factory_spark_rat(provider: Node = null) -> bool:
 	return true
 
 
-## Attempts to call the visual-only service lift after the Spark Rat patrol is defeated.
+## Attempts to request the SceneManager-backed service lift exit after route clear.
 func try_activate_factory_service_lift(provider: Node = null) -> bool:
-	if _service_lift == null or _service_lift_activated or not _spark_rat_defeated:
+	if _service_lift == null or _service_lift_activated or _service_lift_exit_requested:
+		return false
+	if not _spark_rat_defeated:
+		_record_service_lift_exit_rejection(&"route_not_cleared")
 		return false
 	var activation_provider: Node = provider
 	if activation_provider == null:
@@ -188,14 +197,27 @@ func try_activate_factory_service_lift(provider: Node = null) -> bool:
 	if _service_lift.has_method("set_available"):
 		_service_lift.call("set_available", true)
 	if not _service_lift.has_method("try_activate"):
+		_record_service_lift_exit_rejection(&"missing_service_lift_activation_api")
+		return false
+	if not _is_service_lift_activation_ready(_is_service_lift_available(), activation_provider):
+		_record_service_lift_exit_rejection(&"provider_out_of_range")
+		return false
+	if not _request_service_lift_scene_exit():
 		return false
 	var activated: bool = bool(_service_lift.call("try_activate", activation_provider))
 	if not activated:
+		_record_service_lift_exit_rejection(&"service_lift_activation_rejected")
 		return false
 	_service_lift_activated = true
 	_sync_service_lift_state()
-	_update_route_label("Service Lift Online")
+	_update_route_label("Service Lift Departing")
 	return true
+
+
+## Injects or refreshes the SceneManager adapter used by the service lift exit.
+func configure_scene_manager_runtime(scene_manager: Object) -> bool:
+	_scene_manager = scene_manager
+	return _is_valid_scene_manager(_scene_manager)
 
 
 ## Resolves the active Factory Spark Rat bite against the current player dodge state.
@@ -357,6 +379,11 @@ func get_local_state() -> Dictionary:
 		"factory_spark_rat_opening_grace_frames": _get_spark_rat_opening_grace_frames(),
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
+		"factory_service_lift_exit_requested": _service_lift_exit_requested,
+		"factory_service_lift_exit_scene_id": String(FACTORY_SERVICE_LIFT_EXIT_SCENE_ID),
+		"factory_service_lift_exit_spawn_point": String(FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT),
+		"factory_service_lift_exit_rejected_reason": String(_last_service_lift_exit_rejected_reason),
+		"factory_service_lift_exit_request": _last_service_lift_exit_request.duplicate(true),
 		"last_cache_reward": _last_cache_reward.duplicate(true),
 		"last_hazard_damage": _last_hazard_damage.duplicate(true),
 	}
@@ -372,6 +399,20 @@ func set_local_state(state: Dictionary) -> void:
 	_spark_rat_activated = bool(state.get("factory_spark_rat_activated", false))
 	_spark_rat_defeated = bool(state.get("factory_spark_rat_defeated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
+	_service_lift_exit_requested = bool(state.get(
+		"factory_service_lift_exit_requested",
+		_service_lift_activated
+	))
+	_last_service_lift_exit_rejected_reason = StringName(String(state.get(
+		"factory_service_lift_exit_rejected_reason",
+		""
+	)))
+	var exit_request_variant: Variant = state.get("factory_service_lift_exit_request", {})
+	_last_service_lift_exit_request = (
+		(exit_request_variant as Dictionary).duplicate(true)
+		if exit_request_variant is Dictionary
+		else {}
+	)
 	var spark_rat_opening_grace_frames: int = int(state.get(
 		"factory_spark_rat_opening_grace_frames",
 		FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES if _spark_rat_activated and not _spark_rat_defeated else 0
@@ -396,7 +437,7 @@ func set_local_state(state: Dictionary) -> void:
 		_begin_spark_rat_pacing(spark_rat_opening_grace_frames)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
-		_update_route_label("Service Lift Online")
+		_update_route_label("Service Lift Departing")
 
 
 ## Returns deterministic room-clear/cache diagnostics for tests and MCP probes.
@@ -593,6 +634,15 @@ func get_factory_service_lift_diagnostics() -> Dictionary:
 		"prompt_text": _get_service_lift_prompt_text(),
 		"route_cleared": is_factory_route_objective_complete(),
 		"route_label_text": route_label.text if route_label != null else "",
+		"exit_requested": _service_lift_exit_requested,
+		"exit_target_scene_id": String(FACTORY_SERVICE_LIFT_EXIT_SCENE_ID),
+		"exit_spawn_point": String(FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT),
+		"exit_rejected_reason": String(_last_service_lift_exit_rejected_reason),
+		"scene_manager_present": _is_valid_scene_manager(_resolve_scene_manager_for_runtime()),
+		"scene_manager_loading": _is_scene_manager_loading(),
+		"scene_manager_pending_scene": _get_scene_manager_pending_scene(),
+		"scene_manager_pending_spawn_point": _get_scene_manager_pending_spawn_point(),
+		"last_exit_request": _last_service_lift_exit_request.duplicate(true),
 		"position": _get_service_lift_position(),
 		"player_position": _player.global_position if _player != null else Vector2.ZERO,
 		"unlock_feedback_texture_path": String(unlock_vfx_snapshot.get("texture_path", "")),
@@ -656,14 +706,15 @@ func _is_service_lift_available() -> bool:
 	)
 
 
-func _is_service_lift_activation_ready(available: bool) -> bool:
+func _is_service_lift_activation_ready(available: bool, provider: Node = null) -> bool:
 	if (
 		not available
 		or _service_lift == null
 		or not _service_lift.has_method("is_provider_in_activation_range")
 	):
 		return false
-	return bool(_service_lift.call("is_provider_in_activation_range", _player))
+	var activation_provider: Node = provider if provider != null else _player
+	return bool(_service_lift.call("is_provider_in_activation_range", activation_provider))
 
 
 func _get_service_lift_endpoint_id() -> String:
@@ -696,6 +747,106 @@ func _get_service_lift_position() -> Vector2:
 		(_service_lift as Node2D).global_position
 		if _service_lift != null and _service_lift is Node2D
 		else Vector2.ZERO
+	)
+
+
+func _request_service_lift_scene_exit() -> bool:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if not _is_valid_scene_manager(scene_manager):
+		_record_service_lift_exit_rejection(&"scene_manager_missing")
+		return false
+	if scene_manager.has_method("is_loading") and bool(scene_manager.call("is_loading")):
+		_record_service_lift_exit_rejection(&"scene_manager_loading")
+		return false
+	if scene_manager.has_method("is_scene_locked") and bool(scene_manager.call("is_scene_locked")):
+		_record_service_lift_exit_rejection(&"scene_locked")
+		return false
+	if scene_manager.has_method("has_scene") \
+			and not bool(scene_manager.call("has_scene", FACTORY_SERVICE_LIFT_EXIT_SCENE_ID)):
+		_record_service_lift_exit_rejection(&"unknown_scene")
+		return false
+
+	var request_started: bool = false
+	if scene_manager.has_method("request_scene_change"):
+		request_started = bool(scene_manager.call(
+			"request_scene_change",
+			FACTORY_SERVICE_LIFT_EXIT_SCENE_ID,
+			FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT
+		))
+	elif scene_manager.has_method("change_scene"):
+		request_started = bool(scene_manager.call(
+			"change_scene",
+			FACTORY_SERVICE_LIFT_EXIT_SCENE_ID,
+			FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT
+		))
+	if not request_started:
+		_record_service_lift_exit_rejection(&"request_rejected")
+		return false
+
+	_service_lift_exit_requested = true
+	_last_service_lift_exit_rejected_reason = &""
+	_last_service_lift_exit_request = {
+		"scene_id": String(FACTORY_SERVICE_LIFT_EXIT_SCENE_ID),
+		"spawn_point": String(FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT),
+		"scene_manager_loading": _is_scene_manager_loading(),
+		"pending_scene": _get_scene_manager_pending_scene(),
+		"pending_spawn_point": _get_scene_manager_pending_spawn_point(),
+	}
+	return true
+
+
+func _record_service_lift_exit_rejection(reason: StringName) -> void:
+	_last_service_lift_exit_rejected_reason = reason
+	_last_service_lift_exit_request = {}
+
+
+func _resolve_scene_manager_for_runtime() -> Object:
+	if _is_valid_scene_manager(_scene_manager):
+		return _scene_manager
+	if not is_inside_tree():
+		return null
+	var root_scene_manager: Node = get_node_or_null("/root/SceneManager")
+	if _is_valid_scene_manager(root_scene_manager):
+		_scene_manager = root_scene_manager
+		return _scene_manager
+	return null
+
+
+func _is_valid_scene_manager(scene_manager: Object) -> bool:
+	return (
+		scene_manager != null
+		and is_instance_valid(scene_manager)
+		and (
+			scene_manager.has_method("request_scene_change")
+			or scene_manager.has_method("change_scene")
+		)
+	)
+
+
+func _is_scene_manager_loading() -> bool:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	return (
+		bool(scene_manager.call("is_loading"))
+		if scene_manager != null and scene_manager.has_method("is_loading")
+		else false
+	)
+
+
+func _get_scene_manager_pending_scene() -> String:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	return (
+		String(scene_manager.call("get_pending_scene"))
+		if scene_manager != null and scene_manager.has_method("get_pending_scene")
+		else ""
+	)
+
+
+func _get_scene_manager_pending_spawn_point() -> String:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	return (
+		String(scene_manager.call("get_pending_spawn_point"))
+		if scene_manager != null and scene_manager.has_method("get_pending_spawn_point")
+		else ""
 	)
 
 
@@ -837,7 +988,7 @@ func _on_factory_service_lift_activated(endpoint_id: StringName) -> void:
 		return
 	_service_lift_activated = true
 	_sync_service_lift_state()
-	_update_route_label("Service Lift Online")
+	_update_route_label("Service Lift Departing")
 
 
 func _on_factory_hazard_area_entered(area: Area2D, hazard: Area2D) -> void:

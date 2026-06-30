@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-30" name="report_896" tests="28" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_service_lift_scene_manager_exit_test" package="tests/unit/gameplay" timestamp="2026-06-30T09:52:03" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.112">
+		<testcase name="test_service_lift_requests_main_scrap_roost_exit_after_factory_route_clear" classname="old_factory_service_lift_scene_manager_exit_test" time="0.069">
+		</testcase>
+		<testcase name="test_service_lift_does_not_activate_when_scene_manager_rejects_exit" classname="old_factory_service_lift_scene_manager_exit_test" time="0.038">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="old_factory_service_lift_handoff_test" package="tests/unit/gameplay" timestamp="2026-06-30T09:52:03" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.066">
+		<testcase name="test_service_lift_is_visible_locked_until_spark_rat_clear_then_activates_once" classname="old_factory_service_lift_handoff_test" time="0.038">
+		</testcase>
+		<testcase name="test_service_lift_restores_activated_state_without_replaying_feedback" classname="old_factory_service_lift_handoff_test" time="0.022">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="old_factory_route_objective_handoff_test" package="tests/unit/gameplay" timestamp="2026-06-30T09:52:03" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.064">
+		<testcase name="test_factory_route_objective_progresses_from_arrival_to_spark_rat_clear" classname="old_factory_route_objective_handoff_test" time="0.037">
+		</testcase>
+		<testcase name="test_factory_route_objective_restores_from_scene_local_state" classname="old_factory_route_objective_handoff_test" time="0.023">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="old_factory_deep_route_unlock_feedback_test" package="tests/unit/gameplay" timestamp="2026-06-30T09:52:03" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.148">
+		<testcase name="test_deep_route_endpoint_mounts_generated_unlock_vfx_texture" classname="old_factory_deep_route_unlock_feedback_test" time="0.023">
+		</testcase>
+		<testcase name="test_endpoint_activation_spawns_one_generated_unlock_vfx" classname="old_factory_deep_route_unlock_feedback_test" time="0.031">
+		</testcase>
+		<testcase name="test_duplicate_endpoint_activation_does_not_spawn_extra_unlock_vfx" classname="old_factory_deep_route_unlock_feedback_test" time="0.031">
+		</testcase>
+		<testcase name="test_unlock_vfx_expires_deterministically_after_lifetime" classname="old_factory_deep_route_unlock_feedback_test" time="0.032">
+		</testcase>
+		<testcase name="test_restoring_cleared_deep_route_does_not_replay_unlock_vfx" classname="old_factory_deep_route_unlock_feedback_test" time="0.022">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="old_factory_spark_rat_pacing_polish_test" package="tests/unit/gameplay" timestamp="2026-06-30T09:52:03" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.209">
+		<testcase name="test_spark_rat_waits_for_pacing_trigger_after_endpoint_open" classname="old_factory_spark_rat_pacing_polish_test" time="0.037">
+		</testcase>
+		<testcase name="test_spark_rat_activation_starts_with_opening_grace_before_first_bite" classname="old_factory_spark_rat_pacing_polish_test" time="0.046">
+		</testcase>
+		<testcase name="test_spark_rat_patrols_until_player_enters_alert_radius" classname="old_factory_spark_rat_pacing_polish_test" time="0.047">
+		</testcase>
+		<testcase name="test_spark_rat_first_bite_respects_extended_attack_tell_before_damage" classname="old_factory_spark_rat_pacing_polish_test" time="0.046">
+		</testcase>
+		<testcase name="test_spark_rat_pacing_state_restores_without_replaying_bite_state" classname="old_factory_spark_rat_pacing_polish_test" time="0.024">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="factory_route_transition_shell_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-30T09:52:03" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.086">
+		<testcase name="test_scene_registry_contains_loadable_factory_route_shell" classname="factory_route_transition_shell_runtime_test" time="0.047">
+		</testcase>
+		<testcase name="test_high_platform_route_trigger_requests_factory_shell_after_gate_unlocked" classname="factory_route_transition_shell_runtime_test" time="0.007">
+		</testcase>
+		<testcase name="test_factory_route_shell_scene_is_minimal_visible_destination" classname="factory_route_transition_shell_runtime_test" time="0.026">
+		</testcase>
+	</testsuite>
+	<testsuite id="6" name="boss2_victory_route_handoff_test" package="tests/unit/gameplay" timestamp="2026-06-30T09:52:03" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.013">
+		<testcase name="test_boss2_victory_reward_handoff_opens_factory_route_transition" classname="boss2_victory_route_handoff_test" time="0.009">
+		</testcase>
+	</testsuite>
+	<testsuite id="7" name="story_003_async_load_timeout_fallback_test" package="tests/unit/scene" timestamp="2026-06-30T09:52:03" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.028">
+		<testcase name="test_request_scene_change_starts_threaded_request_without_committing_current_scene" classname="story_003_async_load_timeout_fallback_test" time="0.002">
+		</testcase>
+		<testcase name="test_loaded_scene_waits_for_transition_gate_before_logical_commit" classname="story_003_async_load_timeout_fallback_test" time="0.005">
+		</testcase>
+		<testcase name="test_timeout_retries_once_then_records_failure_and_falls_back_to_hub" classname="story_003_async_load_timeout_fallback_test" time="0.006">
+		</testcase>
+		<testcase name="test_locked_unknown_or_active_loading_requests_are_rejected_without_loader_calls" classname="story_003_async_load_timeout_fallback_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="8" name="story_005_runtime_scene_tree_swap_test" package="tests/unit/scene" timestamp="2026-06-30T09:52:03" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.029">
+		<testcase name="test_configure_runtime_root_enables_scene_tree_swap_diagnostics" classname="story_005_runtime_scene_tree_swap_test" time="0.001">
+		</testcase>
+		<testcase name="test_async_loaded_packed_scene_is_instantiated_into_runtime_root_after_transition_gate" classname="story_005_runtime_scene_tree_swap_test" time="0.007">
+		</testcase>
+		<testcase name="test_invalid_loaded_resource_fails_without_detaching_current_runtime_scene" classname="story_005_runtime_scene_tree_swap_test" time="0.007">
+		</testcase>
+		<testcase name="test_no_runtime_root_preserves_story003_logical_async_commit" classname="story_005_runtime_scene_tree_swap_test" time="0.007">
+		</testcase>
+	</testsuite>
+</testsuites>
