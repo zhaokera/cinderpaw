@@ -73,22 +73,16 @@ const BY_EMPHASIS_COLOR: Color = Color("#F97316")
 const BY_PARRY_SPARK_COLOR: Color = Color("#FFFFFF")
 const BY_DEBRIS_COLOR: Color = Color("#E53E3E")
 const BY_BOSS_OVERLOAD_COLOR: Color = Color("#FFFFFF")
-const HIT_SPARK_TEXTURE: Texture2D = preload("res://assets/generated/combat_hit_spark.png")
-const ENEMY_DEBRIS_TEXTURE: Texture2D = preload("res://assets/generated/combat_enemy_debris.png")
-const PARRY_SPARK_TEXTURE: Texture2D = preload("res://assets/generated/combat_parry_spark.png")
-const PARRY_FLASH_TEXTURE: Texture2D = preload("res://assets/generated/combat_parry_flash_overlay.png")
+const HIT_SPARK_TEXTURE_PATH: String = "res://assets/generated/combat_hit_spark.png"
+const ENEMY_DEBRIS_TEXTURE_PATH: String = "res://assets/generated/combat_enemy_debris.png"
+const PARRY_SPARK_TEXTURE_PATH: String = "res://assets/generated/combat_parry_spark.png"
+const PARRY_FLASH_TEXTURE_PATH: String = "res://assets/generated/combat_parry_flash_overlay.png"
 const CLAW_TRAIL_TEXTURE_PATH: String = "res://assets/generated/combat_claw_trail.png"
-const CLAW_TRAIL_TEXTURE: Texture2D = preload("res://assets/generated/combat_claw_trail.png")
 const LONG_TAIL_ARC_TEXTURE_PATH: String = "res://assets/generated/combat_long_tail_arc_runtime.png"
-const LONG_TAIL_ARC_TEXTURE: Texture2D = preload("res://assets/generated/combat_long_tail_arc_runtime.png")
 const FISH_BONE_WAVE_TEXTURE_PATH: String = "res://assets/generated/combat_fish_bone_wave_runtime.png"
-const FISH_BONE_WAVE_TEXTURE: Texture2D = preload("res://assets/generated/combat_fish_bone_wave_runtime.png")
 const ELECTRO_BELL_ARC_TEXTURE_PATH: String = "res://assets/generated/combat_electro_bell_arc_runtime.png"
-const ELECTRO_BELL_ARC_TEXTURE: Texture2D = preload("res://assets/generated/combat_electro_bell_arc_runtime.png")
 const DOUBLE_JUMP_VORTEX_TEXTURE_PATH: String = "res://assets/generated/player_double_jump_vortex_runtime.png"
-const DOUBLE_JUMP_VORTEX_TEXTURE: Texture2D = preload("res://assets/generated/player_double_jump_vortex_runtime.png")
 const BOSS_PHASE_OVERLAY_TEXTURE_PATH: String = "res://assets/generated/combat_boss_phase_overlay.png"
-const BOSS_PHASE_OVERLAY_TEXTURE: Texture2D = preload("res://assets/generated/combat_boss_phase_overlay.png")
 const SPARK_SPRITE_SCALE: Vector2 = Vector2(0.16, 0.16)
 const DEBRIS_SPRITE_SCALE: Vector2 = Vector2(0.12, 0.12)
 const PARRY_SPARK_SPRITE_SCALE: Vector2 = Vector2(0.18, 0.18)
@@ -117,6 +111,16 @@ var _boss_phase_debris: Array[Dictionary] = []
 var _boss_phase_overlays: Array[Dictionary] = []
 var _particle_effect_order: Array[Dictionary] = []
 var _particle_eviction_count: int = 0
+var _hit_spark_texture: Texture2D = load(HIT_SPARK_TEXTURE_PATH) as Texture2D
+var _enemy_debris_texture: Texture2D = load(ENEMY_DEBRIS_TEXTURE_PATH) as Texture2D
+var _parry_spark_texture: Texture2D = load(PARRY_SPARK_TEXTURE_PATH) as Texture2D
+var _parry_flash_texture: Texture2D = load(PARRY_FLASH_TEXTURE_PATH) as Texture2D
+var _claw_trail_texture: Texture2D = load(CLAW_TRAIL_TEXTURE_PATH) as Texture2D
+var _long_tail_arc_texture: Texture2D = load(LONG_TAIL_ARC_TEXTURE_PATH) as Texture2D
+var _fish_bone_wave_texture: Texture2D = load(FISH_BONE_WAVE_TEXTURE_PATH) as Texture2D
+var _electro_bell_arc_texture: Texture2D = load(ELECTRO_BELL_ARC_TEXTURE_PATH) as Texture2D
+var _double_jump_vortex_texture: Texture2D = load(DOUBLE_JUMP_VORTEX_TEXTURE_PATH) as Texture2D
+var _boss_phase_overlay_texture: Texture2D = load(BOSS_PHASE_OVERLAY_TEXTURE_PATH) as Texture2D
 var _last_damage_number_text: String = ""
 var _last_damage_number_color: Color = NORMAL_DAMAGE_COLOR
 var _last_damage_number_font_size: int = 12
@@ -522,7 +526,7 @@ func _spawn_damage_number(world_position: Vector2, damage: int, color: Color) ->
 func _spawn_sparks(world_position: Vector2, count: int, color: Color) -> void:
 	_last_spark_color = color
 	for index: int in range(maxi(0, count)):
-		var spark := _create_vfx_sprite(HIT_SPARK_TEXTURE, color, SPARK_SPRITE_SCALE)
+		var spark := _create_vfx_sprite(_hit_spark_texture, color, SPARK_SPRITE_SCALE)
 		spark.position = world_position + Vector2(float((index % 4) * 8 - 12), float(floori(float(index) / 4.0) * 7 - 10))
 		spark.rotation = float(index) * 0.5
 		spark.z_index = 80
@@ -544,7 +548,7 @@ func _spawn_parry_sparks(world_position: Vector2, count: int) -> void:
 	for index: int in range(maxi(0, count)):
 		var angle: float = (float(index) / float(maxi(1, count))) * TAU
 		var outward: Vector2 = Vector2.RIGHT.rotated(angle)
-		var spark := _create_vfx_sprite(PARRY_SPARK_TEXTURE, parry_color, PARRY_SPARK_SPRITE_SCALE)
+		var spark := _create_vfx_sprite(_parry_spark_texture, parry_color, PARRY_SPARK_SPRITE_SCALE)
 		spark.position = world_position + outward * (6.0 + float(index % 3) * 2.0)
 		spark.rotation = angle
 		spark.z_index = 86
@@ -565,7 +569,7 @@ func _spawn_screen_flash(alpha: float, duration_sec: float) -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 100
 	var flash := TextureRect.new()
-	flash.texture = PARRY_FLASH_TEXTURE
+	flash.texture = _parry_flash_texture
 	flash.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	flash.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	flash.modulate = Color(1.0, 1.0, 1.0, _last_flash_alpha)
@@ -592,7 +596,7 @@ func _spawn_claw_trails(world_position: Vector2, facing: float) -> void:
 	_last_claw_trail_color = trail_color
 	_remember_weapon_vfx(&"cat_claw", trail_color, CLAW_TRAIL_LIFETIME_SEC, CLAW_TRAIL_TEXTURE_PATH)
 	for index: int in range(CLAW_TRAIL_COUNT):
-		var trail := _create_vfx_sprite(CLAW_TRAIL_TEXTURE, trail_color, CLAW_TRAIL_SPRITE_SCALE)
+		var trail := _create_vfx_sprite(_claw_trail_texture, trail_color, CLAW_TRAIL_SPRITE_SCALE)
 		var row_offset: float = float(index - 1) * 8.0
 		trail.position = world_position + Vector2(float(index) * 5.0 * facing_sign, row_offset)
 		trail.flip_h = facing_sign < 0.0
@@ -617,7 +621,7 @@ func _spawn_long_tail_arc(world_position: Vector2, facing: float) -> void:
 	var arc_color: Color = _long_tail_arc_color()
 	_remember_weapon_vfx(&"long_tail", arc_color, LONG_TAIL_ARC_LIFETIME_SEC, LONG_TAIL_ARC_TEXTURE_PATH)
 	for _index: int in range(LONG_TAIL_ARC_COUNT):
-		var arc := _create_vfx_sprite(LONG_TAIL_ARC_TEXTURE, arc_color, LONG_TAIL_ARC_SPRITE_SCALE)
+		var arc := _create_vfx_sprite(_long_tail_arc_texture, arc_color, LONG_TAIL_ARC_SPRITE_SCALE)
 		arc.position = world_position + Vector2(12.0 * facing_sign, -2.0)
 		arc.flip_h = facing_sign < 0.0
 		arc.rotation = -0.12 * facing_sign
@@ -651,7 +655,7 @@ func _spawn_fish_bone_wave(world_position: Vector2) -> void:
 	var wave_color: Color = _fish_bone_wave_color()
 	_remember_weapon_vfx(&"fish_bone", wave_color, FISH_BONE_WAVE_LIFETIME_SEC, FISH_BONE_WAVE_TEXTURE_PATH)
 	for _index: int in range(FISH_BONE_WAVE_COUNT):
-		var wave := _create_vfx_sprite(FISH_BONE_WAVE_TEXTURE, wave_color, FISH_BONE_WAVE_SPRITE_SCALE)
+		var wave := _create_vfx_sprite(_fish_bone_wave_texture, wave_color, FISH_BONE_WAVE_SPRITE_SCALE)
 		wave.position = world_position + Vector2(0.0, 6.0)
 		wave.modulate.a = 0.88
 		wave.z_index = 83
@@ -680,7 +684,7 @@ func _spawn_electro_bell_arcs(world_position: Vector2, facing: float) -> void:
 	for index: int in range(ELECTRO_BELL_ARC_COUNT):
 		var angle: float = -0.9 + float(index) * (1.8 / float(maxi(1, ELECTRO_BELL_ARC_COUNT - 1)))
 		var outward: Vector2 = Vector2(facing_sign, 0.0).rotated(angle)
-		var arc := _create_vfx_sprite(ELECTRO_BELL_ARC_TEXTURE, arc_color, ELECTRO_BELL_ARC_SPRITE_SCALE)
+		var arc := _create_vfx_sprite(_electro_bell_arc_texture, arc_color, ELECTRO_BELL_ARC_SPRITE_SCALE)
 		arc.position = world_position + outward * (8.0 + float(index % 3) * 4.0)
 		arc.flip_h = facing_sign < 0.0
 		arc.rotation = outward.angle()
@@ -739,7 +743,7 @@ func _spawn_double_jump_vortex(world_position: Vector2, facing: float) -> void:
 	_last_double_jump_vfx_texture_path = DOUBLE_JUMP_VORTEX_TEXTURE_PATH
 	for index: int in range(DOUBLE_JUMP_VORTEX_COUNT):
 		var vortex := _create_vfx_sprite(
-			DOUBLE_JUMP_VORTEX_TEXTURE,
+			_double_jump_vortex_texture,
 			Color.WHITE,
 			DOUBLE_JUMP_VORTEX_SPRITE_SCALE * (1.0 + float(index) * 0.08)
 		)
@@ -778,7 +782,7 @@ func _spawn_debris(world_position: Vector2, count: int) -> void:
 	var debris_color: Color = _debris_color()
 	_last_debris_color = debris_color
 	for index: int in range(maxi(0, count)):
-		var shard := _create_vfx_sprite(ENEMY_DEBRIS_TEXTURE, debris_color, DEBRIS_SPRITE_SCALE)
+		var shard := _create_vfx_sprite(_enemy_debris_texture, debris_color, DEBRIS_SPRITE_SCALE)
 		shard.position = world_position + Vector2(float((index % 6) * 7 - 20), float(floori(float(index) / 6.0) * 7 - 12))
 		shard.rotation = float(index) * 0.7
 		shard.z_index = 82
@@ -799,7 +803,7 @@ func _spawn_boss_phase_overlay(phase: int) -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 99
 	var overlay := TextureRect.new()
-	overlay.texture = BOSS_PHASE_OVERLAY_TEXTURE
+	overlay.texture = _boss_phase_overlay_texture
 	overlay.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	overlay.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	var phase_alpha: float = BOSS_PHASE_OVERLAY_ALPHA if phase < 3 else 0.92
@@ -827,7 +831,11 @@ func _spawn_boss_phase_debris(world_position: Vector2, count: int, phase: int) -
 	for index: int in range(maxi(0, count)):
 		var angle: float = (float(index) / float(maxi(1, count))) * TAU
 		var outward: Vector2 = Vector2.RIGHT.rotated(angle)
-		var shard := _create_vfx_sprite(ENEMY_DEBRIS_TEXTURE, debris_color, BOSS_PHASE_DEBRIS_SPRITE_SCALE)
+		var shard := _create_vfx_sprite(
+			_enemy_debris_texture,
+			debris_color,
+			BOSS_PHASE_DEBRIS_SPRITE_SCALE
+		)
 		shard.position = world_position + outward * (12.0 + float(index % 5) * 5.0)
 		shard.rotation = angle + float(index % 3) * 0.25
 		shard.z_index = 88

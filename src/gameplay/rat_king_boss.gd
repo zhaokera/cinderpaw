@@ -46,12 +46,12 @@ const ATTACK_PATTERN_TO_ANIMATION: Dictionary = {
 	&"slam": ANIMATION_SLAM,
 	&"berserk_combo": ANIMATION_BERSERK_COMBO,
 }
-const HEALTH_COMPONENT_SCRIPT: Script = preload("res://src/core/health_component.gd")
-const COLLISION_COMPONENT_SCRIPT: Script = preload("res://src/core/collision_component.gd")
-const COMBAT_COMPONENT_SCRIPT: Script = preload("res://src/core/combat_component.gd")
-const STATUS_EFFECT_COMPONENT_SCRIPT: Script = preload("res://src/core/status_effect_component.gd")
-const BOSS_CONFIG_COMPONENT_SCRIPT: Script = preload("res://src/core/boss_config_component.gd")
-const AI_COMPONENT_SCRIPT: Script = preload("res://src/core/ai_component.gd")
+const HEALTH_COMPONENT_SCRIPT_PATH: String = "res://src/core/health_component.gd"
+const COLLISION_COMPONENT_SCRIPT_PATH: String = "res://src/core/collision_component.gd"
+const COMBAT_COMPONENT_SCRIPT_PATH: String = "res://src/core/combat_component.gd"
+const STATUS_EFFECT_COMPONENT_SCRIPT_PATH: String = "res://src/core/status_effect_component.gd"
+const BOSS_CONFIG_COMPONENT_SCRIPT_PATH: String = "res://src/core/boss_config_component.gd"
+const AI_COMPONENT_SCRIPT_PATH: String = "res://src/core/ai_component.gd"
 
 enum State { IDLE, HIT, ATTACK_TELL, ATTACK_ACTIVE, ATTACK_RECOVERY, PHASE_TRANSITION, DEAD }
 
@@ -74,6 +74,12 @@ var _damage_calculator_adapter: Object = null
 var _summon_adapter: Object = null
 var _scene_adapter: Object = null
 var _reward_adapter: Object = null
+var _health_component_script: Script = load(HEALTH_COMPONENT_SCRIPT_PATH) as Script
+var _collision_component_script: Script = load(COLLISION_COMPONENT_SCRIPT_PATH) as Script
+var _combat_component_script: Script = load(COMBAT_COMPONENT_SCRIPT_PATH) as Script
+var _status_effect_component_script: Script = load(STATUS_EFFECT_COMPONENT_SCRIPT_PATH) as Script
+var _boss_config_component_script: Script = load(BOSS_CONFIG_COMPONENT_SCRIPT_PATH) as Script
+var _ai_component_script: Script = load(AI_COMPONENT_SCRIPT_PATH) as Script
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
 
@@ -522,32 +528,32 @@ func _process_phase_transition(_delta: float) -> void:
 func _ensure_core_components() -> void:
 	_health = get_node_or_null("HealthComponent") as HealthComponent
 	if _health == null:
-		_health = HEALTH_COMPONENT_SCRIPT.new() as HealthComponent
+		_health = _health_component_script.new() as HealthComponent
 		_health.name = "HealthComponent"
 		add_child(_health)
 	_collision = get_node_or_null("CollisionComponent") as CollisionComponent
 	if _collision == null:
-		_collision = COLLISION_COMPONENT_SCRIPT.new() as CollisionComponent
+		_collision = _collision_component_script.new() as CollisionComponent
 		_collision.name = "CollisionComponent"
 		add_child(_collision)
 	_combat = get_node_or_null("CombatComponent") as CombatComponent
 	if _combat == null:
-		_combat = COMBAT_COMPONENT_SCRIPT.new() as CombatComponent
+		_combat = _combat_component_script.new() as CombatComponent
 		_combat.name = "CombatComponent"
 		add_child(_combat)
 	_status_effects = get_node_or_null("StatusEffectComponent") as StatusEffectComponent
 	if _status_effects == null:
-		_status_effects = STATUS_EFFECT_COMPONENT_SCRIPT.new() as StatusEffectComponent
+		_status_effects = _status_effect_component_script.new() as StatusEffectComponent
 		_status_effects.name = "StatusEffectComponent"
 		add_child(_status_effects)
 	_boss_config = get_node_or_null("BossConfigComponent") as BossConfigComponent
 	if _boss_config == null:
-		_boss_config = BOSS_CONFIG_COMPONENT_SCRIPT.new() as BossConfigComponent
+		_boss_config = _boss_config_component_script.new() as BossConfigComponent
 		_boss_config.name = "BossConfigComponent"
 		add_child(_boss_config)
 	_ai = get_node_or_null("AIComponent") as AIComponent
 	if _ai == null:
-		_ai = AI_COMPONENT_SCRIPT.new() as AIComponent
+		_ai = _ai_component_script.new() as AIComponent
 		_ai.name = "AIComponent"
 		add_child(_ai)
 

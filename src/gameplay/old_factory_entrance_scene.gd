@@ -19,6 +19,8 @@ const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
 const FACTORY_CHECKPOINT_FORWARD_PATROL_ACTIVATION_X: float = 900.0
 const FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES: int = 18
+const FACTORY_RESPAWN_HAZARD_GRACE_FRAMES: int = 18
+const FACTORY_RETURN_CHECKPOINT_SPAWN_SNAP_FRAMES: int = 18
 const FACTORY_RAT_MINION_COLLISION_LAYER: int = 2
 const FACTORY_RAT_MINION_COLLISION_MASK: int = 17
 const FACTORY_OBJECTIVE_CLEAR_ENTRANCE: StringName = &"clear_factory_entrance"
@@ -54,6 +56,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 )
 @onready var _return_checkpoint: Node = get_node_or_null("FactoryReturnCheckpoint")
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
+@onready var _checkpoint_steam_vent: Area2D = (
+	get_node_or_null("FactoryCheckpointSteamVentHazard") as Area2D
+)
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
 
@@ -85,6 +90,8 @@ var _last_service_lift_exit_rejected_reason: StringName = &""
 var _last_service_lift_exit_request: Dictionary = {}
 var _factory_hazard_elapsed_sec: float = 0.0
 var _factory_hazard_contact_cooldowns: Dictionary = {}
+var _factory_hazard_respawn_grace_frames: int = 0
+var _factory_return_checkpoint_spawn_snap_frames: int = 0
 var _factory_game_flow: GameFlowController = null
 var _weapon_component: WeaponComponent = null
 var _scene_manager: Object = null
@@ -108,6 +115,8 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	_factory_hazard_respawn_grace_frames = maxi(_factory_hazard_respawn_grace_frames - 1, 0)
+	_snap_return_checkpoint_spawn_if_needed()
 	_try_auto_activate_checkpoint_forward_patrol()
 	_sync_factory_player_control_lock()
 
@@ -519,8 +528,12 @@ func apply_factory_steam_vent_contact(hazard: Area2D, target: Node) -> bool:
 		return false
 	if target != _player:
 		return false
+	if _factory_hazard_respawn_grace_frames > 0:
+		return false
 	var hazard_id: StringName = _get_hazard_id(hazard)
-	if hazard_id != &"old_factory_steam_vent":
+	if not _is_factory_steam_hazard_id(hazard_id):
+		return false
+	if not _is_hazard_contact_active(hazard):
 		return false
 	var target_id: int = PlayerController.PLAYER_ENTITY_ID
 	var cooldown_key: String = _factory_hazard_cooldown_key(hazard_id, target_id)
@@ -706,6 +719,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_spark_rat_state()
 	_sync_return_patrol_state()
 	_sync_checkpoint_forward_patrol_state()
+	_sync_checkpoint_steam_vent_state()
 	_sync_return_patrol_reward_cache_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
@@ -757,6 +771,32 @@ func get_factory_hazard_diagnostics() -> Dictionary:
 		),
 		"steam_vent_layer": _steam_vent.collision_layer if _steam_vent != null else 0,
 		"steam_vent_mask": _steam_vent.collision_mask if _steam_vent != null else 0,
+		"checkpoint_steam_vent_present": _checkpoint_steam_vent != null,
+		"checkpoint_steam_vent_visible": (
+			_checkpoint_steam_vent.visible if _checkpoint_steam_vent != null else false
+		),
+		"checkpoint_steam_vent_active": (
+			_is_hazard_contact_active(_checkpoint_steam_vent)
+			if _checkpoint_steam_vent != null
+			else false
+		),
+		"checkpoint_steam_vent_id": String(_get_hazard_id(_checkpoint_steam_vent)),
+		"checkpoint_steam_damage": _get_hazard_damage(_checkpoint_steam_vent),
+		"checkpoint_steam_cooldown_sec": _get_hazard_cooldown_sec(_checkpoint_steam_vent),
+		"checkpoint_steam_vent_texture_path": (
+			String(_checkpoint_steam_vent.call("get_visual_texture_path"))
+			if (
+				_checkpoint_steam_vent != null
+				and _checkpoint_steam_vent.has_method("get_visual_texture_path")
+			)
+			else ""
+		),
+		"checkpoint_steam_vent_layer": (
+			_checkpoint_steam_vent.collision_layer if _checkpoint_steam_vent != null else 0
+		),
+		"checkpoint_steam_vent_mask": (
+			_checkpoint_steam_vent.collision_mask if _checkpoint_steam_vent != null else 0
+		),
 		"last_hazard_damage": _last_hazard_damage.duplicate(true),
 	}
 
@@ -1317,10 +1357,17 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 	if scene_manager == null or not scene_manager.has_method("get_current_spawn_point"):
 		return false
 	var spawn_point: StringName = StringName(scene_manager.call("get_current_spawn_point"))
+	if spawn_point == FACTORY_RETURN_CHECKPOINT_SPAWN_POINT:
+		_grant_factory_hazard_respawn_grace()
 	if not _move_player_to_spawn_point(spawn_point):
 		return false
 	if spawn_point == FACTORY_RETURN_CHECKPOINT_SPAWN_POINT:
+		_factory_return_checkpoint_spawn_snap_frames = FACTORY_RETURN_CHECKPOINT_SPAWN_SNAP_FRAMES
+		_set_player_physics_pinned_for_return_checkpoint(true)
 		_update_route_label(FACTORY_RETURN_CHECKPOINT_RESPAWN_LABEL)
+	else:
+		_factory_return_checkpoint_spawn_snap_frames = 0
+		_set_player_physics_pinned_for_return_checkpoint(false)
 	return true
 
 
@@ -1335,7 +1382,24 @@ func _move_player_to_spawn_point(spawn_point: StringName) -> bool:
 	if spawn_node == null:
 		return false
 	_player.global_position = spawn_node.global_position
+	if _player is CharacterBody2D:
+		(_player as CharacterBody2D).velocity = Vector2.ZERO
 	return true
+
+
+func _snap_return_checkpoint_spawn_if_needed() -> void:
+	if _factory_return_checkpoint_spawn_snap_frames <= 0:
+		return
+	_factory_return_checkpoint_spawn_snap_frames -= 1
+	_move_player_to_spawn_point(FACTORY_RETURN_CHECKPOINT_SPAWN_POINT)
+	if _factory_return_checkpoint_spawn_snap_frames <= 0:
+		_set_player_physics_pinned_for_return_checkpoint(false)
+
+
+func _set_player_physics_pinned_for_return_checkpoint(pinned: bool) -> void:
+	if _player == null or not is_instance_valid(_player):
+		return
+	_player.set_physics_process(not pinned)
 
 
 func _get_scene_manager_pending_scene() -> String:
@@ -1483,14 +1547,14 @@ func _sync_factory_player_control_lock() -> void:
 
 
 func _setup_factory_hazards() -> void:
-	if _steam_vent == null:
-		return
-	var area_entered_callback := Callable(self, "_on_factory_hazard_area_entered").bind(_steam_vent)
-	if not _steam_vent.area_entered.is_connected(area_entered_callback):
-		_steam_vent.area_entered.connect(area_entered_callback)
-	var body_entered_callback := Callable(self, "_on_factory_hazard_body_entered").bind(_steam_vent)
-	if not _steam_vent.body_entered.is_connected(body_entered_callback):
-		_steam_vent.body_entered.connect(body_entered_callback)
+	_sync_checkpoint_steam_vent_state()
+	for hazard: Area2D in _get_factory_hazards():
+		var area_entered_callback := Callable(self, "_on_factory_hazard_area_entered").bind(hazard)
+		if not hazard.area_entered.is_connected(area_entered_callback):
+			hazard.area_entered.connect(area_entered_callback)
+		var body_entered_callback := Callable(self, "_on_factory_hazard_body_entered").bind(hazard)
+		if not hazard.body_entered.is_connected(body_entered_callback):
+			hazard.body_entered.connect(body_entered_callback)
 
 
 func _setup_factory_deep_route() -> void:
@@ -1583,6 +1647,7 @@ func _on_factory_checkpoint_forward_spark_rat_defeated() -> void:
 	_last_service_lift_exit_request = {}
 	_last_service_lift_exit_rejected_reason = &""
 	_sync_checkpoint_forward_patrol_state()
+	_sync_checkpoint_steam_vent_state()
 	_sync_service_lift_state()
 	_refresh_factory_route_objective()
 
@@ -1632,6 +1697,7 @@ func _on_factory_player_died(_death_metadata: Dictionary) -> void:
 
 
 func _on_factory_respawn_requested(respawn_position: Vector2, revive_hp_percentage: float) -> void:
+	_grant_factory_hazard_respawn_grace()
 	if _player != null and is_instance_valid(_player) and _player.has_method("respawn_at"):
 		_player.call("respawn_at", respawn_position, revive_hp_percentage)
 	_sync_factory_player_control_lock()
@@ -1797,6 +1863,26 @@ func _sync_checkpoint_forward_patrol_state() -> void:
 	_checkpoint_forward_spark_rat.collision_layer = FACTORY_RAT_MINION_COLLISION_LAYER
 	_checkpoint_forward_spark_rat.collision_mask = FACTORY_RAT_MINION_COLLISION_MASK
 	_set_checkpoint_forward_spark_rat_attack_target(_player)
+
+
+func _sync_checkpoint_steam_vent_state() -> void:
+	if _checkpoint_steam_vent == null:
+		return
+	var active: bool = _checkpoint_forward_patrol_defeated
+	_checkpoint_steam_vent.visible = active
+	_checkpoint_steam_vent.monitoring = active
+	_checkpoint_steam_vent.collision_layer = (
+		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if active else 0
+	)
+	_checkpoint_steam_vent.collision_mask = (
+		CollisionComponent.COLLISION_MASK_ENVIRONMENT if active else 0
+	)
+	var collision_shape := (
+		_checkpoint_steam_vent.get_node_or_null("CollisionShape2D")
+		as CollisionShape2D
+	)
+	if collision_shape != null:
+		collision_shape.disabled = not active
 
 
 func _sync_return_patrol_reward_cache_state() -> void:
@@ -2025,15 +2111,35 @@ func _build_return_checkpoint_snapshot(
 
 
 func _process_factory_hazard_overlaps() -> void:
-	if _steam_vent == null:
-		return
-	for area: Area2D in _steam_vent.get_overlapping_areas():
-		var target: Node = _resolve_factory_hazard_target_from_area(area)
-		if target != null:
-			apply_factory_steam_vent_contact(_steam_vent, target)
-	for body: Node2D in _steam_vent.get_overlapping_bodies():
-		if body == _player:
-			apply_factory_steam_vent_contact(_steam_vent, _player)
+	for hazard: Area2D in _get_factory_hazards():
+		if not _is_hazard_contact_active(hazard):
+			continue
+		for area: Area2D in hazard.get_overlapping_areas():
+			var target: Node = _resolve_factory_hazard_target_from_area(area)
+			if target != null:
+				apply_factory_steam_vent_contact(hazard, target)
+		for body: Node2D in hazard.get_overlapping_bodies():
+			if body == _player:
+				apply_factory_steam_vent_contact(hazard, _player)
+
+
+func _get_factory_hazards() -> Array[Area2D]:
+	var hazards: Array[Area2D] = []
+	if _steam_vent != null:
+		hazards.append(_steam_vent)
+	if _checkpoint_steam_vent != null:
+		hazards.append(_checkpoint_steam_vent)
+	return hazards
+
+
+func _is_hazard_contact_active(hazard: Area2D) -> bool:
+	return (
+		hazard != null
+		and hazard.visible
+		and hazard.monitoring
+		and hazard.collision_layer != 0
+		and hazard.collision_mask != 0
+	)
 
 
 func _resolve_factory_hazard_target_from_area(area: Area2D) -> Node:
@@ -2052,6 +2158,13 @@ func _get_hazard_id(hazard: Area2D) -> StringName:
 	if hazard != null and hazard.has_method("get_hazard_id"):
 		return StringName(String(hazard.call("get_hazard_id")))
 	return &""
+
+
+func _is_factory_steam_hazard_id(hazard_id: StringName) -> bool:
+	return (
+		hazard_id == &"old_factory_steam_vent"
+		or hazard_id == &"old_factory_checkpoint_steam_vent"
+	)
 
 
 func _get_hazard_damage(hazard: Area2D) -> int:
@@ -2155,6 +2268,18 @@ func _get_spark_rat_attack_sequence_id() -> int:
 
 func _factory_hazard_cooldown_key(hazard_id: StringName, target_id: int) -> String:
 	return "%s:%d" % [String(hazard_id), target_id]
+
+
+func _grant_factory_hazard_respawn_grace() -> void:
+	_factory_hazard_respawn_grace_frames = FACTORY_RESPAWN_HAZARD_GRACE_FRAMES
+	var target_id: int = PlayerController.PLAYER_ENTITY_ID
+	for hazard: Area2D in _get_factory_hazards():
+		var hazard_id: StringName = _get_hazard_id(hazard)
+		if not _is_factory_steam_hazard_id(hazard_id):
+			continue
+		_factory_hazard_contact_cooldowns[_factory_hazard_cooldown_key(hazard_id, target_id)] = (
+			_factory_hazard_elapsed_sec + _get_hazard_cooldown_sec(hazard)
+		)
 
 
 func _bind_factory_guard(

@@ -45,7 +45,8 @@
   Abilities Story043 Old Factory Return Checkpoint、Player Abilities Story044
   Old Factory Return Checkpoint Respawn Runtime、Player Abilities Story045 Old
   Factory Runtime Death Integration、Player Abilities Story046 Old Factory
-  Checkpoint-Forward Combat Route
+  Checkpoint-Forward Combat Route、Player Abilities Story047 Old Factory
+  Checkpoint Steam Vent Gauntlet
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -55,6 +56,36 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 047: Old Factory Checkpoint Steam Vent Gauntlet —
+  `factory_route_transition_shell.tscn` now includes
+  `FactoryCheckpointSteamVentHazard`, a scene-authored checkpoint-adjacent
+  `Area2D` that reuses the existing image-generated Old Factory steam vent art.
+  `OldFactoryEntranceScene` keeps the vent hidden, non-monitoring, and
+  non-colliding until `factory_checkpoint_forward_patrol_defeated`, then
+  activates it with environment layer/mask, visible art, `damage=8`, and
+  `contact_cooldown_sec=1.0`. Factory hazard processing now handles both steam
+  vents through shared collection/cooldown/diagnostic logic. Return-checkpoint
+  respawn and SceneManager handoff now grant a short hazard grace window and
+  briefly pin/snap Cinderpaw to the checkpoint so the activated vent does not
+  immediately overwrite respawn state. No new visual assets were generated;
+  this story reuses
+  `res://assets/environment/old_factory_steam_vent/factory_steam_vent_hazard.png`.
+  Verification: RED `reports/report_985/`; focused GREEN `reports/report_991/`
+  `3/3`; related Old Factory regression `reports/report_1002/` `21/21`;
+  headless Factory smoke
+  `reports/old_factory_checkpoint_steam_vent_gauntlet_smoke.log` exited `0`
+  with no `ERROR`, `SCRIPT ERROR`, `Parse Error`, `FATAL`, or `WARNING` entries
+  in the log file. Godot MCP 4.7 runtime confirmed
+  `FactoryCheckpointSteamVentHazard` exists, default inactive state,
+  activated visible/monitoring/collision state after patrol-clear local state,
+  player `AnimatedSprite2D + SpriteFrames`, and non-empty game screenshot
+  metadata `640x359`; MCP `project_run` retained stale pre-run editor
+  parse-error rows marked `recent_errors_may_predate_run=true`, while runtime
+  inspection and CLI/GdUnit verification succeeded. Validation cleanup
+  `reports/report_1005/` passed `40/40` across Story047, CombatPresentation,
+  and Rat King runtime contract tests after converting optional generated VFX
+  textures and Rat King component scripts to runtime load. QA evidence:
+  `production/qa/evidence/old-factory-checkpoint-steam-vent-gauntlet-2026-06-30.md`。
 - Player Abilities Story 046: Old Factory Checkpoint-Forward Combat Route —
   `factory_route_transition_shell.tscn` now includes
   `FactoryCheckpointForwardSparkRat`, a reused animated Spark Rat patrol with
