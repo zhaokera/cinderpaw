@@ -57,6 +57,7 @@ const BOSS2_DOUBLE_JUMP_REWARD_ID: StringName = &"boss_02_double_jump"
 const BOSS2_DOUBLE_JUMP_REWARD_ABILITY_ID: StringName = &"double_jump"
 const BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG: StringName = &"boss_02_double_jump_claimed"
 const BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG: StringName = &"boss_02_echo_guardian_defeated"
+const BOSS2_ECHO_GUARDIAN_BOSS_ID: StringName = &"boss_02_echo_guardian"
 const BOSS2_DOUBLE_JUMP_REWARD_NOTIFICATION: String = "Double Jump unlocked"
 const BOSS2_ECHO_GUARDIAN_DISPLAY_NAME: String = "Echo Guardian"
 const SAVEPOINT_NOTIFICATION_SUFFIX: String = " saved"
@@ -990,6 +991,11 @@ func claim_boss2_double_jump_reward_source(provider: Node = null) -> bool:
 	set_world_progress_flag(BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG, true)
 	set_world_progress_flag(BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG, true)
 	unlock_ability(BOSS2_DOUBLE_JUMP_REWARD_ABILITY_ID)
+	_dispatch_boss2_audio_event(&"reward_claimed", {
+		"reward_id": BOSS2_DOUBLE_JUMP_REWARD_ID,
+		"ability_id": BOSS2_DOUBLE_JUMP_REWARD_ABILITY_ID,
+		"position": source.global_position,
+	})
 	_hud.show_notification(BOSS2_DOUBLE_JUMP_REWARD_NOTIFICATION, 2.5)
 	_trigger_runtime_autosave(&"ability_reward_claimed", {
 		"reward_id": String(BOSS2_DOUBLE_JUMP_REWARD_ID),
@@ -1327,6 +1333,23 @@ func _dispatch_audio_event(method_name: StringName, args: Array = []) -> bool:
 		return false
 	audio_system.callv(method_name, args)
 	return true
+
+
+func _dispatch_boss2_audio_event(event_id: StringName, metadata: Dictionary = {}) -> bool:
+	var event_metadata: Dictionary = _build_boss2_audio_metadata(metadata)
+	return _dispatch_audio_event(&"on_boss2_audio_event", [event_id, event_metadata])
+
+
+func _build_boss2_audio_metadata(metadata: Dictionary = {}) -> Dictionary:
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	event_metadata["boss_id"] = BOSS2_ECHO_GUARDIAN_BOSS_ID
+	if not event_metadata.has("source"):
+		event_metadata["source"] = &"boss2_echo_guardian"
+	if not event_metadata.has("position") and _boss2_echo_guardian != null:
+		event_metadata["position"] = _boss2_echo_guardian.global_position
+	if event_metadata.has("position") and not event_metadata.has("world_position"):
+		event_metadata["world_position"] = event_metadata.get("position")
+	return event_metadata
 
 
 func _connect_scene_manager_signals(scene_manager: Object) -> void:
@@ -1960,6 +1983,10 @@ func _setup_boss2_attack_core_chain() -> void:
 		var attack_signal: Signal = _boss2_echo_guardian.get("enemy_attack_landed")
 		if not attack_signal.is_connected(_on_boss2_attack_landed):
 			attack_signal.connect(_on_boss2_attack_landed)
+	if _boss2_echo_guardian.has_signal("boss2_audio_event_requested"):
+		var audio_signal: Signal = _boss2_echo_guardian.get("boss2_audio_event_requested")
+		if not audio_signal.is_connected(_on_boss2_audio_event_requested):
+			audio_signal.connect(_on_boss2_audio_event_requested)
 
 
 func _get_boss2_echo_guardian() -> Node:
@@ -2055,11 +2082,11 @@ func _on_boss2_echo_guardian_defeated() -> void:
 		2,
 		_boss2_echo_guardian.global_position + Vector2(0, -40)
 	)
-	_dispatch_audio_event(&"on_enemy_defeated", [{
-		"target_id": &"boss_02_echo_guardian",
-		"position": _boss2_echo_guardian.global_position + Vector2(0, -40),
-	}])
 	_hud.show_notification("Echo Guardian defeated", 2.0)
+
+
+func _on_boss2_audio_event_requested(event_id: StringName, metadata: Dictionary) -> void:
+	_dispatch_boss2_audio_event(event_id, metadata)
 
 
 func _is_boss2_echo_guardian_defeated() -> bool:

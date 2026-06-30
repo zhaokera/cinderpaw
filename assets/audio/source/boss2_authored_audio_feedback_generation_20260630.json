@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-06-30",
+  "story": "production/epics/audio-system/story-009-boss2-authored-audio-feedback-runtime.md",
+  "method": "procedural Python wav synthesis, replaceable authored baseline",
+  "sample_rate_hz": 44100,
+  "format": "16-bit PCM mono WAV",
+  "cues": {
+    "sfx_boss2_chase_start": {
+      "path": "res://assets/audio/sfx/sfx_boss2_chase_start.wav",
+      "duration_sec": 0.34,
+      "role": "chase_start",
+      "notes": "Procedural replaceable baseline cue for Boss2 runtime authored audio feedback."
+    },
+    "sfx_boss2_attack_startup": {
+      "path": "res://assets/audio/sfx/sfx_boss2_attack_startup.wav",
+      "duration_sec": 0.28,
+      "role": "attack_startup",
+      "notes": "Procedural replaceable baseline cue for Boss2 runtime authored audio feedback."
+    },
+    "sfx_boss2_attack_active": {
+      "path": "res://assets/audio/sfx/sfx_boss2_attack_active.wav",
+      "duration_sec": 0.18,
+      "role": "attack_active",
+      "notes": "Procedural replaceable baseline cue for Boss2 runtime authored audio feedback."
+    },
+    "sfx_boss2_hurt": {
+      "path": "res://assets/audio/sfx/sfx_boss2_hurt.wav",
+      "duration_sec": 0.24,
+      "role": "hurt",
+      "notes": "Procedural replaceable baseline cue for Boss2 runtime authored audio feedback."
+    },
+    "sfx_boss2_defeat": {
+      "path": "res://assets/audio/sfx/sfx_boss2_defeat.wav",
+      "duration_sec": 0.62,
+      "role": "defeat",
+      "notes": "Procedural replaceable baseline cue for Boss2 runtime authored audio feedback."
+    },
+    "sfx_boss2_reward_claim": {
+      "path": "res://assets/audio/sfx/sfx_boss2_reward_claim.wav",
+      "duration_sec": 0.48,
+      "role": "reward_claim",
+      "notes": "Procedural replaceable baseline cue for Boss2 runtime authored audio feedback."
+    }
+  }
+}

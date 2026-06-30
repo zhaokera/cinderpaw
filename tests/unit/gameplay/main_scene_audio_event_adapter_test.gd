@@ -24,6 +24,7 @@ class FakeAudioSystem:
 	var boss_phase_events: Array[Dictionary] = []
 	var boss_encounter_started_events: Array[Dictionary] = []
 	var boss_encounter_ended_events: Array[Dictionary] = []
+	var boss2_audio_events: Array[Dictionary] = []
 	var weapon_attack_events: Array[Dictionary] = []
 	var menu_opened_events: Array[Dictionary] = []
 	var menu_closed_events: Array[Dictionary] = []
@@ -111,6 +112,13 @@ class FakeAudioSystem:
 			"boss_id": boss_id,
 			"metadata": metadata.duplicate(true),
 		})
+
+	func on_boss2_audio_event(event_id: StringName, metadata: Dictionary) -> bool:
+		boss2_audio_events.append({
+			"event_id": event_id,
+			"metadata": metadata.duplicate(true),
+		})
+		return true
 
 	func on_weapon_attack_event(attack_data: Dictionary) -> bool:
 		weapon_attack_events.append(attack_data.duplicate(true))
@@ -343,6 +351,58 @@ func test_rat_king_boss_music_start_and_end_events_route_to_audio_system() -> vo
 	assert_str(String(end_metadata.get("reason", &""))).is_equal("defeated")
 
 
+func test_boss2_runtime_states_and_reward_claim_route_authored_audio_events() -> void:
+	var audio_system: FakeAudioSystem = _configure_fake_audio_system()
+	var boss: Node2D = scene.get_node("Boss2EchoGuardian") as Node2D
+	var player: Node2D = scene.get_node("Player") as Node2D
+	assert_bool(boss.has_method("advance_behavior_frames")).is_true()
+	assert_bool(boss.has_method("get_auto_pressure_diagnostics")).is_true()
+	assert_bool(boss.has_method("set_attack_target")).is_true()
+	assert_bool(scene.has_method("apply_damage")).is_true()
+	assert_bool(scene.has_method("claim_boss2_double_jump_reward_source")).is_true()
+	if (
+		not boss.has_method("advance_behavior_frames")
+		or not boss.has_method("get_auto_pressure_diagnostics")
+		or not boss.has_method("set_attack_target")
+		or not scene.has_method("apply_damage")
+		or not scene.has_method("claim_boss2_double_jump_reward_source")
+	):
+		return
+
+	var diagnostics: Dictionary = boss.call("get_auto_pressure_diagnostics")
+	var anchor: Vector2 = diagnostics.get("arena_anchor_position", boss.global_position)
+	player.global_position = anchor + Vector2(-220.0, 0.0)
+	boss.global_position = anchor
+	boss.call("set_attack_target", player)
+	boss.call("advance_behavior_frames", 1)
+
+	_assert_boss2_audio_event(audio_system, 0, &"chase_start", boss.global_position)
+	boss.call("advance_behavior_frames", 1)
+	assert_int(audio_system.boss2_audio_events.size()).is_equal(1)
+
+	player.global_position = boss.global_position + Vector2(-96.0, 0.0)
+	boss.call("advance_behavior_frames", 1)
+	_assert_boss2_audio_event(audio_system, 1, &"attack_startup", boss.global_position)
+	boss.call("advance_attack_frames", ATTACK_TELL_FRAMES)
+	_assert_boss2_audio_event(audio_system, 2, &"attack_active", boss.global_position)
+
+	assert_bool(bool(scene.call("apply_damage", 2200, 5, {
+		"source": &"unit_test_boss2_audio",
+	}))).is_true()
+	_assert_boss2_audio_event(audio_system, 3, &"hurt", boss.global_position)
+
+	assert_bool(bool(scene.call("apply_damage", 2200, 31, {
+		"source": &"unit_test_boss2_audio_defeat",
+	}))).is_true()
+	_assert_boss2_audio_event(audio_system, 4, &"defeated", boss.global_position)
+
+	var reward_source: Node = scene.get_node("Boss2DoubleJumpRewardSource")
+	assert_bool(bool(reward_source.call("is_claim_available"))).is_true()
+	reward_source.global_position = player.global_position
+	assert_bool(bool(scene.call("claim_boss2_double_jump_reward_source", player))).is_true()
+	_assert_boss2_audio_event(audio_system, 5, &"reward_claimed", reward_source.global_position)
+
+
 func test_menu_open_close_save_and_load_route_to_audio_system() -> void:
 	var audio_system: FakeAudioSystem = _configure_fake_audio_system()
 	var hud: Node = scene.get_node("HUD")
@@ -534,3 +594,20 @@ func _enemy_startup_frames(enemy: Node) -> int:
 	if enemy.has_method("get_current_attack_startup_frames"):
 		return int(enemy.call("get_current_attack_startup_frames"))
 	return ATTACK_TELL_FRAMES
+
+
+func _assert_boss2_audio_event(
+	audio_system: FakeAudioSystem,
+	index: int,
+	event_id: StringName,
+	expected_position: Vector2
+) -> void:
+	assert_int(audio_system.boss2_audio_events.size()).is_greater_equal(index + 1)
+	if audio_system.boss2_audio_events.size() <= index:
+		return
+	var event: Dictionary = audio_system.boss2_audio_events[index]
+	assert_str(String(event.get("event_id", &""))).is_equal(String(event_id))
+	var metadata: Dictionary = Dictionary(event.get("metadata", {}))
+	assert_str(String(metadata.get("boss_id", &""))).is_equal("boss_02_echo_guardian")
+	assert_str(String(metadata.get("source", &""))).is_equal("boss2_echo_guardian")
+	assert_vector(metadata.get("position", Vector2.ZERO)).is_equal(expected_position)

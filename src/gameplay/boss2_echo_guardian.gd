@@ -5,6 +5,7 @@ extends CharacterBody2D
 signal boss_health_changed(current_hp: int, max_hp: int)
 signal boss_defeated
 signal enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool)
+signal boss2_audio_event_requested(event_id: StringName, metadata: Dictionary)
 
 const ENTITY_ID: int = 2200
 const MAX_HP: int = 36
@@ -60,6 +61,8 @@ var _status_effects: StatusEffectComponent = null
 var _default_collision_layer: int = 0
 var _default_collision_mask: int = 0
 var _arena_anchor_position: Vector2 = Vector2.ZERO
+var _audio_chase_active: bool = false
+var _last_audio_hp: int = MAX_HP
 
 
 func _ready() -> void:
@@ -68,6 +71,7 @@ func _ready() -> void:
 	_arena_anchor_position = global_position
 	_ensure_core_components()
 	_setup_core_components()
+	_last_audio_hp = get_current_hp()
 	_play_animation(ANIMATION_IDLE, true)
 	boss_health_changed.emit(get_current_hp(), MAX_HP)
 
@@ -117,9 +121,14 @@ func request_attack() -> bool:
 	_attack_timer = ATTACK_TELL_FRAMES
 	_state = State.ATTACK_TELL
 	_behavior_phase = &"startup"
+	_audio_chase_active = false
 	if _collision != null:
 		_collision.deactivate_hitbox(ATTACK_HITBOX_ID)
 	_play_animation(ANIMATION_ATTACK, true)
+	_emit_boss2_audio_event(&"attack_startup", {
+		"attack_sequence_id": _attack_sequence_id,
+		"attack_phase": &"startup",
+	})
 	return true
 
 
@@ -193,12 +202,14 @@ func reset_encounter() -> void:
 	_hit_timer = 0
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
+	_audio_chase_active = false
 	_last_hit_metadata.clear()
 	_last_enemy_attack_metadata.clear()
 	collision_layer = _default_collision_layer
 	collision_mask = _default_collision_mask
 	_ensure_core_components()
 	_setup_core_components()
+	_last_audio_hp = get_current_hp()
 	if _collision != null:
 		_collision.deactivate_all_hitboxes()
 		_collision.set_hurtbox_state(CollisionComponent.HURTBOX_STATE_NORMAL)
@@ -213,6 +224,7 @@ func mark_defeated_from_progress() -> void:
 	_behavior_phase = &"defeated"
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
+	_audio_chase_active = false
 	if _collision != null:
 		_collision.deactivate_all_hitboxes()
 		_collision.set_hurtbox_state(CollisionComponent.HURTBOX_STATE_GONE)
@@ -290,6 +302,7 @@ func restore_respawn_snapshot(snapshot: Dictionary) -> void:
 	_hit_timer = 0
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
+	_audio_chase_active = false
 	_last_hit_metadata.clear()
 	_last_enemy_attack_metadata.clear()
 	velocity = Vector2.ZERO
@@ -300,6 +313,7 @@ func restore_respawn_snapshot(snapshot: Dictionary) -> void:
 	var hp: int = clampi(_read_int(snapshot.get("hp", MAX_HP), MAX_HP), 0, MAX_HP)
 	if _health != null:
 		_health.configure(ENTITY_ID, MAX_HP, hp, 0, 0, false)
+	_last_audio_hp = get_current_hp()
 	if _collision != null:
 		_collision.deactivate_all_hitboxes()
 		_collision.set_hurtbox_state(CollisionComponent.HURTBOX_STATE_NORMAL)
@@ -376,6 +390,7 @@ func _process_idle(auto_attack: bool = true) -> void:
 	_update_sprite_facing()
 	if not auto_attack:
 		_behavior_phase = &"idle"
+		_audio_chase_active = false
 		_play_animation(ANIMATION_IDLE)
 		return
 	if _can_auto_attack_target():
@@ -390,11 +405,13 @@ func _process_idle(auto_attack: bool = true) -> void:
 		_return_to_anchor()
 		return
 	_behavior_phase = &"idle"
+	_audio_chase_active = false
 	_play_animation(ANIMATION_IDLE)
 
 
 func _process_hit() -> void:
 	_behavior_phase = &"hurt"
+	_audio_chase_active = false
 	_hit_timer -= 1
 	if _hit_timer <= 0:
 		_state = State.IDLE
@@ -417,7 +434,13 @@ func _enter_attack_active() -> void:
 	_state = State.ATTACK_ACTIVE
 	_behavior_phase = &"active"
 	_attack_timer = ATTACK_ACTIVE_FRAMES
+	_audio_chase_active = false
 	_play_animation(ANIMATION_ATTACK, true)
+	_emit_boss2_audio_event(&"attack_active", {
+		"attack_sequence_id": _attack_sequence_id,
+		"attack_phase": &"active",
+		"hitbox_id": ATTACK_HITBOX_ID,
+	})
 	if _collision == null:
 		return
 	_collision.activate_hitbox(
@@ -502,7 +525,15 @@ func _setup_core_components() -> void:
 func _on_core_hp_changed(_entity_id_value: int, current_hp: int, max_hp: int) -> void:
 	boss_health_changed.emit(current_hp, max_hp)
 	if current_hp <= 0 or _defeated:
+		_last_audio_hp = current_hp
 		return
+	if current_hp < _last_audio_hp:
+		_emit_boss2_audio_event(&"hurt", {
+			"damage": _last_audio_hp - current_hp,
+			"hp_before": _last_audio_hp,
+			"hp_after": current_hp,
+		})
+	_last_audio_hp = current_hp
 	if _sprite != null:
 		_sprite.modulate = HIT_MODULATE
 	if _state == State.ATTACK_TELL or _state == State.ATTACK_ACTIVE or _state == State.ATTACK_RECOVERY:
@@ -532,6 +563,10 @@ func _die(_metadata: Dictionary) -> void:
 	_play_animation(ANIMATION_DEATH, true)
 	collision_layer = 0
 	collision_mask = 0
+	_audio_chase_active = false
+	_emit_boss2_audio_event(&"defeated", {
+		"hp_after": 0,
+	})
 	boss_defeated.emit()
 
 
@@ -562,6 +597,18 @@ func _build_attack_metadata() -> Dictionary:
 		"attack_sequence_id": _attack_sequence_id,
 		"injected_damage_params": _build_enemy_damage_params(),
 	}
+
+
+func _emit_boss2_audio_event(event_id: StringName, metadata: Dictionary = {}) -> void:
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	event_metadata["boss_id"] = &"boss_02_echo_guardian"
+	event_metadata["entity_id"] = ENTITY_ID
+	event_metadata["source"] = &"boss2_echo_guardian"
+	event_metadata["position"] = global_position
+	event_metadata["behavior_phase"] = _behavior_phase
+	event_metadata["attack_phase"] = get_attack_phase()
+	event_metadata["facing"] = _facing
+	boss2_audio_event_requested.emit(event_id, event_metadata)
 
 
 func _build_enemy_damage_params() -> Dictionary:
@@ -607,6 +654,13 @@ func _chase_attack_target() -> void:
 	_behavior_phase = &"chase"
 	_update_sprite_facing()
 	_play_animation(ANIMATION_RUN)
+	if not _audio_chase_active:
+		_audio_chase_active = true
+		_emit_boss2_audio_event(&"chase_start", {
+			"target_distance_x": distance_x,
+			"arena_min_x": _arena_min_x(),
+			"arena_max_x": _arena_max_x(),
+		})
 
 
 func _should_return_to_anchor() -> bool:
@@ -619,6 +673,7 @@ func _return_to_anchor() -> void:
 		global_position = _arena_anchor_position
 		velocity = Vector2.ZERO
 		_behavior_phase = &"idle"
+		_audio_chase_active = false
 		_play_animation(ANIMATION_IDLE)
 		return
 	var direction: Vector2 = to_anchor.normalized()
@@ -627,6 +682,7 @@ func _return_to_anchor() -> void:
 	velocity = direction * RETURN_STEP_PX * 60.0
 	_facing = signf(direction.x) if absf(direction.x) > 0.01 else _facing
 	_behavior_phase = &"return"
+	_audio_chase_active = false
 	_update_sprite_facing()
 	_play_animation(ANIMATION_RUN)
 

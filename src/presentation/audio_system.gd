@@ -90,6 +90,30 @@ const DEFAULT_CORE_COMBAT_SFX_STREAMS: Dictionary = {
 	&"sfx_double_jump": "res://assets/audio/sfx/sfx_double_jump.wav",
 	&"sfx_door_unlock": "res://assets/audio/sfx/sfx_door_unlock_baseline_short.wav",
 }
+const DEFAULT_BOSS2_SFX_STREAMS: Dictionary = {
+	&"sfx_boss2_chase_start": "res://assets/audio/sfx/sfx_boss2_chase_start.wav",
+	&"sfx_boss2_attack_startup": "res://assets/audio/sfx/sfx_boss2_attack_startup.wav",
+	&"sfx_boss2_attack_active": "res://assets/audio/sfx/sfx_boss2_attack_active.wav",
+	&"sfx_boss2_hurt": "res://assets/audio/sfx/sfx_boss2_hurt.wav",
+	&"sfx_boss2_defeat": "res://assets/audio/sfx/sfx_boss2_defeat.wav",
+	&"sfx_boss2_reward_claim": "res://assets/audio/sfx/sfx_boss2_reward_claim.wav",
+}
+const BOSS2_EVENT_SFX: Dictionary = {
+	&"chase_start": &"sfx_boss2_chase_start",
+	&"attack_startup": &"sfx_boss2_attack_startup",
+	&"attack_active": &"sfx_boss2_attack_active",
+	&"hurt": &"sfx_boss2_hurt",
+	&"defeated": &"sfx_boss2_defeat",
+	&"reward_claimed": &"sfx_boss2_reward_claim",
+}
+const BOSS2_EVENT_PRIORITIES: Dictionary = {
+	&"chase_start": SFX_PRIORITY_DAMAGE,
+	&"attack_startup": SFX_PRIORITY_HIGH,
+	&"attack_active": SFX_PRIORITY_CRITICAL,
+	&"hurt": SFX_PRIORITY_DAMAGE,
+	&"defeated": SFX_PRIORITY_CRITICAL,
+	&"reward_claimed": SFX_PRIORITY_HIGH,
+}
 const DEFAULT_UI_AUDIO_STREAMS: Dictionary = {
 	&"ui_menu_open": "res://assets/audio/ui/ui_menu_open.wav",
 	&"ui_menu_close": "res://assets/audio/ui/ui_menu_close.wav",
@@ -161,6 +185,7 @@ func _ready() -> void:
 	configure_scene_audio_cues(DEFAULT_SCENE_AUDIO_CUES)
 	configure_boss_music_cues(DEFAULT_BOSS_MUSIC_CUES)
 	load_audio_streams_from_paths(DEFAULT_CORE_COMBAT_SFX_STREAMS)
+	load_audio_streams_from_paths(DEFAULT_BOSS2_SFX_STREAMS)
 	load_audio_streams_from_paths(DEFAULT_UI_AUDIO_STREAMS)
 	load_audio_streams_from_paths(DEFAULT_MUSIC_AMBIENT_STREAMS)
 	_initialize_buses()
@@ -775,6 +800,25 @@ func on_enemy_defeated(metadata: Dictionary = {}) -> bool:
 		_event_position(metadata, ["position", "world_position", "hit_position"]),
 		SFX_PRIORITY_HIGH,
 		metadata
+	)
+
+
+## Routes Boss2 authored runtime feedback events to dedicated spatial SFX.
+func on_boss2_audio_event(event_id: StringName, metadata: Dictionary = {}) -> bool:
+	var sfx_id: StringName = StringName(String(BOSS2_EVENT_SFX.get(event_id, &"")))
+	if sfx_id == &"":
+		return false
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	event_metadata["boss_id"] = StringName(String(event_metadata.get("boss_id", &"boss_02_echo_guardian")))
+	event_metadata["event_id"] = event_id
+	return _request_gameplay_sfx(
+		event_id,
+		sfx_id,
+		_event_position(event_metadata, ["position", "world_position", "hit_position"]),
+		int(BOSS2_EVENT_PRIORITIES.get(event_id, SFX_PRIORITY_HIGH)),
+		event_metadata,
+		float(event_metadata.get("pitch_offset", 0.0)),
+		float(event_metadata.get("volume_db", 0.0))
 	)
 
 

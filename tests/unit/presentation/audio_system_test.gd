@@ -21,6 +21,14 @@ const DEFAULT_CORE_COMBAT_SFX: Dictionary = {
 	&"sfx_double_jump": "res://assets/audio/sfx/sfx_double_jump.wav",
 	&"sfx_door_unlock": "res://assets/audio/sfx/sfx_door_unlock_baseline_short.wav",
 }
+const DEFAULT_BOSS2_SFX: Dictionary = {
+	&"sfx_boss2_chase_start": "res://assets/audio/sfx/sfx_boss2_chase_start.wav",
+	&"sfx_boss2_attack_startup": "res://assets/audio/sfx/sfx_boss2_attack_startup.wav",
+	&"sfx_boss2_attack_active": "res://assets/audio/sfx/sfx_boss2_attack_active.wav",
+	&"sfx_boss2_hurt": "res://assets/audio/sfx/sfx_boss2_hurt.wav",
+	&"sfx_boss2_defeat": "res://assets/audio/sfx/sfx_boss2_defeat.wav",
+	&"sfx_boss2_reward_claim": "res://assets/audio/sfx/sfx_boss2_reward_claim.wav",
+}
 const DEFAULT_UI_AUDIO_STREAMS: Dictionary = {
 	&"ui_menu_open": "res://assets/audio/ui/ui_menu_open.wav",
 	&"ui_menu_close": "res://assets/audio/ui/ui_menu_close.wav",
@@ -232,6 +240,49 @@ func test_default_core_combat_sfx_assets_load_and_play_from_imported_wav_files()
 		var player := audio_system.get_node("SFXPlayer%02d" % player_index) as AudioStreamPlayer2D
 		assert_object(player).is_not_null()
 		assert_object(player.stream).is_not_null()
+
+
+func test_boss2_authored_sfx_assets_load_and_event_router_maps_runtime_states() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	assert_bool(audio_system.has_method("get_registered_audio_stream_ids")).is_true()
+	assert_bool(audio_system.has_method("get_audio_stream_path")).is_true()
+	assert_bool(audio_system.has_method("on_boss2_audio_event")).is_true()
+	if (
+		not audio_system.has_method("get_registered_audio_stream_ids")
+		or not audio_system.has_method("get_audio_stream_path")
+		or not audio_system.has_method("on_boss2_audio_event")
+	):
+		return
+
+	var registered_ids: Array = audio_system.call("get_registered_audio_stream_ids")
+	for sfx_id: StringName in DEFAULT_BOSS2_SFX.keys():
+		var expected_path: String = String(DEFAULT_BOSS2_SFX[sfx_id])
+		assert_bool(FileAccess.file_exists(expected_path)).is_true()
+		assert_bool(FileAccess.file_exists("%s.import" % expected_path)).is_true()
+		assert_array(registered_ids).contains([sfx_id])
+		assert_str(String(audio_system.call("get_audio_stream_path", sfx_id))).is_equal(expected_path)
+
+	var expected_by_event: Dictionary = {
+		&"chase_start": &"sfx_boss2_chase_start",
+		&"attack_startup": &"sfx_boss2_attack_startup",
+		&"attack_active": &"sfx_boss2_attack_active",
+		&"hurt": &"sfx_boss2_hurt",
+		&"defeated": &"sfx_boss2_defeat",
+		&"reward_claimed": &"sfx_boss2_reward_claim",
+	}
+	for event_id: StringName in expected_by_event.keys():
+		assert_bool(bool(audio_system.call("on_boss2_audio_event", event_id, {
+			"boss_id": &"boss_02_echo_guardian",
+			"position": Vector2(520, 440),
+			"phase": 1,
+		}))).is_true()
+		var request: Dictionary = audio_system.get_last_sfx_request()
+		assert_str(String(request.get("sfx_id", &""))).is_equal(String(expected_by_event[event_id]))
+		assert_vector(request.get("position", Vector2.ZERO)).is_equal(Vector2(520, 440))
+		assert_bool(bool(request.get("stream_found", false))).is_true()
+		assert_int(int(request.get("priority", 0))).is_greater_equal(70)
 
 
 func test_default_ui_audio_assets_load_and_play_on_ui_bus() -> void:
