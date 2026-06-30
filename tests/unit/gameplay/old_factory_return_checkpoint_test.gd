@@ -9,6 +9,7 @@ const MAIN_SCENE: PackedScene = preload(MAIN_SCENE_PATH)
 const FACTORY_SCENE: PackedScene = preload(FACTORY_SCENE_PATH)
 const MAIN_SCENE_ID: StringName = &"main"
 const FACTORY_SCENE_ID: StringName = &"area_03_factory"
+const FACTORY_GATE_ENTRY_SPAWN_POINT: StringName = &"factory_gate_entry"
 const THREAD_LOAD_LOADED: int = 3
 const TRANSITION_SECONDS: float = 1.5
 const FACTORY_PLAYER_NAME: String = "Player"
@@ -48,6 +49,23 @@ class FakeFactorySceneManager:
 
 	func get_current_spawn_point() -> StringName:
 		return current_spawn_point
+
+
+class FakeFactoryRequestSceneManager:
+	extends FakeFactorySceneManager
+
+	var request_calls: Array[Dictionary] = []
+
+	func request_scene_change(scene_id: StringName, spawn_point: StringName = &"default") -> bool:
+		request_calls.append({
+			"scene_id": String(scene_id),
+			"spawn_point": String(spawn_point),
+		})
+		var known: bool = has_scene(scene_id)
+		if known:
+			current_scene = scene_id
+			current_spawn_point = spawn_point
+		return known
 
 
 class ReturnCheckpointLoaderAdapter:
@@ -261,7 +279,7 @@ func test_scene_manager_return_checkpoint_spawn_moves_player_to_checkpoint() -> 
 		return
 	player.global_position = checkpoint.global_position + Vector2(260.0, 0.0)
 
-	var scene_manager := FakeFactorySceneManager.new()
+	var scene_manager := FakeFactoryRequestSceneManager.new()
 	scene_manager.current_scene = &"area_03_factory"
 	scene_manager.current_spawn_point = &"return_checkpoint"
 
@@ -397,6 +415,44 @@ func test_factory_runtime_death_preserves_checkpoint_state_on_same_scene_respawn
 		"factory_return_patrol_defeated",
 		false
 	))).is_true()
+
+
+func test_factory_player_death_signal_drives_return_checkpoint_respawn_runtime() -> void:
+	var destination: Node = _factory_scene_with_activated_return_checkpoint()
+	assert_that(destination).is_not_null()
+	if destination == null:
+		return
+
+	var player: Node = destination.get_node_or_null(FACTORY_PLAYER_NAME)
+	var checkpoint: Node2D = destination.get_node_or_null(FACTORY_RETURN_CHECKPOINT_NAME) as Node2D
+	assert_that(player).is_not_null()
+	assert_that(checkpoint).is_not_null()
+	if player == null or checkpoint == null:
+		return
+
+	var scene_manager := FakeFactoryRequestSceneManager.new()
+	scene_manager.current_scene = FACTORY_SCENE_ID
+	scene_manager.current_spawn_point = FACTORY_GATE_ENTRY_SPAWN_POINT
+	assert_bool(bool(destination.call("configure_scene_manager_runtime", scene_manager))).is_true()
+	assert_bool(destination.has_method("advance_factory_respawn_flow")).is_true()
+
+	var max_hp: int = int(player.call("get_max_hp"))
+	player.call("apply_damage", max_hp, {
+		"source": "factory_runtime_death_test",
+		"damage_type": "lethal_probe",
+	})
+	destination.call("advance_factory_respawn_flow", 1.51)
+
+	var route: Dictionary = destination.call("get_factory_route_objective_diagnostics")
+	assert_int(scene_manager.request_calls.size()).is_equal(1)
+	assert_str(String(scene_manager.request_calls[0]["scene_id"])).is_equal("area_03_factory")
+	assert_str(String(scene_manager.request_calls[0]["spawn_point"])).is_equal("return_checkpoint")
+	assert_float(
+		(player as Node2D).global_position.distance_to(checkpoint.global_position)
+	).is_less_equal(1.0)
+	assert_int(int(player.call("get_current_hp"))).is_equal(maxi(1, int(round(max_hp * 0.5))))
+	assert_bool(bool(player.call("is_respawn_visual_active"))).is_true()
+	assert_str(String(route.get("route_label_text", ""))).is_equal("Returned to Factory Savepoint")
 
 
 func _instantiate_factory_scene() -> Node:

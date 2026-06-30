@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 43 stories tracked
+> **Stories**: 45 stories tracked
 
 ## Overview
 
@@ -82,6 +82,7 @@ recording the reward in progression state.
 | 042 | Old Factory Cache Claim Feedback | Integration + UI/Visual | Complete | ADR-0007/0018/0021 |
 | 043 | Old Factory Return Checkpoint | Integration + Gameplay Runtime + Visual | Complete | ADR-0007/0018/0021 |
 | 044 | Old Factory Return Checkpoint Respawn Runtime | Integration + Gameplay Runtime + Scene Management | Complete | ADR-0007/0018/0021 |
+| 045 | Old Factory Runtime Death Integration | Integration + Gameplay Runtime + Scene Management | Complete | ADR-0007/0018/0021 |
 
 ## Definition of Done
 
@@ -101,7 +102,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-044 are complete. Continue with the next playable ACT slice:
+Stories001-045 are complete. Continue with the next playable ACT slice:
 deeper Old Factory combat encounters, savepoint/minimap gameplay, additional
 player-visible character/enemy frame-animation replacement, more skill-tree
 branches, or final Boss2 balancing/cutscene polish.

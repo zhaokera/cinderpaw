@@ -34,6 +34,7 @@ const FACTORY_RETURN_CHECKPOINT_SPAWN_POINT: StringName = &"return_checkpoint"
 const FACTORY_GATE_ENTRY_SPAWN_POINT: StringName = &"factory_gate_entry"
 const FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS: float = 112.0
 const FACTORY_RETURN_CHECKPOINT_RESPAWN_LABEL: String = "Returned to Factory Savepoint"
+const GAME_FLOW_SCRIPT: Script = preload("res://src/gameplay/game_flow_controller.gd")
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
 @onready var _spawn: Marker2D = $FactoryGateEntrySpawn
@@ -77,6 +78,7 @@ var _last_service_lift_exit_rejected_reason: StringName = &""
 var _last_service_lift_exit_request: Dictionary = {}
 var _factory_hazard_elapsed_sec: float = 0.0
 var _factory_hazard_contact_cooldowns: Dictionary = {}
+var _factory_game_flow: GameFlowController = null
 var _weapon_component: WeaponComponent = null
 var _scene_manager: Object = null
 
@@ -92,9 +94,14 @@ func _ready() -> void:
 	_setup_factory_deep_route()
 	_setup_factory_spark_rat()
 	_setup_factory_service_lift()
+	_setup_factory_respawn_flow()
 	_bind_player_combat_to_room()
 	_refresh_factory_route_objective()
 	_request_factory_audio()
+
+
+func _process(_delta: float) -> void:
+	_sync_factory_player_control_lock()
 
 
 func calculate_damage(
@@ -294,9 +301,37 @@ func try_activate_factory_service_lift(provider: Node = null) -> bool:
 func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 	_scene_manager = scene_manager
 	var valid_scene_manager: bool = _is_valid_scene_manager(_scene_manager)
+	_configure_factory_respawn_scene_transition()
 	if valid_scene_manager:
 		_apply_current_scene_manager_spawn_point()
 	return valid_scene_manager
+
+
+## Advances the Factory-owned respawn flow deterministically for tests and MCP probes.
+func advance_factory_respawn_flow(delta_sec: float) -> void:
+	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
+		return
+	_factory_game_flow.advance_time(delta_sec)
+	_sync_factory_player_control_lock()
+
+
+## Returns deterministic Factory respawn-flow diagnostics for tests and MCP probes.
+func get_factory_respawn_flow_diagnostics() -> Dictionary:
+	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
+		return {
+			"present": false,
+			"state": "",
+			"control_locked": false,
+			"invincibility_remaining": 0.0,
+			"last_selected_respawn_point": {},
+		}
+	return {
+		"present": true,
+		"state": String(_factory_game_flow.get_flow_state()),
+		"control_locked": _factory_game_flow.is_player_control_locked(),
+		"invincibility_remaining": _factory_game_flow.get_invincibility_remaining(),
+		"last_selected_respawn_point": _factory_game_flow.get_last_selected_respawn_point(),
+	}
 
 
 ## Resolves the active Factory Spark Rat bite against the current player dodge state.
@@ -1249,6 +1284,56 @@ func _setup_factory_return_checkpoint() -> void:
 		activated_signal.connect(_on_factory_return_checkpoint_activated)
 
 
+func _setup_factory_respawn_flow() -> void:
+	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
+		var existing_flow := get_node_or_null("FactoryGameFlowController") as GameFlowController
+		if existing_flow != null:
+			_factory_game_flow = existing_flow
+		else:
+			_factory_game_flow = GAME_FLOW_SCRIPT.new() as GameFlowController
+			_factory_game_flow.name = "FactoryGameFlowController"
+			add_child(_factory_game_flow)
+
+	_factory_game_flow.set_savepoint_adapter(self)
+	_factory_game_flow.configure_clan_base_respawn(
+		FACTORY_SERVICE_LIFT_EXIT_SCENE_ID,
+		FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT,
+		_spawn.global_position if _spawn != null else Vector2.ZERO
+	)
+	_factory_game_flow.start_encounter(_spawn.global_position if _spawn != null else Vector2.ZERO)
+	_configure_factory_respawn_scene_transition()
+
+	var respawn_callback := Callable(self, "_on_factory_respawn_requested")
+	if not _factory_game_flow.respawn_requested.is_connected(respawn_callback):
+		_factory_game_flow.respawn_requested.connect(respawn_callback)
+
+	var player_death_callback := Callable(self, "_on_factory_player_died")
+	if (
+		_player != null
+		and _player.has_signal("player_died")
+		and not _player.is_connected("player_died", player_death_callback)
+	):
+		_player.connect("player_died", player_death_callback)
+
+
+func _configure_factory_respawn_scene_transition() -> void:
+	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
+		return
+	_factory_game_flow.set_scene_transition_adapter(_resolve_scene_manager_for_runtime())
+
+
+func _sync_factory_player_control_lock() -> void:
+	if (
+		_factory_game_flow == null
+		or not is_instance_valid(_factory_game_flow)
+		or _player == null
+		or not is_instance_valid(_player)
+		or not _player.has_method("set_control_locked")
+	):
+		return
+	_player.call("set_control_locked", _factory_game_flow.is_player_control_locked())
+
+
 func _setup_factory_hazards() -> void:
 	if _steam_vent == null:
 		return
@@ -1376,6 +1461,24 @@ func _on_factory_return_checkpoint_activated(
 	)
 	_sync_return_checkpoint_state()
 	_update_route_label("Factory Savepoint Secured")
+
+
+func _on_factory_player_died(_death_metadata: Dictionary) -> void:
+	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
+		return
+	_factory_game_flow.handle_player_death()
+	_sync_factory_player_control_lock()
+
+
+func _on_factory_respawn_requested(respawn_position: Vector2, revive_hp_percentage: float) -> void:
+	if _player != null and is_instance_valid(_player) and _player.has_method("respawn_at"):
+		_player.call("respawn_at", respawn_position, revive_hp_percentage)
+	_sync_factory_player_control_lock()
+
+	var selected_respawn_point: Dictionary = _factory_game_flow.get_last_selected_respawn_point()
+	if String(selected_respawn_point.get("spawn_point", "")) == String(FACTORY_RETURN_CHECKPOINT_SPAWN_POINT):
+		_update_route_label(FACTORY_RETURN_CHECKPOINT_RESPAWN_LABEL)
+	_apply_current_scene_manager_spawn_point()
 
 
 func _on_factory_deep_route_endpoint_activated(_endpoint_id: StringName) -> void:
