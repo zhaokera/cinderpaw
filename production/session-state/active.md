@@ -39,7 +39,8 @@
   Player Abilities Story036 Old Factory Service Lift SceneManager Exit、
   Player Abilities Story037 Factory Route Runtime Roundtrip、Player Abilities
   Story038 Factory Route Return Prompt、Player Abilities Story039 Scrap Roost
-  Return Hub Runtime
+  Return Hub Runtime、Player Abilities Story040 Old Factory Return Patrol
+  Ambush、Player Abilities Story041 Old Factory Return Patrol Reward Cache
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -49,6 +50,30 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 041: Old Factory Return Patrol Reward Cache —
+  `FactoryReturnPatrolRewardCache` now adds a generated transparent reward
+  lockbox prop to `factory_route_transition_shell.tscn`, reusing
+  `FactoryCombatCache` with independent `cache_id="old_factory_return_patrol_cache"`,
+  `reward_source`, `+15 Gears`, prompt state, claim radius, and once-only
+  local claim behavior. `OldFactoryEntranceScene` exposes
+  `try_claim_factory_return_patrol_reward_cache()` plus deterministic
+  diagnostics and persists `factory_return_patrol_reward_cache_claimed` /
+  `last_return_patrol_reward_cache_reward` through scene-local state without
+  SaveSystem schema or global quest fields. The image-generated source, alpha
+  source, runtime PNG, metadata, manifest, and entity inventory were recorded.
+  Verification: RED `reports/report_931/`; focused GREEN `reports/report_932/`
+  `3/3`; related regression `reports/report_933/` `18/18`; Godot import on
+  4.7; headless Factory smoke
+  `reports/old_factory_return_patrol_reward_cache_factory_scene_smoke.log`
+  exited `0` with no project script/resource errors by keyword scan. Godot MCP
+  4.7 runtime launched the Factory scene, confirmed
+  `FactoryReturnPatrolRewardCache` nodes, locked `Clear patrol` state during
+  return patrol, claimable `+15 Gears` state after patrol-defeated restore,
+  `claim_ok=true`, duplicate claim false, local state persistence, clean logs,
+  and screenshot
+  `reports/visual/cinderpaw-mcp-old-factory-return-patrol-reward-cache-20260630.png`.
+  QA evidence:
+  `production/qa/evidence/old-factory-return-patrol-reward-cache-2026-06-30.md`。
 - Player Abilities Story 039: Scrap Roost Return Hub Runtime —
   `MainScene` now secures the Scrap Roost return hub when SceneManager reports
   current `main / scrap_roost`, Factory route is unlocked, and

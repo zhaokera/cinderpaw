@@ -5,6 +5,7 @@ extends Node2D
 signal cache_claimed(cache_id: StringName, reward: Dictionary)
 
 @export var cache_id: StringName = &"old_factory_entrance_cache"
+@export var reward_source: StringName = &"old_factory_combat_cache"
 @export var reward_gears: int = 10
 @export var claim_radius_px: float = 96.0
 @export var locked_prompt_text: String = "Clear room"
@@ -76,7 +77,7 @@ func get_reward_payload() -> Dictionary:
 	return {
 		"cache_id": String(cache_id),
 		"gears": reward_gears,
-		"source": "old_factory_combat_cache",
+		"source": String(reward_source),
 	}
 
 

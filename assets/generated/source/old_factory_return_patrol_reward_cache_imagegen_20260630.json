@@ -1,0 +1,10 @@
+{
+  "asset_id": "old_factory_return_patrol_reward_cache",
+  "generated_at": "2026-06-30",
+  "tool": "image generation",
+  "source_image": "assets/generated/source/old_factory_return_patrol_reward_cache_imagegen_20260630.png",
+  "alpha_source": "assets/generated/source/old_factory_return_patrol_reward_cache_alpha_20260630.png",
+  "runtime_asset": "assets/environment/old_factory_return_patrol_reward_cache/env_old_factory_return_patrol_reward_cache_claimable_256.png",
+  "prompt": "Pixel-art 2D side-scroller Old Factory return patrol reward cache prop, compact rusted steel reward cache with cat-paw latch, glowing amber gear core, blue factory rim lights, claw-scratched plates, centered on a flat #00ff00 chroma-key background, no text, no characters, no shadows.",
+  "postprocess": "Chroma-key background removed to alpha, cropped around subject, padded, and resized to 256x256 transparent PNG."
+}

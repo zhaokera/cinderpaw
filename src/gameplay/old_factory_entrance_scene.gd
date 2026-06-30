@@ -38,12 +38,16 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _spark_rat: Node2D = get_node_or_null("FactorySparkRat") as Node2D
 @onready var _return_spark_rat: Node2D = get_node_or_null("FactoryReturnSparkRat") as Node2D
 @onready var _cache: Node = $FactoryCombatCache
+@onready var _return_patrol_reward_cache: Node = get_node_or_null(
+	"FactoryReturnPatrolRewardCache"
+)
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
 
 var _last_player_hit_metadata: Dictionary = {}
 var _last_cache_reward: Dictionary = {}
+var _last_return_patrol_reward_cache_reward: Dictionary = {}
 var _last_hazard_damage: Dictionary = {}
 var _last_spark_rat_counter_diagnostics: Dictionary = {}
 var _last_spark_rat_bite_sequence_id_resolved: int = -1
@@ -56,6 +60,7 @@ var _spark_rat_activated: bool = false
 var _spark_rat_defeated: bool = false
 var _return_patrol_activated: bool = false
 var _return_patrol_defeated: bool = false
+var _return_patrol_reward_cache_claimed: bool = false
 var _service_lift_activated: bool = false
 var _service_lift_exit_requested: bool = false
 var _last_service_lift_exit_rejected_reason: StringName = &""
@@ -71,6 +76,7 @@ func _ready() -> void:
 	_align_player_to_spawn()
 	_bind_enemy_to_player()
 	_setup_factory_cache()
+	_setup_factory_return_patrol_reward_cache()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
 	_setup_factory_spark_rat()
@@ -316,6 +322,24 @@ func try_claim_factory_cache(provider: Node = null) -> bool:
 	return true
 
 
+## Attempts to claim the return-patrol reward cache after the ambush is cleared.
+func try_claim_factory_return_patrol_reward_cache(provider: Node = null) -> bool:
+	if not _return_patrol_defeated or _return_patrol_reward_cache == null:
+		return false
+	var claim_provider: Node = provider
+	if claim_provider == null:
+		claim_provider = _player
+	if (
+		not _return_patrol_reward_cache.has_method("try_claim")
+		or not bool(_return_patrol_reward_cache.call("try_claim", claim_provider))
+	):
+		return false
+	_return_patrol_reward_cache_claimed = true
+	_last_return_patrol_reward_cache_reward = _get_return_patrol_reward_cache_payload()
+	_sync_return_patrol_reward_cache_state()
+	return true
+
+
 ## Attempts to activate the deep route endpoint after its guard is defeated.
 func try_activate_factory_deep_route_endpoint(provider: Node = null) -> bool:
 	if not _deep_guard_defeated or _deep_endpoint == null:
@@ -398,6 +422,7 @@ func get_local_state() -> Dictionary:
 		"factory_spark_rat_opening_grace_frames": _get_spark_rat_opening_grace_frames(),
 		"factory_return_patrol_activated": _return_patrol_activated,
 		"factory_return_patrol_defeated": _return_patrol_defeated,
+		"factory_return_patrol_reward_cache_claimed": _return_patrol_reward_cache_claimed,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
 		"factory_service_lift_exit_requested": _service_lift_exit_requested,
@@ -406,6 +431,9 @@ func get_local_state() -> Dictionary:
 		"factory_service_lift_exit_rejected_reason": String(_last_service_lift_exit_rejected_reason),
 		"factory_service_lift_exit_request": _last_service_lift_exit_request.duplicate(true),
 		"last_cache_reward": _last_cache_reward.duplicate(true),
+		"last_return_patrol_reward_cache_reward": (
+			_last_return_patrol_reward_cache_reward.duplicate(true)
+		),
 		"last_hazard_damage": _last_hazard_damage.duplicate(true),
 	}
 
@@ -423,6 +451,10 @@ func set_local_state(state: Dictionary) -> void:
 	_return_patrol_activated = bool(state.get(
 		"factory_return_patrol_activated",
 		_is_service_lift_return_contract_in_state(state) and not _return_patrol_defeated
+	))
+	_return_patrol_reward_cache_claimed = bool(state.get(
+		"factory_return_patrol_reward_cache_claimed",
+		false
 	))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
 	_service_lift_exit_requested = bool(state.get(
@@ -449,6 +481,12 @@ func set_local_state(state: Dictionary) -> void:
 		if reward_variant is Dictionary
 		else {}
 	)
+	var return_reward_variant: Variant = state.get("last_return_patrol_reward_cache_reward", {})
+	_last_return_patrol_reward_cache_reward = (
+		(return_reward_variant as Dictionary).duplicate(true)
+		if return_reward_variant is Dictionary
+		else {}
+	)
 	var hazard_variant: Variant = state.get("last_hazard_damage", {})
 	_last_hazard_damage = (
 		(hazard_variant as Dictionary).duplicate(true)
@@ -464,6 +502,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_deep_route_state()
 	_sync_spark_rat_state()
 	_sync_return_patrol_state()
+	_sync_return_patrol_reward_cache_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
 		_begin_spark_rat_pacing(spark_rat_opening_grace_frames)
@@ -647,6 +686,60 @@ func get_factory_return_patrol_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic return-patrol reward cache diagnostics for tests and MCP probes.
+func get_factory_return_patrol_reward_cache_diagnostics() -> Dictionary:
+	return {
+		"present": _return_patrol_reward_cache != null,
+		"visible": (
+			_return_patrol_reward_cache.visible
+			if _return_patrol_reward_cache != null
+			else false
+		),
+		"cache_id": (
+			String(_return_patrol_reward_cache.call("get_cache_id"))
+			if (
+				_return_patrol_reward_cache != null
+				and _return_patrol_reward_cache.has_method("get_cache_id")
+			)
+			else ""
+		),
+		"texture_path": (
+			String(_return_patrol_reward_cache.call("get_visual_texture_path"))
+			if (
+				_return_patrol_reward_cache != null
+				and _return_patrol_reward_cache.has_method("get_visual_texture_path")
+			)
+			else ""
+		),
+		"available": (
+			bool(_return_patrol_reward_cache.call("is_available"))
+			if (
+				_return_patrol_reward_cache != null
+				and _return_patrol_reward_cache.has_method("is_available")
+			)
+			else false
+		),
+		"claim_available": (
+			bool(_return_patrol_reward_cache.call("is_claim_available"))
+			if (
+				_return_patrol_reward_cache != null
+				and _return_patrol_reward_cache.has_method("is_claim_available")
+			)
+			else false
+		),
+		"claimed": _return_patrol_reward_cache_claimed,
+		"prompt_text": _get_return_patrol_reward_cache_prompt_text(),
+		"return_patrol_active": _return_patrol_activated and not _return_patrol_defeated,
+		"return_patrol_defeated": _return_patrol_defeated,
+		"position": (
+			(_return_patrol_reward_cache as Node2D).global_position
+			if _return_patrol_reward_cache != null and _return_patrol_reward_cache is Node2D
+			else Vector2.ZERO
+		),
+		"last_reward": _last_return_patrol_reward_cache_reward.duplicate(true),
+	}
+
+
 ## Returns deterministic Spark Rat dodge-counter diagnostics for tests and MCP probes.
 func get_factory_spark_rat_counter_diagnostics() -> Dictionary:
 	var diagnostics: Dictionary = {
@@ -748,6 +841,7 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		"deep_route": get_factory_deep_route_diagnostics(),
 		"spark_rat": get_factory_spark_rat_diagnostics(),
 		"return_patrol": get_factory_return_patrol_diagnostics(),
+		"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"route_objective": get_factory_route_objective_diagnostics(),
 		"service_lift": get_factory_service_lift_diagnostics(),
 		"last_player_hit_metadata": get_last_player_hit_metadata(),
@@ -973,6 +1067,17 @@ func _setup_factory_cache() -> void:
 		claimed_signal.connect(_on_factory_cache_claimed)
 
 
+func _setup_factory_return_patrol_reward_cache() -> void:
+	_sync_return_patrol_reward_cache_state()
+	if _return_patrol_reward_cache == null or not _return_patrol_reward_cache.has_signal(
+		"cache_claimed"
+	):
+		return
+	var claimed_signal: Signal = _return_patrol_reward_cache.get("cache_claimed")
+	if not claimed_signal.is_connected(_on_factory_return_patrol_reward_cache_claimed):
+		claimed_signal.connect(_on_factory_return_patrol_reward_cache_claimed)
+
+
 func _setup_factory_hazards() -> void:
 	if _steam_vent == null:
 		return
@@ -1060,6 +1165,7 @@ func _on_factory_return_spark_rat_defeated() -> void:
 	_last_service_lift_exit_request = {}
 	_last_service_lift_exit_rejected_reason = &""
 	_sync_return_patrol_state()
+	_sync_return_patrol_reward_cache_state()
 	_sync_service_lift_state()
 	_refresh_factory_route_objective()
 
@@ -1067,6 +1173,14 @@ func _on_factory_return_spark_rat_defeated() -> void:
 func _on_factory_cache_claimed(_cache_id: StringName, reward: Dictionary) -> void:
 	_cache_claimed = true
 	_last_cache_reward = reward.duplicate(true)
+
+
+func _on_factory_return_patrol_reward_cache_claimed(
+	_cache_id: StringName,
+	reward: Dictionary
+) -> void:
+	_return_patrol_reward_cache_claimed = true
+	_last_return_patrol_reward_cache_reward = reward.duplicate(true)
 
 
 func _on_factory_deep_route_endpoint_activated(_endpoint_id: StringName) -> void:
@@ -1203,6 +1317,16 @@ func _sync_return_patrol_state() -> void:
 	_set_return_spark_rat_attack_target(_player)
 
 
+func _sync_return_patrol_reward_cache_state() -> void:
+	if _return_patrol_reward_cache == null:
+		return
+	_return_patrol_reward_cache.visible = _return_patrol_activated or _return_patrol_defeated
+	if _return_patrol_reward_cache.has_method("set_available"):
+		_return_patrol_reward_cache.call("set_available", _return_patrol_defeated)
+	if _return_patrol_reward_cache.has_method("set_claimed"):
+		_return_patrol_reward_cache.call("set_claimed", _return_patrol_reward_cache_claimed)
+
+
 func _sync_service_lift_state() -> void:
 	if _service_lift == null:
 		return
@@ -1268,6 +1392,27 @@ func _get_cache_reward_payload() -> Dictionary:
 	if reward_variant is Dictionary:
 		return (reward_variant as Dictionary).duplicate(true)
 	return {}
+
+
+func _get_return_patrol_reward_cache_payload() -> Dictionary:
+	if (
+		_return_patrol_reward_cache == null
+		or not _return_patrol_reward_cache.has_method("get_reward_payload")
+	):
+		return {}
+	var reward_variant: Variant = _return_patrol_reward_cache.call("get_reward_payload")
+	if reward_variant is Dictionary:
+		return (reward_variant as Dictionary).duplicate(true)
+	return {}
+
+
+func _get_return_patrol_reward_cache_prompt_text() -> String:
+	var prompt_label := (
+		_return_patrol_reward_cache.get_node_or_null("PromptLabel") as Label
+		if _return_patrol_reward_cache != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
 
 
 func _process_factory_hazard_overlaps() -> void:
