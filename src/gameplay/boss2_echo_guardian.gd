@@ -25,6 +25,7 @@ const HIT_FLASH_FRAMES: int = 5
 const NORMAL_MODULATE: Color = Color.WHITE
 const HIT_MODULATE: Color = Color(1.0, 0.88, 0.82, 1.0)
 const ANIMATION_IDLE: StringName = &"idle"
+const ANIMATION_RUN: StringName = &"run"
 const ANIMATION_ATTACK: StringName = &"attack"
 const ANIMATION_HURT: StringName = &"hurt"
 const ANIMATION_DEATH: StringName = &"death"
@@ -314,9 +315,9 @@ func get_auto_pressure_diagnostics() -> Dictionary:
 func _process_idle(auto_attack: bool = true) -> void:
 	velocity = Vector2.ZERO
 	_update_sprite_facing()
-	_play_animation(ANIMATION_IDLE)
 	if not auto_attack:
 		_behavior_phase = &"idle"
+		_play_animation(ANIMATION_IDLE)
 		return
 	if _can_auto_attack_target():
 		request_attack()
@@ -327,6 +328,7 @@ func _process_idle(auto_attack: bool = true) -> void:
 			request_attack()
 		return
 	_behavior_phase = &"idle"
+	_play_animation(ANIMATION_IDLE)
 
 
 func _process_hit() -> void:
@@ -541,7 +543,7 @@ func _chase_attack_target() -> void:
 	velocity = Vector2(direction * CHASE_STEP_PX * 60.0, 0.0)
 	_behavior_phase = &"chase"
 	_update_sprite_facing()
-	_play_animation(ANIMATION_IDLE)
+	_play_animation(ANIMATION_RUN)
 
 
 func _direction_to_target() -> float:
@@ -577,6 +579,10 @@ func _play_animation(animation_name: StringName, restart: bool = false) -> void:
 		_sprite.animation = animation_name
 		_sprite.frame = 0
 		_sprite.frame_progress = 0.0
+		_sprite.play(animation_name)
+		return
+	if _sprite.animation == animation_name and _sprite.is_playing():
+		return
 	_sprite.play(animation_name)
 
 

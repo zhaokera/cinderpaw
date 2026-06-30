@@ -1,8 +1,11 @@
-[gd_resource type="SpriteFrames" load_steps=13 format=3]
+[gd_resource type="SpriteFrames" load_steps=16 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/idle/boss2_echo_guardian_idle_000.png" id="1_idle0"]
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/idle/boss2_echo_guardian_idle_001.png" id="2_idle1"]
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/idle/boss2_echo_guardian_idle_002.png" id="3_idle2"]
+[ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/run/boss2_echo_guardian_run_000.png" id="4_run0"]
+[ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/run/boss2_echo_guardian_run_001.png" id="5_run1"]
+[ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/run/boss2_echo_guardian_run_002.png" id="6_run2"]
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/attack/boss2_echo_guardian_attack_000.png" id="4_attack0"]
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/attack/boss2_echo_guardian_attack_001.png" id="5_attack1"]
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/attack/boss2_echo_guardian_attack_002.png" id="6_attack2"]
@@ -28,6 +31,20 @@ animations = [{
 "loop": true,
 "name": &"idle",
 "speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_run0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_run1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_run2")
+}],
+"loop": true,
+"name": &"run",
+"speed": 9.0
 }, {
 "frames": [{
 "duration": 1.0,

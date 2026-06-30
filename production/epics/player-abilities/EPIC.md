@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 24 stories tracked
+> **Stories**: 25 stories tracked
 
 ## Overview
 
@@ -62,6 +62,7 @@ recording the reward in progression state.
 | 022 | Boss2 Echo Guardian Telegraph Strike | Integration + Gameplay Runtime + Combat Feel | Complete | ADR-0004/0005/0007/0018/0021 |
 | 023 | Boss2 HUD Focus Runtime | Integration + Gameplay Runtime + HUD/Feel | Complete | ADR-0002/0007/0018/0021 |
 | 024 | Boss2 Autonomous Pressure Runtime | Integration + Gameplay Runtime + Combat Feel | Complete | ADR-0004/0005/0006/0007/0018/0021 |
+| 025 | Boss2 Run Frame Animation Runtime | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0005/0006/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -81,7 +82,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-024 are complete. Continue another ACT-visible slice such as
-additional ExplorationGate ability doors, deeper Old Factory route/combat
-content, savepoint/minimap gameplay, more skill-tree branches, Boss2 arena
-polish, authored audio replacement, and other player-visible ability consumers.
+Stories001-025 are complete. Continue another ACT-visible slice such as Boss2
+arena bounds/reset semantics, authored Boss2 audio feedback, deeper Old Factory
+combat content, savepoint/minimap gameplay, more skill-tree branches, or broader
+frame-animation audit.

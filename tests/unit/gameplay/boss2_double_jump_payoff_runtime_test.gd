@@ -18,8 +18,9 @@ const BOSS2_ENTITY_ID: int = 2200
 const REWARD_ID: StringName = &"boss_02_double_jump"
 const CLAIMED_FLAG: String = "boss_02_double_jump_claimed"
 const HIDDEN_CLAIMED_FLAG: String = "hidden_boss_echo_double_jump_claimed"
-const REQUIRED_ANIMATIONS: Array[StringName] = [&"idle", &"attack", &"hurt", &"death"]
+const REQUIRED_ANIMATIONS: Array[StringName] = [&"idle", &"run", &"attack", &"hurt", &"death"]
 const MIN_ANIMATION_FRAMES: int = 3
+const BOSS2_RUN_FRAME_PREFIX: String = "res://assets/characters/boss2_echo_guardian/run/"
 const STATE_LOCKED: StringName = &"locked"
 const STATE_UNLOCKABLE: StringName = &"unlockable"
 
@@ -66,6 +67,16 @@ func test_boss2_echo_guardian_character_assets_follow_frame_animation_rules() ->
 			sprite.sprite_frames,
 			animation_name
 		)).is_true()
+	if not sprite.sprite_frames.has_animation(&"run"):
+		return
+	assert_bool(sprite.sprite_frames.get_animation_loop(&"run")).is_true()
+	assert_float(sprite.sprite_frames.get_animation_speed(&"run")).is_greater(0.0)
+	assert_bool(_animation_frames_use_sequential_paths(
+		sprite.sprite_frames,
+		&"run",
+		BOSS2_RUN_FRAME_PREFIX,
+		"boss2_echo_guardian_run"
+	)).is_true()
 
 
 func test_boss2_defeat_opens_double_jump_reward_and_syncs_gate_save_state() -> void:
@@ -191,5 +202,23 @@ func _animation_frames_are_textured_and_same_size(
 		if expected_size == Vector2.ZERO:
 			expected_size = texture_size
 		elif texture_size != expected_size:
+			return false
+	return true
+
+
+func _animation_frames_use_sequential_paths(
+	sprite_frames: SpriteFrames,
+	animation_name: StringName,
+	expected_prefix: String,
+	expected_basename: String
+) -> bool:
+	for frame_index: int in range(sprite_frames.get_frame_count(animation_name)):
+		var texture := sprite_frames.get_frame_texture(animation_name, frame_index)
+		if texture == null:
+			return false
+		var expected_path := "%s%s_%03d.png" % [expected_prefix, expected_basename, frame_index]
+		if texture.resource_path != expected_path:
+			return false
+		if not FileAccess.file_exists(expected_path):
 			return false
 	return true
