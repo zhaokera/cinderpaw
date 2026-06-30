@@ -1,0 +1,16 @@
+{
+  "asset_id": "old_factory_return_checkpoint",
+  "tool": "OpenAI image generation built-in image_gen",
+  "generated_at": "2026-06-30",
+  "source_path": "res://assets/generated/source/old_factory_return_checkpoint_imagegen_20260630.png",
+  "alpha_source_path": "res://assets/generated/source/old_factory_return_checkpoint_alpha_20260630.png",
+  "runtime_path": "res://assets/environment/old_factory_return_checkpoint/old_factory_return_checkpoint.png",
+  "prompt": "Pixel-art old factory repair savepoint station for a side-scrolling 2D ACT game, rusted industrial cat-themed checkpoint with a glowing cyan paw-shaped platform, brass cage lamp, pipes, worn steel panels, amber warning lights, readable silhouette, no text, no watermark, on a perfectly flat solid #ff00ff chroma-key background with no shadow or gradient.",
+  "postprocess": {
+    "chroma_key": "#fb02fb",
+    "alpha_helper": "remove_chroma_key.py --auto-key border --soft-matte --transparent-threshold 12 --opaque-threshold 220 --despill",
+    "runtime_size_px": [256, 256],
+    "transparent_corners": true
+  },
+  "usage": "Old Factory return checkpoint prop shown after the return patrol is defeated and activated through SavepointRuntime."
+}

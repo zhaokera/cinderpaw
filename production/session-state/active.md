@@ -41,7 +41,8 @@
   Story038 Factory Route Return Prompt、Player Abilities Story039 Scrap Roost
   Return Hub Runtime、Player Abilities Story040 Old Factory Return Patrol
   Ambush、Player Abilities Story041 Old Factory Return Patrol Reward Cache、
-  Player Abilities Story042 Old Factory Cache Claim Feedback
+  Player Abilities Story042 Old Factory Cache Claim Feedback、Player
+  Abilities Story043 Old Factory Return Checkpoint
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -51,6 +52,31 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 043: Old Factory Return Checkpoint —
+  `FactoryReturnCheckpoint` now mounts a visible image-generated repair
+  savepoint in `factory_route_transition_shell.tscn` using `SavepointRuntime`.
+  The checkpoint stays hidden and inactive until the return patrol is defeated,
+  then becomes available with prompt `Repair Savepoint`, activates as
+  `old_factory_return_checkpoint / area_03_factory / return_checkpoint`, records
+  scene-local checkpoint state through `get_local_state()` / `set_local_state()`,
+  updates `RouteLabel` to `Factory Savepoint Secured`, and exposes
+  `get_last_discovered_savepoint()` so non-boss death through
+  `GameFlowController` respawns to the Old Factory checkpoint instead of clan
+  base. New image generation asset:
+  `assets/environment/old_factory_return_checkpoint/old_factory_return_checkpoint.png`
+  with source, alpha source, and metadata under `assets/generated/source/`.
+  Verification: RED `reports/report_952/`; focused GREEN `reports/report_954/`
+  `3/3`; related return patrol/savepoint/service-lift regressions
+  `reports/report_955/`, `reports/report_956/`, `reports/report_957/` plus
+  service-lift command logs; headless Factory smoke
+  `reports/old_factory_return_checkpoint_factory_scene_smoke.log` exited `0`
+  with no project script/parse/invalid/missing-resource/resource-load errors by
+  keyword scan. Godot MCP 4.7 runtime launched the Factory scene, confirmed
+  checkpoint node, generated texture, locked/available/activated transitions,
+  route label feedback, clean final logs, and non-empty screenshot
+  `reports/visual/cinderpaw-mcp-old-factory-return-checkpoint-20260630.png`.
+  QA evidence:
+  `production/qa/evidence/old-factory-return-checkpoint-2026-06-30.md`。
 - Player Abilities Story 042: Old Factory Cache Claim Feedback —
   `OldFactoryEntranceScene` now records scene-local claim feedback for both
   Old Factory caches and keeps the success text visible on `RouteLabel` after a

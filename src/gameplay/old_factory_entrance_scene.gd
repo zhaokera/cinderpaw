@@ -29,6 +29,9 @@ const FACTORY_OBJECTIVE_RETURN_PATROL_CLEARED: StringName = &"return_patrol_clea
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
 const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
 const FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT: StringName = &"scrap_roost"
+const FACTORY_RETURN_CHECKPOINT_ID: StringName = &"old_factory_return_checkpoint"
+const FACTORY_RETURN_CHECKPOINT_SPAWN_POINT: StringName = &"return_checkpoint"
+const FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS: float = 112.0
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
 @onready var _spawn: Marker2D = $FactoryGateEntrySpawn
@@ -41,6 +44,7 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _return_patrol_reward_cache: Node = get_node_or_null(
 	"FactoryReturnPatrolRewardCache"
 )
+@onready var _return_checkpoint: Node = get_node_or_null("FactoryReturnCheckpoint")
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
@@ -63,6 +67,8 @@ var _spark_rat_defeated: bool = false
 var _return_patrol_activated: bool = false
 var _return_patrol_defeated: bool = false
 var _return_patrol_reward_cache_claimed: bool = false
+var _return_checkpoint_activated: bool = false
+var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
 var _service_lift_exit_requested: bool = false
 var _last_service_lift_exit_rejected_reason: StringName = &""
@@ -79,6 +85,7 @@ func _ready() -> void:
 	_bind_enemy_to_player()
 	_setup_factory_cache()
 	_setup_factory_return_patrol_reward_cache()
+	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
 	_setup_factory_spark_rat()
@@ -168,6 +175,46 @@ func is_factory_service_lift_activated() -> bool:
 ## Returns whether the one-time Factory return patrol has been cleared.
 func is_factory_return_patrol_defeated() -> bool:
 	return _return_patrol_defeated
+
+
+## Attempts to activate the Old Factory return checkpoint after the return patrol is clear.
+func try_activate_factory_return_checkpoint(provider: Node = null) -> bool:
+	if _return_checkpoint == null or not _return_patrol_defeated:
+		return false
+	var activation_provider: Node = provider
+	if activation_provider == null:
+		activation_provider = _player
+	if not _is_return_checkpoint_provider_in_range(activation_provider):
+		return false
+	if not _return_checkpoint.has_method("try_activate"):
+		return false
+	if not bool(_return_checkpoint.call("try_activate", activation_provider)):
+		return false
+	_return_checkpoint_activated = true
+	_sync_return_checkpoint_state()
+	if _last_return_checkpoint.is_empty():
+		_last_return_checkpoint = _build_return_checkpoint_snapshot(
+			FACTORY_RETURN_CHECKPOINT_ID,
+			FACTORY_SCENE_ID,
+			FACTORY_RETURN_CHECKPOINT_SPAWN_POINT,
+			(_return_checkpoint as Node2D).global_position
+				if _return_checkpoint is Node2D
+				else Vector2.ZERO,
+			{}
+		)
+	_update_route_label("Factory Savepoint Secured")
+	return true
+
+
+func get_last_discovered_savepoint() -> Dictionary:
+	return _last_return_checkpoint.duplicate(true) if _return_checkpoint_activated else {}
+
+
+func clear_last_discovered_savepoint() -> bool:
+	_return_checkpoint_activated = false
+	_last_return_checkpoint.clear()
+	_sync_return_checkpoint_state()
+	return true
 
 
 ## Attempts to alert the deep-route guard after the entrance encounter is clear.
@@ -435,6 +482,7 @@ func get_local_state() -> Dictionary:
 		"factory_return_patrol_activated": _return_patrol_activated,
 		"factory_return_patrol_defeated": _return_patrol_defeated,
 		"factory_return_patrol_reward_cache_claimed": _return_patrol_reward_cache_claimed,
+		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
 		"factory_service_lift_exit_requested": _service_lift_exit_requested,
@@ -450,6 +498,8 @@ func get_local_state() -> Dictionary:
 		"last_return_patrol_reward_cache_claim_feedback": (
 			_last_return_patrol_reward_cache_claim_feedback.duplicate(true)
 		),
+		"last_return_checkpoint": _last_return_checkpoint.duplicate(true),
+		"last_savepoint": _last_return_checkpoint.duplicate(true),
 		"last_hazard_damage": _last_hazard_damage.duplicate(true),
 	}
 
@@ -472,6 +522,7 @@ func set_local_state(state: Dictionary) -> void:
 		"factory_return_patrol_reward_cache_claimed",
 		false
 	))
+	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
 	_service_lift_exit_requested = bool(state.get(
 		"factory_service_lift_exit_requested",
@@ -518,6 +569,17 @@ func set_local_state(state: Dictionary) -> void:
 		if return_feedback_variant is Dictionary
 		else {}
 	)
+	var return_checkpoint_variant: Variant = state.get(
+		"last_return_checkpoint",
+		state.get("last_savepoint", {})
+	)
+	_last_return_checkpoint = (
+		(return_checkpoint_variant as Dictionary).duplicate(true)
+		if return_checkpoint_variant is Dictionary
+		else {}
+	)
+	if not _last_return_checkpoint.is_empty():
+		_return_checkpoint_activated = true
 	var hazard_variant: Variant = state.get("last_hazard_damage", {})
 	_last_hazard_damage = (
 		(hazard_variant as Dictionary).duplicate(true)
@@ -534,6 +596,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_spark_rat_state()
 	_sync_return_patrol_state()
 	_sync_return_patrol_reward_cache_state()
+	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
 		_begin_spark_rat_pacing(spark_rat_opening_grace_frames)
@@ -773,6 +836,30 @@ func get_factory_return_patrol_reward_cache_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic return checkpoint diagnostics for tests and MCP probes.
+func get_factory_return_checkpoint_diagnostics() -> Dictionary:
+	var checkpoint_position: Vector2 = (
+		(_return_checkpoint as Node2D).global_position
+		if _return_checkpoint != null and _return_checkpoint is Node2D
+		else Vector2.ZERO
+	)
+	return {
+		"present": _return_checkpoint != null,
+		"visible": _return_checkpoint.visible if _return_checkpoint != null else false,
+		"available": _return_patrol_defeated,
+		"activated": _return_checkpoint_activated,
+		"savepoint_id": _get_return_checkpoint_savepoint_id(),
+		"scene_id": _get_return_checkpoint_scene_id(),
+		"spawn_point": _get_return_checkpoint_spawn_point(),
+		"display_name": _get_return_checkpoint_display_name(),
+		"prompt_text": _get_return_checkpoint_prompt_text(),
+		"texture_path": _get_return_checkpoint_texture_path(),
+		"position": checkpoint_position,
+		"player_position": _player.global_position if _player != null else Vector2.ZERO,
+		"last_checkpoint": _last_return_checkpoint.duplicate(true),
+	}
+
+
 ## Returns deterministic Spark Rat dodge-counter diagnostics for tests and MCP probes.
 func get_factory_spark_rat_counter_diagnostics() -> Dictionary:
 	var diagnostics: Dictionary = {
@@ -875,6 +962,7 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		"spark_rat": get_factory_spark_rat_diagnostics(),
 		"return_patrol": get_factory_return_patrol_diagnostics(),
 		"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
+		"return_checkpoint": get_factory_return_checkpoint_diagnostics(),
 		"route_objective": get_factory_route_objective_diagnostics(),
 		"service_lift": get_factory_service_lift_diagnostics(),
 		"last_player_hit_metadata": get_last_player_hit_metadata(),
@@ -1111,6 +1199,15 @@ func _setup_factory_return_patrol_reward_cache() -> void:
 		claimed_signal.connect(_on_factory_return_patrol_reward_cache_claimed)
 
 
+func _setup_factory_return_checkpoint() -> void:
+	_sync_return_checkpoint_state()
+	if _return_checkpoint == null or not _return_checkpoint.has_signal("savepoint_activated"):
+		return
+	var activated_signal: Signal = _return_checkpoint.get("savepoint_activated")
+	if not activated_signal.is_connected(_on_factory_return_checkpoint_activated):
+		activated_signal.connect(_on_factory_return_checkpoint_activated)
+
+
 func _setup_factory_hazards() -> void:
 	if _steam_vent == null:
 		return
@@ -1219,6 +1316,25 @@ func _on_factory_return_patrol_reward_cache_claimed(
 		_last_return_patrol_reward_cache_reward,
 		"Return Cache Claimed"
 	)
+
+
+func _on_factory_return_checkpoint_activated(
+	savepoint_id: StringName,
+	scene_id: StringName,
+	spawn_point: StringName,
+	world_position: Vector2,
+	context: Dictionary
+) -> void:
+	_return_checkpoint_activated = true
+	_last_return_checkpoint = _build_return_checkpoint_snapshot(
+		savepoint_id,
+		scene_id,
+		spawn_point,
+		world_position,
+		context
+	)
+	_sync_return_checkpoint_state()
+	_update_route_label("Factory Savepoint Secured")
 
 
 func _on_factory_deep_route_endpoint_activated(_endpoint_id: StringName) -> void:
@@ -1365,6 +1481,27 @@ func _sync_return_patrol_reward_cache_state() -> void:
 		_return_patrol_reward_cache.call("set_claimed", _return_patrol_reward_cache_claimed)
 
 
+func _sync_return_checkpoint_state() -> void:
+	if _return_checkpoint == null:
+		return
+	var available: bool = _return_patrol_defeated
+	_return_checkpoint.visible = available or _return_checkpoint_activated
+	var interaction_area := _return_checkpoint.get_node_or_null("InteractionArea") as Area2D
+	if interaction_area != null:
+		if interaction_area.monitoring != available:
+			interaction_area.monitoring = available
+		if interaction_area.monitorable != available:
+			interaction_area.monitorable = available
+	var collision_shape := (
+		_return_checkpoint.get_node_or_null("InteractionArea/CollisionShape2D")
+		as CollisionShape2D
+	)
+	if collision_shape != null:
+		var should_disable: bool = not available
+		if collision_shape.disabled != should_disable:
+			collision_shape.disabled = should_disable
+
+
 func _sync_service_lift_state() -> void:
 	if _service_lift == null:
 		return
@@ -1480,6 +1617,66 @@ func _get_return_patrol_reward_cache_prompt_text() -> String:
 		else null
 	)
 	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_return_checkpoint_savepoint_id() -> String:
+	if _return_checkpoint != null and _return_checkpoint.has_method("get_savepoint_id"):
+		return String(_return_checkpoint.call("get_savepoint_id"))
+	return String(FACTORY_RETURN_CHECKPOINT_ID)
+
+
+func _get_return_checkpoint_scene_id() -> String:
+	if _return_checkpoint != null and _return_checkpoint.has_method("get_scene_id"):
+		return String(_return_checkpoint.call("get_scene_id"))
+	return String(FACTORY_SCENE_ID)
+
+
+func _get_return_checkpoint_spawn_point() -> String:
+	if _return_checkpoint != null and _return_checkpoint.has_method("get_spawn_point"):
+		return String(_return_checkpoint.call("get_spawn_point"))
+	return String(FACTORY_RETURN_CHECKPOINT_SPAWN_POINT)
+
+
+func _get_return_checkpoint_display_name() -> String:
+	if _return_checkpoint != null and _return_checkpoint.has_method("get_display_name"):
+		return String(_return_checkpoint.call("get_display_name"))
+	return "Factory Repair Station"
+
+
+func _get_return_checkpoint_texture_path() -> String:
+	if _return_checkpoint != null and _return_checkpoint.has_method("get_visual_texture_path"):
+		return String(_return_checkpoint.call("get_visual_texture_path"))
+	return ""
+
+
+func _get_return_checkpoint_prompt_text() -> String:
+	var prompt_label := (
+		_return_checkpoint.get_node_or_null("PromptLabel") as Label
+		if _return_checkpoint != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _build_return_checkpoint_snapshot(
+	savepoint_id: StringName,
+	scene_id: StringName,
+	spawn_point: StringName,
+	world_position: Vector2,
+	context: Dictionary
+) -> Dictionary:
+	var snapshot: Dictionary = context.duplicate(true)
+	snapshot["id"] = String(savepoint_id)
+	snapshot["savepoint_id"] = String(savepoint_id)
+	snapshot["scene_id"] = String(scene_id)
+	snapshot["spawn_point"] = String(spawn_point)
+	if not snapshot.has("display_name") or String(snapshot["display_name"]).strip_edges().is_empty():
+		snapshot["display_name"] = _get_return_checkpoint_display_name()
+	snapshot["position"] = {
+		"x": world_position.x,
+		"y": world_position.y,
+	}
+	return snapshot
 
 
 func _process_factory_hazard_overlaps() -> void:
@@ -1725,6 +1922,19 @@ func _is_spark_rat_activation_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
 	return (provider as Node2D).global_position.x >= FACTORY_SPARK_RAT_ACTIVATION_X
+
+
+func _is_return_checkpoint_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	if _return_checkpoint == null or not _return_checkpoint is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.distance_to(
+			(_return_checkpoint as Node2D).global_position
+		)
+		<= FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS
+	)
 
 
 func _get_spark_rat_distance_to_provider(provider: Node) -> float:
