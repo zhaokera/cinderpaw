@@ -1,0 +1,15 @@
+{
+  "asset_id": "boss2_echo_guardian_arena_frame",
+  "date": "2026-06-30",
+  "source": "image generation prompt plus local alpha/runtime normalization",
+  "image_generation_prompt": "Use case: stylized-concept. Asset type: 2D pixel-art environment prop for a Godot side-scrolling ACT boss arena, final runtime target 640x256 PNG after local background removal. Primary request: Boss2 Echo Guardian arena frame marker, not a full background. Scene/backdrop: create the subject on a perfectly flat solid #00ff00 chroma-key background for background removal. The background must be one uniform color with no shadows, gradients, texture, reflections, floor plane, or lighting variation. Do not use #00ff00 anywhere in the subject. Subject: a readable side-view metroidvania boss-arena frame made from broken scrap-metal arch pieces, two low side pylons, floating debris shards, old-world rusted concrete mixed with new mechanical steel, violet echo glow traces, small cat-eye gold safety accents, and restrained signal-red danger seams. Cyber feline echo guardian theme, industrial wasteland tone. Composition: wide transparent cutout silhouette, generous padding, fits a 640x256 gameplay overlay. Keep the center mostly open so a boss sprite can stand in front; visual weight on left/right frame and upper arch. Crisp pixel-art edges, game-readable at 960x540 viewport. Palette: steel blue-gray base, restrained rust orange, violet echo glow, tiny cat-eye gold accents, minimal signal red. Avoid: no text, no UI, no characters, no floor tile sheet, no full background scene, no solid rectangle, no placeholder square, no black backdrop, no shadow, no watermark.",
+  "runtime_path": "res://assets/environment/boss2_arena/boss2_echo_guardian_arena_frame.png",
+  "source_path": "res://assets/generated/source/boss2_echo_guardian_arena_frame_imagegen_20260630.png",
+  "alpha_source_path": "res://assets/generated/source/boss2_echo_guardian_arena_frame_alpha_20260630.png",
+  "dimensions": [
+    640,
+    256
+  ],
+  "background": "transparent RGBA",
+  "usage": "Boss2ArenaFrame in res://scenes/main.tscn"
+}

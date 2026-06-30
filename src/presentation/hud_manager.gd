@@ -53,6 +53,9 @@ const PLAYER_PANEL_BASE_SIZE: Vector2 = Vector2(250, 56)
 const WEAPON_PANEL_BASE_SIZE: Vector2 = Vector2(194, 66)
 const CURRENCY_PANEL_BASE_SIZE: Vector2 = Vector2(160, 38)
 const BOSS_PANEL_BASE_SIZE: Vector2 = Vector2(440, 54)
+const BOSS_HIT_FLASH_DURATION_SEC: float = 0.22
+const BOSS_HIT_FLASH_COLOR: Color = Color.WHITE
+const BOSS_HIT_FLASH_MAX_ALPHA: float = 0.42
 const MENU_TITLE_BASE_FONT_SIZE: int = 28
 const MENU_BODY_BASE_FONT_SIZE: int = 16
 const MENU_CONTROL_BASE_FONT_SIZE: int = 16
@@ -75,6 +78,9 @@ var _damage_numbers_enabled: bool = true
 var _hud_scale: float = 1.0
 var _colorblind_mode: StringName = COLORBLIND_NONE
 var _boss_phase_marker_text: String = "I"
+var _boss_last_current_hp: int = -1
+var _boss_hit_flash_remaining_sec: float = 0.0
+var _boss_hit_flash_color: Color = BOSS_HIT_FLASH_COLOR
 var _scene_transition_scene_id: StringName = &""
 var _scene_transition_label_text: String = ""
 var _skill_tree_entries: Array[Dictionary] = []
@@ -87,6 +93,7 @@ var _hp_label: Label
 var _boss_panel: PanelContainer
 var _boss_bar: ProgressBar
 var _boss_label: Label
+var _boss_hit_flash_overlay: ColorRect
 var _weapon_panel: PanelContainer
 var _weapon_label: Label
 var _currency_panel: PanelContainer
@@ -177,11 +184,17 @@ func update_boss_hp(current_hp: int, max_hp: int, phase: int = 1, display_name: 
 			safe_current_hp,
 			safe_max_hp,
 		]
+	if _boss_last_current_hp >= 0 and safe_current_hp > 0 and safe_current_hp < _boss_last_current_hp:
+		_trigger_boss_hit_flash()
+	_boss_last_current_hp = safe_current_hp
 
 
 func hide_boss_hp() -> void:
 	if _boss_panel != null:
 		_boss_panel.visible = false
+	_boss_last_current_hp = -1
+	_boss_hit_flash_remaining_sec = 0.0
+	_sync_boss_hit_flash_overlay()
 
 
 func update_weapon(display_name: StringName, cooldown_ratio: float) -> void:
@@ -377,6 +390,7 @@ func hide_menu() -> void:
 
 func advance_time(delta_sec: float) -> void:
 	_advance_scene_transition(delta_sec)
+	_advance_boss_hit_flash(delta_sec)
 	if _notification_remaining_sec <= 0.0:
 		return
 	_notification_remaining_sec = maxf(0.0, _notification_remaining_sec - maxf(0.0, delta_sec))
@@ -487,6 +501,22 @@ func get_boss_label_text() -> String:
 
 func get_boss_phase_marker_text() -> String:
 	return _boss_phase_marker_text
+
+
+func is_boss_hit_flash_visible() -> bool:
+	return (
+		_boss_hit_flash_remaining_sec > 0.0
+		and _boss_panel != null
+		and _boss_panel.visible
+	)
+
+
+func get_boss_hit_flash_remaining_sec() -> float:
+	return _boss_hit_flash_remaining_sec
+
+
+func get_boss_hit_flash_color() -> Color:
+	return _boss_hit_flash_color
 
 
 ## Returns whether a pause/retry menu overlay is currently visible.
@@ -812,6 +842,18 @@ func _build_boss_panel() -> void:
 	_boss_bar.custom_minimum_size = Vector2(400, 14)
 	_boss_bar.show_percentage = false
 	box.add_child(_boss_bar)
+
+	_boss_hit_flash_overlay = ColorRect.new()
+	_boss_hit_flash_overlay.name = "BossHitFlashOverlay"
+	_boss_hit_flash_overlay.color = Color(
+		BOSS_HIT_FLASH_COLOR.r,
+		BOSS_HIT_FLASH_COLOR.g,
+		BOSS_HIT_FLASH_COLOR.b,
+		0.0
+	)
+	_boss_hit_flash_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_boss_hit_flash_overlay.visible = false
+	_root.add_child(_boss_hit_flash_overlay)
 
 
 func _build_notification_label() -> void:
@@ -1398,6 +1440,7 @@ func _apply_hud_scale_layout() -> void:
 	_currency_panel.position = Vector2(HUD_VIEWPORT_SIZE.x - HUD_SIDE_MARGIN - currency_size.x, HUD_TOP_MARGIN)
 	_boss_panel.size = boss_size
 	_boss_panel.position = Vector2((HUD_VIEWPORT_SIZE.x - boss_size.x) * 0.5, 26.0)
+	_sync_boss_hit_flash_overlay()
 
 	if _hp_bar != null:
 		_hp_bar.custom_minimum_size = Vector2(210, 16) * hud_scale_value
@@ -1425,6 +1468,40 @@ func _apply_hud_scale_layout() -> void:
 		_scene_transition_label.size = label_size
 		_scene_transition_label.add_theme_font_size_override("font_size", int(roundf(24.0 * hud_scale_value)))
 	_apply_menu_scale_layout()
+
+
+func _trigger_boss_hit_flash() -> void:
+	_boss_hit_flash_color = BOSS_HIT_FLASH_COLOR
+	_boss_hit_flash_remaining_sec = BOSS_HIT_FLASH_DURATION_SEC
+	_sync_boss_hit_flash_overlay()
+
+
+func _advance_boss_hit_flash(delta_sec: float) -> void:
+	if _boss_hit_flash_remaining_sec <= 0.0:
+		return
+	_boss_hit_flash_remaining_sec = maxf(0.0, _boss_hit_flash_remaining_sec - maxf(0.0, delta_sec))
+	_sync_boss_hit_flash_overlay()
+
+
+func _sync_boss_hit_flash_overlay() -> void:
+	if _boss_hit_flash_overlay == null:
+		return
+	var flash_visible: bool = is_boss_hit_flash_visible()
+	_boss_hit_flash_overlay.visible = flash_visible
+	if _boss_panel != null:
+		_boss_hit_flash_overlay.position = _boss_panel.position
+		_boss_hit_flash_overlay.size = _boss_panel.size
+	var alpha_ratio: float = (
+		_boss_hit_flash_remaining_sec / BOSS_HIT_FLASH_DURATION_SEC
+		if BOSS_HIT_FLASH_DURATION_SEC > 0.0
+		else 0.0
+	)
+	_boss_hit_flash_overlay.color = Color(
+		_boss_hit_flash_color.r,
+		_boss_hit_flash_color.g,
+		_boss_hit_flash_color.b,
+		BOSS_HIT_FLASH_MAX_ALPHA * clampf(alpha_ratio, 0.0, 1.0)
+	)
 
 
 func _apply_menu_scale_layout() -> void:
