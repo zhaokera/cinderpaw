@@ -637,6 +637,8 @@ func _swap_runtime_scene(scene_id: StringName, new_runtime_scene: Node) -> bool:
 
 	_runtime_scene_root.add_child(new_runtime_scene)
 	_current_runtime_scene = new_runtime_scene
+	if new_runtime_scene.has_method("configure_scene_manager_runtime"):
+		new_runtime_scene.call("configure_scene_manager_runtime", self)
 	_restore_runtime_scene_state(scene_id, new_runtime_scene)
 	return true
 

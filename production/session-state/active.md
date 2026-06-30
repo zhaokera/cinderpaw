@@ -36,16 +36,42 @@
   Story032 Boss2 Phase II Runtime Pressure Mix、Player Abilities Story033
   Boss2 Victory Route Handoff、Player Abilities Story034 Factory Route Arrival
   Objective Handoff、Player Abilities Story035 Old Factory Service Lift Handoff、
-  Player Abilities Story036 Old Factory Service Lift SceneManager Exit
+  Player Abilities Story036 Old Factory Service Lift SceneManager Exit、
+  Player Abilities Story037 Factory Route Runtime Roundtrip
   已完成；
-  下一步推进更深 Old Factory route/combat content、main/runtime-root Factory
-  exit end-to-end validation、savepoint/minimap gameplay、其他 ExplorationGate
-  能力门、more skill-tree branches、final Boss2 balancing/cutscene polish、
-  authored/final audio replacement、DEATH/CUTSCENE audio states，以及玩家可见角色/敌人帧动画持续审计。
+  下一步推进更深 Old Factory route/combat content、savepoint/minimap
+  gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
+  Boss2 balancing/cutscene polish、authored/final audio replacement、
+  DEATH/CUTSCENE audio states，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 037: Factory Route Runtime Roundtrip —
+  `SceneManager` runtime swaps now inject themselves into scenes that expose
+  `configure_scene_manager_runtime(self)`, so cached scenes removed from and
+  re-added to the tree reconnect their SceneManager signals. `MainScene` now
+  implements the SceneManager local-state protocol through `get_local_state()`
+  / `set_local_state()` aliases over the existing no-loss state snapshot and
+  applies the `scrap_roost` spawn point to the visible `ScrapRoostSavepoint`
+  when SceneManager returns to `main / scrap_roost`. The end-to-end loop
+  `main -> area_03_factory -> main/scrap_roost` is now covered by a focused
+  runtime-root test using real `scenes/main.tscn`, real
+  `scenes/factory_route_transition_shell.tscn`, and real `SceneManager`.
+  Verification: RED focused `reports/report_902/` failed because the returned
+  player remained at the Factory route trigger `(970, 352)`; focused GREEN
+  `reports/report_906/` passed `1/1` with `0` orphans; related regression
+  `reports/report_905/` passed `17/17`; headless main-scene smoke
+  `reports/factory_route_runtime_roundtrip_main_scene_smoke.log` exited `0`
+  with no script/parse/invalid/missing-resource/resource-load errors by keyword
+  scan. Pre-commit focused rerun `reports/report_907/` passed `1/1` with `0`
+  orphans on Godot `4.7.stable.official.5b4e0cb0f`. Godot MCP 4.7 runtime launched main, unlocked and entered the Factory
+  route, cleared the authored Factory route, activated the service lift, and
+  confirmed `returned_main=true`, `spawn="scrap_roost"`, player near Scrap
+  Roost after physics settle, clean game logs, and screenshot
+  `reports/visual/cinderpaw-mcp-factory-route-runtime-roundtrip-20260630.png`.
+  QA evidence:
+  `production/qa/evidence/factory-route-runtime-roundtrip-2026-06-30.md`。
 - Player Abilities Story 036: Old Factory Service Lift SceneManager Exit —
   `FactoryServiceLift` now requests `SceneManager.request_scene_change(&"main",
   &"scrap_roost")` after the authored Old Factory route is cleared and the
@@ -2942,4 +2968,15 @@
 - Test written: `tests/unit/gameplay/boss2_arena_camera_lock_runtime_test.gd` covers active Boss2 camera lock diagnostics/framing, defeated progress release, defeated save-restore release, and CombatPresentation `Camera2D.offset` ownership preservation.
 - Verification: RED focused `reports/report_839/` failed as expected because camera lock APIs did not exist; initial GREEN focused `reports/report_840/` passed Story029 `2/2`; review RED `reports/report_844/` failed before defeated save-restore release and camera offset ownership were fixed; final GREEN focused `reports/report_845/` passed Story029 `4/4`; final related regression `reports/report_846/` passed Story029, Boss2 HUD focus, Boss2 arena bounds/reset, Boss2 telegraph strike, and Boss2 Double Jump payoff `20/20`; Boss2 autonomous pressure passed independently in `reports/report_847/` `6/6`. Combined related command `reports/report_841/` reproduced the known order-sensitive Boss2 autonomous run-frame assertion and is not acceptance evidence. Headless main-scene smoke `reports/boss2_arena_camera_lock_runtime_main_scene_smoke.log` exited `0`; keyword scan found no script/parse/invalid-call/missing-resource/resource-load errors. Godot MCP runtime with `autosave=false` confirmed `res://scenes/main.tscn`, active `/root/Main/Player/Camera2D` `limit_right=1040`, `zoom=(1.15,1.15)`, smoothing enabled, `offset=(0,0)`, visible Boss2 `AnimatedSprite2D + SpriteFrames`, visible Boss2 arena frame, defeated-progress release restoring `limit_right=1280` and `zoom=(1,1)`, Boss2 hidden, reward source still present, game logs with only helper/DataManager info, empty editor logs, and nonblank `1280x720` screenshot `reports/visual/cinderpaw-mcp-boss2-arena-camera-lock-runtime-20260630.png`.
 - Blockers: None. Boss2 room doors, boss portrait/HP polish, minimap markers, dynamic camera rails/curves, Boss2 music/phase mix, multi-phase AI, final balancing, deeper Old Factory content, and broader frame-animation audit remain out of scope.
+- Next: continue another ACT-visible slice such as deeper Old Factory combat content, savepoint/minimap gameplay, more skill-tree branches, Boss2 music/phase mix, Boss2 room doors/portrait polish, or broader frame-animation audit.
+
+## Session Extract — /dev-story 2026-06-30
+
+- Story: `production/epics/player-abilities/story-037-factory-route-runtime-roundtrip.md` — Factory Route Runtime Roundtrip
+- Files changed: `src/feature/scene_manager.gd`, `src/gameplay/main_scene.gd`, `tests/unit/gameplay/factory_route_runtime_roundtrip_test.gd`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/epics/player-abilities/story-037-factory-route-runtime-roundtrip.md`, `production/qa/evidence/factory-route-runtime-roundtrip-2026-06-30.md`, `reports/factory_route_runtime_roundtrip_main_scene_smoke.log`, `reports/visual/cinderpaw-mcp-factory-route-runtime-roundtrip-20260630.png`, `production/session-state/active.md`
+- Implementation: `SceneManager._swap_runtime_scene()` now injects itself into runtime scenes that expose `configure_scene_manager_runtime(self)`, fixing cached scenes that disconnect signals during `_exit_tree()` and later re-enter the runtime root. `MainScene` now exposes `get_local_state()` / `set_local_state()` for SceneManager state capture/restore, and applies `scrap_roost` spawn to the visible `ScrapRoostSavepoint` when SceneManager returns to `main / scrap_roost`.
+- Asset pipeline: No new visual assets were generated. This story reuses existing Cinderpaw, Boss2, Factory route, Old Factory, Spark Rat, and service lift assets.
+- Test written: `tests/unit/gameplay/factory_route_runtime_roundtrip_test.gd` covers the real main scene, real Factory route scene, real SceneManager runtime root swap, authored Factory route clear helper path, service lift exit, saved Factory exit state, returned main scene, `scrap_roost` spawn, and player proximity to Scrap Roost.
+- Verification: RED focused `reports/report_902/` failed as expected because returning to `main/scrap_roost` left the player at Factory route trigger `(970, 352)`; GREEN focused `reports/report_906/` passed `1/1` with `0` orphans; pre-commit focused rerun `reports/report_907/` passed `1/1` with `0` orphans on Godot `4.7.stable.official.5b4e0cb0f`; related regression `reports/report_905/` passed `17/17`; headless main-scene smoke `reports/factory_route_runtime_roundtrip_main_scene_smoke.log` exited `0` and keyword scan found no script/parse/invalid-call/invalid-access/missing-resource/resource-load/`ERROR:` entries. Godot MCP runtime with `autosave=false` confirmed route request, Factory arrival, Factory route clear, service lift activation, return to `main`, spawn `scrap_roost`, player near Scrap Roost after physics settle, clean game logs, only unrelated editor `.uid` warnings after clearing temporary eval warning, and nonblank screenshot `reports/visual/cinderpaw-mcp-factory-route-runtime-roundtrip-20260630.png`.
+- Blockers: None. Deeper Old Factory combat content, savepoint/minimap gameplay, more skill-tree branches, Boss2 music/phase mix, Boss2 room doors/portrait polish, and broader frame-animation audit remain out of scope.
 - Next: continue another ACT-visible slice such as deeper Old Factory combat content, savepoint/minimap gameplay, more skill-tree branches, Boss2 music/phase mix, Boss2 room doors/portrait polish, or broader frame-animation audit.

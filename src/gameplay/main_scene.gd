@@ -75,6 +75,7 @@ const BOSS2_ROOM_SEAL_TEXTURE_PATH: String = (
 const SAVEPOINT_NOTIFICATION_SUFFIX: String = " saved"
 const CAT_CLAW_T1A_SKILL_ID: StringName = &"cat_claw_t1a"
 const FACTORY_ROUTE_SHELL_NODE_PATH: NodePath = ^"FactoryRouteTransitionShell"
+const SCRAP_ROOST_SAVEPOINT_NODE_PATH: NodePath = ^"ScrapRoostSavepoint"
 const FACTORY_ROUTE_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_ROUTE_SPAWN_POINT: StringName = &"factory_gate_entry"
 const FACTORY_ROUTE_UNLOCKED_FLAG: StringName = &"area_03_factory_unlocked"
@@ -925,6 +926,10 @@ func capture_no_loss_state() -> Dictionary:
 	}
 
 
+func get_local_state() -> Dictionary:
+	return capture_no_loss_state()
+
+
 func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_currency_amount = maxi(0, _read_int(snapshot.get("currency", _currency_amount), _currency_amount))
 	_skill_points = maxi(0, _read_int(snapshot.get("skill_points", _skill_points), _skill_points))
@@ -953,6 +958,10 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	refresh_boss2_camera_lock()
 	refresh_boss2_room_seals()
 	_sync_factory_route_transition_shell()
+
+
+func set_local_state(snapshot: Dictionary) -> void:
+	restore_no_loss_state(snapshot)
 
 
 func grant_currency(amount: int) -> void:
@@ -1389,7 +1398,10 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 	_scene_manager = scene_manager
 	_game_flow.set_scene_transition_adapter(_scene_manager)
 	_connect_scene_manager_signals(_scene_manager)
-	return _is_valid_scene_manager(_scene_manager)
+	var valid_scene_manager: bool = _is_valid_scene_manager(_scene_manager)
+	if valid_scene_manager:
+		_apply_current_scene_manager_spawn_point()
+	return valid_scene_manager
 
 
 func configure_audio_system_runtime(audio_system: Object) -> bool:
@@ -1626,6 +1638,7 @@ func _on_scene_manager_changed(old_scene: StringName, new_scene: StringName) -> 
 	var audio_system: Object = _resolve_audio_system_for_runtime()
 	if audio_system != null:
 		_dispatch_audio_event(&"on_scene_changed", [old_scene, new_scene])
+	_apply_scene_manager_spawn_point(new_scene)
 	_hud.hide_scene_transition()
 
 
@@ -1680,6 +1693,37 @@ func get_last_discovered_savepoint() -> Dictionary:
 
 func clear_last_discovered_savepoint() -> bool:
 	_last_discovered_savepoint.clear()
+	return true
+
+
+func _apply_current_scene_manager_spawn_point() -> bool:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if scene_manager == null or not scene_manager.has_method("get_current_scene"):
+		return false
+	return _apply_scene_manager_spawn_point(StringName(scene_manager.call("get_current_scene")))
+
+
+func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
+	if String(scene_id) != MAIN_SCENE_ID:
+		return false
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if scene_manager == null or not scene_manager.has_method("get_current_spawn_point"):
+		return false
+	var spawn_point: StringName = StringName(scene_manager.call("get_current_spawn_point"))
+	if spawn_point == &"" or spawn_point == DEFAULT_NEW_GAME_SPAWN_POINT:
+		return false
+	return _move_player_to_spawn_point(spawn_point)
+
+
+func _move_player_to_spawn_point(spawn_point: StringName) -> bool:
+	if _player == null or not is_instance_valid(_player):
+		return false
+	var spawn_node: Node2D = null
+	if spawn_point == &"scrap_roost":
+		spawn_node = get_node_or_null(SCRAP_ROOST_SAVEPOINT_NODE_PATH) as Node2D
+	if spawn_node == null:
+		return false
+	_player.global_position = spawn_node.global_position
 	return true
 
 
