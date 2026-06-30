@@ -18,6 +18,11 @@ const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
 const FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES: int = 18
 const FACTORY_RAT_MINION_COLLISION_LAYER: int = 2
 const FACTORY_RAT_MINION_COLLISION_MASK: int = 17
+const FACTORY_OBJECTIVE_CLEAR_ENTRANCE: StringName = &"clear_factory_entrance"
+const FACTORY_OBJECTIVE_REACH_DEEP_GUARD: StringName = &"reach_deep_guard"
+const FACTORY_OBJECTIVE_OPEN_DEEP_ROUTE: StringName = &"open_deep_route_endpoint"
+const FACTORY_OBJECTIVE_DEFEAT_SPARK_RAT: StringName = &"defeat_spark_rat_patrol"
+const FACTORY_OBJECTIVE_ROUTE_CLEARED: StringName = &"factory_route_cleared"
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
 @onready var _spawn: Marker2D = $FactoryGateEntrySpawn
@@ -55,6 +60,7 @@ func _ready() -> void:
 	_setup_factory_deep_route()
 	_setup_factory_spark_rat()
 	_bind_player_combat_to_room()
+	_refresh_factory_route_objective()
 	_request_factory_audio()
 
 
@@ -121,6 +127,11 @@ func is_factory_spark_rat_defeated() -> bool:
 	return _spark_rat_defeated
 
 
+## Returns whether the authored Factory Route objective chain is complete.
+func is_factory_route_objective_complete() -> bool:
+	return _get_factory_route_objective_id() == FACTORY_OBJECTIVE_ROUTE_CLEARED
+
+
 ## Attempts to alert the deep-route guard after the entrance encounter is clear.
 func try_activate_factory_deep_guard(provider: Node = null) -> bool:
 	if _deep_guard == null or _deep_guard_defeated or _deep_guard_activated:
@@ -134,7 +145,7 @@ func try_activate_factory_deep_guard(provider: Node = null) -> bool:
 		return false
 	_deep_guard_activated = true
 	_sync_deep_route_state()
-	_update_route_label("Deep guard alerted")
+	_refresh_factory_route_objective()
 	return true
 
 
@@ -154,7 +165,7 @@ func try_activate_factory_spark_rat(provider: Node = null) -> bool:
 	if activation_provider != null:
 		_set_spark_rat_attack_target(activation_provider)
 	_begin_spark_rat_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
-	_update_route_label("Spark rat patrol active")
+	_refresh_factory_route_objective()
 	return true
 
 
@@ -231,7 +242,7 @@ func try_claim_factory_cache(provider: Node = null) -> bool:
 		return false
 	_cache_claimed = true
 	_last_cache_reward = _get_cache_reward_payload()
-	_update_route_label("Factory cache +10 Gears")
+	_refresh_factory_route_objective()
 	return true
 
 
@@ -247,7 +258,7 @@ func try_activate_factory_deep_route_endpoint(provider: Node = null) -> bool:
 		return false
 	_deep_route_cleared = true
 	_sync_deep_route_state()
-	_update_route_label("Deep route opened")
+	_refresh_factory_route_objective()
 	return true
 
 
@@ -315,6 +326,7 @@ func get_local_state() -> Dictionary:
 		"factory_spark_rat_activated": _spark_rat_activated,
 		"factory_spark_rat_defeated": _spark_rat_defeated,
 		"factory_spark_rat_opening_grace_frames": _get_spark_rat_opening_grace_frames(),
+		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"last_cache_reward": _last_cache_reward.duplicate(true),
 		"last_hazard_damage": _last_hazard_damage.duplicate(true),
 	}
@@ -350,6 +362,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_spark_rat_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
 		_begin_spark_rat_pacing(spark_rat_opening_grace_frames)
+	_refresh_factory_route_objective()
 
 
 ## Returns deterministic room-clear/cache diagnostics for tests and MCP probes.
@@ -508,6 +521,28 @@ func get_factory_spark_rat_counter_diagnostics() -> Dictionary:
 	return diagnostics
 
 
+## Returns deterministic Factory Route objective diagnostics for tests and MCP probes.
+func get_factory_route_objective_diagnostics() -> Dictionary:
+	var route_label := get_node_or_null("RouteLabel") as Label
+	var objective_id: StringName = _get_factory_route_objective_id()
+	return {
+		"objective_id": String(objective_id),
+		"objective_text": _get_factory_route_objective_text(objective_id),
+		"complete": objective_id == FACTORY_OBJECTIVE_ROUTE_CLEARED,
+		"scene_id": String(get_meta("scene_id", String(FACTORY_SCENE_ID))),
+		"arrival_spawn_present": _spawn != null,
+		"player_present": _player != null,
+		"encounter_cleared": _encounter_cleared,
+		"deep_guard_activated": _deep_guard_activated,
+		"deep_guard_defeated": _deep_guard_defeated,
+		"deep_route_cleared": _deep_route_cleared,
+		"spark_rat_activated": _spark_rat_activated,
+		"spark_rat_defeated": _spark_rat_defeated,
+		"route_label_visible": route_label.visible if route_label != null else false,
+		"route_label_text": route_label.text if route_label != null else "",
+	}
+
+
 func get_factory_entrance_diagnostics() -> Dictionary:
 	var backdrop := get_node_or_null("Background") as TextureRect
 	var enemy_sprite := get_node_or_null("FactoryRatMinion/Sprite") as AnimatedSprite2D
@@ -530,6 +565,7 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		"hazards": get_factory_hazard_diagnostics(),
 		"deep_route": get_factory_deep_route_diagnostics(),
 		"spark_rat": get_factory_spark_rat_diagnostics(),
+		"route_objective": get_factory_route_objective_diagnostics(),
 		"last_player_hit_metadata": get_last_player_hit_metadata(),
 	}
 
@@ -636,21 +672,21 @@ func _on_player_attack_landed(metadata: Dictionary) -> void:
 func _on_factory_enemy_defeated() -> void:
 	_encounter_cleared = true
 	_sync_room_clear_state()
-	_update_route_label("Factory cache unlocked")
+	_refresh_factory_route_objective()
 
 
 func _on_factory_deep_guard_defeated() -> void:
 	_deep_guard_activated = true
 	_deep_guard_defeated = true
 	_sync_deep_route_state()
-	_update_route_label("Deep route switch unlocked")
+	_refresh_factory_route_objective()
 
 
 func _on_factory_spark_rat_defeated() -> void:
 	_spark_rat_activated = true
 	_spark_rat_defeated = true
 	_sync_spark_rat_state()
-	_update_route_label("Spark rat defeated")
+	_refresh_factory_route_objective()
 
 
 func _on_factory_cache_claimed(_cache_id: StringName, reward: Dictionary) -> void:
@@ -662,7 +698,7 @@ func _on_factory_deep_route_endpoint_activated(_endpoint_id: StringName) -> void
 	_deep_route_cleared = true
 	_sync_deep_route_state()
 	_sync_spark_rat_state()
-	_update_route_label("Deep route opened")
+	_refresh_factory_route_objective()
 
 
 func _on_factory_hazard_area_entered(area: Area2D, hazard: Area2D) -> void:
@@ -704,7 +740,7 @@ func _sync_room_clear_state() -> void:
 		if _cache.has_method("set_claimed"):
 			_cache.call("set_claimed", _cache_claimed)
 	if _encounter_cleared:
-		_update_route_label("Factory cache available" if not _cache_claimed else "Factory cache claimed")
+		_refresh_factory_route_objective()
 	if _enemy != null and _encounter_cleared and _cache_claimed:
 		_enemy.visible = false
 		_enemy.set_physics_process(false)
@@ -770,6 +806,39 @@ func _update_route_label(text_value: String) -> void:
 		return
 	route_label.text = text_value
 	route_label.visible = true
+
+
+func _refresh_factory_route_objective() -> void:
+	var objective_id: StringName = _get_factory_route_objective_id()
+	_update_route_label(_get_factory_route_objective_text(objective_id))
+
+
+func _get_factory_route_objective_id() -> StringName:
+	if _spark_rat_defeated:
+		return FACTORY_OBJECTIVE_ROUTE_CLEARED
+	if _deep_route_cleared:
+		return FACTORY_OBJECTIVE_DEFEAT_SPARK_RAT
+	if _deep_guard_defeated:
+		return FACTORY_OBJECTIVE_OPEN_DEEP_ROUTE
+	if _encounter_cleared:
+		return FACTORY_OBJECTIVE_REACH_DEEP_GUARD
+	return FACTORY_OBJECTIVE_CLEAR_ENTRANCE
+
+
+func _get_factory_route_objective_text(objective_id: StringName) -> String:
+	match objective_id:
+		FACTORY_OBJECTIVE_CLEAR_ENTRANCE:
+			return "Clear Factory Entrance"
+		FACTORY_OBJECTIVE_REACH_DEEP_GUARD:
+			return "Reach Deep Guard"
+		FACTORY_OBJECTIVE_OPEN_DEEP_ROUTE:
+			return "Open Deep Route Endpoint"
+		FACTORY_OBJECTIVE_DEFEAT_SPARK_RAT:
+			return "Defeat Spark Rat Patrol"
+		FACTORY_OBJECTIVE_ROUTE_CLEARED:
+			return "Factory Route Cleared"
+		_:
+			return "Clear Factory Entrance"
 
 
 func _get_cache_reward_payload() -> Dictionary:

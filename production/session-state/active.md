@@ -34,7 +34,8 @@
   Camera Lock Runtime、Player Abilities Story030 Boss2 Room Seal Runtime、
   Player Abilities Story031 Boss2 HUD Portrait Runtime、Player Abilities
   Story032 Boss2 Phase II Runtime Pressure Mix、Player Abilities Story033
-  Boss2 Victory Route Handoff
+  Boss2 Victory Route Handoff、Player Abilities Story034 Factory Route Arrival
+  Objective Handoff
   已完成；
   下一步推进更深 Old Factory route/combat content、authored Factory Route
   progression、savepoint/minimap gameplay、其他 ExplorationGate 能力门、more
@@ -44,6 +45,36 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 034: Factory Route Arrival Objective Handoff —
+  `OldFactoryEntranceScene` now exposes a scene-local Factory Route objective
+  chain with `get_factory_route_objective_diagnostics()` and
+  `is_factory_route_objective_complete()`. The visible `RouteLabel` starts on
+  `Clear Factory Entrance`, advances to `Reach Deep Guard`, then
+  `Open Deep Route Endpoint`, then `Defeat Spark Rat Patrol`, and finally
+  `Factory Route Cleared` after Factory Spark Rat defeat. The objective is
+  derived from existing entrance/deep-route/Spark Rat state and recorded in
+  `get_local_state()` as `factory_route_objective_id` without adding a global
+  quest system, new SaveSystem schema, new rooms, enemies, or assets. No new
+  visual assets were generated; this story reuses existing image-generated Old
+  Factory environment, endpoint/VFX, and Factory Spark Rat
+  `AnimatedSprite2D + SpriteFrames` assets. Verification: RED
+  `reports/report_883/`; focused GREEN `reports/report_884/` `2/2`; related
+  Old Factory + Story033 regression `reports/report_885/` `21/21`; headless
+  Factory scene smoke
+  `reports/old_factory_route_objective_handoff_factory_scene_smoke.log` exited
+  `0` with no script/parse/invalid/missing-resource/resource-load errors and
+  only Godot's known cleanup-time `resources still in use at exit` message.
+  Godot MCP 2.8.1 runtime with `autosave=false` confirmed target scene
+  `res://scenes/factory_route_transition_shell.tscn`, objective progression
+  through `factory_route_cleared`, visible `RouteLabel` text
+  `Factory Route Cleared`, `is_factory_route_objective_complete()==true`,
+  local state objective id `factory_route_cleared`, Player `idle/run/jump`
+  frame counts `3`, Factory Spark Rat
+  `idle/run/attack_tell/attack/hurt/death` frame counts `3`, clean editor logs,
+  game logs with only helper info after cleanup, and screenshot
+  `reports/visual/cinderpaw-mcp-old-factory-route-objective-handoff-20260630.png`.
+  QA evidence:
+  `production/qa/evidence/factory-route-arrival-objective-handoff-2026-06-30.md`。
 - Player Abilities Story 033: Boss2 Victory Route Handoff —
   `MainScene` now exposes deterministic Boss2 victory handoff diagnostics that
   cover Boss2 defeat, reward prompt/claimability, room-seal release,

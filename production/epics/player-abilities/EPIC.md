@@ -71,6 +71,7 @@ recording the reward in progression state.
 | 031 | Boss2 HUD Portrait Runtime | Integration + HUD Visual Polish | Complete | ADR-0002/0005/0010/0018 |
 | 032 | Boss2 Phase II Runtime Pressure Mix | Integration + Gameplay Runtime + Combat Feel + Audio | Complete | ADR-0002/0004/0005/0006/0007/0010/0018/0021 |
 | 033 | Boss2 Victory Route Handoff | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0002/0007/0018/0021 |
+| 034 | Factory Route Arrival Objective Handoff | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0002/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -90,7 +91,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-033 are complete. Continue with the next playable ACT slice:
-deeper Old Factory combat, savepoint/minimap gameplay, additional
+Stories001-034 are complete. Continue with the next playable ACT slice:
+deeper Old Factory combat encounters, savepoint/minimap gameplay, additional
 player-visible character/enemy frame-animation replacement, authored Factory
 Route progression, or final Boss2 balancing/cutscene polish.
