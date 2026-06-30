@@ -167,6 +167,6 @@
 
 - [ ] 技能树图谱是否需要专门的导航模式（自由平移+缩放）？
 - [ ] 移动端触控的滑动灵敏度阈值需要 playtest 验证
-- [ ] Godot 4.6 双焦点系统（mouse/touch focus ≠ keyboard/gamepad focus）对焦点指示器设计的影响需要原型验证
+- [ ] Godot 4.7 基线下的双焦点系统（mouse/touch focus ≠ keyboard/gamepad focus）对焦点指示器设计的影响需要原型验证
 - [ ] 无障碍需求文档尚未创建，模式库中的无障碍规格为初步建议
 - [ ] Player journey map 尚未创建，模式的上下文触发条件可能需要调整

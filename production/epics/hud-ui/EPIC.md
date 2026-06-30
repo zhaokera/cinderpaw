@@ -20,7 +20,7 @@ systems without owning combat, save, scene, or economy rules.
 |-----|------------------|-------------|
 | ADR-0001: Autoload architecture | HUD is scene-mounted Presentation, not a global state owner. | LOW |
 | ADR-0002: Signal communication | HUD actions emit typed signals back to MainScene adapters. | LOW |
-| ADR-0011: UI focus management | Godot 4.6 dual-focus risk; menu controls must explicitly grab and release focus. | HIGH |
+| ADR-0011: UI focus management | Godot 4.6 introduced dual-focus behavior; current Godot 4.7 baseline still requires explicit menu focus handling. | HIGH |
 
 ## GDD Requirements
 
@@ -50,7 +50,7 @@ systems without owning combat, save, scene, or economy rules.
 
 This epic is complete when:
 - All six stories are implemented and closed with evidence.
-- Combat HUD and menus are usable by keyboard/gamepad through Godot 4.6 focus.
+- Combat HUD and menus are usable by keyboard/gamepad through the current Godot 4.7 focus behavior.
 - Colorblind and scale settings are persisted or explicitly handed off to
   SaveSystem. Story 006 now provides the explicit runtime state handoff.
 - Runtime smoke is captured through Godot MCP when available.

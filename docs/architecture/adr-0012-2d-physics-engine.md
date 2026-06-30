@@ -1,7 +1,7 @@
 # ADR-0012: 2D 物理引擎选择
 
 ## Summary
-确认使用 Godot Physics 2D（默认）作为 2D 物理引擎。Godot 4.6 中 Jolt Physics 仅替换 3D 默认引擎，2D 物理保持不变。
+确认在当前 Godot 4.7 基线下继续使用 Godot Physics 2D（默认）作为 2D 物理引擎。Godot 4.6 起 Jolt Physics 仅替换 3D 默认引擎，2D 物理保持不变。
 
 ## Status
 Proposed
@@ -31,7 +31,7 @@ Proposed
 
 ### Problem Statement
 
-Godot 4.6 将 Jolt Physics 设为 3D 默认物理引擎。需要确认 2D 物理引擎的选择，以及是否需要切换到第三方 2D 物理引擎。
+Godot 4.6 将 Jolt Physics 设为 3D 默认物理引擎，项目当前基线已升级到 Godot 4.7。需要确认 2D 物理引擎的选择，以及是否需要切换到第三方 2D 物理引擎。
 
 ### Constraints
 
@@ -44,7 +44,7 @@ Godot 4.6 将 Jolt Physics 设为 3D 默认物理引擎。需要确认 2D 物理
 ### 选择 Godot Physics 2D
 
 **理由**:
-1. **默认引擎**: Godot 4.6 中 2D 物理仍为 Godot Physics 2D（Jolt 仅替换 3D）
+1. **默认引擎**: Godot 4.7 中 2D 物理仍为 Godot Physics 2D（Jolt 仅替换 3D）
 2. **稳定性**: 自 4.0 以来 API 稳定，无 breaking changes
 3. **兼容性**: 与 CharacterBody2D、Area2D、CollisionShape2D 完美兼容
 4. **性能**: 对于 2D 平台游戏足够，无性能瓶颈

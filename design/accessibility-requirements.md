@@ -120,11 +120,11 @@
 
 ---
 
-## Godot 4.6 Specific Considerations
+## Godot 4.7 Specific Considerations
 
 ### 双焦点系统 ⚠️ HIGH RISK
 
-Godot 4.6 引入了双焦点系统：mouse/touch focus 与 keyboard/gamepad focus 分离。
+Godot 4.6 引入了双焦点系统，当前项目基线为 Godot 4.7：mouse/touch focus 与 keyboard/gamepad focus 分离。
 
 **影响**:
 - `grab_focus()` 仅影响 keyboard/gamepad focus

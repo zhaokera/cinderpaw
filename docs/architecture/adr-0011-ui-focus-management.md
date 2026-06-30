@@ -1,7 +1,7 @@
-# ADR-0011: UI 焦点管理策略 (Godot 4.6 双焦点)
+# ADR-0011: UI 焦点管理策略 (Godot 4.7 基线)
 
 ## Summary
-定义 UI 焦点管理策略，应对 Godot 4.6 的双焦点系统（鼠标/触摸焦点与键盘/游戏手柄焦点分离）。采用 `FocusMode` 属性控制，HUD 使用 `FOCUS_NONE` 避免干扰战斗输入。
+定义 UI 焦点管理策略，应对 Godot 4.6 引入并在当前 Godot 4.7 基线继续适用的双焦点系统（鼠标/触摸焦点与键盘/游戏手柄焦点分离）。采用 `FocusMode` 属性控制，HUD 使用 `FOCUS_NONE` 避免干扰战斗输入。
 
 ## Status
 Proposed
@@ -15,9 +15,9 @@ Proposed
 |-------|-------|
 | **Engine** | Godot 4.7 |
 | **Domain** | UI / Presentation |
-| **Knowledge Risk** | HIGH — 双焦点系统是 4.6 新增 (post-cutoff) |
+| **Knowledge Risk** | HIGH — 双焦点系统是 4.6 新增且当前 4.7 基线仍需实机验证 |
 | **References Consulted** | `docs/engine-reference/godot/current-best-practices.md`, `docs/engine-reference/godot/breaking-changes.md` |
-| **Post-Cutoff APIs Used** | `Control.focus_mode` (4.6 dual focus behavior change) |
+| **Post-Cutoff APIs Used** | `Control.focus_mode` (4.6 dual focus behavior change; current baseline Godot 4.7) |
 | **Verification Required** | 验证菜单导航在键盘/手柄/鼠标三种输入下的行为一致性 |
 
 ## ADR Dependencies
@@ -32,7 +32,7 @@ Proposed
 
 ### Problem Statement
 
-Godot 4.6 引入了双焦点系统：鼠标/触摸焦点与键盘/游戏手柄焦点分离。这意味着：
+Godot 4.6 引入了双焦点系统，项目当前基线为 Godot 4.7：鼠标/触摸焦点与键盘/游戏手柄焦点分离。这意味着：
 - 一个 Control 可以同时拥有"鼠标焦点"和"键盘焦点"
 - 视觉反馈因输入方法不同而不同
 - 需要决定如何处理 HUD 元素的焦点行为

@@ -1754,7 +1754,7 @@
 - TDD evidence: Red first failed on missing `res://src/foundation/input_manager.gd`; green Story 001 suite 5/5 passing.
 - Review: Local code review passed against ADR-0001, ADR-0003, Foundation control manifest, and GDD TR-input-001/TR-input-011/TR-input-012. Specialist subagent gates were not spawned because the current tool surface did not expose the required Task tool and user standing authorization directs local execution without approval pauses.
 - Tests: Story 001 5/5 passing (report_60); full `tests/unit/input` 5/5 passing (report_61); full `tests/unit/data` 43/43 passing (report_62); full `tests/unit/damage` 24/24 passing (report_63).
-- Notes: `class_name InputManager` was intentionally omitted because Godot 4.6 reports that it hides the same-named Autoload singleton.
+- Notes: `class_name InputManager` remains intentionally omitted because the same Autoload singleton naming collision must stay avoided under the current Godot 4.7 baseline.
 - Tech debt logged: None.
 - Next recommended: Story 002 Direct Dispatch + FSM Signals — production/epics/input-manager/story-002-direct-dispatch-fsm.md
 
