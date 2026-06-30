@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 28 stories tracked
+> **Stories**: 29 stories tracked
 
 ## Overview
 
@@ -66,6 +66,7 @@ recording the reward in progression state.
 | 026 | Boss2 Arena Bounds Reset Runtime | Integration + Gameplay Runtime + Combat Feel | Complete | ADR-0004/0005/0006/0007/0018/0021 |
 | 027 | Parry Laser Gate Authored Visual Replacement | Integration + Visual | Complete | ADR-0005/0007/0018/0021 |
 | 028 | Boss2 HUD Hit Feedback + Arena Visual Runtime | Integration + Gameplay Runtime + HUD/Visual | Complete | ADR-0002/0004/0005/0007/0018/0021 |
+| 029 | Boss2 Arena Camera Lock Runtime | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0002/0005/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -85,7 +86,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-028 are complete. Continue another ACT-visible slice such as Boss2
-room/camera polish, deeper Old Factory combat content, savepoint/minimap
-gameplay, more skill-tree branches, Boss2 music/phase mix, or broader
+Stories001-029 are complete. Continue another ACT-visible slice such as deeper
+Old Factory combat content, savepoint/minimap gameplay, more skill-tree
+branches, Boss2 music/phase mix, boss room doors/portrait polish, or broader
 frame-animation audit.

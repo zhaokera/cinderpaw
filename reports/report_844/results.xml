@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-30" name="report_844" tests="4" failures="6" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="boss2_arena_camera_lock_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-30T06:29:19" hostname="localhost" tests="4" failures="6" errors="0" skipped="0" flaky="0" time="0.078">
+		<testcase name="test_active_boss2_applies_room_camera_lock_and_diagnostics" classname="boss2_arena_camera_lock_runtime_test" time="0.055">
+		</testcase>
+		<testcase name="test_boss2_defeated_progress_releases_camera_to_default_framing" classname="boss2_arena_camera_lock_runtime_test" time="0.005">
+		</testcase>
+		<testcase name="test_restore_save_snapshot_with_defeated_boss2_releases_camera_lock" classname="boss2_arena_camera_lock_runtime_test" time="0.006">
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_arena_camera_lock_runtime_test.gd:91" type="FAILURE">
+<![CDATA[
+Expecting: 'false' but is 'true'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_arena_camera_lock_runtime_test.gd:92" type="FAILURE">
+<![CDATA[
+Expecting:
+ 'boss2_defeated'
+ but was
+ 'boss2_defeactived'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_arena_camera_lock_runtime_test.gd:93" type="FAILURE">
+<![CDATA[
+Expecting:
+ '1280'
+ but was
+ '1040'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_arena_camera_lock_runtime_test.gd:94" type="FAILURE">
+<![CDATA[
+Expecting:
+ '1.150000'
+ in range between
+ '0.999000' <> '1.001000'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_arena_camera_lock_runtime_test.gd:95" type="FAILURE">
+<![CDATA[
+Expecting:
+ '1.150000'
+ in range between
+ '0.999000' <> '1.001000'
+]]>
+			</failure>
+		</testcase>
+		<testcase name="test_camera_release_preserves_combat_presentation_offset_ownership" classname="boss2_arena_camera_lock_runtime_test" time="0.005">
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_arena_camera_lock_runtime_test.gd:108" type="FAILURE">
+<![CDATA[
+Expecting:
+ '(6.0, 0.0)'
+ but was
+ '(0.0, 0.0)'
+]]>
+			</failure>
+		</testcase>
+	</testsuite>
+</testsuites>

@@ -60,6 +60,13 @@ const BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG: StringName = &"boss_02_echo_guardian_de
 const BOSS2_ECHO_GUARDIAN_BOSS_ID: StringName = &"boss_02_echo_guardian"
 const BOSS2_DOUBLE_JUMP_REWARD_NOTIFICATION: String = "Double Jump unlocked"
 const BOSS2_ECHO_GUARDIAN_DISPLAY_NAME: String = "Echo Guardian"
+const BOSS2_CAMERA_PATH: NodePath = ^"Player/Camera2D"
+const BOSS2_CAMERA_LOCK_LIMIT_LEFT: int = 0
+const BOSS2_CAMERA_LOCK_LIMIT_TOP: int = 0
+const BOSS2_CAMERA_LOCK_LIMIT_RIGHT: int = 1040
+const BOSS2_CAMERA_LOCK_LIMIT_BOTTOM: int = 720
+const BOSS2_CAMERA_LOCK_ZOOM: Vector2 = Vector2(1.15, 1.15)
+const BOSS2_CAMERA_LOCK_SMOOTHING_SPEED: float = 10.0
 const SAVEPOINT_NOTIFICATION_SUFFIX: String = " saved"
 const CAT_CLAW_T1A_SKILL_ID: StringName = &"cat_claw_t1a"
 const FACTORY_ROUTE_SHELL_NODE_PATH: NodePath = ^"FactoryRouteTransitionShell"
@@ -163,6 +170,9 @@ var _arena_hazard_contact_cooldowns: Dictionary = {}
 var _boss_scene_locked: bool = false
 var _boss_reward_collection_active: bool = false
 var _last_boss_reward_summary: Dictionary = {}
+var _boss2_camera_default_state: Dictionary = {}
+var _boss2_camera_lock_enabled: bool = false
+var _boss2_camera_lock_reason: StringName = &"not_initialized"
 
 
 func _ready() -> void:
@@ -214,6 +224,7 @@ func _ready() -> void:
 	_enemy.enemy_defeated.connect(_on_enemy_defeated)
 	_register_enemy_boss_phase_source()
 	_combat_presentation.set_camera($Player/Camera2D)
+	_capture_boss2_camera_default_state()
 	_sync_combat_presentation_accessibility_settings()
 
 	_hud.update_hp(_player.get_current_hp(), _player.get_max_hp())
@@ -222,6 +233,7 @@ func _ready() -> void:
 	_sync_exploration_gates()
 	_sync_hidden_double_jump_reward_source()
 	_setup_boss2_double_jump_payoff()
+	refresh_boss2_camera_lock()
 	_refresh_boss_hud()
 	_sync_factory_route_transition_shell()
 	_update_weapon_hud()
@@ -617,6 +629,7 @@ func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
 			if not boss2_snapshot.is_empty():
 				boss2.call("restore_respawn_snapshot", boss2_snapshot)
 	_sync_boss2_double_jump_payoff_state()
+	refresh_boss2_camera_lock()
 	_refresh_boss_hud()
 
 
@@ -867,6 +880,9 @@ func is_boss_scene_locked() -> bool:
 func clear_arena_locks() -> void:
 	_boss_scene_locked = false
 	cleanup_arena_mutations()
+	_restore_boss2_camera_default_state(_get_boss2_camera())
+	_boss2_camera_lock_enabled = false
+	_boss2_camera_lock_reason = &"arena_locks_cleared"
 	if _scene_manager != null and is_instance_valid(_scene_manager) \
 			and _scene_manager.has_method("unlock_scene"):
 		_scene_manager.call("unlock_scene")
@@ -919,6 +935,7 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_sync_combat_presentation_accessibility_settings()
 	_sync_hidden_double_jump_reward_source()
 	_sync_boss2_double_jump_payoff_state()
+	refresh_boss2_camera_lock()
 	_sync_factory_route_transition_shell()
 
 
@@ -990,6 +1007,7 @@ func claim_boss2_double_jump_reward_source(provider: Node = null) -> bool:
 		return false
 	set_world_progress_flag(BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG, true)
 	set_world_progress_flag(BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG, true)
+	refresh_boss2_camera_lock()
 	unlock_ability(BOSS2_DOUBLE_JUMP_REWARD_ABILITY_ID)
 	_dispatch_boss2_audio_event(&"reward_claimed", {
 		"reward_id": BOSS2_DOUBLE_JUMP_REWARD_ID,
@@ -1003,6 +1021,57 @@ func claim_boss2_double_jump_reward_source(provider: Node = null) -> bool:
 		"source": &"boss2_echo_guardian",
 	})
 	return true
+
+
+func refresh_boss2_camera_lock() -> bool:
+	var camera: Camera2D = _get_boss2_camera()
+	if camera == null:
+		_boss2_camera_lock_enabled = false
+		_boss2_camera_lock_reason = &"camera_missing"
+		return false
+	if _boss2_camera_default_state.is_empty():
+		_capture_boss2_camera_default_state()
+	if _should_enable_boss2_camera_lock():
+		_apply_boss2_camera_lock(camera)
+		_boss2_camera_lock_enabled = true
+		_boss2_camera_lock_reason = &"boss2_active"
+		return true
+	_restore_boss2_camera_default_state(camera)
+	_boss2_camera_lock_enabled = false
+	_boss2_camera_lock_reason = _boss2_camera_release_reason()
+	return false
+
+
+func get_boss2_camera_lock_diagnostics() -> Dictionary:
+	var camera: Camera2D = _get_boss2_camera()
+	var boss: Node = _get_boss2_echo_guardian()
+	var focus_position: Vector2 = (
+		(boss as Node2D).global_position
+		if boss is Node2D
+		else Vector2.ZERO
+	)
+	return {
+		"camera_found": camera != null,
+		"camera_path": String(BOSS2_CAMERA_PATH),
+		"enabled": _boss2_camera_lock_enabled,
+		"reason": String(_boss2_camera_lock_reason),
+		"limit_left": camera.limit_left if camera != null else 0,
+		"limit_top": camera.limit_top if camera != null else 0,
+		"limit_right": camera.limit_right if camera != null else 0,
+		"limit_bottom": camera.limit_bottom if camera != null else 0,
+		"zoom": camera.zoom if camera != null else Vector2.ONE,
+		"position_smoothing_enabled": (
+			camera.position_smoothing_enabled if camera != null else false
+		),
+		"position_smoothing_speed": (
+			camera.position_smoothing_speed if camera != null else 0.0
+		),
+		"offset": camera.offset if camera != null else Vector2.ZERO,
+		"default_state": _boss2_camera_default_state.duplicate(true),
+		"focus_position": focus_position,
+		"boss_visible": boss.visible if boss != null else false,
+		"arena_frame_visible": _is_boss2_arena_frame_visible(),
+	}
 
 
 func get_boss2_double_jump_payoff_diagnostics() -> Dictionary:
@@ -1187,6 +1256,7 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 	if flag_id == BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG \
 			or flag_id == BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG:
 		_sync_boss2_double_jump_payoff_state()
+		refresh_boss2_camera_lock()
 	if flag_id == FACTORY_ROUTE_UNLOCKED_FLAG:
 		_sync_factory_route_transition_shell()
 
@@ -1994,6 +2064,76 @@ func _get_boss2_echo_guardian() -> Node:
 	if boss == null or not boss.has_method("get_entity_id") or not boss.has_method("apply_damage"):
 		return null
 	return boss
+
+
+func _get_boss2_camera() -> Camera2D:
+	return get_node_or_null(BOSS2_CAMERA_PATH) as Camera2D
+
+
+func _capture_boss2_camera_default_state() -> void:
+	var camera: Camera2D = _get_boss2_camera()
+	if camera == null:
+		_boss2_camera_default_state.clear()
+		return
+	_boss2_camera_default_state = {
+		"limit_left": camera.limit_left,
+		"limit_top": camera.limit_top,
+		"limit_right": camera.limit_right,
+		"limit_bottom": camera.limit_bottom,
+		"zoom": camera.zoom,
+		"position_smoothing_enabled": camera.position_smoothing_enabled,
+		"position_smoothing_speed": camera.position_smoothing_speed,
+	}
+
+
+func _apply_boss2_camera_lock(camera: Camera2D) -> void:
+	camera.limit_left = BOSS2_CAMERA_LOCK_LIMIT_LEFT
+	camera.limit_top = BOSS2_CAMERA_LOCK_LIMIT_TOP
+	camera.limit_right = BOSS2_CAMERA_LOCK_LIMIT_RIGHT
+	camera.limit_bottom = BOSS2_CAMERA_LOCK_LIMIT_BOTTOM
+	camera.zoom = BOSS2_CAMERA_LOCK_ZOOM
+	camera.position_smoothing_enabled = true
+	camera.position_smoothing_speed = BOSS2_CAMERA_LOCK_SMOOTHING_SPEED
+	if not camera.is_current():
+		camera.make_current()
+
+
+func _restore_boss2_camera_default_state(camera: Camera2D) -> void:
+	if camera == null or _boss2_camera_default_state.is_empty():
+		return
+	camera.limit_left = int(_boss2_camera_default_state.get("limit_left", 0))
+	camera.limit_top = int(_boss2_camera_default_state.get("limit_top", 0))
+	camera.limit_right = int(_boss2_camera_default_state.get("limit_right", 1280))
+	camera.limit_bottom = int(_boss2_camera_default_state.get("limit_bottom", 720))
+	camera.zoom = _boss2_camera_default_state.get("zoom", Vector2.ONE)
+	camera.position_smoothing_enabled = bool(_boss2_camera_default_state.get(
+		"position_smoothing_enabled",
+		true
+	))
+	camera.position_smoothing_speed = float(_boss2_camera_default_state.get(
+		"position_smoothing_speed",
+		8.0
+	))
+
+
+func _should_enable_boss2_camera_lock() -> bool:
+	return _should_show_boss2_hud(_get_boss2_echo_guardian())
+
+
+func _boss2_camera_release_reason() -> StringName:
+	var boss: Node = _get_boss2_echo_guardian()
+	if boss == null:
+		return &"boss2_missing"
+	if _is_boss2_echo_guardian_defeated():
+		return &"boss2_defeated"
+	if not boss.visible:
+		return &"boss2_hidden"
+	return &"boss2_inactive"
+
+
+func _is_boss2_arena_frame_visible() -> bool:
+	var frame := get_node_or_null("Boss2ArenaFrame") as CanvasItem
+	return frame != null and frame.visible
 
 
 func _get_boss2_double_jump_reward_source() -> Node:
