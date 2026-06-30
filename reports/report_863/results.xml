@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-30" name="report_863" tests="2" failures="7" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="boss2_phase_two_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-30T07:39:55" hostname="localhost" tests="2" failures="7" errors="0" skipped="0" flaky="0" time="0.054">
+		<testcase name="test_boss2_half_hp_enters_phase_two_and_updates_hud" classname="boss2_phase_two_runtime_test" time="0.043">
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_phase_two_runtime_test.gd:41" type="FAILURE">
+<![CDATA[
+Expecting: 'true' but is 'false'
+]]>
+			</failure>
+		</testcase>
+		<testcase name="test_boss2_phase_two_raises_pressure_and_routes_phase_feedback" classname="boss2_phase_two_runtime_test" time="0.005">
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_phase_two_runtime_test.gd:79" type="FAILURE">
+<![CDATA[
+Expecting:
+ '2'
+ but was
+ '0'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_phase_two_runtime_test.gd:80" type="FAILURE">
+<![CDATA[
+Expecting to be greater than:
+ '3.000000' but was '3.000000'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_phase_two_runtime_test.gd:83" type="FAILURE">
+<![CDATA[
+Expecting to be less than:
+ '0' but was '999'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_phase_two_runtime_test.gd:86" type="FAILURE">
+<![CDATA[
+Expecting:
+ '2'
+ but was
+ '0'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_phase_two_runtime_test.gd:87" type="FAILURE">
+<![CDATA[
+Expecting to be greater than or equal:
+ '30' but was '0'
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/unit/gameplay/boss2_phase_two_runtime_test.gd:88" type="FAILURE">
+<![CDATA[
+Expecting:
+ '1'
+ but was
+ '0'
+]]>
+			</failure>
+		</testcase>
+	</testsuite>
+</testsuites>

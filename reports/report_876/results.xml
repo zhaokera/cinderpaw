@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-06-30" name="report_876" tests="4" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="boss2_phase_two_runtime_test" package="tests/unit/gameplay" timestamp="2026-06-30T08:15:14" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.081">
+		<testcase name="test_boss2_half_hp_enters_phase_two_and_updates_hud" classname="boss2_phase_two_runtime_test" time="0.062">
+		</testcase>
+		<testcase name="test_boss2_phase_two_raises_pressure_and_routes_phase_feedback" classname="boss2_phase_two_runtime_test" time="0.007">
+		</testcase>
+		<testcase name="test_boss2_phase_two_waits_for_current_attack_chain_to_finish" classname="boss2_phase_two_runtime_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="audio_system_boss2_phase_mix_test" package="tests/unit/presentation" timestamp="2026-06-30T08:15:14" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.006">
+		<testcase name="test_boss2_phase_music_cues_are_registered_and_transition_with_phase_sfx" classname="audio_system_boss2_phase_mix_test" time="0.002">
+		</testcase>
+	</testsuite>
+</testsuites>

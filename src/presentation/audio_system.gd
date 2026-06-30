@@ -71,6 +71,10 @@ const DEFAULT_BOSS_MUSIC_CUES: Dictionary = {
 		2: &"mus_boss_rat_p2",
 		3: &"mus_boss_rat_p3",
 	},
+	"boss_02_echo_guardian": {
+		1: &"mus_boss_rat_p1",
+		2: &"mus_boss_rat_p2",
+	},
 }
 const DEFAULT_CORE_COMBAT_SFX_STREAMS: Dictionary = {
 	&"sfx_claw_attack": "res://assets/audio/sfx/sfx_claw_attack.wav",

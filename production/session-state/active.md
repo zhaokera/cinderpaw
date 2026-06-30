@@ -32,18 +32,50 @@
   Laser Gate Authored Visual Replacement、Player Abilities Story028 Boss2 HUD
   Hit Feedback + Arena Visual Runtime、Player Abilities Story029 Boss2 Arena
   Camera Lock Runtime、Player Abilities Story030 Boss2 Room Seal Runtime、
-  Player Abilities Story031 Boss2 HUD Portrait Runtime
+  Player Abilities Story031 Boss2 HUD Portrait Runtime、Player Abilities
+  Story032 Boss2 Phase II Runtime Pressure Mix
   已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
   routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
   area cue expansion、broader audio mix polish、more skill-tree branches、
   mainline Boss2 Double Jump reward source、其他 ExplorationGate 能力门、
-  更深 Old Factory route/combat content、savepoint/minimap gameplay、Boss2
-  music/phase mix，以及玩家可见角色/敌人帧动画持续审计。
+  更深 Old Factory route/combat content、savepoint/minimap gameplay、final
+  Boss2 balancing/cutscene polish，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 032: Boss2 Phase II Runtime Pressure Mix —
+  `Boss2EchoGuardian` now enters Phase II at half HP (`18/36`), updates the Boss
+  HUD to `Echo Guardian  Phase II  18/36`, raises chase pressure from `3.0` to
+  `3.6` px, and lowers attack cooldown from `28` to `24` frames. If the
+  threshold is crossed during `startup`, `active`, or `recovery`, the phase
+  transition is deferred until the current attack chain returns to idle, so the
+  readable `boss2_echo_swipe` timing is not interrupted. `MainScene` routes
+  Boss2 phase transitions to CombatPresentation, AudioSystem, and the active
+  Boss HUD; `AudioSystem` now registers Boss2 Phase I/II music cues using
+  existing `mus_boss_rat_p1` / `mus_boss_rat_p2` and routes Phase II to
+  `sfx_boss_phase`. No new visual or audio assets were generated. Verification:
+  RED `reports/report_863/`, deferral RED `reports/report_866/`, audio RED
+  `reports/report_869/`; audio GREEN `reports/report_870/` `1/1`; Story032
+  focused GREEN `reports/report_876/` `4/4`; Boss2 autonomous regression
+  `reports/report_878/` `6/6`; related Boss2 regression `reports/report_877/`
+  `31/31`; headless main-scene smoke
+  `reports/boss2_phase_two_runtime_pressure_mix_main_scene_smoke.log` exited
+  `0` with no script/parse/invalid/missing-resource/resource-load errors and
+  only Godot's known cleanup-time `resources still in use at exit` message.
+  Godot MCP 2.8.1 runtime with `autosave=false` confirmed Boss2 HP `36 -> 18`,
+  phase `1 -> 2`, HUD Phase II, pressure diagnostics
+  `chase_step_px=3.6` / `attack_cooldown_target_frames=24`,
+  CombatPresentation phase `2` with `32` debris, AudioSystem
+  `boss_id="boss_02_echo_guardian"` / `music_id="mus_boss_rat_p2"` /
+  `sfx_boss_phase`, visible Boss2 `AnimatedSprite2D + SpriteFrames` with
+  `idle/run/attack/hurt/death` frame counts all `3`, MCP UI tree confirmed
+  Boss HUD text `Echo Guardian  Phase II  18/36`, inline game screenshot
+  `960x539` was non-empty with Boss2 arena/character/HUD visible, game logs
+  had only helper/DataManager info, and editor logs were clean after fixing the
+  MCP-reported ternary type warning in `src/gameplay/main_scene.gd`. QA evidence:
+  `production/qa/evidence/boss2-phase-two-runtime-pressure-mix-2026-06-30.md`。
 - Player Abilities Story 031: Boss2 HUD Portrait Runtime — `HUDManager` now
   shows a compact generated Boss2 Echo Guardian portrait in the existing Boss
   HUD while Echo Guardian owns HUD focus. The portrait is imported from

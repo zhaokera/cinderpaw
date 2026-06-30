@@ -1839,9 +1839,23 @@ func is_boss_phase_transition_source_connected() -> bool:
 
 func _handle_boss_phase_transition_started(entity_id: int, phase: int, metadata: Dictionary) -> void:
 	var enriched_metadata: Dictionary = metadata.duplicate(true)
-	enriched_metadata["boss_id"] = RAT_KING_BOSS_ID
+	var is_boss2_phase: bool = entity_id == BOSS2_ECHO_GUARDIAN_ENTITY_ID
+	if not enriched_metadata.has("boss_id"):
+		if is_boss2_phase:
+			enriched_metadata["boss_id"] = BOSS2_ECHO_GUARDIAN_BOSS_ID
+		else:
+			enriched_metadata["boss_id"] = StringName(RAT_KING_BOSS_ID)
+	if not enriched_metadata.has("display_name"):
+		if is_boss2_phase:
+			enriched_metadata["display_name"] = BOSS2_ECHO_GUARDIAN_DISPLAY_NAME
+		else:
+			enriched_metadata["display_name"] = _get_enemy_display_name()
+	if not enriched_metadata.has("world_position") and is_boss2_phase and is_instance_valid(_boss2_echo_guardian):
+		enriched_metadata["world_position"] = _boss2_echo_guardian.global_position + Vector2(0, -56)
 	if not enriched_metadata.has("world_position") and is_instance_valid(_enemy):
 		enriched_metadata["world_position"] = _enemy.global_position + Vector2(0, -24)
+	if is_boss2_phase and is_instance_valid(_hud) and _should_show_boss2_hud():
+		_refresh_boss_hud()
 	if is_instance_valid(_hud) and is_instance_valid(_enemy) and not _should_show_boss2_hud():
 		_hud.update_boss_hp(
 			_enemy.get_current_hp(),
@@ -2098,6 +2112,10 @@ func _setup_boss2_attack_core_chain() -> void:
 		var audio_signal: Signal = _boss2_echo_guardian.get("boss2_audio_event_requested")
 		if not audio_signal.is_connected(_on_boss2_audio_event_requested):
 			audio_signal.connect(_on_boss2_audio_event_requested)
+	if _boss2_echo_guardian.has_signal("on_boss_phase_transition_started"):
+		var phase_signal: Signal = _boss2_echo_guardian.get("on_boss_phase_transition_started")
+		if not phase_signal.is_connected(_handle_boss_phase_transition_started):
+			phase_signal.connect(_handle_boss_phase_transition_started)
 
 
 func _get_boss2_echo_guardian() -> Node:
@@ -2255,7 +2273,7 @@ func _refresh_boss_hud(enemy_current_hp: int = -1, enemy_max_hp: int = -1) -> vo
 		_hud.update_boss_hp(
 			int(boss2.call("get_current_hp")),
 			int(boss2.call("get_max_hp")),
-			1,
+			_get_boss2_phase(boss2),
 			BOSS2_ECHO_GUARDIAN_DISPLAY_NAME
 		)
 		return
@@ -2286,6 +2304,14 @@ func _should_show_boss2_hud(boss: Node = null) -> bool:
 	if bool(_world_progress_flags.get(String(BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG), false)):
 		return false
 	return true
+
+
+func _get_boss2_phase(boss: Node = null) -> int:
+	if boss == null:
+		boss = _get_boss2_echo_guardian()
+	if boss != null and boss.has_method("get_current_phase"):
+		return maxi(1, int(boss.call("get_current_phase")))
+	return 1
 
 
 func _sync_boss2_double_jump_payoff_state() -> void:

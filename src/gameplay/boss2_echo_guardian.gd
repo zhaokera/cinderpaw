@@ -6,12 +6,19 @@ signal boss_health_changed(current_hp: int, max_hp: int)
 signal boss_defeated
 signal enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool)
 signal boss2_audio_event_requested(event_id: StringName, metadata: Dictionary)
+signal on_boss_phase_transition_started(entity_id: int, phase: int, metadata: Dictionary)
 
 const ENTITY_ID: int = 2200
+const BOSS_ID: StringName = &"boss_02_echo_guardian"
+const DISPLAY_NAME: String = "Echo Guardian"
 const MAX_HP: int = 36
+const PHASE_ONE: int = 1
+const PHASE_TWO: int = 2
+const PHASE_TWO_HP_THRESHOLD: float = 0.5
 const AGGRO_RANGE_PX: float = 360.0
 const ATTACK_RANGE_PX: float = 108.0
 const CHASE_STEP_PX: float = 3.0
+const PHASE_TWO_CHASE_STEP_PX: float = 3.6
 const ARENA_HALF_WIDTH_PX: float = 160.0
 const RETURN_STEP_PX: float = 4.0
 const ANCHOR_REACHED_EPSILON_PX: float = 0.5
@@ -19,6 +26,7 @@ const ATTACK_TELL_FRAMES: int = 8
 const ATTACK_ACTIVE_FRAMES: int = 4
 const ATTACK_RECOVERY_FRAMES: int = 14
 const ATTACK_COOLDOWN_FRAMES: int = 28
+const PHASE_TWO_ATTACK_COOLDOWN_FRAMES: int = 24
 const ATTACK_HITBOX_ID: StringName = &"boss2_echo_swipe"
 const ATTACK_HITBOX_SIZE: Vector2 = Vector2(72, 34)
 const ATTACK_HITBOX_OFFSET: Vector2 = Vector2(56, -38)
@@ -50,6 +58,8 @@ var _attack_cooldown_timer: int = 0
 var _attack_sequence_id: int = 0
 var _behavior_phase: StringName = &"idle"
 var _defeated: bool = false
+var _current_phase: int = PHASE_ONE
+var _pending_phase_two_hp_percentage: float = -1.0
 var _last_hit_metadata: Dictionary = {}
 var _last_enemy_attack_metadata: Dictionary = {}
 var _attack_target: Node = null
@@ -202,6 +212,8 @@ func reset_encounter() -> void:
 	_hit_timer = 0
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
+	_current_phase = PHASE_ONE
+	_pending_phase_two_hp_percentage = -1.0
 	_audio_chase_active = false
 	_last_hit_metadata.clear()
 	_last_enemy_attack_metadata.clear()
@@ -224,6 +236,7 @@ func mark_defeated_from_progress() -> void:
 	_behavior_phase = &"defeated"
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
+	_pending_phase_two_hp_percentage = -1.0
 	_audio_chase_active = false
 	if _collision != null:
 		_collision.deactivate_all_hitboxes()
@@ -298,6 +311,8 @@ func restore_respawn_snapshot(snapshot: Dictionary) -> void:
 	_defeated = false
 	_state = State.IDLE
 	_behavior_phase = &"idle"
+	_current_phase = PHASE_ONE
+	_pending_phase_two_hp_percentage = -1.0
 	_facing = _read_float(snapshot.get("facing", _facing), _facing)
 	_hit_timer = 0
 	_attack_timer = 0
@@ -358,6 +373,10 @@ func get_attack_phase() -> StringName:
 			return &"idle"
 
 
+func get_current_phase() -> int:
+	return _current_phase
+
+
 func get_auto_pressure_diagnostics() -> Dictionary:
 	var distance_x: float = INF
 	var distance_y: float = INF
@@ -367,10 +386,12 @@ func get_auto_pressure_diagnostics() -> Dictionary:
 		distance_y = absf(to_target.y)
 	return {
 		"behavior_phase": _behavior_phase,
+		"current_phase": _current_phase,
 		"is_chasing": _behavior_phase == &"chase",
 		"aggro_range_px": AGGRO_RANGE_PX,
 		"attack_range_px": ATTACK_RANGE_PX,
-		"chase_step_px": CHASE_STEP_PX,
+		"chase_step_px": _current_chase_step_px(),
+		"attack_cooldown_target_frames": _current_attack_cooldown_frames(),
 		"target_distance_x": distance_x,
 		"target_distance_y": distance_y,
 		"has_target": _has_valid_attack_target(),
@@ -475,8 +496,9 @@ func _process_attack_recovery() -> void:
 	_attack_timer -= 1
 	if _attack_timer <= 0:
 		_state = State.IDLE
-		_attack_cooldown_timer = ATTACK_COOLDOWN_FRAMES
+		_attack_cooldown_timer = _current_attack_cooldown_frames()
 		_play_animation(ANIMATION_IDLE, true)
+		_apply_pending_phase_two_if_ready()
 
 
 func _ensure_core_components() -> void:
@@ -536,6 +558,7 @@ func _on_core_hp_changed(_entity_id_value: int, current_hp: int, max_hp: int) ->
 	_last_audio_hp = current_hp
 	if _sprite != null:
 		_sprite.modulate = HIT_MODULATE
+	_maybe_enter_phase_two(current_hp, max_hp)
 	if _state == State.ATTACK_TELL or _state == State.ATTACK_ACTIVE or _state == State.ATTACK_RECOVERY:
 		return
 	_hit_timer = HIT_FLASH_FRAMES
@@ -555,6 +578,7 @@ func _die(_metadata: Dictionary) -> void:
 	_behavior_phase = &"defeated"
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
+	_pending_phase_two_hp_percentage = -1.0
 	if _collision != null:
 		_collision.deactivate_all_hitboxes()
 		_collision.set_hurtbox_state(CollisionComponent.HURTBOX_STATE_GONE)
@@ -601,12 +625,13 @@ func _build_attack_metadata() -> Dictionary:
 
 func _emit_boss2_audio_event(event_id: StringName, metadata: Dictionary = {}) -> void:
 	var event_metadata: Dictionary = metadata.duplicate(true)
-	event_metadata["boss_id"] = &"boss_02_echo_guardian"
+	event_metadata["boss_id"] = BOSS_ID
 	event_metadata["entity_id"] = ENTITY_ID
 	event_metadata["source"] = &"boss2_echo_guardian"
 	event_metadata["position"] = global_position
 	event_metadata["behavior_phase"] = _behavior_phase
 	event_metadata["attack_phase"] = get_attack_phase()
+	event_metadata["phase"] = _current_phase
 	event_metadata["facing"] = _facing
 	boss2_audio_event_requested.emit(event_id, event_metadata)
 
@@ -647,7 +672,7 @@ func _can_chase_attack_target() -> bool:
 func _chase_attack_target() -> void:
 	var direction: float = _direction_to_target()
 	var distance_x: float = absf(_attack_target.global_position.x - global_position.x)
-	var step_px: float = minf(CHASE_STEP_PX, maxf(0.0, distance_x - ATTACK_RANGE_PX))
+	var step_px: float = minf(_current_chase_step_px(), maxf(0.0, distance_x - ATTACK_RANGE_PX))
 	var start_x: float = global_position.x
 	global_position.x = clampf(global_position.x + direction * step_px, _arena_min_x(), _arena_max_x())
 	velocity = Vector2((global_position.x - start_x) * 60.0, 0.0)
@@ -661,6 +686,77 @@ func _chase_attack_target() -> void:
 			"arena_min_x": _arena_min_x(),
 			"arena_max_x": _arena_max_x(),
 		})
+
+
+func _maybe_enter_phase_two(current_hp: int, max_hp: int) -> void:
+	if _current_phase >= PHASE_TWO or max_hp <= 0:
+		return
+	var hp_percentage: float = float(current_hp) / float(max_hp)
+	if hp_percentage > PHASE_TWO_HP_THRESHOLD:
+		return
+	if _is_attack_chain_active():
+		_pending_phase_two_hp_percentage = hp_percentage
+		return
+	_enter_phase_two(hp_percentage)
+
+
+func _apply_pending_phase_two_if_ready() -> void:
+	if _pending_phase_two_hp_percentage < 0.0 or _current_phase >= PHASE_TWO or _is_attack_chain_active():
+		return
+	var hp_percentage: float = _pending_phase_two_hp_percentage
+	_pending_phase_two_hp_percentage = -1.0
+	_enter_phase_two(hp_percentage)
+
+
+func _enter_phase_two(hp_percentage: float) -> void:
+	var previous_phase: int = _current_phase
+	_current_phase = PHASE_TWO
+	_emit_boss2_audio_event(&"phase_transition", {
+		"previous_phase": previous_phase,
+		"phase": PHASE_TWO,
+		"hp_percentage": hp_percentage,
+	})
+	on_boss_phase_transition_started.emit(
+		ENTITY_ID,
+		PHASE_TWO,
+		_build_phase_transition_metadata(previous_phase, hp_percentage)
+	)
+
+
+func _build_phase_transition_metadata(previous_phase: int, hp_percentage: float) -> Dictionary:
+	return {
+		"boss_id": BOSS_ID,
+		"display_name": DISPLAY_NAME,
+		"previous_phase": previous_phase,
+		"hp_threshold": PHASE_TWO_HP_THRESHOLD,
+		"hp_percentage": clampf(hp_percentage, 0.0, 1.0),
+		"world_position": global_position + Vector2(0, -56),
+		"position": global_position,
+		"source": &"boss2_echo_guardian",
+		"attack_speed_modifier": 1.2,
+		"chase_step_px": _current_chase_step_px(),
+		"attack_cooldown_frames": _current_attack_cooldown_frames(),
+	}
+
+
+func _current_chase_step_px() -> float:
+	if _current_phase >= PHASE_TWO:
+		return PHASE_TWO_CHASE_STEP_PX
+	return CHASE_STEP_PX
+
+
+func _current_attack_cooldown_frames() -> int:
+	if _current_phase >= PHASE_TWO:
+		return PHASE_TWO_ATTACK_COOLDOWN_FRAMES
+	return ATTACK_COOLDOWN_FRAMES
+
+
+func _is_attack_chain_active() -> bool:
+	return (
+		_state == State.ATTACK_TELL
+		or _state == State.ATTACK_ACTIVE
+		or _state == State.ATTACK_RECOVERY
+	)
 
 
 func _should_return_to_anchor() -> bool:
