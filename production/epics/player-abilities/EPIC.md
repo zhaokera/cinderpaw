@@ -95,7 +95,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-038 are complete. Continue with the next playable ACT slice:
-deeper Old Factory combat encounters, a Scrap Roost return hub micro-slice,
-savepoint/minimap gameplay, additional player-visible character/enemy
-frame-animation replacement, or final Boss2 balancing/cutscene polish.
+Stories001-039 are complete. Continue with the next playable ACT slice:
+deeper Old Factory combat encounters, savepoint/minimap gameplay, additional
+player-visible character/enemy frame-animation replacement, more skill-tree
+branches, or final Boss2 balancing/cutscene polish.

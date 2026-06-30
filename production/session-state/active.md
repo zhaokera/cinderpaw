@@ -38,7 +38,8 @@
   Objective Handoff、Player Abilities Story035 Old Factory Service Lift Handoff、
   Player Abilities Story036 Old Factory Service Lift SceneManager Exit、
   Player Abilities Story037 Factory Route Runtime Roundtrip、Player Abilities
-  Story038 Factory Route Return Prompt
+  Story038 Factory Route Return Prompt、Player Abilities Story039 Scrap Roost
+  Return Hub Runtime
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -48,6 +49,31 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 039: Scrap Roost Return Hub Runtime —
+  `MainScene` now secures the Scrap Roost return hub when SceneManager reports
+  current `main / scrap_roost`, Factory route is unlocked, and
+  `area_03_factory` records the full service-lift return contract back to
+  Scrap Roost. The story records `scrap_roost_return_hub_secured=true`,
+  rediscovers the existing `ScrapRoostSavepoint` at `(210, 432)`, updates
+  `last_savepoint` through `discover_savepoint()` without autosave, preserves
+  Story038 `Return to Factory Route`, and shows one-time HUD feedback
+  `Returned to Scrap Roost`. No new visual/audio assets or character animation
+  states were generated; this story reuses the existing Scrap Roost savepoint
+  prop and existing `AnimatedSprite2D + SpriteFrames` character assets.
+  Verification: valid RED `reports/report_916/`; focused GREEN
+  `reports/report_917/` `2/2`; related regressions
+  `reports/report_918/` through `reports/report_923/` passed independently
+  across Factory prompt, route roundtrip, savepoint runtime, Factory shell, and
+  Old Factory service-lift suites; headless main-scene smoke
+  `reports/scrap_roost_return_hub_main_scene_smoke.log` exited `0` with no
+  script/parse/invalid/missing-resource/resource-load failures by keyword
+  scan. Godot MCP 4.7 runtime launched main with `autosave=false`, confirmed
+  `ScrapRoostSavepoint`, `FactoryRouteTransitionShell`, Cinderpaw
+  `AnimatedSprite2D`, hub diagnostics secured with last savepoint
+  `scrap_roost/main/scrap_roost` at `(210,432)`, HUD `Returned to Scrap Roost`,
+  clean game logs, only unrelated `.uid` editor warnings, and non-empty game
+  screenshot metadata. QA evidence:
+  `production/qa/evidence/scrap-roost-return-hub-runtime-2026-06-30.md`。
 - Player Abilities Story 038: Factory Route Return Prompt —
   `MainScene` now changes the existing main-scene `FactoryRouteTransitionShell`
   prompt from `Enter Factory Route` to `Return to Factory Route` when

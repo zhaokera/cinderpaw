@@ -76,6 +76,9 @@ const SAVEPOINT_NOTIFICATION_SUFFIX: String = " saved"
 const CAT_CLAW_T1A_SKILL_ID: StringName = &"cat_claw_t1a"
 const FACTORY_ROUTE_SHELL_NODE_PATH: NodePath = ^"FactoryRouteTransitionShell"
 const SCRAP_ROOST_SAVEPOINT_NODE_PATH: NodePath = ^"ScrapRoostSavepoint"
+const SCRAP_ROOST_SAVEPOINT_ID: StringName = &"scrap_roost"
+const SCRAP_ROOST_RETURN_HUB_FLAG: StringName = &"scrap_roost_return_hub_secured"
+const SCRAP_ROOST_RETURN_HUB_NOTIFICATION: String = "Returned to Scrap Roost"
 const FACTORY_ROUTE_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_ROUTE_SPAWN_POINT: StringName = &"factory_gate_entry"
 const FACTORY_ROUTE_UNLOCKED_FLAG: StringName = &"area_03_factory_unlocked"
@@ -252,6 +255,7 @@ func _ready() -> void:
 	configure_scene_manager_runtime(get_node_or_null("/root/SceneManager"))
 	configure_audio_system_runtime(get_node_or_null("/root/AudioSystem"))
 	_hud.show_notification("Hunt the Rat King", 2.0)
+	_sync_scrap_roost_return_hub()
 
 
 func _exit_tree() -> void:
@@ -1389,6 +1393,7 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 		refresh_boss2_room_seals()
 	if flag_id == FACTORY_ROUTE_UNLOCKED_FLAG:
 		_sync_factory_route_transition_shell()
+		_sync_scrap_roost_return_hub()
 
 
 func get_runtime_progress_state() -> Dictionary:
@@ -1403,6 +1408,7 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 	var valid_scene_manager: bool = _is_valid_scene_manager(_scene_manager)
 	if valid_scene_manager:
 		_apply_current_scene_manager_spawn_point()
+		_sync_scrap_roost_return_hub()
 	return valid_scene_manager
 
 
@@ -1641,6 +1647,7 @@ func _on_scene_manager_changed(old_scene: StringName, new_scene: StringName) -> 
 	if audio_system != null:
 		_dispatch_audio_event(&"on_scene_changed", [old_scene, new_scene])
 	_apply_scene_manager_spawn_point(new_scene)
+	_sync_scrap_roost_return_hub()
 	_hud.hide_scene_transition()
 
 
@@ -1721,7 +1728,7 @@ func _move_player_to_spawn_point(spawn_point: StringName) -> bool:
 	if _player == null or not is_instance_valid(_player):
 		return false
 	var spawn_node: Node2D = null
-	if spawn_point == &"scrap_roost":
+	if spawn_point == SCRAP_ROOST_SAVEPOINT_ID:
 		spawn_node = get_node_or_null(SCRAP_ROOST_SAVEPOINT_NODE_PATH) as Node2D
 	if spawn_node == null:
 		return false
@@ -2504,6 +2511,72 @@ func _get_factory_route_transition_shell() -> Node:
 	):
 		return null
 	return route_shell
+
+
+func get_scrap_roost_return_hub_diagnostics() -> Dictionary:
+	var savepoint: Node2D = get_node_or_null(SCRAP_ROOST_SAVEPOINT_NODE_PATH) as Node2D
+	return {
+		"secured": bool(_world_progress_flags.get(String(SCRAP_ROOST_RETURN_HUB_FLAG), false)),
+		"factory_route_unlocked": bool(_world_progress_flags.get(String(FACTORY_ROUTE_UNLOCKED_FLAG), false)),
+		"service_lift_returned": _has_factory_service_lift_returned_to_scrap_roost(),
+		"current_scene": String(_get_scene_manager_current_scene()),
+		"current_spawn_point": String(_get_scene_manager_current_spawn_point()),
+		"savepoint_present": savepoint != null,
+		"savepoint_position": savepoint.global_position if savepoint != null else Vector2.ZERO,
+		"last_savepoint": get_last_discovered_savepoint(),
+		"hud_notification_text": (
+			String(_hud.call("get_notification_text"))
+			if _hud != null and _hud.has_method("get_notification_text")
+			else ""
+		),
+	}
+
+
+func _sync_scrap_roost_return_hub() -> bool:
+	if not bool(_world_progress_flags.get(String(FACTORY_ROUTE_UNLOCKED_FLAG), false)):
+		return false
+	if not _is_scene_manager_at_scrap_roost_hub():
+		return false
+	if not _has_factory_service_lift_returned_to_scrap_roost():
+		return false
+	var savepoint: Node2D = get_node_or_null(SCRAP_ROOST_SAVEPOINT_NODE_PATH) as Node2D
+	if savepoint == null:
+		return false
+	var was_secured: bool = bool(
+		_world_progress_flags.get(String(SCRAP_ROOST_RETURN_HUB_FLAG), false)
+	)
+	if not discover_savepoint(
+		SCRAP_ROOST_SAVEPOINT_ID,
+		StringName(MAIN_SCENE_ID),
+		SCRAP_ROOST_SAVEPOINT_ID,
+		savepoint.global_position
+	):
+		return false
+	_world_progress_flags[String(SCRAP_ROOST_RETURN_HUB_FLAG)] = true
+	if not was_secured:
+		_hud.show_notification(SCRAP_ROOST_RETURN_HUB_NOTIFICATION, 2.5)
+	return true
+
+
+func _is_scene_manager_at_scrap_roost_hub() -> bool:
+	return (
+		String(_get_scene_manager_current_scene()) == MAIN_SCENE_ID
+		and _get_scene_manager_current_spawn_point() == SCRAP_ROOST_SAVEPOINT_ID
+	)
+
+
+func _get_scene_manager_current_scene() -> StringName:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if scene_manager == null or not scene_manager.has_method("get_current_scene"):
+		return &""
+	return StringName(scene_manager.call("get_current_scene"))
+
+
+func _get_scene_manager_current_spawn_point() -> StringName:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if scene_manager == null or not scene_manager.has_method("get_current_spawn_point"):
+		return &""
+	return StringName(scene_manager.call("get_current_spawn_point"))
 
 
 func _sync_factory_route_transition_shell() -> void:
