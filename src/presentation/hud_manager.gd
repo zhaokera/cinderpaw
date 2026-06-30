@@ -52,10 +52,15 @@ const HUD_SIDE_MARGIN: float = 32.0
 const PLAYER_PANEL_BASE_SIZE: Vector2 = Vector2(250, 56)
 const WEAPON_PANEL_BASE_SIZE: Vector2 = Vector2(194, 66)
 const CURRENCY_PANEL_BASE_SIZE: Vector2 = Vector2(160, 38)
-const BOSS_PANEL_BASE_SIZE: Vector2 = Vector2(440, 54)
+const BOSS_PANEL_BASE_SIZE: Vector2 = Vector2(480, 64)
+const BOSS_PORTRAIT_BASE_SIZE: Vector2 = Vector2(48, 48)
 const BOSS_HIT_FLASH_DURATION_SEC: float = 0.22
 const BOSS_HIT_FLASH_COLOR: Color = Color.WHITE
 const BOSS_HIT_FLASH_MAX_ALPHA: float = 0.42
+const BOSS2_DISPLAY_NAME: String = "Echo Guardian"
+const BOSS2_PORTRAIT_TEXTURE_PATH: String = (
+	"res://assets/ui/boss_portraits/boss2_echo_guardian_portrait.png"
+)
 const MENU_TITLE_BASE_FONT_SIZE: int = 28
 const MENU_BODY_BASE_FONT_SIZE: int = 16
 const MENU_CONTROL_BASE_FONT_SIZE: int = 16
@@ -93,6 +98,7 @@ var _hp_label: Label
 var _boss_panel: PanelContainer
 var _boss_bar: ProgressBar
 var _boss_label: Label
+var _boss_portrait_rect: TextureRect
 var _boss_hit_flash_overlay: ColorRect
 var _weapon_panel: PanelContainer
 var _weapon_label: Label
@@ -173,6 +179,7 @@ func update_boss_hp(current_hp: int, max_hp: int, phase: int = 1, display_name: 
 	_boss_phase_marker_text = _phase_marker_for_phase(maxi(1, phase))
 	if _boss_panel != null:
 		_boss_panel.visible = safe_current_hp > 0
+	_sync_boss_portrait(display_name, safe_current_hp > 0)
 	if _boss_bar != null:
 		_boss_bar.max_value = safe_max_hp
 		_boss_bar.value = safe_current_hp
@@ -192,6 +199,7 @@ func update_boss_hp(current_hp: int, max_hp: int, phase: int = 1, display_name: 
 func hide_boss_hp() -> void:
 	if _boss_panel != null:
 		_boss_panel.visible = false
+	_hide_boss_portrait()
 	_boss_last_current_hp = -1
 	_boss_hit_flash_remaining_sec = 0.0
 	_sync_boss_hit_flash_overlay()
@@ -519,6 +527,20 @@ func get_boss_hit_flash_color() -> Color:
 	return _boss_hit_flash_color
 
 
+func get_boss_portrait_diagnostics() -> Dictionary:
+	var texture: Texture2D = null
+	if _boss_portrait_rect != null:
+		texture = _boss_portrait_rect.texture
+	return {
+		"found": _boss_portrait_rect != null,
+		"visible": _boss_portrait_rect != null and _boss_portrait_rect.visible,
+		"panel_visible": _boss_panel != null and _boss_panel.visible,
+		"texture_path": texture.resource_path if texture != null else "",
+		"texture_size": texture.get_size() if texture != null else Vector2.ZERO,
+		"rect_size": _boss_portrait_rect.size if _boss_portrait_rect != null else Vector2.ZERO,
+	}
+
+
 ## Returns whether a pause/retry menu overlay is currently visible.
 func is_menu_visible() -> bool:
 	return _menu_overlay != null and _menu_overlay.visible
@@ -826,12 +848,24 @@ func _build_currency_panel() -> void:
 func _build_boss_panel() -> void:
 	_boss_panel = _new_panel("BossHudPanel")
 	_boss_panel.position = Vector2(420, 26)
-	_boss_panel.size = Vector2(440, 54)
+	_boss_panel.size = BOSS_PANEL_BASE_SIZE
 	_root.add_child(_boss_panel)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	_boss_panel.add_child(row)
+
+	_boss_portrait_rect = TextureRect.new()
+	_boss_portrait_rect.name = "BossPortrait"
+	_boss_portrait_rect.custom_minimum_size = BOSS_PORTRAIT_BASE_SIZE
+	_boss_portrait_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_boss_portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_boss_portrait_rect.visible = false
+	row.add_child(_boss_portrait_rect)
 
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
-	_boss_panel.add_child(box)
+	row.add_child(box)
 
 	_boss_label = Label.new()
 	_boss_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -839,7 +873,7 @@ func _build_boss_panel() -> void:
 	box.add_child(_boss_label)
 
 	_boss_bar = ProgressBar.new()
-	_boss_bar.custom_minimum_size = Vector2(400, 14)
+	_boss_bar.custom_minimum_size = Vector2(380, 14)
 	_boss_bar.show_percentage = false
 	box.add_child(_boss_bar)
 
@@ -1445,7 +1479,9 @@ func _apply_hud_scale_layout() -> void:
 	if _hp_bar != null:
 		_hp_bar.custom_minimum_size = Vector2(210, 16) * hud_scale_value
 	if _boss_bar != null:
-		_boss_bar.custom_minimum_size = Vector2(400, 14) * hud_scale_value
+		_boss_bar.custom_minimum_size = Vector2(380, 14) * hud_scale_value
+	if _boss_portrait_rect != null:
+		_boss_portrait_rect.custom_minimum_size = BOSS_PORTRAIT_BASE_SIZE * hud_scale_value
 	if _notification_label != null:
 		_notification_label.position = Vector2((HUD_VIEWPORT_SIZE.x - 500.0 * hud_scale_value) * 0.5, 92.0 * hud_scale_value)
 		_notification_label.size = Vector2(500, 44) * hud_scale_value
@@ -1474,6 +1510,24 @@ func _trigger_boss_hit_flash() -> void:
 	_boss_hit_flash_color = BOSS_HIT_FLASH_COLOR
 	_boss_hit_flash_remaining_sec = BOSS_HIT_FLASH_DURATION_SEC
 	_sync_boss_hit_flash_overlay()
+
+
+func _sync_boss_portrait(display_name: String, boss_visible: bool) -> void:
+	if _boss_portrait_rect == null:
+		return
+	if not boss_visible or display_name != BOSS2_DISPLAY_NAME:
+		_hide_boss_portrait()
+		return
+	var portrait_texture := load(BOSS2_PORTRAIT_TEXTURE_PATH) as Texture2D
+	_boss_portrait_rect.texture = portrait_texture
+	_boss_portrait_rect.visible = portrait_texture != null
+
+
+func _hide_boss_portrait() -> void:
+	if _boss_portrait_rect == null:
+		return
+	_boss_portrait_rect.visible = false
+	_boss_portrait_rect.texture = null
 
 
 func _advance_boss_hit_flash(delta_sec: float) -> void:

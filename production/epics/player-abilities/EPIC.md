@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 30 stories tracked
+> **Stories**: 31 stories tracked
 
 ## Overview
 
@@ -68,6 +68,7 @@ recording the reward in progression state.
 | 028 | Boss2 HUD Hit Feedback + Arena Visual Runtime | Integration + Gameplay Runtime + HUD/Visual | Complete | ADR-0002/0004/0005/0007/0018/0021 |
 | 029 | Boss2 Arena Camera Lock Runtime | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0002/0005/0007/0018/0021 |
 | 030 | Boss2 Room Seal Runtime | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0002/0005/0007/0018/0021 |
+| 031 | Boss2 HUD Portrait Runtime | Integration + HUD Visual Polish | Complete | ADR-0002/0005/0010/0018 |
 
 ## Definition of Done
 
@@ -87,7 +88,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-030 are complete. Continue with the next playable ACT slice:
-Boss2 portrait/polish, more authored boss-room route content, deeper Old
+Stories001-031 are complete. Continue with the next playable ACT slice:
+Boss2 music/phase mix, more authored boss-room route content, deeper Old
 Factory combat, savepoint/minimap gameplay, or additional player-visible
 character/enemy frame-animation replacement.

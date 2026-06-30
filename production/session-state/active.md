@@ -31,18 +31,41 @@
   Story020 Parry Success Feedback Runtime、Player Abilities Story027 Parry
   Laser Gate Authored Visual Replacement、Player Abilities Story028 Boss2 HUD
   Hit Feedback + Arena Visual Runtime、Player Abilities Story029 Boss2 Arena
-  Camera Lock Runtime、Player Abilities Story030 Boss2 Room Seal Runtime
+  Camera Lock Runtime、Player Abilities Story030 Boss2 Room Seal Runtime、
+  Player Abilities Story031 Boss2 HUD Portrait Runtime
   已完成；
   下一步推进 real platform profiler evidence、low-memory UI prompt
   routing、authored/final audio replacement、DEATH/CUTSCENE audio states、
   area cue expansion、broader audio mix polish、more skill-tree branches、
   mainline Boss2 Double Jump reward source、其他 ExplorationGate 能力门、
   更深 Old Factory route/combat content、savepoint/minimap gameplay、Boss2
-  portrait polish，以及玩家可见角色/敌人帧动画持续审计。
+  music/phase mix，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 031: Boss2 HUD Portrait Runtime — `HUDManager` now
+  shows a compact generated Boss2 Echo Guardian portrait in the existing Boss
+  HUD while Echo Guardian owns HUD focus. The portrait is imported from
+  `assets/ui/boss_portraits/boss2_echo_guardian_portrait.png`, sourced from
+  `assets/generated/source/boss2_echo_guardian_portrait_imagegen_20260630.*`,
+  and uses `TextureRect.EXPAND_IGNORE_SIZE` so the 128x128 texture renders as a
+  48x48 HUD element instead of resizing the boss strip. When Boss2 is defeated
+  or restored defeated, the portrait is hidden and cleared while the label hands
+  back to Rat King. Verification: RED `reports/report_855/` failed on missing
+  portrait diagnostics; RED refinement `reports/report_858/` caught the
+  oversized 128x128 render; final GREEN focused `reports/report_862/` passed `2/2`;
+  related HUD/Boss2 regression `reports/report_861/` passed `30/30`; headless
+  main-scene smoke `reports/boss2_hud_portrait_runtime_main_scene_smoke.log`
+  exited `0` and keyword scan found no script/parse/invalid/missing-resource or
+  logged-error entries. Godot MCP runtime with `autosave=false` confirmed
+  `BossPortrait` as a visible `TextureRect` with 48x48 display size and the
+  generated portrait texture while Boss2 is active, confirmed defeated-state
+  cleanup to `visible=false` and `texture=null`, clean game/editor logs, and
+  nonblank screenshot
+  `reports/visual/cinderpaw-mcp-boss2-hud-portrait-runtime-20260630.png`. QA
+  evidence:
+  `production/qa/evidence/boss2-hud-portrait-runtime-2026-06-30.md`。
 - Player Abilities Story 030: Boss2 Room Seal Runtime — `scenes/main.tscn`
   now contains generated, visible Boss2 room-seal doors at the room edges:
   `Boss2LeftRoomSeal` and `Boss2RightRoomSeal`. `MainScene` exposes

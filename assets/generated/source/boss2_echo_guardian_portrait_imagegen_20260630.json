@@ -1,0 +1,9 @@
+{
+  "asset_id": "boss2_echo_guardian_hud_portrait",
+  "generated_at": "2026-06-30",
+  "source_path": "assets/generated/source/boss2_echo_guardian_portrait_imagegen_20260630.png",
+  "runtime_path": "assets/ui/boss_portraits/boss2_echo_guardian_portrait.png",
+  "tool": "built-in image_gen with local chroma-key removal",
+  "prompt_summary": "Square pixel-art close-up Boss2 Echo Guardian HUD portrait on flat green chroma key: cyber feline rusted dark steel mask, cyan echo-energy eyes and lines, amber cat-eye core accent, claw-scratched armor, crisp edges, no text, no UI frame.",
+  "post_processing": "Copied generated source into workspace, removed chroma key with remove_chroma_key.py, cropped to alpha bounds with padding, centered and resized to a transparent 128x128 runtime PNG."
+}
