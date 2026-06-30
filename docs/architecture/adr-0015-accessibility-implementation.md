@@ -13,7 +13,7 @@ Proposed
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | UI / Accessibility |
 | **Knowledge Risk** | HIGH — AccessKit 是 4.5+ 新增 (post-cutoff) |
 | **References Consulted** | `docs/engine-reference/godot/current-best-practices.md`, `docs/engine-reference/godot/breaking-changes.md` |

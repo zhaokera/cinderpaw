@@ -16,12 +16,12 @@ Proposed
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Core / GDScript |
 | **Knowledge Risk** | LOW — Node component pattern, signal API, and state machine pattern all stable since 4.0 |
 | **References Consulted** | `docs/engine-reference/godot/VERSION.md`, `docs/engine-reference/godot/breaking-changes.md` |
 | **Post-Cutoff APIs Used** | None — `@abstract` annotation (4.5+) considered but not required for this ADR's patterns |
-| **Verification Required** | `ISerializable` 接口在 Godot 4.6 required types 下 `deserialize(data: Dictionary, version: int)` 是否正常工作（参考 ADR-0001 已确认的 ISerializable 接口） |
+| **Verification Required** | `ISerializable` 接口在 Godot 4.6+ required types 下 `deserialize(data: Dictionary, version: int)` 是否正常工作（参考 ADR-0001 已确认的 ISerializable 接口） |
 
 ## ADR Dependencies
 
@@ -44,7 +44,7 @@ ADR-0001 定义了 HealthComponent 作为 Player/Enemy 实体的子节点组件�
 - **ADR-0002**: 信号使用 `class_name` payload 数据类；apply_damage 中 5 个信号有严格发射顺序
 - **ADR-0005**: CombatComponent 通过 `health.on_focus_mode_changed.connect()` 监听专注模式变化；`get_battle_stats()` 供死亡元数据使用
 - **帧级精度**: i-frame 计数、专注模式判定在 `_physics_process` 中处理
-- **Godot 4.6 Required Types**: 所有公开接口必须强类型，nullable 参数不再隐式允许
+- **Godot 4.6+ Required Types**: 所有公开接口必须强类型，nullable 参数不再隐式允许
 - **可测试性**: GdUnit4 单元测试必须能独立实例化 HealthComponent，不依赖完整场景树（coding-standards.md）
 - **数据驱动**: 所有可调参数（阈值、帧数等）通过 DataManager.get_tuning() 获取，不硬编码
 

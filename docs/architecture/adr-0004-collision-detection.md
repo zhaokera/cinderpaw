@@ -13,7 +13,7 @@ Accepted
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Physics 2D |
 | **Knowledge Risk** | LOW — 2D physics unchanged in 4.4–4.6 (still Godot Physics 2D) |
 | **References Consulted** | `docs/engine-reference/godot/modules/physics.md`, `docs/engine-reference/godot/VERSION.md` |

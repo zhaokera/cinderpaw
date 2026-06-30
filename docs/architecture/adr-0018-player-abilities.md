@@ -13,7 +13,7 @@ Proposed
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Core / Gameplay |
 | **Knowledge Risk** | LOW — Timer, Dictionary, signal API stable since 4.0; no post-cutoff APIs required |
 | **References Consulted** | `docs/engine-reference/godot/VERSION.md`, `docs/engine-reference/godot/breaking-changes.md` |
@@ -44,7 +44,7 @@ player-abilities.md GDD 定义了完整的玩家能力系统（8 种能力、解
 - **ADR-0008**: AbilityComponent 必须实现 ISerializable 接口，通过 SaveSystem 注册存档
 - **ADR-0009**: SkillTreeManager 提供 Modifier Provider 接口（`get_modifiers(action_id)`），AbilityComponent 在冷却/效果计算时查询修改器
 - **帧级精度**: 冷却管理在 `_physics_process` 中递减，保证帧级精度
-- **Godot 4.6 Required Types**: 所有接口参数和返回值必须类型安全，nullable 不再隐式允许
+- **Godot 4.6+ Required Types**: 所有接口参数和返回值必须类型安全，nullable 不再隐式允许
 
 ### Requirements
 
@@ -578,7 +578,7 @@ func on_hidden_discovery(discovery_id: StringName) -> void:
 ### Risks
 - **场景切换时信号断连**: ExplorationGate 是场景级节点，场景切换后需要重新连接 AbilityComponent 的信号。**缓解**: ExplorationGate 在 `_ready()` 中通过 `get_tree().get_first_node_in_group("player")` 获取引用并连接；Player 使用 `group` 而非硬编码路径，场景切换后自动找到
 - **float 冷却精度累积误差**: `_physics_process` 中 float 递减在长时间运行后可能累积误差（如 0.5s 冷却实际 0.5001s 结束）。**缓解**: 使用 `max(0.0, ...)` 防止负值；0.001s 误差对玩家感知无影响
-- **Godot 4.6 Required Types**: `Array[StringName]` 泛型在 Godot 4.6 中需要严格类型。**缓解**: 所有接口使用强类型，避免 Variant 数组
+- **Godot 4.6+ Required Types**: `Array[StringName]` 泛型在 Godot 4.6+ 中需要严格类型。**缓解**: 所有接口使用强类型，避免 Variant 数组
 - **技能树引用失败**: `get_tree().get_first_node_in_group("skill_tree_manager")` 在 SkillTreeManager 未加载时返回 null。**缓解**: null 检查 + 空数组降级（无修改器时使用基础值）
 
 ## GDD Requirements Addressed

@@ -13,7 +13,7 @@ Accepted
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Core / Scene Management |
 | **Knowledge Risk** | LOW — ResourceLoader, SceneTree, PackedScene API stable since 4.0 |
 | **References Consulted** | `docs/engine-reference/godot/VERSION.md` |

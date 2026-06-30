@@ -13,7 +13,7 @@ Proposed
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Persistence / GDScript |
 | **Knowledge Risk** | MEDIUM — duplicate_deep() is 4.5+ (post-cutoff) |
 | **References Consulted** | `docs/engine-reference/godot/current-best-practices.md`, `docs/engine-reference/godot/breaking-changes.md` |

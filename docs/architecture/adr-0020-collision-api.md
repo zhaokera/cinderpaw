@@ -24,7 +24,7 @@ Proposed
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Physics 2D / Debug |
 | **Knowledge Risk** | LOW — Area2D、CollisionShape2D、PhysicsServer2D 均为稳定 API（4.0 起无破坏性变更） |
 | **References Consulted** | `docs/engine-reference/godot/modules/physics.md`, `docs/engine-reference/godot/VERSION.md` |
@@ -59,7 +59,7 @@ ADR-0004 定义了碰撞检测的基础骨架（Area2D 节点结构、碰撞层�
 ### Constraints
 
 - **ADR-0004 不可变**: 本 ADR 扩展而非修改 ADR-0004 的节点结构、帧级循环、Hurtbox 状态管理
-- **Godot 4.6.3**: 所有 API 必须符合 Godot 4.6.3（参考 `docs/engine-reference/godot/VERSION.md`）
+- **Godot 4.7**: 所有 API 必须符合 Godot 4.7（参考 `docs/engine-reference/godot/VERSION.md`）
 - **性能预算**: 碰撞检测 < 3ms/帧（10 实体 × 3 活跃 Hitbox 基准场景）
 - **组件模式**: 遵循 ADR-0001，CollisionComponent 作为实体子节点，非 Autoload
 

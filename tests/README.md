@@ -1,6 +1,6 @@
 # Test Infrastructure
 
-**Engine**: Godot 4.6.3
+**Engine**: Godot 4.7
 **Test Framework**: GdUnit4
 **CI**: `.github/workflows/tests.yml`
 **Setup date**: 2026-06-21

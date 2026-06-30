@@ -13,7 +13,7 @@ Accepted
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Animation / Core |
 | **Knowledge Risk** | LOW — AnimationPlayer API stable since 4.0; AnimationMixer base class since 4.3 (in training data) |
 | **References Consulted** | `docs/engine-reference/godot/modules/animation.md`, `docs/engine-reference/godot/breaking-changes.md` |

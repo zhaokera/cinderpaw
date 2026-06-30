@@ -13,7 +13,7 @@ Proposed
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | UI / Presentation |
 | **Knowledge Risk** | HIGH — 双焦点系统是 4.6 新增 (post-cutoff) |
 | **References Consulted** | `docs/engine-reference/godot/current-best-practices.md`, `docs/engine-reference/godot/breaking-changes.md` |

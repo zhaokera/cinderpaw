@@ -13,7 +13,7 @@ Accepted
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Core / Physics 2D |
 | **Knowledge Risk** | LOW — RayCast2D, Area2D API stable. NavigationServer2D (4.5+) not needed for hand-designed levels |
 | **References Consulted** | `docs/engine-reference/godot/modules/physics.md`, `docs/engine-reference/godot/modules/navigation.md` |

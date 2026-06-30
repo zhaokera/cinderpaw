@@ -1,6 +1,6 @@
 # Control Manifest
 
-> **Engine**: Godot 4.6.3
+> **Engine**: Godot 4.7
 > **Last Updated**: 2026-06-21
 > **Manifest Version**: 2026-06-21
 > **ADRs Covered**: ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0007
@@ -136,7 +136,7 @@ rule, see the referenced ADR.
 
 ### Engine API Constraints
 
-- **`ResourceLoader.load_threaded_request`** — verify API signature for Godot 4.6.3 before use — source: ADR-0007
+- **`ResourceLoader.load_threaded_request`** — verify API signature for Godot 4.7 before use — source: ADR-0007
 - **`SceneTree.change_scene_to_packed`** — preferred over deprecated `change_scene()` — source: deprecated-apis.md
 
 ---
@@ -161,8 +161,8 @@ rule, see the referenced ADR.
 
 ### Engine API Constraints
 
-- **UI dual-focus system (4.6)**: mouse/touch focus ≠ keyboard/gamepad focus — must test both input paths for all menus — source: VERSION.md, QQ-01
-- **`grab_focus()` only affects keyboard/gamepad focus** in 4.6 — source: VERSION.md
+- **UI dual-focus system (introduced in 4.6; current baseline 4.7)**: mouse/touch focus ≠ keyboard/gamepad focus — must test both input paths for all menus — source: VERSION.md, QQ-01
+- **`grab_focus()` only affects keyboard/gamepad focus** under the current 4.7 baseline — source: VERSION.md
 
 ---
 
@@ -196,7 +196,7 @@ Source: `.claude/docs/technical-preferences.md`
 
 - **GdUnit4** — approved test framework for Godot 4 — source: technical-preferences.md
 
-### Forbidden APIs (Godot 4.6.3)
+### Forbidden APIs (Godot 4.7)
 
 These APIs are deprecated or have breaking changes. **Do not use.**
 

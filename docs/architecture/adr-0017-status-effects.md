@@ -13,7 +13,7 @@ Proposed
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Core / GDScript |
 | **Knowledge Risk** | LOW — 纯 GDScript 数据结构 + Timer 节点，无引擎特定新 API |
 | **References Consulted** | `docs/engine-reference/godot/VERSION.md`, `docs/engine-reference/godot/breaking-changes.md` |

@@ -13,7 +13,7 @@ Accepted
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Audio / Presentation |
 | **Knowledge Risk** | LOW — Audio API stable since 4.0 |
 | **Post-Cutoff APIs Used** | None |

@@ -13,7 +13,7 @@ Proposed
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Core / GDScript |
 | **Knowledge Risk** | LOW — 纯 GDScript 设计，无引擎特定 API |
 | **Post-Cutoff APIs Used** | None |

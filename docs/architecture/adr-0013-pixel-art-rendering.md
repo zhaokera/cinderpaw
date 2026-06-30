@@ -13,7 +13,7 @@ Proposed
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Rendering / Presentation |
 | **Knowledge Risk** | MEDIUM — SMAA 1x 和 Shader Baker 是 4.5+ 新增 (post-cutoff) |
 | **References Consulted** | `docs/engine-reference/godot/current-best-practices.md` |

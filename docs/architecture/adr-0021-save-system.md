@@ -16,7 +16,7 @@ Proposed
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Feature / Persistence / GDScript |
 | **Knowledge Risk** | MEDIUM — `Thread` 用于异步写入（稳定 API），`WorkerThreadPool` 为备选方案（4.4+ 优化） |
 | **References Consulted** | `docs/engine-reference/godot/VERSION.md`, `docs/engine-reference/godot/breaking-changes.md`, `docs/engine-reference/godot/current-best-practices.md` |
@@ -58,7 +58,7 @@ ADR-0008 定义了存档序列化的高层模式（ISerializable 接口、JSON �
 - **性能**: 存档操作 < 100ms，不阻塞游戏主线程（TR-save-007）
 - **安全性**: 防止存档损坏导致进度丢失（TR-save-004）
 - **可测试性**: 序列化/反序列化逻辑可独立单元测试（coding-standards.md）
-- **Godot 4.6 Required Types**: 所有接口参数和返回值必须强类型
+- **Godot 4.6+ Required Types**: 所有接口参数和返回值必须强类型
 - **跨平台**: Thread 在 Web 导出不可用，需要 fallback 策略
 
 ### Requirements
@@ -85,7 +85,7 @@ ADR-0008 定义了存档序列化的高层模式（ISerializable 接口、JSON �
     "play_time_sec": 3600.5,
     "slot": 0,
     "save_point_name": "猫族据点",
-    "engine_version": "4.6.3"
+    "engine_version": "4.7"
   },
   "player_state": {
     "position": {"x": 128.0, "y": 256.0},

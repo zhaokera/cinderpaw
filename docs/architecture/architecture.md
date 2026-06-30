@@ -3,7 +3,7 @@
 ## Document Status
 - Version: 1.0
 - Last Updated: 2026-06-21
-- Engine: Godot 4.6.3 (GDScript)
+- Engine: Godot 4.7 (GDScript)
 - GDDs Covered: 22 system GDDs (input, data-balance, damage-calculation, health-death, feline-combat, collision-detection, ai-framework, weapon-styles, boss-config, save-system, scene-management, death-respawn, hud-ui, combat-presentation, audio-system, exploration-ability-gating, status-effects, player-abilities, charm-equipment, npc-dialogue, map-system, skill-tree)
 - ADRs Referenced: 15/15 完成 (adr-0001 至 adr-0015，详见 Required ADRs section)
 - Review Mode: full
@@ -12,13 +12,13 @@
 
 ## Engine Knowledge Gap Summary
 
-**Engine**: Godot 4.6.3 | **LLM Training Covers**: ~4.3 | **Post-Cutoff**: 4.4, 4.5, 4.6
+**Engine**: Godot 4.7 | **LLM Training Covers**: ~4.3 | **Post-Cutoff**: 4.4, 4.5, 4.6, 4.7
 
-**HIGH RISK**: UI 双焦点系统 (4.6) — mouse/touch 与 keyboard/gamepad 焦点分离，影响所有菜单和 HUD 交互。
+**HIGH RISK**: Godot 4.7 API/项目格式迁移、GDScript override typing、输入设备语义变化；UI 双焦点系统 (4.6) 仍影响所有菜单和 HUD 交互。
 
 **MEDIUM RISK**: Input SDL3 驱动 (4.5), Resources duplicate_deep (4.5), 2D Navigation Server (4.5), Rendering Shader Baker/SMAA (4.5)。
 
-**关键决策**: 2D 物理仍为 Godot Physics 2D（Jolt 仅 3D），TileMapLayer 在 4.3（训练数据内），Audio API 稳定。
+**关键决策**: 2D 物理仍为 Godot Physics 2D（Jolt 仅 3D），TileMapLayer 在 4.3（训练数据内），Audio API 需按 `docs/engine-reference/godot/` 的 4.7 记录核对。
 
 ---
 
@@ -44,7 +44,7 @@
 │  #1 输入 ⚠️, #2 数据/平衡, #3 伤害计算                           │
 ├─────────────────────────────────────────────────────────────────┤
 │  PLATFORM LAYER (平台层)                                         │
-│  Godot 4.6.3 Engine API, SDL3 Input, 2D Physics,                │
+│  Godot 4.7 Engine API, SDL3 Input, 2D Physics,                  │
 │  Audio Server, Rendering Pipeline                                │
 └─────────────────────────────────────────────────────────────────┘
 ```

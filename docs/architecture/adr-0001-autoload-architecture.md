@@ -13,7 +13,7 @@ Accepted
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Core / GDScript |
 | **Knowledge Risk** | LOW — Autoload API stable since 4.0 |
 | **References Consulted** | `docs/engine-reference/godot/VERSION.md`, `docs/engine-reference/godot/current-best-practices.md` |
@@ -41,7 +41,7 @@ Accepted
 - **跨场景持久性**: DataManager 缓存、AudioManager 音乐状态、SaveSystem 必须在场景切换时存活
 - **60fps 性能**: Autoload 的 `_process()`/`_physics_process()` 开销必须最小化（technical-preferences.md: 16.6ms 帧预算）
 - **多实体支持**: HealthSystem、CombatSystem 等 Core 系统必须支持 Player + N 个 Enemy 同时存在
-- **Godot 4.6 Required Types**: nullable 参数不再隐式允许，所有 Autoload 接口必须类型安全
+- **Godot 4.6+ Required Types**: nullable 参数不再隐式允许，所有 Autoload 接口必须类型安全
 
 ### Requirements
 
@@ -198,7 +198,7 @@ func deserialize(data: Dictionary, version: int) -> void:
     pass
 ```
 
-> ⚠️ **Variant 返回值注意**: `DataManager.get_entry()` 返回 `Variant`，在 Godot 4.6 required types 下需实现时验证 `Variant` 返回 null 是否仍被允许。如不允许，改为返回 `Dictionary` + `has_entry()` 前置检查。
+> ⚠️ **Variant 返回值注意**: `DataManager.get_entry()` 返回 `Variant`，在 Godot 4.6+ required types 下需实现时验证 `Variant` 返回 null 是否仍被允许。如不允许，改为返回 `Dictionary` + `has_entry()` 前置检查。
 
 ### Architecture Diagram
 
@@ -263,7 +263,7 @@ project.godot Autoload Chain:
 ### Risks
 - **Autoload 初始化失败传播**: 如果 DataManager._ready() 失败（如 manifest.json 缺失），后续 Autoload 的 _ready() 可能级联失败。**缓解**: DataManager 进入 ERROR 状态但不崩溃，其他 Autoload 检查 DataManager 状态后优雅降级
 - **Component 注册遗漏**: 如果某个 Component 忘记向 SaveSystem 注册，其状态不会被存档。**缓解**: SaveSystem 在首次 save_game() 时输出注册表清单到控制台供调试
-- **Godot 4.6 Required Types**: Autoload 接口方法的参数和返回值必须类型安全。**缓解**: 所有 Autoload 接口使用强类型（StringName, int, Dictionary），不使用 nullable Variant
+- **Godot 4.6+ Required Types**: Autoload 接口方法的参数和返回值必须类型安全。**缓解**: 所有 Autoload 接口使用强类型（StringName, int, Dictionary），不使用 nullable Variant
 
 ## GDD Requirements Addressed
 

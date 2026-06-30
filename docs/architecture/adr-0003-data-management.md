@@ -13,7 +13,7 @@ Accepted
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Core / Foundation |
 | **Knowledge Risk** | LOW — FileAccess/JSON/DirAccess API stable since 4.0; 4.4 change: `FileAccess.store_*` returns bool |
 | **References Consulted** | `docs/engine-reference/godot/VERSION.md`, `docs/engine-reference/godot/breaking-changes.md` |

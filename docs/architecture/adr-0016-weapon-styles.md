@@ -16,12 +16,12 @@ Proposed
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Core / GDScript / Data |
 | **Knowledge Risk** | LOW — 纯 GDScript 设计 + Resource 数据层，无引擎特定新 API |
 | **References Consulted** | `docs/engine-reference/godot/VERSION.md`, `docs/engine-reference/godot/breaking-changes.md` |
 | **Post-Cutoff APIs Used** | None |
-| **Verification Required** | Resource 子类在 Godot 4.6 中 `@export` 数组序列化兼容性；AnimationPlayer 切换动画取消时 `animation_finished` 信号行为（同 ADR-0005 已识别风险） |
+| **Verification Required** | Resource 子类在 Godot 4.6+ 中 `@export` 数组序列化兼容性；AnimationPlayer 切换动画取消时 `animation_finished` 信号行为（同 ADR-0005 已识别风险） |
 
 ## ADR Dependencies
 

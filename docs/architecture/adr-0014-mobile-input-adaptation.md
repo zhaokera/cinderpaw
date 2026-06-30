@@ -13,7 +13,7 @@ Proposed
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Input / Foundation |
 | **Knowledge Risk** | MEDIUM — SDL3 驱动 (4.5+) 对手柄的支持需要验证 |
 | **References Consulted** | `docs/engine-reference/godot/current-best-practices.md` |

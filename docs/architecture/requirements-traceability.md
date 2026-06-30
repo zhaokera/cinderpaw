@@ -1,7 +1,7 @@
 # Architecture Traceability Index
 
 > Last Updated: 2026-06-21
-> Engine: Godot 4.6.3
+> Engine: Godot 4.7
 > Source: /architecture-review 2026-06-21
 
 ## Coverage Summary

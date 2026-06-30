@@ -13,7 +13,7 @@ Accepted
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6.3 |
+| **Engine** | Godot 4.7 |
 | **Domain** | Core / GDScript |
 | **Knowledge Risk** | LOW — Signal API stable since 4.0 (typed signals with Callable) |
 | **References Consulted** | `docs/engine-reference/godot/VERSION.md`, `docs/engine-reference/godot/current-best-practices.md` |
@@ -38,7 +38,7 @@ Accepted
 ### Constraints
 
 - **ADR-0001 约束**: Autoload→Component 仅信号，Component→Autoload 直接调用，Foundation 不引用 Core
-- **类型安全**: Godot 4.6 required types — nullable 参数不再隐式允许，信号 payload 也应类型化
+- **类型安全**: Godot 4.6+ required types — nullable 参数不再隐式允许，信号 payload 也应类型化
 - **性能**: 信号连接/断开不应产生每帧开销；payload 对象不应造成 GC 压力
 - **GDD 一致性**: 信号名称和参数必须与 22 个 GDD 中已定义的信号保持一致
 
@@ -198,7 +198,7 @@ if current_hp == 0:
 ### Alternative B: 裸 Dictionary payload
 - **Description**: 所有信号 payload 使用 Dictionary，如 `on_death.emit({"last_hit": {...}, "stats": {...}})`
 - **Pros**: 灵活，无需定义额外类
-- **Cons**: 无编译期类型检查（LP concern C9）；key 拼写错误不会报错；代码可读性差；Godot 4.6 required types 下 Dictionary value 可能出问题
+- **Cons**: 无编译期类型检查（LP concern C9）；key 拼写错误不会报错；代码可读性差；Godot 4.6+ required types 下 Dictionary value 可能出问题
 - **Rejection Reason**: class_name 数据类提供类型安全和代码补全，开发体验显著优于 Dictionary
 
 ### Alternative C: 全参数信号（无 payload 对象）
