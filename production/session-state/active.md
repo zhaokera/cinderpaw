@@ -42,7 +42,10 @@
   Return Hub Runtime、Player Abilities Story040 Old Factory Return Patrol
   Ambush、Player Abilities Story041 Old Factory Return Patrol Reward Cache、
   Player Abilities Story042 Old Factory Cache Claim Feedback、Player
-  Abilities Story043 Old Factory Return Checkpoint
+  Abilities Story043 Old Factory Return Checkpoint、Player Abilities Story044
+  Old Factory Return Checkpoint Respawn Runtime、Player Abilities Story045 Old
+  Factory Runtime Death Integration、Player Abilities Story046 Old Factory
+  Checkpoint-Forward Combat Route
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -52,6 +55,26 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 046: Old Factory Checkpoint-Forward Combat Route —
+  `factory_route_transition_shell.tscn` now includes
+  `FactoryCheckpointForwardSparkRat`, a reused animated Spark Rat patrol with
+  entity id `2104`. `OldFactoryEntranceScene` keeps the patrol hidden until
+  `FactoryReturnCheckpoint` is activated, then activates it at the forward
+  trigger, binds Cinderpaw as target, locks `FactoryServiceLift` with
+  `forward_patrol_active`, and opens the deeper route after the patrol is
+  defeated. `apply_damage()` now synchronizes scene-owned enemy defeated state
+  immediately when HP reaches `0`, so runtime route unlocks do not depend on a
+  deferred frame. No new visual assets were generated; this story reuses the
+  existing `FactorySparkRat` `AnimatedSprite2D + SpriteFrames` assets.
+  Verification: RED `reports/report_976/`; focused GREEN `reports/report_981/`
+  `4/4`; related Old Factory/respawn/service-lift regression
+  `reports/report_984/` `24/24`; headless Factory smoke exited `0` with no
+  project script/parse/invalid/missing-resource/resource-load errors by keyword
+  scan. Godot MCP 4.7 runtime confirmed entity `2104`, AnimatedSprite2D frame
+  counts `3` for idle/run/attack_tell/attack/hurt/death, service-lift lock and
+  unlock, clean final logs, and non-empty game screenshot metadata `960x539`.
+  QA evidence:
+  `production/qa/evidence/old-factory-checkpoint-forward-combat-route-2026-06-30.md`。
 - Player Abilities Story 043: Old Factory Return Checkpoint —
   `FactoryReturnCheckpoint` now mounts a visible image-generated repair
   savepoint in `factory_route_transition_shell.tscn` using `SavepointRuntime`.

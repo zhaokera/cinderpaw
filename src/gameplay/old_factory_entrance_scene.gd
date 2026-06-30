@@ -13,9 +13,11 @@ const FACTORY_ENTRY_GUARD_ENTITY_ID: int = 2100
 const FACTORY_DEEP_GUARD_ENTITY_ID: int = 2101
 const FACTORY_SPARK_RAT_ENTITY_ID: int = 2102
 const FACTORY_RETURN_SPARK_RAT_ENTITY_ID: int = 2103
+const FACTORY_CHECKPOINT_FORWARD_SPARK_RAT_ENTITY_ID: int = 2104
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
+const FACTORY_CHECKPOINT_FORWARD_PATROL_ACTIVATION_X: float = 900.0
 const FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES: int = 18
 const FACTORY_RAT_MINION_COLLISION_LAYER: int = 2
 const FACTORY_RAT_MINION_COLLISION_MASK: int = 17
@@ -26,6 +28,8 @@ const FACTORY_OBJECTIVE_DEFEAT_SPARK_RAT: StringName = &"defeat_spark_rat_patrol
 const FACTORY_OBJECTIVE_ROUTE_CLEARED: StringName = &"factory_route_cleared"
 const FACTORY_OBJECTIVE_CLEAR_RETURN_PATROL: StringName = &"clear_return_patrol"
 const FACTORY_OBJECTIVE_RETURN_PATROL_CLEARED: StringName = &"return_patrol_cleared"
+const FACTORY_OBJECTIVE_CLEAR_CHECKPOINT_FORWARD_PATROL: StringName = &"clear_checkpoint_forward_patrol"
+const FACTORY_OBJECTIVE_CHECKPOINT_FORWARD_ROUTE_OPENED: StringName = &"checkpoint_forward_route_opened"
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
 const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
 const FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT: StringName = &"scrap_roost"
@@ -43,6 +47,7 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _deep_guard: Node2D = get_node_or_null("FactoryDeepGuardRatMinion") as Node2D
 @onready var _spark_rat: Node2D = get_node_or_null("FactorySparkRat") as Node2D
 @onready var _return_spark_rat: Node2D = get_node_or_null("FactoryReturnSparkRat") as Node2D
+@onready var _checkpoint_forward_spark_rat: Node2D = get_node_or_null("FactoryCheckpointForwardSparkRat") as Node2D
 @onready var _cache: Node = $FactoryCombatCache
 @onready var _return_patrol_reward_cache: Node = get_node_or_null(
 	"FactoryReturnPatrolRewardCache"
@@ -69,6 +74,8 @@ var _spark_rat_activated: bool = false
 var _spark_rat_defeated: bool = false
 var _return_patrol_activated: bool = false
 var _return_patrol_defeated: bool = false
+var _checkpoint_forward_patrol_activated: bool = false
+var _checkpoint_forward_patrol_defeated: bool = false
 var _return_patrol_reward_cache_claimed: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
@@ -101,6 +108,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	_try_auto_activate_checkpoint_forward_patrol()
 	_sync_factory_player_control_lock()
 
 
@@ -135,6 +143,7 @@ func apply_damage(target_id: int, final_damage: int, metadata: Dictionary = {}) 
 	if damage_target == null or not damage_target.has_method("apply_damage"):
 		return false
 	damage_target.call("apply_damage", final_damage, metadata)
+	_sync_factory_damage_target_defeat(target_id, damage_target)
 	return true
 
 
@@ -173,6 +182,7 @@ func is_factory_route_objective_complete() -> bool:
 	return (
 		objective_id == FACTORY_OBJECTIVE_ROUTE_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_RETURN_PATROL_CLEARED
+		or objective_id == FACTORY_OBJECTIVE_CHECKPOINT_FORWARD_ROUTE_OPENED
 	)
 
 
@@ -184,6 +194,11 @@ func is_factory_service_lift_activated() -> bool:
 ## Returns whether the one-time Factory return patrol has been cleared.
 func is_factory_return_patrol_defeated() -> bool:
 	return _return_patrol_defeated
+
+
+## Returns whether the checkpoint-forward patrol has been cleared.
+func is_factory_checkpoint_forward_patrol_defeated() -> bool:
+	return _checkpoint_forward_patrol_defeated
 
 
 ## Attempts to activate the Old Factory return checkpoint after the return patrol is clear.
@@ -212,6 +227,31 @@ func try_activate_factory_return_checkpoint(provider: Node = null) -> bool:
 			{}
 		)
 	_update_route_label("Factory Savepoint Secured")
+	return true
+
+
+## Attempts to trigger the checkpoint-forward patrol after the return checkpoint is active.
+func try_activate_factory_checkpoint_forward_patrol(provider: Node = null) -> bool:
+	if (
+		_checkpoint_forward_spark_rat == null
+		or not _return_checkpoint_activated
+		or _checkpoint_forward_patrol_defeated
+		or _checkpoint_forward_patrol_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_checkpoint_forward_patrol_activation_provider_in_range(activation_provider):
+		return false
+	_checkpoint_forward_patrol_activated = true
+	_service_lift_activated = false
+	_service_lift_exit_requested = false
+	_last_service_lift_exit_request = {}
+	_last_service_lift_exit_rejected_reason = &""
+	_sync_checkpoint_forward_patrol_state()
+	_sync_service_lift_state()
+	_set_checkpoint_forward_spark_rat_attack_target(activation_provider)
+	_begin_checkpoint_forward_spark_rat_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	_refresh_factory_route_objective()
 	return true
 
 
@@ -272,6 +312,10 @@ func try_activate_factory_service_lift(provider: Node = null) -> bool:
 		return false
 	if _is_return_patrol_blocking_service_lift():
 		_record_service_lift_exit_rejection(&"return_patrol_active")
+		_sync_service_lift_state()
+		return false
+	if _is_checkpoint_forward_patrol_blocking_service_lift():
+		_record_service_lift_exit_rejection(&"forward_patrol_active")
 		_sync_service_lift_state()
 		return false
 	var activation_provider: Node = provider
@@ -521,6 +565,11 @@ func get_local_state() -> Dictionary:
 		"factory_spark_rat_opening_grace_frames": _get_spark_rat_opening_grace_frames(),
 		"factory_return_patrol_activated": _return_patrol_activated,
 		"factory_return_patrol_defeated": _return_patrol_defeated,
+		"factory_checkpoint_forward_patrol_activated": _checkpoint_forward_patrol_activated,
+		"factory_checkpoint_forward_patrol_defeated": _checkpoint_forward_patrol_defeated,
+		"factory_checkpoint_forward_patrol_opening_grace_frames": (
+			_get_checkpoint_forward_patrol_opening_grace_frames()
+		),
 		"factory_return_patrol_reward_cache_claimed": _return_patrol_reward_cache_claimed,
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
@@ -558,6 +607,14 @@ func set_local_state(state: Dictionary) -> void:
 		"factory_return_patrol_activated",
 		_is_service_lift_return_contract_in_state(state) and not _return_patrol_defeated
 	))
+	_checkpoint_forward_patrol_activated = bool(state.get(
+		"factory_checkpoint_forward_patrol_activated",
+		false
+	))
+	_checkpoint_forward_patrol_defeated = bool(state.get(
+		"factory_checkpoint_forward_patrol_defeated",
+		false
+	))
 	_return_patrol_reward_cache_claimed = bool(state.get(
 		"factory_return_patrol_reward_cache_claimed",
 		false
@@ -581,6 +638,14 @@ func set_local_state(state: Dictionary) -> void:
 	var spark_rat_opening_grace_frames: int = int(state.get(
 		"factory_spark_rat_opening_grace_frames",
 		FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES if _spark_rat_activated and not _spark_rat_defeated else 0
+	))
+	var checkpoint_forward_opening_grace_frames: int = int(state.get(
+		"factory_checkpoint_forward_patrol_opening_grace_frames",
+		(
+			FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES
+			if _checkpoint_forward_patrol_activated and not _checkpoint_forward_patrol_defeated
+			else 0
+		)
 	))
 	var reward_variant: Variant = state.get("last_cache_reward", {})
 	_last_cache_reward = (
@@ -631,10 +696,16 @@ func set_local_state(state: Dictionary) -> void:
 		_service_lift_exit_requested = false
 		_last_service_lift_exit_rejected_reason = &""
 		_last_service_lift_exit_request = {}
+	if _is_checkpoint_forward_patrol_blocking_service_lift():
+		_service_lift_activated = false
+		_service_lift_exit_requested = false
+		_last_service_lift_exit_rejected_reason = &""
+		_last_service_lift_exit_request = {}
 	_sync_room_clear_state()
 	_sync_deep_route_state()
 	_sync_spark_rat_state()
 	_sync_return_patrol_state()
+	_sync_checkpoint_forward_patrol_state()
 	_sync_return_patrol_reward_cache_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
@@ -642,6 +713,8 @@ func set_local_state(state: Dictionary) -> void:
 		_begin_spark_rat_pacing(spark_rat_opening_grace_frames)
 	if _return_patrol_activated and not _return_patrol_defeated:
 		_begin_return_spark_rat_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	if _checkpoint_forward_patrol_activated and not _checkpoint_forward_patrol_defeated:
+		_begin_checkpoint_forward_spark_rat_pacing(checkpoint_forward_opening_grace_frames)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
 		_update_route_label("Service Lift Departing")
@@ -822,6 +895,70 @@ func get_factory_return_patrol_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic checkpoint-forward patrol diagnostics for tests and MCP probes.
+func get_factory_checkpoint_forward_patrol_diagnostics() -> Dictionary:
+	var sprite: AnimatedSprite2D = (
+		_checkpoint_forward_spark_rat.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _checkpoint_forward_spark_rat != null
+		else null
+	)
+	var pacing_diagnostics: Dictionary = _get_checkpoint_forward_patrol_pacing_diagnostics()
+	return {
+		"present": _checkpoint_forward_spark_rat != null,
+		"visible": (
+			_checkpoint_forward_spark_rat.visible
+			if _checkpoint_forward_spark_rat != null
+			else false
+		),
+		"available": _return_checkpoint_activated and not _checkpoint_forward_patrol_defeated,
+		"active": _checkpoint_forward_patrol_activated and not _checkpoint_forward_patrol_defeated,
+		"defeated": _checkpoint_forward_patrol_defeated,
+		"activation_x": FACTORY_CHECKPOINT_FORWARD_PATROL_ACTIVATION_X,
+		"activation_ready": _is_checkpoint_forward_patrol_activation_provider_in_range(_player),
+		"entity_id": (
+			int(_checkpoint_forward_spark_rat.call("get_entity_id"))
+			if (
+				_checkpoint_forward_spark_rat != null
+				and _checkpoint_forward_spark_rat.has_method("get_entity_id")
+			)
+			else 0
+		),
+		"has_target": _does_checkpoint_forward_spark_rat_have_target(),
+		"physics_enabled": (
+			_checkpoint_forward_spark_rat.is_physics_processing()
+			if _checkpoint_forward_spark_rat != null
+			else false
+		),
+		"process_enabled": (
+			_checkpoint_forward_spark_rat.is_processing()
+			if _checkpoint_forward_spark_rat != null
+			else false
+		),
+		"collision_layer": (
+			_checkpoint_forward_spark_rat.collision_layer
+			if _checkpoint_forward_spark_rat != null
+			else 0
+		),
+		"collision_mask": (
+			_checkpoint_forward_spark_rat.collision_mask
+			if _checkpoint_forward_spark_rat != null
+			else 0
+		),
+		"sprite_frames_path": (
+			sprite.sprite_frames.resource_path
+			if sprite != null and sprite.sprite_frames != null
+			else ""
+		),
+		"animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
+		"pacing": pacing_diagnostics,
+		"position": (
+			_checkpoint_forward_spark_rat.global_position
+			if _checkpoint_forward_spark_rat != null
+			else Vector2.ZERO
+		),
+	}
+
+
 ## Returns deterministic return-patrol reward cache diagnostics for tests and MCP probes.
 func get_factory_return_patrol_reward_cache_diagnostics() -> Dictionary:
 	return {
@@ -939,6 +1076,8 @@ func get_factory_route_objective_diagnostics() -> Dictionary:
 		"spark_rat_defeated": _spark_rat_defeated,
 		"return_patrol_activated": _return_patrol_activated,
 		"return_patrol_defeated": _return_patrol_defeated,
+		"checkpoint_forward_patrol_activated": _checkpoint_forward_patrol_activated,
+		"checkpoint_forward_patrol_defeated": _checkpoint_forward_patrol_defeated,
 		"route_label_visible": route_label.visible if route_label != null else false,
 		"route_label_text": route_label.text if route_label != null else "",
 	}
@@ -955,6 +1094,7 @@ func get_factory_service_lift_diagnostics() -> Dictionary:
 		"activated": _service_lift_activated,
 		"activation_ready": _is_service_lift_activation_ready(available),
 		"return_patrol_active": _is_return_patrol_blocking_service_lift(),
+		"forward_patrol_active": _is_checkpoint_forward_patrol_blocking_service_lift(),
 		"endpoint_id": _get_service_lift_endpoint_id(),
 		"expected_endpoint_id": String(FACTORY_SERVICE_LIFT_ENDPOINT_ID),
 		"texture_path": _get_service_lift_texture_path(),
@@ -1002,6 +1142,7 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		"deep_route": get_factory_deep_route_diagnostics(),
 		"spark_rat": get_factory_spark_rat_diagnostics(),
 		"return_patrol": get_factory_return_patrol_diagnostics(),
+		"checkpoint_forward_patrol": get_factory_checkpoint_forward_patrol_diagnostics(),
 		"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"return_checkpoint": get_factory_return_checkpoint_diagnostics(),
 		"route_objective": get_factory_route_objective_diagnostics(),
@@ -1253,6 +1394,13 @@ func _bind_enemy_to_player() -> void:
 		&"factory_return_spark_rat",
 		_on_factory_return_spark_rat_defeated
 	)
+	_bind_factory_guard(
+		_checkpoint_forward_spark_rat,
+		&"old_factory_checkpoint_forward_patrol",
+		FACTORY_CHECKPOINT_FORWARD_SPARK_RAT_ENTITY_ID,
+		&"factory_checkpoint_forward_spark_rat",
+		_on_factory_checkpoint_forward_spark_rat_defeated
+	)
 
 
 func _setup_factory_cache() -> void:
@@ -1357,6 +1505,7 @@ func _setup_factory_deep_route() -> void:
 func _setup_factory_spark_rat() -> void:
 	_sync_spark_rat_state()
 	_sync_return_patrol_state()
+	_sync_checkpoint_forward_patrol_state()
 
 
 func _setup_factory_service_lift() -> void:
@@ -1422,6 +1571,18 @@ func _on_factory_return_spark_rat_defeated() -> void:
 	_last_service_lift_exit_rejected_reason = &""
 	_sync_return_patrol_state()
 	_sync_return_patrol_reward_cache_state()
+	_sync_service_lift_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_checkpoint_forward_spark_rat_defeated() -> void:
+	_checkpoint_forward_patrol_activated = true
+	_checkpoint_forward_patrol_defeated = true
+	_service_lift_activated = false
+	_service_lift_exit_requested = false
+	_last_service_lift_exit_request = {}
+	_last_service_lift_exit_rejected_reason = &""
+	_sync_checkpoint_forward_patrol_state()
 	_sync_service_lift_state()
 	_refresh_factory_route_objective()
 
@@ -1615,6 +1776,29 @@ func _sync_return_patrol_state() -> void:
 	_set_return_spark_rat_attack_target(_player)
 
 
+func _sync_checkpoint_forward_patrol_state() -> void:
+	if _checkpoint_forward_spark_rat == null:
+		return
+	if (
+		_checkpoint_forward_patrol_defeated
+		or not _return_checkpoint_activated
+		or not _checkpoint_forward_patrol_activated
+	):
+		_checkpoint_forward_spark_rat.visible = false
+		_checkpoint_forward_spark_rat.set_physics_process(false)
+		_checkpoint_forward_spark_rat.set_process(false)
+		_checkpoint_forward_spark_rat.collision_layer = 0
+		_checkpoint_forward_spark_rat.collision_mask = 0
+		_set_checkpoint_forward_spark_rat_attack_target(null)
+		return
+	_checkpoint_forward_spark_rat.visible = true
+	_checkpoint_forward_spark_rat.set_physics_process(true)
+	_checkpoint_forward_spark_rat.set_process(true)
+	_checkpoint_forward_spark_rat.collision_layer = FACTORY_RAT_MINION_COLLISION_LAYER
+	_checkpoint_forward_spark_rat.collision_mask = FACTORY_RAT_MINION_COLLISION_MASK
+	_set_checkpoint_forward_spark_rat_attack_target(_player)
+
+
 func _sync_return_patrol_reward_cache_state() -> void:
 	if _return_patrol_reward_cache == null:
 		return
@@ -1649,8 +1833,17 @@ func _sync_return_checkpoint_state() -> void:
 func _sync_service_lift_state() -> void:
 	if _service_lift == null:
 		return
+	if _service_lift.has_method("set"):
+		if _is_checkpoint_forward_patrol_blocking_service_lift():
+			_service_lift.set("locked_prompt_text", "Clear forward patrol")
+		else:
+			_service_lift.set("locked_prompt_text", "Clear patrol")
 	if _service_lift.has_method("set_available"):
-		_service_lift.call("set_available", _spark_rat_defeated and not _is_return_patrol_blocking_service_lift())
+		_service_lift.call("set_available", (
+			_spark_rat_defeated
+			and not _is_return_patrol_blocking_service_lift()
+			and not _is_checkpoint_forward_patrol_blocking_service_lift()
+		))
 	if _service_lift.has_method("set_activated"):
 		_service_lift.call("set_activated", _service_lift_activated)
 
@@ -1671,6 +1864,10 @@ func _refresh_factory_route_objective() -> void:
 func _get_factory_route_objective_id() -> StringName:
 	if _return_patrol_activated and not _return_patrol_defeated:
 		return FACTORY_OBJECTIVE_CLEAR_RETURN_PATROL
+	if _checkpoint_forward_patrol_activated and not _checkpoint_forward_patrol_defeated:
+		return FACTORY_OBJECTIVE_CLEAR_CHECKPOINT_FORWARD_PATROL
+	if _checkpoint_forward_patrol_defeated:
+		return FACTORY_OBJECTIVE_CHECKPOINT_FORWARD_ROUTE_OPENED
 	if _return_patrol_defeated:
 		return FACTORY_OBJECTIVE_RETURN_PATROL_CLEARED
 	if _spark_rat_defeated:
@@ -1700,6 +1897,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Clear Return Patrol"
 		FACTORY_OBJECTIVE_RETURN_PATROL_CLEARED:
 			return "Return Patrol Cleared"
+		FACTORY_OBJECTIVE_CLEAR_CHECKPOINT_FORWARD_PATROL:
+			return "Clear Forward Patrol"
+		FACTORY_OBJECTIVE_CHECKPOINT_FORWARD_ROUTE_OPENED:
+			return "Deeper Factory Route Opened"
 		_:
 			return "Clear Factory Entrance"
 
@@ -1991,6 +2192,14 @@ func _set_return_spark_rat_attack_target(attack_target: Node) -> void:
 		_return_spark_rat.call("set_attack_target", attack_target)
 
 
+func _set_checkpoint_forward_spark_rat_attack_target(attack_target: Node) -> void:
+	if (
+		_checkpoint_forward_spark_rat != null
+		and _checkpoint_forward_spark_rat.has_method("set_attack_target")
+	):
+		_checkpoint_forward_spark_rat.call("set_attack_target", attack_target)
+
+
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
 		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
@@ -1999,6 +2208,14 @@ func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 func _begin_return_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _return_spark_rat != null and _return_spark_rat.has_method("begin_pacing"):
 		_return_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
+
+
+func _begin_checkpoint_forward_spark_rat_pacing(opening_grace_frames: int) -> void:
+	if (
+		_checkpoint_forward_spark_rat != null
+		and _checkpoint_forward_spark_rat.has_method("begin_pacing")
+	):
+		_checkpoint_forward_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
 
 
 func _get_spark_rat_pacing_diagnostics() -> Dictionary:
@@ -2032,6 +2249,26 @@ func _get_spark_rat_opening_grace_frames() -> int:
 	return int(pacing.get("opening_grace_frames", 0))
 
 
+func _get_checkpoint_forward_patrol_pacing_diagnostics() -> Dictionary:
+	if (
+		_checkpoint_forward_spark_rat != null
+		and _checkpoint_forward_spark_rat.has_method("get_pacing_diagnostics")
+	):
+		var pacing_variant: Variant = _checkpoint_forward_spark_rat.call("get_pacing_diagnostics")
+		if pacing_variant is Dictionary:
+			return (pacing_variant as Dictionary).duplicate(true)
+	return {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+	}
+
+
+func _get_checkpoint_forward_patrol_opening_grace_frames() -> int:
+	var pacing: Dictionary = _get_checkpoint_forward_patrol_pacing_diagnostics()
+	return int(pacing.get("opening_grace_frames", 0))
+
+
 func _does_deep_guard_have_target() -> bool:
 	if _deep_guard == null:
 		return false
@@ -2056,6 +2293,41 @@ func _does_return_spark_rat_have_target() -> bool:
 	return _return_patrol_activated and not _return_patrol_defeated
 
 
+func _does_checkpoint_forward_spark_rat_have_target() -> bool:
+	if _checkpoint_forward_spark_rat == null:
+		return false
+	if _checkpoint_forward_spark_rat.has_method("has_attack_target"):
+		return bool(_checkpoint_forward_spark_rat.call("has_attack_target"))
+	return _checkpoint_forward_patrol_activated and not _checkpoint_forward_patrol_defeated
+
+
+func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> void:
+	if not _is_factory_damage_target_defeated(damage_target):
+		return
+	match target_id:
+		FACTORY_ENTRY_GUARD_ENTITY_ID:
+			if not _encounter_cleared:
+				_on_factory_enemy_defeated()
+		FACTORY_DEEP_GUARD_ENTITY_ID:
+			if not _deep_guard_defeated:
+				_on_factory_deep_guard_defeated()
+		FACTORY_SPARK_RAT_ENTITY_ID:
+			if not _spark_rat_defeated:
+				_on_factory_spark_rat_defeated()
+		FACTORY_RETURN_SPARK_RAT_ENTITY_ID:
+			if not _return_patrol_defeated:
+				_on_factory_return_spark_rat_defeated()
+		FACTORY_CHECKPOINT_FORWARD_SPARK_RAT_ENTITY_ID:
+			if not _checkpoint_forward_patrol_defeated:
+				_on_factory_checkpoint_forward_spark_rat_defeated()
+
+
+func _is_factory_damage_target_defeated(damage_target: Node) -> bool:
+	if damage_target == null or not damage_target.has_method("get_current_hp"):
+		return false
+	return int(damage_target.call("get_current_hp")) <= 0
+
+
 func _is_deep_guard_activation_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -2066,6 +2338,12 @@ func _is_spark_rat_activation_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
 	return (provider as Node2D).global_position.x >= FACTORY_SPARK_RAT_ACTIVATION_X
+
+
+func _is_checkpoint_forward_patrol_activation_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (provider as Node2D).global_position.x >= FACTORY_CHECKPOINT_FORWARD_PATROL_ACTIVATION_X
 
 
 func _is_return_checkpoint_provider_in_range(provider: Node) -> bool:
@@ -2088,7 +2366,13 @@ func _get_spark_rat_distance_to_provider(provider: Node) -> float:
 
 
 func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
-	for guard: Node in [_enemy, _deep_guard, _spark_rat, _return_spark_rat]:
+	for guard: Node in [
+		_enemy,
+		_deep_guard,
+		_spark_rat,
+		_return_spark_rat,
+		_checkpoint_forward_spark_rat,
+	]:
 		if guard == null or not guard.has_method("get_entity_id"):
 			continue
 		if int(guard.call("get_entity_id")) == target_id:
@@ -2107,6 +2391,18 @@ func _get_sprite_animation_frame_counts(sprite: AnimatedSprite2D) -> Dictionary:
 
 func _is_return_patrol_blocking_service_lift() -> bool:
 	return _return_patrol_activated and not _return_patrol_defeated
+
+
+func _is_checkpoint_forward_patrol_blocking_service_lift() -> bool:
+	return _checkpoint_forward_patrol_activated and not _checkpoint_forward_patrol_defeated
+
+
+func _try_auto_activate_checkpoint_forward_patrol() -> void:
+	if _checkpoint_forward_patrol_activated or _checkpoint_forward_patrol_defeated:
+		return
+	if not _return_checkpoint_activated:
+		return
+	try_activate_factory_checkpoint_forward_patrol(_player)
 
 
 func _is_service_lift_return_contract_in_state(state: Dictionary) -> bool:
