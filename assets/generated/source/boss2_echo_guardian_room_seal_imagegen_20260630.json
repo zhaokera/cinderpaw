@@ -1,0 +1,16 @@
+{
+  "asset_id": "boss2_echo_guardian_room_seal",
+  "generated_on": "2026-06-30",
+  "tool": "built-in image generation",
+  "source_image": "res://assets/generated/source/boss2_echo_guardian_room_seal_imagegen_20260630.png",
+  "runtime_image": "res://assets/environment/boss2_arena/boss2_echo_guardian_room_seal.png",
+  "post_process": {
+    "method": "chroma_key_to_alpha",
+    "helper": "$CODEX_HOME/skills/.system/imagegen/scripts/remove_chroma_key.py",
+    "key_color": "#04f906",
+    "transparent_pixels": 791514,
+    "partially_transparent_pixels": 7078,
+    "runtime_resize": "256x384"
+  },
+  "prompt": "Create a single vertical industrial arcane seal gate prop for a ruined factory boss room. It should look like a heavy metal sliding seal door or energy-lock pillar used to block a side-scrolling arena entrance. Design language: rusted dark steel plates, rivets, claw scratches, cyan-blue echo energy lines, small amber warning lights, cat-eye shaped central lock core. The prop must read clearly at small in-game size. Use a perfectly flat solid #00ff00 chroma-key background for background removal. Orthographic front view, one centered vertical gate/seal prop, full object visible, generous padding, no floor shadow. Hand-painted stylized 2D game asset, clean silhouette, crisp edges, high contrast. No #00ff00 in the prop, no text, no watermark."
+}

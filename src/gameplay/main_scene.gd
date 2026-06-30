@@ -67,6 +67,11 @@ const BOSS2_CAMERA_LOCK_LIMIT_RIGHT: int = 1040
 const BOSS2_CAMERA_LOCK_LIMIT_BOTTOM: int = 720
 const BOSS2_CAMERA_LOCK_ZOOM: Vector2 = Vector2(1.15, 1.15)
 const BOSS2_CAMERA_LOCK_SMOOTHING_SPEED: float = 10.0
+const BOSS2_LEFT_ROOM_SEAL_PATH: NodePath = ^"Boss2LeftRoomSeal"
+const BOSS2_RIGHT_ROOM_SEAL_PATH: NodePath = ^"Boss2RightRoomSeal"
+const BOSS2_ROOM_SEAL_TEXTURE_PATH: String = (
+	"res://assets/environment/boss2_arena/boss2_echo_guardian_room_seal.png"
+)
 const SAVEPOINT_NOTIFICATION_SUFFIX: String = " saved"
 const CAT_CLAW_T1A_SKILL_ID: StringName = &"cat_claw_t1a"
 const FACTORY_ROUTE_SHELL_NODE_PATH: NodePath = ^"FactoryRouteTransitionShell"
@@ -173,6 +178,8 @@ var _last_boss_reward_summary: Dictionary = {}
 var _boss2_camera_default_state: Dictionary = {}
 var _boss2_camera_lock_enabled: bool = false
 var _boss2_camera_lock_reason: StringName = &"not_initialized"
+var _boss2_room_seals_enabled: bool = false
+var _boss2_room_seal_reason: StringName = &"not_initialized"
 
 
 func _ready() -> void:
@@ -234,6 +241,7 @@ func _ready() -> void:
 	_sync_hidden_double_jump_reward_source()
 	_setup_boss2_double_jump_payoff()
 	refresh_boss2_camera_lock()
+	refresh_boss2_room_seals()
 	_refresh_boss_hud()
 	_sync_factory_route_transition_shell()
 	_update_weapon_hud()
@@ -630,6 +638,7 @@ func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
 				boss2.call("restore_respawn_snapshot", boss2_snapshot)
 	_sync_boss2_double_jump_payoff_state()
 	refresh_boss2_camera_lock()
+	refresh_boss2_room_seals()
 	_refresh_boss_hud()
 
 
@@ -883,6 +892,12 @@ func clear_arena_locks() -> void:
 	_restore_boss2_camera_default_state(_get_boss2_camera())
 	_boss2_camera_lock_enabled = false
 	_boss2_camera_lock_reason = &"arena_locks_cleared"
+	var left_room_seal := _get_boss2_room_seal(BOSS2_LEFT_ROOM_SEAL_PATH)
+	var right_room_seal := _get_boss2_room_seal(BOSS2_RIGHT_ROOM_SEAL_PATH)
+	_set_boss2_room_seal_enabled(left_room_seal, false)
+	_set_boss2_room_seal_enabled(right_room_seal, false)
+	_boss2_room_seals_enabled = false
+	_boss2_room_seal_reason = &"arena_locks_cleared"
 	if _scene_manager != null and is_instance_valid(_scene_manager) \
 			and _scene_manager.has_method("unlock_scene"):
 		_scene_manager.call("unlock_scene")
@@ -936,6 +951,7 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_sync_hidden_double_jump_reward_source()
 	_sync_boss2_double_jump_payoff_state()
 	refresh_boss2_camera_lock()
+	refresh_boss2_room_seals()
 	_sync_factory_route_transition_shell()
 
 
@@ -1008,6 +1024,7 @@ func claim_boss2_double_jump_reward_source(provider: Node = null) -> bool:
 	set_world_progress_flag(BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG, true)
 	set_world_progress_flag(BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG, true)
 	refresh_boss2_camera_lock()
+	refresh_boss2_room_seals()
 	unlock_ability(BOSS2_DOUBLE_JUMP_REWARD_ABILITY_ID)
 	_dispatch_boss2_audio_event(&"reward_claimed", {
 		"reward_id": BOSS2_DOUBLE_JUMP_REWARD_ID,
@@ -1071,6 +1088,29 @@ func get_boss2_camera_lock_diagnostics() -> Dictionary:
 		"focus_position": focus_position,
 		"boss_visible": boss.visible if boss != null else false,
 		"arena_frame_visible": _is_boss2_arena_frame_visible(),
+	}
+
+
+func refresh_boss2_room_seals() -> bool:
+	var should_enable: bool = _should_enable_boss2_room_seals()
+	var left_room_seal := _get_boss2_room_seal(BOSS2_LEFT_ROOM_SEAL_PATH)
+	var right_room_seal := _get_boss2_room_seal(BOSS2_RIGHT_ROOM_SEAL_PATH)
+	_set_boss2_room_seal_enabled(left_room_seal, should_enable)
+	_set_boss2_room_seal_enabled(right_room_seal, should_enable)
+	_boss2_room_seals_enabled = should_enable
+	_boss2_room_seal_reason = (
+		&"boss2_active" if should_enable else _boss2_room_seal_release_reason()
+	)
+	return should_enable
+
+
+func get_boss2_room_seal_diagnostics() -> Dictionary:
+	return {
+		"enabled": _boss2_room_seals_enabled,
+		"reason": String(_boss2_room_seal_reason),
+		"texture_path": BOSS2_ROOM_SEAL_TEXTURE_PATH,
+		"left": _get_boss2_room_seal_snapshot(BOSS2_LEFT_ROOM_SEAL_PATH),
+		"right": _get_boss2_room_seal_snapshot(BOSS2_RIGHT_ROOM_SEAL_PATH),
 	}
 
 
@@ -1257,6 +1297,7 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 			or flag_id == BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG:
 		_sync_boss2_double_jump_payoff_state()
 		refresh_boss2_camera_lock()
+		refresh_boss2_room_seals()
 	if flag_id == FACTORY_ROUTE_UNLOCKED_FLAG:
 		_sync_factory_route_transition_shell()
 
@@ -2134,6 +2175,69 @@ func _boss2_camera_release_reason() -> StringName:
 func _is_boss2_arena_frame_visible() -> bool:
 	var frame := get_node_or_null("Boss2ArenaFrame") as CanvasItem
 	return frame != null and frame.visible
+
+
+func _get_boss2_room_seal(path: NodePath) -> StaticBody2D:
+	return get_node_or_null(path) as StaticBody2D
+
+
+func _set_boss2_room_seal_enabled(seal: StaticBody2D, enabled: bool) -> void:
+	if seal == null:
+		return
+	seal.visible = enabled
+	seal.collision_layer = 16 if enabled else 0
+	seal.collision_mask = 0
+	var collision_shape := seal.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if collision_shape != null:
+		collision_shape.disabled = not enabled
+	var visual := seal.get_node_or_null("Visual") as CanvasItem
+	if visual != null:
+		visual.visible = enabled
+
+
+func _should_enable_boss2_room_seals() -> bool:
+	return _should_show_boss2_hud(_get_boss2_echo_guardian())
+
+
+func _boss2_room_seal_release_reason() -> StringName:
+	var boss: Node = _get_boss2_echo_guardian()
+	if boss == null:
+		return &"boss2_missing"
+	if _is_boss2_echo_guardian_defeated():
+		return &"boss2_defeated"
+	if not boss.visible:
+		return &"boss2_hidden"
+	return &"boss2_inactive"
+
+
+func _get_boss2_room_seal_snapshot(path: NodePath) -> Dictionary:
+	var seal := _get_boss2_room_seal(path)
+	if seal == null:
+		return {
+			"found": false,
+			"path": String(path),
+			"visible": false,
+			"blocking": false,
+			"collision_layer": 0,
+			"position": Vector2.ZERO,
+			"texture_path": "",
+		}
+	var collision_shape := seal.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	var visual := seal.get_node_or_null("Visual") as Sprite2D
+	var blocking := (
+		seal.collision_layer == 16
+		and collision_shape != null
+		and not collision_shape.disabled
+	)
+	return {
+		"found": true,
+		"path": String(path),
+		"visible": visual.visible if visual != null else seal.visible,
+		"blocking": blocking,
+		"collision_layer": seal.collision_layer,
+		"position": seal.global_position,
+		"texture_path": visual.texture.resource_path if visual != null and visual.texture != null else "",
+	}
 
 
 func _get_boss2_double_jump_reward_source() -> Node:
