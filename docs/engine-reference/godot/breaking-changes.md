@@ -1,8 +1,23 @@
 # Godot — Breaking Changes
 
-Last verified: 2026-06-18
+Last verified: 2026-06-30
 
 Changes between Godot versions, focused on post-LLM-cutoff changes (4.4+).
+
+## 4.6 → 4.7 (2026 — POST-CUTOFF, HIGH RISK)
+
+| Subsystem | Change | Details |
+|-----------|--------|---------|
+| GDScript | Override return types are stricter | Overriding methods must keep compatible return types. Re-check inheritance-heavy gameplay code and GdUnit fixtures after upgrade. |
+| Input | Device ID semantics changed | Direct comparisons against numeric `InputEvent.device` values can become brittle. Prefer documented constants and current 4.7 behavior. |
+| UI | `RichTextLabel` image APIs changed | Code using `add_image()` / `update_image()` must be checked against the 4.7 docs before editing. |
+| Audio | `AudioEffectSpectrumAnalyzer.tap_back_pos` removed | Do not use `tap_back_pos`; use the current analyzer API documented for 4.7. |
+| Project format | Godot 4.7 writes feature metadata | `project.godot` should pin `config/features=PackedStringArray("4.7")`; avoid saving committed resources with 4.6 after upgrade. |
+
+### 4.7 Project Audit
+- Project `src/` scan on 2026-06-30 found no direct usage of the high-risk
+  4.7 migration watch-list APIs.
+- Current local 4.7 binary: `4.7.stable.official.5b4e0cb0f`.
 
 ## 4.5 → 4.6 (Jan 2026 — POST-CUTOFF, HIGH RISK)
 

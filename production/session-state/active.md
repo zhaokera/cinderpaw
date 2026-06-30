@@ -45,6 +45,21 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Technical Maintenance: Godot 4.7 Engine Baseline Upgrade —
+  项目基准已从 Godot 4.6.3 升级到 Godot 4.7。
+  `project.godot` 现在 pin `config/features=PackedStringArray("4.7")`；
+  `AGENTS.md`、`.claude/docs/technical-preferences.md` 和
+  `docs/engine-reference/godot/` 已同步为 Godot 4.7。预升级扫描未在
+  `src/` 中发现 4.7 高风险 migration watch-list API 需要迁移。验证：
+  `/Applications/Godot 2.app/Contents/MacOS/Godot --version` 返回
+  `4.7.stable.official.5b4e0cb0f`；Godot MCP `editor_state` 返回
+  `godot_version="4.7-stable (official)"` 且 `readiness="ready"`；4.7
+  project boot log `reports/godot_4_7_upgrade_project_boot.log`、main scene
+  smoke log `reports/godot_4_7_upgrade_main_scene_smoke.log` 均退出 `0` 且
+  无 script/parse/invalid/missing-resource 错误；focused GdUnit
+  `reports/report_891/` 通过 SceneManager async request 与 Old Factory
+  service lift `6/6`。QA evidence:
+  `production/qa/evidence/godot-4-7-upgrade-2026-06-30.md`。
 - Player Abilities Story 035: Old Factory Service Lift Handoff —
   `FactoryServiceLift` now mounts a visible image-generated transparent
   service lift call console in `res://scenes/factory_route_transition_shell.tscn`

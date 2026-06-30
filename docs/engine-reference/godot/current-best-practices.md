@@ -1,6 +1,6 @@
 # Godot — Current Best Practices
 
-Last verified: 2026-02-12 | Engine: Godot 4.6
+Last verified: 2026-06-30 | Engine: Godot 4.7
 
 Practices that are **new or changed** since the model's training data (~4.3).
 This supplements (not replaces) the agent's built-in knowledge.
@@ -25,6 +25,35 @@ This supplements (not replaces) the agent's built-in knowledge.
   ```
 
 - **Script backtracing**: Detailed call stacks available even in Release builds
+
+## GDScript (4.7)
+
+- **Override signatures**: Keep overriding methods return-type compatible with
+  the parent declaration. If a test fixture subclasses gameplay code, type it
+  as strictly as the production method it overrides.
+- **Post-upgrade checks**: Run focused GdUnit on inheritance-heavy gameplay
+  code after changing method signatures. 4.7 can surface issues that 4.6 did
+  not report as clearly.
+
+## Input (4.7)
+
+- Avoid hardcoding the meaning of numeric `InputEvent.device` values. Use
+  documented constants and route device-specific behavior through
+  `InputManager` or a small adapter so keyboard/gamepad/touch behavior remains
+  testable.
+
+## UI (4.7)
+
+- Check official 4.7 docs before using `RichTextLabel.add_image()` or
+  `RichTextLabel.update_image()`. HUD code should prefer explicit `TextureRect`
+  nodes for stable runtime diagnostics when an image is interactive or
+  acceptance-tested.
+
+## Audio (4.7)
+
+- Do not use `AudioEffectSpectrumAnalyzer.tap_back_pos`; it was removed in
+  4.7. Keep analyzer-driven visualizers behind a small adapter and cover them
+  with a focused test before integrating into combat/audio feedback.
 
 ## Physics (4.6)
 

@@ -5,10 +5,10 @@
 
 ## Engine & Language
 
-- **Engine**: Godot 4.6.3
+- **Engine**: Godot 4.7
 - **Language**: GDScript
 - **Rendering**: Godot 4 Renderer (Forward+)
-- **Physics**: Godot Physics 3D (default)
+- **Physics**: Godot Physics 2D for gameplay; no authored 3D physics dependency
 
 ## Input & Platform
 

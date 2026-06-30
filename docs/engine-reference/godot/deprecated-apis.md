@@ -1,6 +1,6 @@
 # Godot — Deprecated APIs
 
-Last verified: 2026-06-18
+Last verified: 2026-06-30
 
 If an agent suggests any API in the "Deprecated" column, it MUST be replaced
 with the "Use Instead" column.
@@ -30,6 +30,7 @@ with the "Use Instead" column.
 | `Skeleton3D` signal `bone_pose_updated` | `skeleton_updated` | 4.3 | Renamed |
 | `AnimationPlayer.method_call_mode` | `AnimationMixer.callback_mode_method` | 4.3 | Moved to base class |
 | `AnimationPlayer.playback_active` | `AnimationMixer.active` | 4.3 | Moved to base class |
+| `AudioEffectSpectrumAnalyzer.tap_back_pos` | Current 4.7 spectrum analyzer API | 4.7 | Removed in 4.7; verify analyzer code against official docs before editing audio visualization |
 
 ## Patterns (Not Just APIs)
 
@@ -41,3 +42,5 @@ with the "Use Instead" column.
 | `Texture2D` in shader parameters | `Texture` base type | Changed in 4.4 |
 | Manual post-process viewport chains | `Compositor` + `CompositorEffect` | Structured post-processing (4.3+) |
 | GodotPhysics3D for new projects | Jolt Physics 3D | Default since 4.6; better stability |
+| Numeric `InputEvent.device` assumptions | Named/documented 4.7 device semantics | 4.7 changed input device semantics; avoid hardcoded device-id meaning |
+| Unverified `RichTextLabel.add_image()` / `update_image()` calls | Godot 4.7 RichTextLabel image API | 4.7 changed image insertion/update behavior |
