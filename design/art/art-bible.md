@@ -296,7 +296,7 @@
 - **滤镜**: 关闭所有抗锯齿（Nearest Neighbor）
 - **压缩**: PNG优化（lossless），目标单个精灵 < 4KB
 
-### 6. 引擎约束 (Godot 4.6.3)
+### 6. 引擎约束 (Godot 4.7)
 - **纹理过滤**: `texture_filter = Nearest`（像素完美）
 - **精灵图集**: 使用 `AtlasTexture` 合批减少Draw Call
 - **内存预算**: 2GB(PC) / 1GB(移动端) / 4GB(主机)

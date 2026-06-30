@@ -9,6 +9,9 @@ development and validation.
 
 - `project.godot` — feature metadata now pins `config/features=PackedStringArray("4.7")`.
 - `AGENTS.md` — Technology Stack now lists `Godot 4.7`.
+- `CLAUDE.md`, `design/gdd/game-concept.md`, and
+  `design/art/art-bible.md` — legacy current-baseline references now point to
+  `Godot 4.7` instead of `Godot 4.6.3`.
 - `.claude/docs/technical-preferences.md` — Engine baseline now lists
   `Godot 4.7`; physics notes clarify the project has no authored 3D physics
   dependency.

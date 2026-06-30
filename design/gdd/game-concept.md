@@ -280,7 +280,7 @@
 
 | Consideration | Assessment |
 | ---- | ---- |
-| **Recommended Engine** | **Godot 4.6** — 2D管线最原生、像素艺术支持完善、TileMapLayer成熟。用户有经验。主机支持需要第三方方案（W4 Games / Pineapple Works） |
+| **Recommended Engine** | **Godot 4.7** — 2D管线最原生、像素艺术支持完善、TileMapLayer成熟。当前项目基线已升级到 4.7；主机支持需要第三方方案（W4 Games / Pineapple Works） |
 | **Key Technical Challenges** | (1) 快速流畅战斗手感——需要低延迟输入、帧级动画控制 (2) 多平台适配——PC/移动端/主机各需不同输入映射和UI适配 (3) 动画产出量——4种武器×完整动画集是最大瓶颈 |
 | **Art Style** | 16-32bit像素艺术，风格化，50%可爱+50%危险反差 |
 | **Art Pipeline Complexity** | High — 自定义像素动画，非asset store。预估1000-2000帧（角色+敌人+Boss+特效） |
