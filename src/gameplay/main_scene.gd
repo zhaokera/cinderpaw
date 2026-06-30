@@ -590,9 +590,13 @@ func _battle_summary_from_death_metadata(death_metadata: Dictionary) -> Dictiona
 
 
 func capture_boss_arena_snapshot() -> Dictionary:
-	return {
+	var snapshot: Dictionary = {
 		"enemy": _enemy.capture_respawn_snapshot(),
 	}
+	var boss2: Node = _get_boss2_echo_guardian()
+	if boss2 != null and boss2.has_method("capture_respawn_snapshot"):
+		snapshot["boss2_echo_guardian"] = boss2.call("capture_respawn_snapshot")
+	return snapshot
 
 
 func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
@@ -602,6 +606,16 @@ func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
 	cleanup_arena_mutations()
 	var enemy_snapshot: Dictionary = Dictionary(snapshot.get("enemy", {}))
 	_enemy.restore_respawn_snapshot(enemy_snapshot)
+	var boss2: Node = _get_boss2_echo_guardian()
+	if boss2 != null:
+		if _is_boss2_echo_guardian_defeated():
+			if boss2.has_method("mark_defeated_from_progress"):
+				boss2.call("mark_defeated_from_progress")
+		elif boss2.has_method("restore_respawn_snapshot"):
+			var boss2_snapshot: Dictionary = Dictionary(snapshot.get("boss2_echo_guardian", {}))
+			if not boss2_snapshot.is_empty():
+				boss2.call("restore_respawn_snapshot", boss2_snapshot)
+	_sync_boss2_double_jump_payoff_state()
 	_refresh_boss_hud()
 
 

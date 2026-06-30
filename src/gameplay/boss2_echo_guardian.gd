@@ -11,6 +11,9 @@ const MAX_HP: int = 36
 const AGGRO_RANGE_PX: float = 360.0
 const ATTACK_RANGE_PX: float = 108.0
 const CHASE_STEP_PX: float = 3.0
+const ARENA_HALF_WIDTH_PX: float = 160.0
+const RETURN_STEP_PX: float = 4.0
+const ANCHOR_REACHED_EPSILON_PX: float = 0.5
 const ATTACK_TELL_FRAMES: int = 8
 const ATTACK_ACTIVE_FRAMES: int = 4
 const ATTACK_RECOVERY_FRAMES: int = 14
@@ -56,11 +59,13 @@ var _combat: CombatComponent = null
 var _status_effects: StatusEffectComponent = null
 var _default_collision_layer: int = 0
 var _default_collision_mask: int = 0
+var _arena_anchor_position: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
 	_default_collision_layer = collision_layer
 	_default_collision_mask = collision_mask
+	_arena_anchor_position = global_position
 	_ensure_core_components()
 	_setup_core_components()
 	_play_animation(ANIMATION_IDLE, true)
@@ -183,6 +188,8 @@ func reset_encounter() -> void:
 	_defeated = false
 	_state = State.IDLE
 	_behavior_phase = &"idle"
+	global_position = _arena_anchor_position
+	velocity = Vector2.ZERO
 	_hit_timer = 0
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
@@ -258,6 +265,53 @@ func get_current_enemy_attack_metadata() -> Dictionary:
 	return _build_attack_metadata().duplicate(true)
 
 
+func capture_respawn_snapshot() -> Dictionary:
+	return {
+		"global_position": global_position,
+		"hp": get_current_hp(),
+		"facing": _facing,
+		"collision_layer": collision_layer,
+		"collision_mask": collision_mask,
+		"sprite_modulate": _sprite.modulate,
+		"arena_anchor_position": _arena_anchor_position,
+	}
+
+
+func restore_respawn_snapshot(snapshot: Dictionary) -> void:
+	_arena_anchor_position = _read_vector2(
+		snapshot.get("arena_anchor_position", _arena_anchor_position),
+		_arena_anchor_position
+	)
+	global_position = _read_vector2(snapshot.get("global_position", global_position), global_position)
+	_defeated = false
+	_state = State.IDLE
+	_behavior_phase = &"idle"
+	_facing = _read_float(snapshot.get("facing", _facing), _facing)
+	_hit_timer = 0
+	_attack_timer = 0
+	_attack_cooldown_timer = 0
+	_last_hit_metadata.clear()
+	_last_enemy_attack_metadata.clear()
+	velocity = Vector2.ZERO
+	collision_layer = _read_int(snapshot.get("collision_layer", collision_layer), collision_layer)
+	collision_mask = _read_int(snapshot.get("collision_mask", collision_mask), collision_mask)
+	_ensure_core_components()
+	_setup_core_components()
+	var hp: int = clampi(_read_int(snapshot.get("hp", MAX_HP), MAX_HP), 0, MAX_HP)
+	if _health != null:
+		_health.configure(ENTITY_ID, MAX_HP, hp, 0, 0, false)
+	if _collision != null:
+		_collision.deactivate_all_hitboxes()
+		_collision.set_hurtbox_state(CollisionComponent.HURTBOX_STATE_NORMAL)
+	if _status_effects != null:
+		_status_effects.clear_all_effects()
+	if _sprite != null:
+		_sprite.modulate = _read_color(snapshot.get("sprite_modulate", NORMAL_MODULATE), NORMAL_MODULATE)
+	_update_sprite_facing()
+	_play_animation(ANIMATION_IDLE, true)
+	boss_health_changed.emit(get_current_hp(), MAX_HP)
+
+
 func is_enemy_attack_active() -> bool:
 	return _state == State.ATTACK_ACTIVE
 
@@ -309,6 +363,11 @@ func get_auto_pressure_diagnostics() -> Dictionary:
 		"cooldown_frames": _attack_cooldown_timer,
 		"attack_phase": get_attack_phase(),
 		"defeated": _defeated,
+		"arena_anchor_position": _arena_anchor_position,
+		"arena_min_x": _arena_min_x(),
+		"arena_max_x": _arena_max_x(),
+		"is_returning_to_anchor": _behavior_phase == &"return",
+		"is_at_anchor": global_position.distance_to(_arena_anchor_position) <= ANCHOR_REACHED_EPSILON_PX,
 	}
 
 
@@ -326,6 +385,9 @@ func _process_idle(auto_attack: bool = true) -> void:
 		_chase_attack_target()
 		if _can_auto_attack_target():
 			request_attack()
+		return
+	if _should_return_to_anchor():
+		_return_to_anchor()
 		return
 	_behavior_phase = &"idle"
 	_play_animation(ANIMATION_IDLE)
@@ -539,11 +601,42 @@ func _chase_attack_target() -> void:
 	var direction: float = _direction_to_target()
 	var distance_x: float = absf(_attack_target.global_position.x - global_position.x)
 	var step_px: float = minf(CHASE_STEP_PX, maxf(0.0, distance_x - ATTACK_RANGE_PX))
-	global_position.x += direction * step_px
-	velocity = Vector2(direction * CHASE_STEP_PX * 60.0, 0.0)
+	var start_x: float = global_position.x
+	global_position.x = clampf(global_position.x + direction * step_px, _arena_min_x(), _arena_max_x())
+	velocity = Vector2((global_position.x - start_x) * 60.0, 0.0)
 	_behavior_phase = &"chase"
 	_update_sprite_facing()
 	_play_animation(ANIMATION_RUN)
+
+
+func _should_return_to_anchor() -> bool:
+	return global_position.distance_to(_arena_anchor_position) > ANCHOR_REACHED_EPSILON_PX
+
+
+func _return_to_anchor() -> void:
+	var to_anchor: Vector2 = _arena_anchor_position - global_position
+	if to_anchor.length() <= RETURN_STEP_PX:
+		global_position = _arena_anchor_position
+		velocity = Vector2.ZERO
+		_behavior_phase = &"idle"
+		_play_animation(ANIMATION_IDLE)
+		return
+	var direction: Vector2 = to_anchor.normalized()
+	global_position += direction * RETURN_STEP_PX
+	global_position.x = clampf(global_position.x, _arena_min_x(), _arena_max_x())
+	velocity = direction * RETURN_STEP_PX * 60.0
+	_facing = signf(direction.x) if absf(direction.x) > 0.01 else _facing
+	_behavior_phase = &"return"
+	_update_sprite_facing()
+	_play_animation(ANIMATION_RUN)
+
+
+func _arena_min_x() -> float:
+	return _arena_anchor_position.x - ARENA_HALF_WIDTH_PX
+
+
+func _arena_max_x() -> float:
+	return _arena_anchor_position.x + ARENA_HALF_WIDTH_PX
 
 
 func _direction_to_target() -> float:
@@ -588,5 +681,23 @@ func _play_animation(animation_name: StringName, restart: bool = false) -> void:
 
 func _read_vector2(value: Variant, fallback: Vector2) -> Vector2:
 	if value is Vector2:
+		return value
+	return fallback
+
+
+func _read_int(value: Variant, fallback: int) -> int:
+	if value is int or value is float:
+		return int(value)
+	return fallback
+
+
+func _read_float(value: Variant, fallback: float) -> float:
+	if value is int or value is float:
+		return float(value)
+	return fallback
+
+
+func _read_color(value: Variant, fallback: Color) -> Color:
+	if value is Color:
 		return value
 	return fallback
