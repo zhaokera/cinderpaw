@@ -154,13 +154,11 @@ func test_forward_patrol_activation_locks_service_lift_until_defeated() -> void:
 	assert_bool(bool(lift.get("forward_patrol_active", false))).is_true()
 
 
-func test_forward_patrol_defeat_persists_and_reopens_deeper_route() -> void:
+func test_forward_patrol_defeat_persists_and_hands_off_to_rear_ambush_gate() -> void:
 	var destination: Node = _factory_scene_with_activated_return_checkpoint()
 	assert_that(destination).is_not_null()
 	if destination == null:
 		return
-	var scene_manager := FakeForwardRouteSceneManager.new()
-	assert_bool(bool(destination.call("configure_scene_manager_runtime", scene_manager))).is_true()
 
 	var player: Node2D = destination.get_node_or_null(FACTORY_PLAYER_NAME) as Node2D
 	var service_lift: Node2D = destination.get_node_or_null(FACTORY_SERVICE_LIFT_NAME) as Node2D
@@ -183,25 +181,24 @@ func test_forward_patrol_defeat_persists_and_reopens_deeper_route() -> void:
 	assert_bool(bool(cleared.get("defeated", false))).is_true()
 
 	var objective: Dictionary = destination.call("get_factory_route_objective_diagnostics")
-	assert_str(String(objective.get("objective_id", ""))).is_equal("checkpoint_forward_route_opened")
-	assert_str(String(objective.get("route_label_text", ""))).is_equal("Deeper Factory Route Opened")
-	assert_bool(bool(objective.get("complete", false))).is_true()
+	assert_str(String(objective.get("objective_id", ""))).is_equal("clear_checkpoint_rear_ambush")
+	assert_str(String(objective.get("route_label_text", ""))).is_equal("Clear Rear Ambush")
+	assert_bool(bool(objective.get("complete", true))).is_false()
 
 	player.global_position = service_lift.global_position
 	var lift: Dictionary = destination.call("get_factory_service_lift_diagnostics")
-	assert_bool(bool(lift.get("available", false))).is_true()
-	assert_bool(bool(lift.get("activation_ready", false))).is_true()
-	assert_str(String(lift.get("prompt_text", ""))).is_equal("Call lift")
-	assert_bool(bool(destination.call("try_activate_factory_service_lift", player))).is_true()
-	assert_int(scene_manager.request_calls.size()).is_equal(1)
-	assert_str(String(scene_manager.request_calls[0].get("scene_id", ""))).is_equal(String(EXIT_SCENE_ID))
-	assert_str(String(scene_manager.request_calls[0].get("spawn_point", ""))).is_equal(
-		String(EXIT_SPAWN_POINT)
-	)
+	assert_bool(bool(lift.get("available", true))).is_false()
+	assert_bool(bool(lift.get("activation_ready", true))).is_false()
+	assert_str(String(lift.get("prompt_text", ""))).is_equal("Clear rear ambush")
+	assert_bool(bool(destination.call("try_activate_factory_service_lift", player))).is_false()
+	var rejected_lift: Dictionary = destination.call("get_factory_service_lift_diagnostics")
+	assert_str(String(rejected_lift.get("exit_rejected_reason", ""))).is_equal("rear_ambush_active")
+	assert_bool(bool(rejected_lift.get("rear_ambush_active", false))).is_true()
 
 	var local_state: Dictionary = destination.call("get_local_state")
 	assert_bool(bool(local_state.get("factory_checkpoint_forward_patrol_activated", false))).is_true()
 	assert_bool(bool(local_state.get("factory_checkpoint_forward_patrol_defeated", false))).is_true()
+	assert_bool(bool(local_state.get("factory_checkpoint_rear_ambush_defeated", true))).is_false()
 
 	var restored: Node = _instantiate_factory_scene()
 	assert_that(restored).is_not_null()
@@ -214,6 +211,10 @@ func test_forward_patrol_defeat_persists_and_reopens_deeper_route() -> void:
 	assert_bool(bool(restored_forward.get("active", true))).is_false()
 	assert_bool(bool(restored_forward.get("defeated", false))).is_true()
 	assert_bool(bool(restored_forward.get("visible", true))).is_false()
+	var restored_objective: Dictionary = restored.call("get_factory_route_objective_diagnostics")
+	assert_str(String(restored_objective.get("objective_id", ""))).is_equal(
+		"clear_checkpoint_rear_ambush"
+	)
 
 
 func test_uncleared_forward_patrol_restores_as_locked_checkpoint_challenge() -> void:

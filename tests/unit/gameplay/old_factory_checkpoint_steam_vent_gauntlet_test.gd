@@ -96,7 +96,7 @@ func test_checkpoint_steam_vent_activates_after_forward_patrol_clear_and_damages
 	)
 
 
-func test_checkpoint_steam_vent_does_not_relock_opened_service_lift_route() -> void:
+func test_checkpoint_steam_vent_does_not_relock_fully_cleared_service_lift_route() -> void:
 	var destination: Node = _factory_scene_with_checkpoint_route_opened()
 	assert_that(destination).is_not_null()
 	if destination == null:
@@ -111,7 +111,7 @@ func test_checkpoint_steam_vent_does_not_relock_opened_service_lift_route() -> v
 
 	var route: Dictionary = destination.call("get_factory_route_objective_diagnostics")
 	var lift: Dictionary = destination.call("get_factory_service_lift_diagnostics")
-	assert_str(String(route.get("objective_id", ""))).is_equal("checkpoint_forward_route_opened")
+	assert_str(String(route.get("objective_id", ""))).is_equal("checkpoint_rear_ambush_cleared")
 	assert_bool(bool(route.get("complete", false))).is_true()
 	assert_bool(bool(lift.get("available", false))).is_true()
 	assert_str(String(lift.get("prompt_text", ""))).is_equal("Call lift")
@@ -139,6 +139,8 @@ func _factory_scene_with_checkpoint_route_opened() -> Node:
 	destination.call("set_local_state", _return_checkpoint_state().merged({
 		"factory_checkpoint_forward_patrol_activated": true,
 		"factory_checkpoint_forward_patrol_defeated": true,
+		"factory_checkpoint_rear_ambush_activated": true,
+		"factory_checkpoint_rear_ambush_defeated": true,
 	}, true))
 	return destination
 

@@ -46,7 +46,8 @@
   Old Factory Return Checkpoint Respawn Runtime、Player Abilities Story045 Old
   Factory Runtime Death Integration、Player Abilities Story046 Old Factory
   Checkpoint-Forward Combat Route、Player Abilities Story047 Old Factory
-  Checkpoint Steam Vent Gauntlet
+  Checkpoint Steam Vent Gauntlet、Player Abilities Story048 Old Factory
+  Checkpoint Rear Ambush
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -56,6 +57,32 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 048: Old Factory Checkpoint Rear Ambush —
+  `factory_route_transition_shell.tscn` now includes
+  `FactoryCheckpointRearSparkRat`, a post-vent Spark Rat ambush that reuses the
+  existing Factory Spark Rat `AnimatedSprite2D + SpriteFrames` asset. The ambush
+  stays hidden, non-processing, non-physics, and non-colliding until the
+  checkpoint-forward patrol is defeated and Cinderpaw crosses the post-vent
+  activation boundary. While uncleared, it becomes the current route objective
+  `Clear Rear Ambush`, blocks `FactoryServiceLift` with prompt
+  `Clear rear ambush`, and rejects lift exit with `rear_ambush_active`.
+  Defeating entity `2105` hides/disables the ambush, persists
+  `factory_checkpoint_rear_ambush_defeated`, updates the route label to
+  `Vent Gauntlet Cleared`, and restores service-lift prompt `Call lift`.
+  No new visual assets were generated; this story reuses
+  `res://assets/characters/factory_spark_rat/factory_spark_rat_sprite_frames.tres`
+  with `idle/run/attack_tell/attack/hurt/death=3` frames each. Verification:
+  RED `reports/report_1006/`; focused GREEN `reports/report_1007/` `3/3`;
+  related Old Factory regression `reports/report_1009/` `20/20`; headless
+  Factory smoke `reports/old_factory_checkpoint_rear_ambush_smoke.log` exited
+  `0` with no script/parse/invalid/missing-resource/resource-load entries,
+  retaining only cleanup-time ObjectDB/resource warnings. Godot MCP 4.7 runtime
+  confirmed default inactive state, activation after forward patrol state,
+  `AnimatedSprite2D + SpriteFrames` frame counts, service-lift lockout, defeat
+  route label `Vent Gauntlet Cleared`, service lift available after defeat,
+  clean current game logs, no new editor errors after stale cursor `7`, and a
+  non-empty game screenshot metadata `640x359`. QA evidence:
+  `production/qa/evidence/old-factory-checkpoint-rear-ambush-2026-06-30.md`。
 - Player Abilities Story 047: Old Factory Checkpoint Steam Vent Gauntlet —
   `factory_route_transition_shell.tscn` now includes
   `FactoryCheckpointSteamVentHazard`, a scene-authored checkpoint-adjacent
