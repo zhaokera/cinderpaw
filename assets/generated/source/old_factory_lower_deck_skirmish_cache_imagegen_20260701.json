@@ -1,0 +1,16 @@
+{
+  "asset_id": "old_factory_lower_deck_skirmish_cache",
+  "generated_at": "2026-07-01",
+  "tool": "built-in image generation",
+  "source_path": "assets/generated/source/old_factory_lower_deck_skirmish_cache_imagegen_20260701.png",
+  "alpha_source_path": "assets/generated/source/old_factory_lower_deck_skirmish_cache_alpha_20260701.png",
+  "runtime_path": "assets/environment/old_factory_lower_deck_skirmish_cache/env_old_factory_lower_deck_skirmish_cache_claimable_256.png",
+  "runtime_size_px": [256, 256],
+  "runtime_mode": "RGBA",
+  "prompt": "Use case: stylized-concept. Asset type: 2D pixel-art game prop for a Godot side-scrolling action game, Old Factory lower deck skirmish reward cache runtime asset. Create one compact Old Factory lower-deck reward cache: a low-profile rusted steel lockbox mounted on a short pipe-bracket and grated deck base, with a cat-paw latch, glowing amber gear core, damp steam stains, small condensation droplets, scratched steel plates, bolts, and cool blue lower-deck rim lights. The prop is isolated on a perfectly flat #00ff00 chroma-key background for local alpha removal, with no text, characters, ground plane, cast shadow, contact shadow, watermark, UI, or extra props.",
+  "usage": [
+    "res://scenes/factory_route_transition_shell.tscn",
+    "Old Factory lower deck optional skirmish reward cache"
+  ],
+  "notes": "Generated source was chroma-keyed with border auto-key, soft matte, and despill. Runtime PNG has transparent corners and is imported through Godot's asset pipeline."
+}

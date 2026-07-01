@@ -51,7 +51,8 @@
   Overdrive Duo、Player Abilities Story050 Old Factory Overdrive Duo
   Staggered Pincer Pacing、Player Abilities Story051 Old Factory Checkpoint
   Overdrive Reward Cache、Player Abilities Story052 Old Factory Overdrive
-  Defeat Burst
+  Defeat Burst、Player Abilities Story053 Old Factory Lower Deck Skirmish
+  Cache
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -61,6 +62,29 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 053: Old Factory Lower Deck Skirmish Cache —
+  `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckSparkRat`, `FactoryLowerDeckSteamVentHazard`, and
+  `FactoryLowerDeckRewardCache`. The optional lower-deck skirmish unlocks only
+  after the checkpoint overdrive duo is cleared, reuses the existing Factory
+  Spark Rat `AnimatedSprite2D + SpriteFrames` enemy with
+  `idle/run/attack_tell/attack/hurt/death=3` frames, activates a local steam
+  vent hazard while active, and does not block the already available service
+  lift. Defeating entity `2108` unlocks the independent generated lower-deck
+  cache, granting deterministic `10` gears from
+  `old_factory_lower_deck_cache`, rejecting duplicate claims, and persisting
+  scene-local state without mutating the overdrive reward cache. New generated
+  source, alpha, runtime PNG, import metadata, and imagegen metadata are
+  recorded in `design/assets/asset-manifest.md`. Verification: RED
+  `reports/report_1029/`; focused GREEN `reports/report_1031/` `2/2`;
+  related regression `reports/report_1032/` `16/16`; headless Factory smoke
+  `reports/old_factory_lower_deck_skirmish_cache_factory_scene_smoke.log`
+  exited `0` with no project script/resource errors by keyword scan, retaining
+  only known cleanup-time ObjectDB/resource terminal noise. Godot MCP 4.7
+  runtime confirmed activation, frame counts, pressure hazard state, reward
+  claim/duplicate rejection, service lift still `Call lift`, runtime node
+  presence, and non-empty screenshot metadata `960x539`. QA evidence:
+  `production/qa/evidence/old-factory-lower-deck-skirmish-cache-2026-07-01.md`。
 - Player Abilities Story 052: Old Factory Overdrive Defeat Burst —
   `factory_route_transition_shell.tscn` now contains hidden
   `FactoryCheckpointOverdriveLeftDefeatBurst` and

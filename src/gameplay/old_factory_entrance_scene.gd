@@ -17,12 +17,14 @@ const FACTORY_CHECKPOINT_FORWARD_SPARK_RAT_ENTITY_ID: int = 2104
 const FACTORY_CHECKPOINT_REAR_SPARK_RAT_ENTITY_ID: int = 2105
 const FACTORY_CHECKPOINT_OVERDRIVE_LEFT_SPARK_RAT_ENTITY_ID: int = 2106
 const FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_SPARK_RAT_ENTITY_ID: int = 2107
+const FACTORY_LOWER_DECK_SPARK_RAT_ENTITY_ID: int = 2108
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
 const FACTORY_CHECKPOINT_FORWARD_PATROL_ACTIVATION_X: float = 900.0
 const FACTORY_CHECKPOINT_REAR_AMBUSH_ACTIVATION_X: float = 1108.0
 const FACTORY_CHECKPOINT_OVERDRIVE_DUO_ACTIVATION_X: float = 1196.0
+const FACTORY_LOWER_DECK_SKIRMISH_ACTIVATION_X: float = 780.0
 const FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES: int = 18
 const FACTORY_CHECKPOINT_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES: int = 12
 const FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES: int = 30
@@ -43,6 +45,8 @@ const FACTORY_OBJECTIVE_CLEAR_CHECKPOINT_REAR_AMBUSH: StringName = &"clear_check
 const FACTORY_OBJECTIVE_CHECKPOINT_REAR_AMBUSH_CLEARED: StringName = &"checkpoint_rear_ambush_cleared"
 const FACTORY_OBJECTIVE_CLEAR_CHECKPOINT_OVERDRIVE_DUO: StringName = &"clear_checkpoint_overdrive_duo"
 const FACTORY_OBJECTIVE_CHECKPOINT_OVERDRIVE_DUO_CLEARED: StringName = &"checkpoint_overdrive_duo_cleared"
+const FACTORY_OBJECTIVE_CLEAR_LOWER_DECK_SKIRMISH: StringName = &"clear_lower_deck_skirmish"
+const FACTORY_OBJECTIVE_LOWER_DECK_CLEARED: StringName = &"lower_deck_cleared"
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
 const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
 const FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT: StringName = &"scrap_roost"
@@ -68,6 +72,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _checkpoint_overdrive_right_spark_rat: Node2D = (
 	get_node_or_null("FactoryCheckpointOverdriveSparkRatRight") as Node2D
 )
+@onready var _lower_deck_spark_rat: Node2D = (
+	get_node_or_null("FactoryLowerDeckSparkRat") as Node2D
+)
 @onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
 	get_node_or_null("FactoryCheckpointOverdriveLeftDefeatBurst") as Sprite2D
 )
@@ -81,10 +88,14 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _checkpoint_overdrive_reward_cache: Node = get_node_or_null(
 	"FactoryCheckpointOverdriveRewardCache"
 )
+@onready var _lower_deck_reward_cache: Node = get_node_or_null("FactoryLowerDeckRewardCache")
 @onready var _return_checkpoint: Node = get_node_or_null("FactoryReturnCheckpoint")
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
 	get_node_or_null("FactoryCheckpointSteamVentHazard") as Area2D
+)
+@onready var _lower_deck_steam_vent: Area2D = (
+	get_node_or_null("FactoryLowerDeckSteamVentHazard") as Area2D
 )
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
@@ -96,6 +107,8 @@ var _last_return_patrol_reward_cache_reward: Dictionary = {}
 var _last_return_patrol_reward_cache_claim_feedback: Dictionary = {}
 var _last_checkpoint_overdrive_reward_cache_reward: Dictionary = {}
 var _last_checkpoint_overdrive_reward_cache_claim_feedback: Dictionary = {}
+var _last_lower_deck_reward_cache_reward: Dictionary = {}
+var _last_lower_deck_reward_cache_claim_feedback: Dictionary = {}
 var _last_checkpoint_overdrive_defeat_burst_side: StringName = &""
 var _last_hazard_damage: Dictionary = {}
 var _last_spark_rat_counter_diagnostics: Dictionary = {}
@@ -118,6 +131,9 @@ var _checkpoint_overdrive_left_defeated: bool = false
 var _checkpoint_overdrive_right_defeated: bool = false
 var _return_patrol_reward_cache_claimed: bool = false
 var _checkpoint_overdrive_reward_cache_claimed: bool = false
+var _lower_deck_skirmish_activated: bool = false
+var _lower_deck_skirmish_defeated: bool = false
+var _lower_deck_reward_cache_claimed: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -140,6 +156,7 @@ func _ready() -> void:
 	_setup_factory_cache()
 	_setup_factory_return_patrol_reward_cache()
 	_setup_factory_checkpoint_overdrive_reward_cache()
+	_setup_factory_lower_deck_reward_cache()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -231,6 +248,7 @@ func is_factory_route_objective_complete() -> bool:
 		objective_id == FACTORY_OBJECTIVE_ROUTE_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_RETURN_PATROL_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_CHECKPOINT_OVERDRIVE_DUO_CLEARED
+		or objective_id == FACTORY_OBJECTIVE_LOWER_DECK_CLEARED
 	)
 
 
@@ -257,6 +275,11 @@ func is_factory_checkpoint_rear_ambush_defeated() -> bool:
 ## Returns whether the checkpoint overdrive duo has been cleared.
 func is_factory_checkpoint_overdrive_duo_cleared() -> bool:
 	return _is_checkpoint_overdrive_duo_cleared()
+
+
+## Returns whether the optional lower-deck skirmish has been cleared.
+func is_factory_lower_deck_skirmish_defeated() -> bool:
+	return _lower_deck_skirmish_defeated
 
 
 ## Attempts to activate the Old Factory return checkpoint after the return patrol is clear.
@@ -363,6 +386,28 @@ func try_activate_factory_checkpoint_overdrive_duo(provider: Node = null) -> boo
 		FACTORY_CHECKPOINT_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES,
 		FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES
 	)
+	_refresh_factory_route_objective()
+	return true
+
+
+## Attempts to activate the optional lower-deck skirmish after the overdrive duo is clear.
+func try_activate_factory_lower_deck_skirmish(provider: Node = null) -> bool:
+	if (
+		_lower_deck_spark_rat == null
+		or not _is_checkpoint_overdrive_duo_cleared()
+		or _lower_deck_skirmish_defeated
+		or _lower_deck_skirmish_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_skirmish_activation_provider_in_range(activation_provider):
+		return false
+	_lower_deck_skirmish_activated = true
+	_sync_lower_deck_skirmish_state()
+	_sync_lower_deck_pressure_hazard_state()
+	_sync_lower_deck_reward_cache_state()
+	_set_lower_deck_spark_rat_attack_target(activation_provider)
+	_begin_lower_deck_spark_rat_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	_refresh_factory_route_objective()
 	return true
 
@@ -628,6 +673,31 @@ func try_claim_factory_checkpoint_overdrive_reward_cache(provider: Node = null) 
 	return true
 
 
+## Attempts to claim the lower-deck reward cache after the optional skirmish is cleared.
+func try_claim_factory_lower_deck_reward_cache(provider: Node = null) -> bool:
+	if not _lower_deck_skirmish_defeated or _lower_deck_reward_cache == null:
+		return false
+	var claim_provider: Node = provider
+	if claim_provider == null:
+		claim_provider = _player
+	if (
+		not _lower_deck_reward_cache.has_method("try_claim")
+		or not bool(_lower_deck_reward_cache.call("try_claim", claim_provider))
+	):
+		return false
+	_lower_deck_reward_cache_claimed = true
+	var reward_payload: Dictionary = _get_lower_deck_reward_cache_payload()
+	if _last_lower_deck_reward_cache_reward.is_empty():
+		_last_lower_deck_reward_cache_reward = reward_payload
+	_sync_lower_deck_reward_cache_state()
+	if _last_lower_deck_reward_cache_claim_feedback.is_empty():
+		_record_lower_deck_reward_cache_claim_feedback(
+			reward_payload,
+			"Lower Deck Cache Claimed"
+		)
+	return true
+
+
 ## Attempts to activate the deep route endpoint after its guard is defeated.
 func try_activate_factory_deep_route_endpoint(provider: Node = null) -> bool:
 	if not _deep_guard_defeated or _deep_endpoint == null:
@@ -756,10 +826,16 @@ func get_local_state() -> Dictionary:
 		"factory_checkpoint_overdrive_right_opening_grace_frames": (
 			_get_checkpoint_overdrive_right_opening_grace_frames()
 		),
+		"factory_lower_deck_skirmish_activated": _lower_deck_skirmish_activated,
+		"factory_lower_deck_skirmish_defeated": _lower_deck_skirmish_defeated,
+		"factory_lower_deck_skirmish_opening_grace_frames": (
+			_get_lower_deck_skirmish_opening_grace_frames()
+		),
 		"factory_return_patrol_reward_cache_claimed": _return_patrol_reward_cache_claimed,
 		"factory_checkpoint_overdrive_reward_cache_claimed": (
 			_checkpoint_overdrive_reward_cache_claimed
 		),
+		"factory_lower_deck_reward_cache_claimed": _lower_deck_reward_cache_claimed,
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -781,6 +857,12 @@ func get_local_state() -> Dictionary:
 		),
 		"last_checkpoint_overdrive_reward_cache_claim_feedback": (
 			_last_checkpoint_overdrive_reward_cache_claim_feedback.duplicate(true)
+		),
+		"last_lower_deck_reward_cache_reward": (
+			_last_lower_deck_reward_cache_reward.duplicate(true)
+		),
+		"last_lower_deck_reward_cache_claim_feedback": (
+			_last_lower_deck_reward_cache_claim_feedback.duplicate(true)
 		),
 		"last_return_checkpoint": _last_return_checkpoint.duplicate(true),
 		"last_savepoint": _last_return_checkpoint.duplicate(true),
@@ -833,12 +915,24 @@ func set_local_state(state: Dictionary) -> void:
 	if bool(state.get("factory_checkpoint_overdrive_duo_cleared", false)):
 		_checkpoint_overdrive_left_defeated = true
 		_checkpoint_overdrive_right_defeated = true
+	_lower_deck_skirmish_activated = bool(state.get(
+		"factory_lower_deck_skirmish_activated",
+		false
+	))
+	_lower_deck_skirmish_defeated = bool(state.get(
+		"factory_lower_deck_skirmish_defeated",
+		false
+	))
 	_return_patrol_reward_cache_claimed = bool(state.get(
 		"factory_return_patrol_reward_cache_claimed",
 		false
 	))
 	_checkpoint_overdrive_reward_cache_claimed = bool(state.get(
 		"factory_checkpoint_overdrive_reward_cache_claimed",
+		false
+	))
+	_lower_deck_reward_cache_claimed = bool(state.get(
+		"factory_lower_deck_reward_cache_claimed",
 		false
 	))
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
@@ -915,6 +1009,14 @@ func set_local_state(state: Dictionary) -> void:
 			)
 		)
 	))
+	var lower_deck_opening_grace_frames: int = int(state.get(
+		"factory_lower_deck_skirmish_opening_grace_frames",
+		(
+			FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES
+			if _lower_deck_skirmish_activated and not _lower_deck_skirmish_defeated
+			else 0
+		)
+	))
 	var reward_variant: Variant = state.get("last_cache_reward", {})
 	_last_cache_reward = (
 		(reward_variant as Dictionary).duplicate(true)
@@ -958,6 +1060,24 @@ func set_local_state(state: Dictionary) -> void:
 	_last_checkpoint_overdrive_reward_cache_claim_feedback = (
 		(overdrive_feedback_variant as Dictionary).duplicate(true)
 		if overdrive_feedback_variant is Dictionary
+		else {}
+	)
+	var lower_deck_reward_variant: Variant = state.get(
+		"last_lower_deck_reward_cache_reward",
+		{}
+	)
+	_last_lower_deck_reward_cache_reward = (
+		(lower_deck_reward_variant as Dictionary).duplicate(true)
+		if lower_deck_reward_variant is Dictionary
+		else {}
+	)
+	var lower_deck_feedback_variant: Variant = state.get(
+		"last_lower_deck_reward_cache_claim_feedback",
+		{}
+	)
+	_last_lower_deck_reward_cache_claim_feedback = (
+		(lower_deck_feedback_variant as Dictionary).duplicate(true)
+		if lower_deck_feedback_variant is Dictionary
 		else {}
 	)
 	var return_checkpoint_variant: Variant = state.get(
@@ -1005,8 +1125,11 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_checkpoint_rear_ambush_state()
 	_sync_checkpoint_overdrive_duo_state()
 	_sync_checkpoint_steam_vent_state()
+	_sync_lower_deck_skirmish_state()
+	_sync_lower_deck_pressure_hazard_state()
 	_sync_return_patrol_reward_cache_state()
 	_sync_checkpoint_overdrive_reward_cache_state()
+	_sync_lower_deck_reward_cache_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -1022,6 +1145,8 @@ func set_local_state(state: Dictionary) -> void:
 			checkpoint_overdrive_left_opening_grace_frames,
 			checkpoint_overdrive_right_opening_grace_frames
 		)
+	if _lower_deck_skirmish_activated and not _lower_deck_skirmish_defeated:
+		_begin_lower_deck_spark_rat_pacing(lower_deck_opening_grace_frames)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
 		_update_route_label("Service Lift Departing")
@@ -1475,6 +1600,98 @@ func get_factory_checkpoint_overdrive_duo_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic lower-deck skirmish/cache diagnostics for tests and MCP probes.
+func get_factory_lower_deck_skirmish_diagnostics() -> Dictionary:
+	var sprite: AnimatedSprite2D = (
+		_lower_deck_spark_rat.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _lower_deck_spark_rat != null
+		else null
+	)
+	return {
+		"present": _lower_deck_spark_rat != null and _lower_deck_reward_cache != null,
+		"available": _is_checkpoint_overdrive_duo_cleared() and not _lower_deck_skirmish_defeated,
+		"active": _is_lower_deck_skirmish_active(),
+		"defeated": _lower_deck_skirmish_defeated,
+		"activation_x": FACTORY_LOWER_DECK_SKIRMISH_ACTIVATION_X,
+		"activation_ready": _is_lower_deck_skirmish_activation_provider_in_range(_player),
+		"enemy_visible": _lower_deck_spark_rat.visible if _lower_deck_spark_rat != null else false,
+		"enemy_has_target": _does_lower_deck_spark_rat_have_target(),
+		"enemy_physics_enabled": (
+			_lower_deck_spark_rat.is_physics_processing()
+			if _lower_deck_spark_rat != null
+			else false
+		),
+		"enemy_process_enabled": (
+			_lower_deck_spark_rat.is_processing()
+			if _lower_deck_spark_rat != null
+			else false
+		),
+		"entity_id": (
+			int(_lower_deck_spark_rat.call("get_entity_id"))
+			if _lower_deck_spark_rat != null and _lower_deck_spark_rat.has_method("get_entity_id")
+			else 0
+		),
+		"sprite_frames_path": (
+			sprite.sprite_frames.resource_path
+			if sprite != null and sprite.sprite_frames != null
+			else ""
+		),
+		"animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
+		"pressure_hazard_present": _lower_deck_steam_vent != null,
+		"pressure_hazard_active": _is_hazard_contact_active(_lower_deck_steam_vent),
+		"pressure_hazard_id": String(_get_hazard_id(_lower_deck_steam_vent)),
+		"pressure_hazard_damage": _get_hazard_damage(_lower_deck_steam_vent),
+		"pressure_hazard_cooldown_sec": _get_hazard_cooldown_sec(_lower_deck_steam_vent),
+		"cache_present": _lower_deck_reward_cache != null,
+		"cache_visible": (
+			_lower_deck_reward_cache.visible
+			if _lower_deck_reward_cache != null
+			else false
+		),
+		"cache_available": (
+			bool(_lower_deck_reward_cache.call("is_available"))
+			if (
+				_lower_deck_reward_cache != null
+				and _lower_deck_reward_cache.has_method("is_available")
+			)
+			else false
+		),
+		"cache_claim_available": (
+			bool(_lower_deck_reward_cache.call("is_claim_available"))
+			if (
+				_lower_deck_reward_cache != null
+				and _lower_deck_reward_cache.has_method("is_claim_available")
+			)
+			else false
+		),
+		"cache_claimed": _lower_deck_reward_cache_claimed,
+		"cache_id": (
+			String(_lower_deck_reward_cache.call("get_cache_id"))
+			if (
+				_lower_deck_reward_cache != null
+				and _lower_deck_reward_cache.has_method("get_cache_id")
+			)
+			else ""
+		),
+		"cache_texture_path": (
+			String(_lower_deck_reward_cache.call("get_visual_texture_path"))
+			if (
+				_lower_deck_reward_cache != null
+				and _lower_deck_reward_cache.has_method("get_visual_texture_path")
+			)
+			else ""
+		),
+		"cache_position": (
+			(_lower_deck_reward_cache as Node2D).global_position
+			if _lower_deck_reward_cache != null and _lower_deck_reward_cache is Node2D
+			else Vector2.ZERO
+		),
+		"cache_prompt_text": _get_lower_deck_reward_cache_prompt_text(),
+		"last_reward": _last_lower_deck_reward_cache_reward.duplicate(true),
+		"last_claim_feedback": _last_lower_deck_reward_cache_claim_feedback.duplicate(true),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -1692,6 +1909,8 @@ func get_factory_route_objective_diagnostics() -> Dictionary:
 		"checkpoint_overdrive_left_defeated": _checkpoint_overdrive_left_defeated,
 		"checkpoint_overdrive_right_defeated": _checkpoint_overdrive_right_defeated,
 		"checkpoint_overdrive_duo_cleared": _is_checkpoint_overdrive_duo_cleared(),
+		"lower_deck_skirmish_activated": _lower_deck_skirmish_activated,
+		"lower_deck_skirmish_defeated": _lower_deck_skirmish_defeated,
 		"route_label_visible": route_label.visible if route_label != null else false,
 		"route_label_text": route_label.text if route_label != null else "",
 	}
@@ -1761,6 +1980,7 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		"checkpoint_forward_patrol": get_factory_checkpoint_forward_patrol_diagnostics(),
 		"checkpoint_rear_ambush": get_factory_checkpoint_rear_ambush_diagnostics(),
 		"checkpoint_overdrive_duo": get_factory_checkpoint_overdrive_duo_diagnostics(),
+		"lower_deck_skirmish": get_factory_lower_deck_skirmish_diagnostics(),
 		"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
 			get_factory_checkpoint_overdrive_reward_cache_diagnostics()
@@ -2067,6 +2287,13 @@ func _bind_enemy_to_player() -> void:
 		&"factory_checkpoint_overdrive_spark_rat_right",
 		_on_factory_checkpoint_overdrive_right_spark_rat_defeated
 	)
+	_bind_factory_guard(
+		_lower_deck_spark_rat,
+		&"old_factory_lower_deck_skirmish",
+		FACTORY_LOWER_DECK_SPARK_RAT_ENTITY_ID,
+		&"factory_lower_deck_spark_rat",
+		_on_factory_lower_deck_spark_rat_defeated
+	)
 
 
 func _setup_factory_cache() -> void:
@@ -2099,6 +2326,18 @@ func _setup_factory_checkpoint_overdrive_reward_cache() -> void:
 	var claimed_signal: Signal = _checkpoint_overdrive_reward_cache.get("cache_claimed")
 	if not claimed_signal.is_connected(_on_factory_checkpoint_overdrive_reward_cache_claimed):
 		claimed_signal.connect(_on_factory_checkpoint_overdrive_reward_cache_claimed)
+
+
+func _setup_factory_lower_deck_reward_cache() -> void:
+	_sync_lower_deck_reward_cache_state()
+	if (
+		_lower_deck_reward_cache == null
+		or not _lower_deck_reward_cache.has_signal("cache_claimed")
+	):
+		return
+	var claimed_signal: Signal = _lower_deck_reward_cache.get("cache_claimed")
+	if not claimed_signal.is_connected(_on_factory_lower_deck_reward_cache_claimed):
+		claimed_signal.connect(_on_factory_lower_deck_reward_cache_claimed)
 
 
 func _setup_factory_return_checkpoint() -> void:
@@ -2162,6 +2401,7 @@ func _sync_factory_player_control_lock() -> void:
 
 func _setup_factory_hazards() -> void:
 	_sync_checkpoint_steam_vent_state()
+	_sync_lower_deck_pressure_hazard_state()
 	for hazard: Area2D in _get_factory_hazards():
 		var area_entered_callback := Callable(self, "_on_factory_hazard_area_entered").bind(hazard)
 		if not hazard.area_entered.is_connected(area_entered_callback):
@@ -2186,6 +2426,7 @@ func _setup_factory_spark_rat() -> void:
 	_sync_checkpoint_forward_patrol_state()
 	_sync_checkpoint_rear_ambush_state()
 	_sync_checkpoint_overdrive_duo_state()
+	_sync_lower_deck_skirmish_state()
 
 
 func _setup_factory_service_lift() -> void:
@@ -2315,6 +2556,15 @@ func _on_factory_checkpoint_overdrive_right_spark_rat_defeated() -> void:
 	_refresh_factory_route_objective()
 
 
+func _on_factory_lower_deck_spark_rat_defeated() -> void:
+	_lower_deck_skirmish_activated = true
+	_lower_deck_skirmish_defeated = true
+	_sync_lower_deck_skirmish_state()
+	_sync_lower_deck_pressure_hazard_state()
+	_sync_lower_deck_reward_cache_state()
+	_refresh_factory_route_objective()
+
+
 func _on_factory_cache_claimed(_cache_id: StringName, reward: Dictionary) -> void:
 	_cache_claimed = true
 	_last_cache_reward = reward.duplicate(true)
@@ -2342,6 +2592,18 @@ func _on_factory_checkpoint_overdrive_reward_cache_claimed(
 	_record_checkpoint_overdrive_reward_cache_claim_feedback(
 		_last_checkpoint_overdrive_reward_cache_reward,
 		"Overdrive Cache Claimed"
+	)
+
+
+func _on_factory_lower_deck_reward_cache_claimed(
+	_cache_id: StringName,
+	reward: Dictionary
+) -> void:
+	_lower_deck_reward_cache_claimed = true
+	_last_lower_deck_reward_cache_reward = reward.duplicate(true)
+	_record_lower_deck_reward_cache_claim_feedback(
+		_last_lower_deck_reward_cache_reward,
+		"Lower Deck Cache Claimed"
 	)
 
 
@@ -2625,6 +2887,49 @@ func _sync_checkpoint_steam_vent_state() -> void:
 		collision_shape.disabled = not active
 
 
+func _sync_lower_deck_skirmish_state() -> void:
+	if _lower_deck_spark_rat == null:
+		return
+	if (
+		_lower_deck_skirmish_defeated
+		or not _is_checkpoint_overdrive_duo_cleared()
+		or not _lower_deck_skirmish_activated
+	):
+		_lower_deck_spark_rat.visible = false
+		_lower_deck_spark_rat.set_physics_process(false)
+		_lower_deck_spark_rat.set_process(false)
+		_lower_deck_spark_rat.collision_layer = 0
+		_lower_deck_spark_rat.collision_mask = 0
+		_set_lower_deck_spark_rat_attack_target(null)
+		return
+	_lower_deck_spark_rat.visible = true
+	_lower_deck_spark_rat.set_physics_process(true)
+	_lower_deck_spark_rat.set_process(true)
+	_lower_deck_spark_rat.collision_layer = FACTORY_RAT_MINION_COLLISION_LAYER
+	_lower_deck_spark_rat.collision_mask = FACTORY_RAT_MINION_COLLISION_MASK
+	_set_lower_deck_spark_rat_attack_target(_player)
+
+
+func _sync_lower_deck_pressure_hazard_state() -> void:
+	if _lower_deck_steam_vent == null:
+		return
+	var active: bool = _is_lower_deck_skirmish_active()
+	_lower_deck_steam_vent.visible = active
+	_lower_deck_steam_vent.monitoring = active
+	_lower_deck_steam_vent.collision_layer = (
+		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if active else 0
+	)
+	_lower_deck_steam_vent.collision_mask = (
+		CollisionComponent.COLLISION_MASK_ENVIRONMENT if active else 0
+	)
+	var collision_shape := (
+		_lower_deck_steam_vent.get_node_or_null("CollisionShape2D")
+		as CollisionShape2D
+	)
+	if collision_shape != null:
+		collision_shape.disabled = not active
+
+
 func _sync_return_patrol_reward_cache_state() -> void:
 	if _return_patrol_reward_cache == null:
 		return
@@ -2653,6 +2958,19 @@ func _sync_checkpoint_overdrive_reward_cache_state() -> void:
 			"set_claimed",
 			_checkpoint_overdrive_reward_cache_claimed
 		)
+
+
+func _sync_lower_deck_reward_cache_state() -> void:
+	if _lower_deck_reward_cache == null:
+		return
+	_lower_deck_reward_cache.visible = (
+		_lower_deck_skirmish_defeated
+		or _lower_deck_reward_cache_claimed
+	)
+	if _lower_deck_reward_cache.has_method("set_available"):
+		_lower_deck_reward_cache.call("set_available", _lower_deck_skirmish_defeated)
+	if _lower_deck_reward_cache.has_method("set_claimed"):
+		_lower_deck_reward_cache.call("set_claimed", _lower_deck_reward_cache_claimed)
 
 
 func _sync_return_checkpoint_state() -> void:
@@ -2718,6 +3036,10 @@ func _get_factory_route_objective_id() -> StringName:
 		return FACTORY_OBJECTIVE_CLEAR_RETURN_PATROL
 	if _checkpoint_forward_patrol_activated and not _checkpoint_forward_patrol_defeated:
 		return FACTORY_OBJECTIVE_CLEAR_CHECKPOINT_FORWARD_PATROL
+	if _lower_deck_skirmish_activated and not _lower_deck_skirmish_defeated:
+		return FACTORY_OBJECTIVE_CLEAR_LOWER_DECK_SKIRMISH
+	if _lower_deck_skirmish_defeated:
+		return FACTORY_OBJECTIVE_LOWER_DECK_CLEARED
 	if _is_checkpoint_overdrive_duo_cleared():
 		return FACTORY_OBJECTIVE_CHECKPOINT_OVERDRIVE_DUO_CLEARED
 	if _checkpoint_overdrive_duo_activated and not _is_checkpoint_overdrive_duo_cleared():
@@ -2767,6 +3089,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Clear Overdrive Duo"
 		FACTORY_OBJECTIVE_CHECKPOINT_OVERDRIVE_DUO_CLEARED:
 			return "Factory Lift Secured"
+		FACTORY_OBJECTIVE_CLEAR_LOWER_DECK_SKIRMISH:
+			return "Clear Lower Deck Skirmish"
+		FACTORY_OBJECTIVE_LOWER_DECK_CLEARED:
+			return "Lower Deck Cleared"
 		_:
 			return "Clear Factory Entrance"
 
@@ -2804,6 +3130,18 @@ func _get_checkpoint_overdrive_reward_cache_payload() -> Dictionary:
 	return {}
 
 
+func _get_lower_deck_reward_cache_payload() -> Dictionary:
+	if (
+		_lower_deck_reward_cache == null
+		or not _lower_deck_reward_cache.has_method("get_reward_payload")
+	):
+		return {}
+	var reward_variant: Variant = _lower_deck_reward_cache.call("get_reward_payload")
+	if reward_variant is Dictionary:
+		return (reward_variant as Dictionary).duplicate(true)
+	return {}
+
+
 func _record_cache_claim_feedback(reward: Dictionary, label_prefix: String) -> void:
 	_last_cache_claim_feedback = _build_cache_claim_feedback(reward, label_prefix)
 	_update_route_label(String(_last_cache_claim_feedback.get("text", "")))
@@ -2835,6 +3173,19 @@ func _record_checkpoint_overdrive_reward_cache_claim_feedback(
 	))
 
 
+func _record_lower_deck_reward_cache_claim_feedback(
+	reward: Dictionary,
+	label_prefix: String
+) -> void:
+	_last_lower_deck_reward_cache_claim_feedback = _build_cache_claim_feedback(
+		reward,
+		label_prefix
+	)
+	_update_route_label(String(
+		_last_lower_deck_reward_cache_claim_feedback.get("text", "")
+	))
+
+
 func _build_cache_claim_feedback(reward: Dictionary, label_prefix: String) -> Dictionary:
 	var gears: int = int(reward.get("gears", 0))
 	var text: String = "%s +%d Gears" % [label_prefix, gears]
@@ -2859,6 +3210,15 @@ func _get_checkpoint_overdrive_reward_cache_prompt_text() -> String:
 	var prompt_label := (
 		_checkpoint_overdrive_reward_cache.get_node_or_null("PromptLabel") as Label
 		if _checkpoint_overdrive_reward_cache != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_reward_cache_prompt_text() -> String:
+	var prompt_label := (
+		_lower_deck_reward_cache.get_node_or_null("PromptLabel") as Label
+		if _lower_deck_reward_cache != null
 		else null
 	)
 	return prompt_label.text if prompt_label != null else ""
@@ -2971,6 +3331,8 @@ func _get_factory_hazards() -> Array[Area2D]:
 		hazards.append(_steam_vent)
 	if _checkpoint_steam_vent != null:
 		hazards.append(_checkpoint_steam_vent)
+	if _lower_deck_steam_vent != null:
+		hazards.append(_lower_deck_steam_vent)
 	return hazards
 
 
@@ -3006,6 +3368,7 @@ func _is_factory_steam_hazard_id(hazard_id: StringName) -> bool:
 	return (
 		hazard_id == &"old_factory_steam_vent"
 		or hazard_id == &"old_factory_checkpoint_steam_vent"
+		or hazard_id == &"old_factory_lower_deck_steam_vent"
 	)
 
 
@@ -3185,7 +3548,15 @@ func _set_checkpoint_overdrive_spark_rat_attack_targets(attack_target: Node) -> 
 		_checkpoint_overdrive_right_spark_rat != null
 		and _checkpoint_overdrive_right_spark_rat.has_method("set_attack_target")
 	):
-		_checkpoint_overdrive_right_spark_rat.call("set_attack_target", attack_target)
+			_checkpoint_overdrive_right_spark_rat.call("set_attack_target", attack_target)
+
+
+func _set_lower_deck_spark_rat_attack_target(attack_target: Node) -> void:
+	if (
+		_lower_deck_spark_rat != null
+		and _lower_deck_spark_rat.has_method("set_attack_target")
+	):
+		_lower_deck_spark_rat.call("set_attack_target", attack_target)
 
 
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
@@ -3235,7 +3606,16 @@ func _begin_checkpoint_overdrive_spark_rat_pacing(
 		and _checkpoint_overdrive_right_spark_rat.has_method("begin_pacing")
 		and not _checkpoint_overdrive_right_defeated
 	):
-		_checkpoint_overdrive_right_spark_rat.call("begin_pacing", right_grace_frames)
+			_checkpoint_overdrive_right_spark_rat.call("begin_pacing", right_grace_frames)
+
+
+func _begin_lower_deck_spark_rat_pacing(opening_grace_frames: int) -> void:
+	if (
+		_lower_deck_spark_rat != null
+		and _lower_deck_spark_rat.has_method("begin_pacing")
+		and not _lower_deck_skirmish_defeated
+	):
+		_lower_deck_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
 
 
 func _get_spark_rat_pacing_diagnostics() -> Dictionary:
@@ -3366,6 +3746,26 @@ func _get_checkpoint_overdrive_right_opening_grace_frames() -> int:
 	return int(pacing.get("opening_grace_frames", 0))
 
 
+func _get_lower_deck_skirmish_pacing_diagnostics() -> Dictionary:
+	if (
+		_lower_deck_spark_rat != null
+		and _lower_deck_spark_rat.has_method("get_pacing_diagnostics")
+	):
+		var pacing_variant: Variant = _lower_deck_spark_rat.call("get_pacing_diagnostics")
+		if pacing_variant is Dictionary:
+			return (pacing_variant as Dictionary).duplicate(true)
+	return {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+	}
+
+
+func _get_lower_deck_skirmish_opening_grace_frames() -> int:
+	var pacing: Dictionary = _get_lower_deck_skirmish_pacing_diagnostics()
+	return int(pacing.get("opening_grace_frames", 0))
+
+
 func _does_deep_guard_have_target() -> bool:
 	if _deep_guard == null:
 		return false
@@ -3431,6 +3831,14 @@ func _does_checkpoint_overdrive_spark_rat_have_target(
 	return _checkpoint_overdrive_duo_activated and not defeated
 
 
+func _does_lower_deck_spark_rat_have_target() -> bool:
+	if _lower_deck_spark_rat == null:
+		return false
+	if _lower_deck_spark_rat.has_method("has_attack_target"):
+		return bool(_lower_deck_spark_rat.call("has_attack_target"))
+	return _lower_deck_skirmish_activated and not _lower_deck_skirmish_defeated
+
+
 func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> void:
 	if not _is_factory_damage_target_defeated(damage_target):
 		return
@@ -3459,6 +3867,9 @@ func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> 
 		FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_SPARK_RAT_ENTITY_ID:
 			if not _checkpoint_overdrive_right_defeated:
 				_on_factory_checkpoint_overdrive_right_spark_rat_defeated()
+		FACTORY_LOWER_DECK_SPARK_RAT_ENTITY_ID:
+			if not _lower_deck_skirmish_defeated:
+				_on_factory_lower_deck_spark_rat_defeated()
 
 
 func _is_factory_damage_target_defeated(damage_target: Node) -> bool:
@@ -3497,6 +3908,12 @@ func _is_checkpoint_overdrive_duo_activation_provider_in_range(provider: Node) -
 	return (provider as Node2D).global_position.x >= FACTORY_CHECKPOINT_OVERDRIVE_DUO_ACTIVATION_X
 
 
+func _is_lower_deck_skirmish_activation_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (provider as Node2D).global_position.x >= FACTORY_LOWER_DECK_SKIRMISH_ACTIVATION_X
+
+
 func _is_return_checkpoint_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -3523,10 +3940,11 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 		_spark_rat,
 		_return_spark_rat,
 		_checkpoint_forward_spark_rat,
-		_checkpoint_rear_spark_rat,
-		_checkpoint_overdrive_left_spark_rat,
-		_checkpoint_overdrive_right_spark_rat,
-	]:
+			_checkpoint_rear_spark_rat,
+			_checkpoint_overdrive_left_spark_rat,
+			_checkpoint_overdrive_right_spark_rat,
+			_lower_deck_spark_rat,
+		]:
 		if guard == null or not guard.has_method("get_entity_id"):
 			continue
 		if int(guard.call("get_entity_id")) == target_id:
@@ -3564,6 +3982,14 @@ func _is_checkpoint_overdrive_duo_active() -> bool:
 		_checkpoint_overdrive_duo_activated
 		and _checkpoint_rear_ambush_defeated
 		and not _is_checkpoint_overdrive_duo_cleared()
+	)
+
+
+func _is_lower_deck_skirmish_active() -> bool:
+	return (
+		_lower_deck_skirmish_activated
+		and _is_checkpoint_overdrive_duo_cleared()
+		and not _lower_deck_skirmish_defeated
 	)
 
 
