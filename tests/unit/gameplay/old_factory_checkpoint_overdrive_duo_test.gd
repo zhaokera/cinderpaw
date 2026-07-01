@@ -8,6 +8,8 @@ const FACTORY_OVERDRIVE_LEFT_NAME: String = "FactoryCheckpointOverdriveSparkRatL
 const FACTORY_OVERDRIVE_RIGHT_NAME: String = "FactoryCheckpointOverdriveSparkRatRight"
 const FACTORY_OVERDRIVE_LEFT_ENTITY_ID: int = 2106
 const FACTORY_OVERDRIVE_RIGHT_ENTITY_ID: int = 2107
+const FACTORY_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES: int = 12
+const FACTORY_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES: int = 30
 const EXIT_SCENE_ID: StringName = &"main"
 const EXIT_SPAWN_POINT: StringName = &"scrap_roost"
 const REQUIRED_OVERDRIVE_ANIMATIONS: Array[StringName] = [
@@ -154,6 +156,79 @@ func test_overdrive_duo_activation_after_rear_ambush_locks_service_lift() -> voi
 	assert_str(String(lift.get("prompt_text", ""))).is_equal("Clear overdrive duo")
 	assert_str(String(lift.get("exit_rejected_reason", ""))).is_equal("overdrive_duo_active")
 	assert_bool(bool(lift.get("overdrive_duo_active", false))).is_true()
+
+
+func test_overdrive_duo_uses_staggered_pincer_pacing_after_activation() -> void:
+	var destination: Node = _factory_scene_with_rear_ambush_cleared()
+	assert_that(destination).is_not_null()
+	if destination == null:
+		return
+
+	assert_bool(destination.has_method("advance_factory_checkpoint_overdrive_duo_pacing_frames")).is_true()
+	assert_bool(destination.has_method("try_activate_factory_checkpoint_overdrive_duo")).is_true()
+	assert_bool(destination.has_method("get_factory_checkpoint_overdrive_duo_diagnostics")).is_true()
+	if (
+		not destination.has_method("advance_factory_checkpoint_overdrive_duo_pacing_frames")
+		or not destination.has_method("try_activate_factory_checkpoint_overdrive_duo")
+		or not destination.has_method("get_factory_checkpoint_overdrive_duo_diagnostics")
+	):
+		return
+
+	var player: Node2D = destination.get_node_or_null(FACTORY_PLAYER_NAME) as Node2D
+	assert_that(player).is_not_null()
+	if player == null:
+		return
+
+	var before: Dictionary = destination.call("get_factory_checkpoint_overdrive_duo_diagnostics")
+	player.global_position.x = float(before.get("activation_x", 0.0)) + 8.0
+	assert_bool(bool(destination.call("try_activate_factory_checkpoint_overdrive_duo", player))).is_true()
+
+	var activated: Dictionary = destination.call("get_factory_checkpoint_overdrive_duo_diagnostics")
+	var pacing: Dictionary = Dictionary(activated.get("pacing", {}))
+	var left_pacing: Dictionary = Dictionary(pacing.get("left", {}))
+	var right_pacing: Dictionary = Dictionary(pacing.get("right", {}))
+	var left_grace_frames: int = int(left_pacing.get("opening_grace_frames", 0))
+	var right_grace_frames: int = int(right_pacing.get("opening_grace_frames", 0))
+	assert_int(left_grace_frames).is_equal(FACTORY_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES)
+	assert_int(right_grace_frames).is_equal(FACTORY_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES)
+	assert_int(int(left_pacing.get("opening_grace_total_frames", 0))).is_equal(
+		FACTORY_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES
+	)
+	assert_int(int(right_pacing.get("opening_grace_total_frames", 0))).is_equal(
+		FACTORY_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES
+	)
+	assert_str(String(left_pacing.get("pacing_state", ""))).is_equal("opening_grace")
+	assert_str(String(right_pacing.get("pacing_state", ""))).is_equal("opening_grace")
+
+	var activated_state: Dictionary = destination.call("get_local_state")
+	assert_int(int(activated_state.get("factory_checkpoint_overdrive_left_opening_grace_frames", 0))).is_equal(
+		FACTORY_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES
+	)
+	assert_int(int(activated_state.get("factory_checkpoint_overdrive_right_opening_grace_frames", 0))).is_equal(
+		FACTORY_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES
+	)
+
+	var left_position: Vector2 = activated.get("left_position", Vector2.ZERO) as Vector2
+	player.global_position = left_position + Vector2(32.0, 0.0)
+	destination.call("advance_factory_checkpoint_overdrive_duo_pacing_frames", left_grace_frames + 2)
+
+	var staggered: Dictionary = destination.call("get_factory_checkpoint_overdrive_duo_diagnostics")
+	var staggered_pacing: Dictionary = Dictionary(staggered.get("pacing", {}))
+	var staggered_left: Dictionary = Dictionary(staggered_pacing.get("left", {}))
+	var staggered_right: Dictionary = Dictionary(staggered_pacing.get("right", {}))
+	assert_str(String(staggered_left.get("pacing_state", ""))).is_equal("attack_tell")
+	assert_str(String(staggered_left.get("current_animation", ""))).is_equal("attack_tell")
+	assert_int(int(staggered_left.get("attack_sequence_id", 0))).is_equal(1)
+	assert_str(String(staggered_right.get("pacing_state", ""))).is_equal("opening_grace")
+	assert_int(int(staggered_right.get("attack_sequence_id", -1))).is_equal(0)
+	assert_bool(bool(staggered_right.get("attack_active", true))).is_false()
+	var staggered_state: Dictionary = destination.call("get_local_state")
+	assert_int(int(staggered_state.get("factory_checkpoint_overdrive_left_opening_grace_frames", -1))).is_equal(
+		0
+	)
+	assert_int(int(staggered_state.get("factory_checkpoint_overdrive_right_opening_grace_frames", -1))).is_greater(
+		0
+	)
 
 
 func test_overdrive_duo_defeat_persists_and_unlocks_service_lift() -> void:

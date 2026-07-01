@@ -48,7 +48,8 @@
   Checkpoint-Forward Combat Route、Player Abilities Story047 Old Factory
   Checkpoint Steam Vent Gauntlet、Player Abilities Story048 Old Factory
   Checkpoint Rear Ambush、Player Abilities Story049 Old Factory Checkpoint
-  Overdrive Duo
+  Overdrive Duo、Player Abilities Story050 Old Factory Overdrive Duo
+  Staggered Pincer Pacing
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -58,6 +59,28 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 050: Old Factory Overdrive Duo Staggered Pincer
+  Pacing — the Story049 overdrive duo now uses readable staggered pressure:
+  left Spark Rat opening grace is `12` frames and right Spark Rat opening grace
+  is `30` frames. `FactorySparkRat` diagnostics now report the configured
+  `opening_grace_total_frames` for the current pacing instance, and
+  `OldFactoryEntranceScene` exposes
+  `advance_factory_checkpoint_overdrive_duo_pacing_frames()` for deterministic
+  tests/MCP probes. Scene-local state now preserves
+  `factory_checkpoint_overdrive_left_opening_grace_frames` and
+  `factory_checkpoint_overdrive_right_opening_grace_frames`, while retaining the
+  old aggregate duo grace field for compatibility. No new visual assets were
+  generated; this story reuses the existing Factory Spark Rat
+  `AnimatedSprite2D + SpriteFrames` asset. Verification: RED
+  `reports/report_1018/`; focused GREEN `reports/report_1019/` `4/4`;
+  related regression `reports/report_1021/` `14/14`; Godot MCP 4.7 runtime
+  confirmed activation pacing left `12` / right `30`, aggregate total `30`,
+  left `attack_tell` while right remained `opening_grace`, independent
+  local-state grace values, existing Spark Rat SpriteFrames frame counts `3`
+  for `idle/run/attack_tell/attack/hurt/death`, post-clear logs with no current
+  error/warning rows, and a non-empty screenshot metadata `640x359`. QA
+  evidence:
+  `production/qa/evidence/old-factory-overdrive-duo-staggered-pincer-pacing-2026-07-01.md`。
 - Player Abilities Story 049: Old Factory Checkpoint Overdrive Duo —
   `factory_route_transition_shell.tscn` now includes
   `FactoryCheckpointOverdriveSparkRatLeft` and

@@ -13,6 +13,7 @@ const SPARK_RAT_PATROL_HALF_WIDTH_PX: float = 28.0
 const SPARK_RAT_PATROL_SPEED: float = 56.0
 
 var _opening_grace_frames_remaining: int = 0
+var _opening_grace_total_frames: int = SPARK_RAT_OPENING_GRACE_FRAMES
 var _patrol_center_x: float = 0.0
 var _patrol_center_initialized: bool = false
 
@@ -32,7 +33,8 @@ func set_attack_target(target: Node) -> void:
 func begin_pacing(opening_grace_frames: int = SPARK_RAT_OPENING_GRACE_FRAMES) -> void:
 	_patrol_center_x = global_position.x
 	_patrol_center_initialized = true
-	_opening_grace_frames_remaining = maxi(0, opening_grace_frames)
+	_opening_grace_total_frames = maxi(0, opening_grace_frames)
+	_opening_grace_frames_remaining = _opening_grace_total_frames
 	if _opening_grace_frames_remaining > 0:
 		_play_character_animation(ANIMATION_IDLE, true)
 
@@ -47,7 +49,7 @@ func get_pacing_diagnostics() -> Dictionary:
 	return {
 		"pacing_state": String(_get_pacing_state()),
 		"opening_grace_frames": _opening_grace_frames_remaining,
-		"opening_grace_total_frames": SPARK_RAT_OPENING_GRACE_FRAMES,
+		"opening_grace_total_frames": _opening_grace_total_frames,
 		"alert_radius_px": SPARK_RAT_ALERT_RADIUS_PX,
 		"target_distance": _get_target_distance(),
 		"target_in_alert_radius": _is_target_in_alert_radius(),

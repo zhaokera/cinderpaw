@@ -24,6 +24,8 @@ const FACTORY_CHECKPOINT_FORWARD_PATROL_ACTIVATION_X: float = 900.0
 const FACTORY_CHECKPOINT_REAR_AMBUSH_ACTIVATION_X: float = 1108.0
 const FACTORY_CHECKPOINT_OVERDRIVE_DUO_ACTIVATION_X: float = 1196.0
 const FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES: int = 18
+const FACTORY_CHECKPOINT_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES: int = 12
+const FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES: int = 30
 const FACTORY_RESPAWN_HAZARD_GRACE_FRAMES: int = 18
 const FACTORY_RETURN_CHECKPOINT_SPAWN_SNAP_FRAMES: int = 18
 const FACTORY_RAT_MINION_COLLISION_LAYER: int = 2
@@ -343,7 +345,10 @@ func try_activate_factory_checkpoint_overdrive_duo(provider: Node = null) -> boo
 	_sync_checkpoint_overdrive_duo_state()
 	_sync_service_lift_state()
 	_set_checkpoint_overdrive_spark_rat_attack_targets(activation_provider)
-	_begin_checkpoint_overdrive_spark_rat_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	_begin_checkpoint_overdrive_spark_rat_pacing(
+		FACTORY_CHECKPOINT_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES,
+		FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES
+	)
 	_refresh_factory_route_objective()
 	return true
 
@@ -614,6 +619,25 @@ func advance_factory_spark_rat_pacing_frames(frames: int) -> void:
 		_spark_rat.call("advance_pacing_frames", frames)
 
 
+## Advances the checkpoint overdrive duo pacing loop deterministically for tests and MCP probes.
+func advance_factory_checkpoint_overdrive_duo_pacing_frames(frames: int) -> void:
+	var safe_frames: int = maxi(0, frames)
+	if (
+		_checkpoint_overdrive_left_spark_rat != null
+		and _checkpoint_overdrive_left_spark_rat.has_method("advance_pacing_frames")
+		and _checkpoint_overdrive_duo_activated
+		and not _checkpoint_overdrive_left_defeated
+	):
+		_checkpoint_overdrive_left_spark_rat.call("advance_pacing_frames", safe_frames)
+	if (
+		_checkpoint_overdrive_right_spark_rat != null
+		and _checkpoint_overdrive_right_spark_rat.has_method("advance_pacing_frames")
+		and _checkpoint_overdrive_duo_activated
+		and not _checkpoint_overdrive_right_defeated
+	):
+		_checkpoint_overdrive_right_spark_rat.call("advance_pacing_frames", safe_frames)
+
+
 ## Applies steam vent contact damage to the player with per-target cooldown.
 func apply_factory_steam_vent_contact(hazard: Area2D, target: Node) -> bool:
 	if hazard == null or target == null or _player == null or not is_instance_valid(hazard):
@@ -686,6 +710,12 @@ func get_local_state() -> Dictionary:
 		"factory_checkpoint_overdrive_duo_cleared": _is_checkpoint_overdrive_duo_cleared(),
 		"factory_checkpoint_overdrive_duo_opening_grace_frames": (
 			_get_checkpoint_overdrive_duo_opening_grace_frames()
+		),
+		"factory_checkpoint_overdrive_left_opening_grace_frames": (
+			_get_checkpoint_overdrive_left_opening_grace_frames()
+		),
+		"factory_checkpoint_overdrive_right_opening_grace_frames": (
+			_get_checkpoint_overdrive_right_opening_grace_frames()
 		),
 		"factory_return_patrol_reward_cache_claimed": _return_patrol_reward_cache_claimed,
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
@@ -798,9 +828,39 @@ func set_local_state(state: Dictionary) -> void:
 	var checkpoint_overdrive_opening_grace_frames: int = int(state.get(
 		"factory_checkpoint_overdrive_duo_opening_grace_frames",
 		(
-			FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES
+			FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES
 			if _checkpoint_overdrive_duo_activated and not _is_checkpoint_overdrive_duo_cleared()
 			else 0
+		)
+	))
+	var checkpoint_overdrive_left_opening_grace_frames: int = int(state.get(
+		"factory_checkpoint_overdrive_left_opening_grace_frames",
+		(
+			checkpoint_overdrive_opening_grace_frames
+			if state.has("factory_checkpoint_overdrive_duo_opening_grace_frames")
+			else (
+				FACTORY_CHECKPOINT_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES
+				if (
+					_checkpoint_overdrive_duo_activated
+					and not _is_checkpoint_overdrive_duo_cleared()
+				)
+				else 0
+			)
+		)
+	))
+	var checkpoint_overdrive_right_opening_grace_frames: int = int(state.get(
+		"factory_checkpoint_overdrive_right_opening_grace_frames",
+		(
+			checkpoint_overdrive_opening_grace_frames
+			if state.has("factory_checkpoint_overdrive_duo_opening_grace_frames")
+			else (
+				FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES
+				if (
+					_checkpoint_overdrive_duo_activated
+					and not _is_checkpoint_overdrive_duo_cleared()
+				)
+				else 0
+			)
 		)
 	))
 	var reward_variant: Variant = state.get("last_cache_reward", {})
@@ -887,7 +947,10 @@ func set_local_state(state: Dictionary) -> void:
 	if _checkpoint_rear_ambush_activated and not _checkpoint_rear_ambush_defeated:
 		_begin_checkpoint_rear_spark_rat_pacing(checkpoint_rear_opening_grace_frames)
 	if _checkpoint_overdrive_duo_activated and not _is_checkpoint_overdrive_duo_cleared():
-		_begin_checkpoint_overdrive_spark_rat_pacing(checkpoint_overdrive_opening_grace_frames)
+		_begin_checkpoint_overdrive_spark_rat_pacing(
+			checkpoint_overdrive_left_opening_grace_frames,
+			checkpoint_overdrive_right_opening_grace_frames
+		)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
 		_update_route_label("Service Lift Departing")
@@ -2869,20 +2932,28 @@ func _begin_checkpoint_rear_spark_rat_pacing(opening_grace_frames: int) -> void:
 		_checkpoint_rear_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
 
 
-func _begin_checkpoint_overdrive_spark_rat_pacing(opening_grace_frames: int) -> void:
-	var grace_frames: int = maxi(0, opening_grace_frames)
+func _begin_checkpoint_overdrive_spark_rat_pacing(
+	left_opening_grace_frames: int,
+	right_opening_grace_frames: int = -1
+) -> void:
+	var left_grace_frames: int = maxi(0, left_opening_grace_frames)
+	var right_grace_frames: int = (
+		left_grace_frames
+		if right_opening_grace_frames < 0
+		else maxi(0, right_opening_grace_frames)
+	)
 	if (
 		_checkpoint_overdrive_left_spark_rat != null
 		and _checkpoint_overdrive_left_spark_rat.has_method("begin_pacing")
 		and not _checkpoint_overdrive_left_defeated
 	):
-		_checkpoint_overdrive_left_spark_rat.call("begin_pacing", grace_frames)
+		_checkpoint_overdrive_left_spark_rat.call("begin_pacing", left_grace_frames)
 	if (
 		_checkpoint_overdrive_right_spark_rat != null
 		and _checkpoint_overdrive_right_spark_rat.has_method("begin_pacing")
 		and not _checkpoint_overdrive_right_defeated
 	):
-		_checkpoint_overdrive_right_spark_rat.call("begin_pacing", grace_frames)
+		_checkpoint_overdrive_right_spark_rat.call("begin_pacing", right_grace_frames)
 
 
 func _get_spark_rat_pacing_diagnostics() -> Dictionary:
@@ -2957,15 +3028,20 @@ func _get_checkpoint_rear_ambush_opening_grace_frames() -> int:
 
 
 func _get_checkpoint_overdrive_duo_pacing_diagnostics() -> Dictionary:
+	var left_pacing: Dictionary = _get_checkpoint_overdrive_spark_rat_pacing_diagnostics(
+		_checkpoint_overdrive_left_spark_rat
+	)
+	var right_pacing: Dictionary = _get_checkpoint_overdrive_spark_rat_pacing_diagnostics(
+		_checkpoint_overdrive_right_spark_rat
+	)
 	return {
-		"left": _get_checkpoint_overdrive_spark_rat_pacing_diagnostics(
-			_checkpoint_overdrive_left_spark_rat
-		),
-		"right": _get_checkpoint_overdrive_spark_rat_pacing_diagnostics(
-			_checkpoint_overdrive_right_spark_rat
-		),
+		"left": left_pacing,
+		"right": right_pacing,
 		"opening_grace_frames": _get_checkpoint_overdrive_duo_opening_grace_frames(),
-		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+		"opening_grace_total_frames": maxi(
+			int(left_pacing.get("opening_grace_total_frames", 0)),
+			int(right_pacing.get("opening_grace_total_frames", 0))
+		),
 	}
 
 
@@ -2992,6 +3068,20 @@ func _get_checkpoint_overdrive_duo_opening_grace_frames() -> int:
 		int(left_pacing.get("opening_grace_frames", 0)),
 		int(right_pacing.get("opening_grace_frames", 0))
 	)
+
+
+func _get_checkpoint_overdrive_left_opening_grace_frames() -> int:
+	var pacing: Dictionary = _get_checkpoint_overdrive_spark_rat_pacing_diagnostics(
+		_checkpoint_overdrive_left_spark_rat
+	)
+	return int(pacing.get("opening_grace_frames", 0))
+
+
+func _get_checkpoint_overdrive_right_opening_grace_frames() -> int:
+	var pacing: Dictionary = _get_checkpoint_overdrive_spark_rat_pacing_diagnostics(
+		_checkpoint_overdrive_right_spark_rat
+	)
+	return int(pacing.get("opening_grace_frames", 0))
 
 
 func _does_deep_guard_have_target() -> bool:
