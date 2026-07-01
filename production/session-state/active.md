@@ -50,7 +50,8 @@
   Checkpoint Rear Ambush、Player Abilities Story049 Old Factory Checkpoint
   Overdrive Duo、Player Abilities Story050 Old Factory Overdrive Duo
   Staggered Pincer Pacing、Player Abilities Story051 Old Factory Checkpoint
-  Overdrive Reward Cache
+  Overdrive Reward Cache、Player Abilities Story052 Old Factory Overdrive
+  Defeat Burst
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -60,6 +61,30 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 052: Old Factory Overdrive Defeat Burst —
+  `factory_route_transition_shell.tscn` now contains hidden
+  `FactoryCheckpointOverdriveLeftDefeatBurst` and
+  `FactoryCheckpointOverdriveRightDefeatBurst` `Sprite2D` nodes using the
+  image-generated transparent runtime PNG
+  `res://assets/environment/old_factory_overdrive_defeat_burst/vfx_old_factory_overdrive_defeat_burst_256.png`.
+  `OldFactoryEntranceScene` now exposes
+  `get_factory_checkpoint_overdrive_defeat_burst_diagnostics()` and shows the
+  left/right burst at the corresponding overdrive Spark Rat position when
+  entity `2106` or `2107` is defeated. Restored cleared state does not replay
+  bursts, and existing overdrive duo, reward cache, service lift, and Factory
+  route roundtrip behavior remain intact. New generated source, alpha, runtime
+  PNG, import metadata, and imagegen metadata are recorded in
+  `design/assets/asset-manifest.md`. Verification: RED `reports/report_1026/`;
+  focused GREEN `reports/report_1027/` `2/2`; related regression
+  `reports/report_1028/` `11/11`; headless Factory smoke
+  `reports/old_factory_overdrive_defeat_burst_smoke.log` exited `0` with no
+  project script/resource errors by keyword scan, retaining only known
+  cleanup-time ObjectDB/resource terminal noise. Godot MCP 4.7 runtime confirmed
+  left/right burst visibility and positions, texture path, overdrive duo
+  cleared state, service lift still `Call lift`, current game/editor logs with
+  no error/warning rows, and a non-empty screenshot metadata `640x359`. QA
+  evidence:
+  `production/qa/evidence/old-factory-overdrive-defeat-burst-2026-07-01.md`。
 - Player Abilities Story 051: Old Factory Checkpoint Overdrive Reward Cache —
   `factory_route_transition_shell.tscn` now contains
   `FactoryCheckpointOverdriveRewardCache`, a generated 256x256 transparent

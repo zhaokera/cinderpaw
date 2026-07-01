@@ -68,6 +68,12 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _checkpoint_overdrive_right_spark_rat: Node2D = (
 	get_node_or_null("FactoryCheckpointOverdriveSparkRatRight") as Node2D
 )
+@onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
+	get_node_or_null("FactoryCheckpointOverdriveLeftDefeatBurst") as Sprite2D
+)
+@onready var _checkpoint_overdrive_right_defeat_burst: Sprite2D = (
+	get_node_or_null("FactoryCheckpointOverdriveRightDefeatBurst") as Sprite2D
+)
 @onready var _cache: Node = $FactoryCombatCache
 @onready var _return_patrol_reward_cache: Node = get_node_or_null(
 	"FactoryReturnPatrolRewardCache"
@@ -90,6 +96,7 @@ var _last_return_patrol_reward_cache_reward: Dictionary = {}
 var _last_return_patrol_reward_cache_claim_feedback: Dictionary = {}
 var _last_checkpoint_overdrive_reward_cache_reward: Dictionary = {}
 var _last_checkpoint_overdrive_reward_cache_claim_feedback: Dictionary = {}
+var _last_checkpoint_overdrive_defeat_burst_side: StringName = &""
 var _last_hazard_damage: Dictionary = {}
 var _last_spark_rat_counter_diagnostics: Dictionary = {}
 var _last_spark_rat_bite_sequence_id_resolved: int = -1
@@ -1468,6 +1475,38 @@ func get_factory_checkpoint_overdrive_duo_diagnostics() -> Dictionary:
 	}
 
 
+## Returns visual defeat burst diagnostics for tests and MCP probes.
+func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
+	return {
+		"present": (
+			_checkpoint_overdrive_left_defeat_burst != null
+			and _checkpoint_overdrive_right_defeat_burst != null
+		),
+		"texture_path": _get_checkpoint_overdrive_defeat_burst_texture_path(),
+		"last_side": String(_last_checkpoint_overdrive_defeat_burst_side),
+		"left_visible": (
+			_checkpoint_overdrive_left_defeat_burst.visible
+			if _checkpoint_overdrive_left_defeat_burst != null
+			else false
+		),
+		"right_visible": (
+			_checkpoint_overdrive_right_defeat_burst.visible
+			if _checkpoint_overdrive_right_defeat_burst != null
+			else false
+		),
+		"left_position": (
+			_checkpoint_overdrive_left_defeat_burst.global_position
+			if _checkpoint_overdrive_left_defeat_burst != null
+			else Vector2.ZERO
+		),
+		"right_position": (
+			_checkpoint_overdrive_right_defeat_burst.global_position
+			if _checkpoint_overdrive_right_defeat_burst != null
+			else Vector2.ZERO
+		),
+	}
+
+
 ## Returns deterministic return-patrol reward cache diagnostics for tests and MCP probes.
 func get_factory_return_patrol_reward_cache_diagnostics() -> Dictionary:
 	return {
@@ -2243,6 +2282,10 @@ func _on_factory_checkpoint_rear_spark_rat_defeated() -> void:
 
 
 func _on_factory_checkpoint_overdrive_left_spark_rat_defeated() -> void:
+	_show_checkpoint_overdrive_defeat_burst(
+		&"left",
+		_checkpoint_overdrive_left_spark_rat
+	)
 	_checkpoint_overdrive_duo_activated = true
 	_checkpoint_overdrive_left_defeated = true
 	_service_lift_activated = false
@@ -2256,6 +2299,10 @@ func _on_factory_checkpoint_overdrive_left_spark_rat_defeated() -> void:
 
 
 func _on_factory_checkpoint_overdrive_right_spark_rat_defeated() -> void:
+	_show_checkpoint_overdrive_defeat_burst(
+		&"right",
+		_checkpoint_overdrive_right_spark_rat
+	)
 	_checkpoint_overdrive_duo_activated = true
 	_checkpoint_overdrive_right_defeated = true
 	_service_lift_activated = false
@@ -2815,6 +2862,34 @@ func _get_checkpoint_overdrive_reward_cache_prompt_text() -> String:
 		else null
 	)
 	return prompt_label.text if prompt_label != null else ""
+
+
+func _show_checkpoint_overdrive_defeat_burst(side: StringName, spark_rat: Node2D) -> void:
+	var burst: Sprite2D = null
+	match side:
+		&"left":
+			burst = _checkpoint_overdrive_left_defeat_burst
+		&"right":
+			burst = _checkpoint_overdrive_right_defeat_burst
+		_:
+			return
+	if burst == null:
+		return
+	if spark_rat != null:
+		burst.global_position = spark_rat.global_position
+	burst.visible = true
+	_last_checkpoint_overdrive_defeat_burst_side = side
+
+
+func _get_checkpoint_overdrive_defeat_burst_texture_path() -> String:
+	var burst: Sprite2D = (
+		_checkpoint_overdrive_left_defeat_burst
+		if _checkpoint_overdrive_left_defeat_burst != null
+		else _checkpoint_overdrive_right_defeat_burst
+	)
+	if burst == null or burst.texture == null:
+		return ""
+	return burst.texture.resource_path
 
 
 func _get_return_checkpoint_savepoint_id() -> String:

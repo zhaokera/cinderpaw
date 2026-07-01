@@ -1,0 +1,16 @@
+{
+  "asset_id": "old_factory_overdrive_defeat_burst",
+  "generated_on": "2026-07-01",
+  "source": "image generation",
+  "source_image": "assets/generated/source/old_factory_overdrive_defeat_burst_imagegen_20260701.png",
+  "alpha_source": "assets/generated/source/old_factory_overdrive_defeat_burst_alpha_20260701.png",
+  "runtime_image": "assets/environment/old_factory_overdrive_defeat_burst/vfx_old_factory_overdrive_defeat_burst_256.png",
+  "default_generated_image": "/Users/zhaok/.codex/generated_images/019ef041-d084-7212-b09b-7067e06fcf05/ig_05d5cda509778842016a4487b41fcc8191b43b9f2739263fde.png",
+  "prompt_summary": "Pixel-art Old Factory Spark Rat defeat burst with rust-orange debris, dark scrap fragments, cyan electric arcs, amber sparks, and a flat green chroma-key background removed to alpha.",
+  "processing": [
+    "Copied built-in image generation output into assets/generated/source.",
+    "Removed chroma key with remove_chroma_key.py using auto-key border, soft matte, transparent threshold 12, opaque threshold 220, and despill.",
+    "Resized the runtime PNG to 256x256 with sips.",
+    "Imported through Godot 4.7 asset pipeline."
+  ]
+}
