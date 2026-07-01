@@ -72,6 +72,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _return_patrol_reward_cache: Node = get_node_or_null(
 	"FactoryReturnPatrolRewardCache"
 )
+@onready var _checkpoint_overdrive_reward_cache: Node = get_node_or_null(
+	"FactoryCheckpointOverdriveRewardCache"
+)
 @onready var _return_checkpoint: Node = get_node_or_null("FactoryReturnCheckpoint")
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
@@ -85,6 +88,8 @@ var _last_cache_reward: Dictionary = {}
 var _last_cache_claim_feedback: Dictionary = {}
 var _last_return_patrol_reward_cache_reward: Dictionary = {}
 var _last_return_patrol_reward_cache_claim_feedback: Dictionary = {}
+var _last_checkpoint_overdrive_reward_cache_reward: Dictionary = {}
+var _last_checkpoint_overdrive_reward_cache_claim_feedback: Dictionary = {}
 var _last_hazard_damage: Dictionary = {}
 var _last_spark_rat_counter_diagnostics: Dictionary = {}
 var _last_spark_rat_bite_sequence_id_resolved: int = -1
@@ -105,6 +110,7 @@ var _checkpoint_overdrive_duo_activated: bool = false
 var _checkpoint_overdrive_left_defeated: bool = false
 var _checkpoint_overdrive_right_defeated: bool = false
 var _return_patrol_reward_cache_claimed: bool = false
+var _checkpoint_overdrive_reward_cache_claimed: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -126,6 +132,7 @@ func _ready() -> void:
 	_bind_enemy_to_player()
 	_setup_factory_cache()
 	_setup_factory_return_patrol_reward_cache()
+	_setup_factory_checkpoint_overdrive_reward_cache()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -589,6 +596,31 @@ func try_claim_factory_return_patrol_reward_cache(provider: Node = null) -> bool
 	return true
 
 
+## Attempts to claim the checkpoint overdrive reward cache after the duo is cleared.
+func try_claim_factory_checkpoint_overdrive_reward_cache(provider: Node = null) -> bool:
+	if not _is_checkpoint_overdrive_duo_cleared() or _checkpoint_overdrive_reward_cache == null:
+		return false
+	var claim_provider: Node = provider
+	if claim_provider == null:
+		claim_provider = _player
+	if (
+		not _checkpoint_overdrive_reward_cache.has_method("try_claim")
+		or not bool(_checkpoint_overdrive_reward_cache.call("try_claim", claim_provider))
+	):
+		return false
+	_checkpoint_overdrive_reward_cache_claimed = true
+	var reward_payload: Dictionary = _get_checkpoint_overdrive_reward_cache_payload()
+	if _last_checkpoint_overdrive_reward_cache_reward.is_empty():
+		_last_checkpoint_overdrive_reward_cache_reward = reward_payload
+	_sync_checkpoint_overdrive_reward_cache_state()
+	if _last_checkpoint_overdrive_reward_cache_claim_feedback.is_empty():
+		_record_checkpoint_overdrive_reward_cache_claim_feedback(
+			reward_payload,
+			"Overdrive Cache Claimed"
+		)
+	return true
+
+
 ## Attempts to activate the deep route endpoint after its guard is defeated.
 func try_activate_factory_deep_route_endpoint(provider: Node = null) -> bool:
 	if not _deep_guard_defeated or _deep_endpoint == null:
@@ -718,6 +750,9 @@ func get_local_state() -> Dictionary:
 			_get_checkpoint_overdrive_right_opening_grace_frames()
 		),
 		"factory_return_patrol_reward_cache_claimed": _return_patrol_reward_cache_claimed,
+		"factory_checkpoint_overdrive_reward_cache_claimed": (
+			_checkpoint_overdrive_reward_cache_claimed
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -733,6 +768,12 @@ func get_local_state() -> Dictionary:
 		),
 		"last_return_patrol_reward_cache_claim_feedback": (
 			_last_return_patrol_reward_cache_claim_feedback.duplicate(true)
+		),
+		"last_checkpoint_overdrive_reward_cache_reward": (
+			_last_checkpoint_overdrive_reward_cache_reward.duplicate(true)
+		),
+		"last_checkpoint_overdrive_reward_cache_claim_feedback": (
+			_last_checkpoint_overdrive_reward_cache_claim_feedback.duplicate(true)
 		),
 		"last_return_checkpoint": _last_return_checkpoint.duplicate(true),
 		"last_savepoint": _last_return_checkpoint.duplicate(true),
@@ -787,6 +828,10 @@ func set_local_state(state: Dictionary) -> void:
 		_checkpoint_overdrive_right_defeated = true
 	_return_patrol_reward_cache_claimed = bool(state.get(
 		"factory_return_patrol_reward_cache_claimed",
+		false
+	))
+	_checkpoint_overdrive_reward_cache_claimed = bool(state.get(
+		"factory_checkpoint_overdrive_reward_cache_claimed",
 		false
 	))
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
@@ -890,6 +935,24 @@ func set_local_state(state: Dictionary) -> void:
 		if return_feedback_variant is Dictionary
 		else {}
 	)
+	var overdrive_reward_variant: Variant = state.get(
+		"last_checkpoint_overdrive_reward_cache_reward",
+		{}
+	)
+	_last_checkpoint_overdrive_reward_cache_reward = (
+		(overdrive_reward_variant as Dictionary).duplicate(true)
+		if overdrive_reward_variant is Dictionary
+		else {}
+	)
+	var overdrive_feedback_variant: Variant = state.get(
+		"last_checkpoint_overdrive_reward_cache_claim_feedback",
+		{}
+	)
+	_last_checkpoint_overdrive_reward_cache_claim_feedback = (
+		(overdrive_feedback_variant as Dictionary).duplicate(true)
+		if overdrive_feedback_variant is Dictionary
+		else {}
+	)
 	var return_checkpoint_variant: Variant = state.get(
 		"last_return_checkpoint",
 		state.get("last_savepoint", {})
@@ -936,6 +999,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_checkpoint_overdrive_duo_state()
 	_sync_checkpoint_steam_vent_state()
 	_sync_return_patrol_reward_cache_state()
+	_sync_checkpoint_overdrive_reward_cache_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -1459,6 +1523,66 @@ func get_factory_return_patrol_reward_cache_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic checkpoint-overdrive reward cache diagnostics.
+func get_factory_checkpoint_overdrive_reward_cache_diagnostics() -> Dictionary:
+	return {
+		"present": _checkpoint_overdrive_reward_cache != null,
+		"visible": (
+			_checkpoint_overdrive_reward_cache.visible
+			if _checkpoint_overdrive_reward_cache != null
+			else false
+		),
+		"cache_id": (
+			String(_checkpoint_overdrive_reward_cache.call("get_cache_id"))
+			if (
+				_checkpoint_overdrive_reward_cache != null
+				and _checkpoint_overdrive_reward_cache.has_method("get_cache_id")
+			)
+			else ""
+		),
+		"texture_path": (
+			String(_checkpoint_overdrive_reward_cache.call("get_visual_texture_path"))
+			if (
+				_checkpoint_overdrive_reward_cache != null
+				and _checkpoint_overdrive_reward_cache.has_method("get_visual_texture_path")
+			)
+			else ""
+		),
+		"available": (
+			bool(_checkpoint_overdrive_reward_cache.call("is_available"))
+			if (
+				_checkpoint_overdrive_reward_cache != null
+				and _checkpoint_overdrive_reward_cache.has_method("is_available")
+			)
+			else false
+		),
+		"claim_available": (
+			bool(_checkpoint_overdrive_reward_cache.call("is_claim_available"))
+			if (
+				_checkpoint_overdrive_reward_cache != null
+				and _checkpoint_overdrive_reward_cache.has_method("is_claim_available")
+			)
+			else false
+		),
+		"claimed": _checkpoint_overdrive_reward_cache_claimed,
+		"prompt_text": _get_checkpoint_overdrive_reward_cache_prompt_text(),
+		"overdrive_duo_activated": _checkpoint_overdrive_duo_activated,
+		"overdrive_duo_cleared": _is_checkpoint_overdrive_duo_cleared(),
+		"position": (
+			(_checkpoint_overdrive_reward_cache as Node2D).global_position
+			if (
+				_checkpoint_overdrive_reward_cache != null
+				and _checkpoint_overdrive_reward_cache is Node2D
+			)
+			else Vector2.ZERO
+		),
+		"last_reward": _last_checkpoint_overdrive_reward_cache_reward.duplicate(true),
+		"last_claim_feedback": (
+			_last_checkpoint_overdrive_reward_cache_claim_feedback.duplicate(true)
+		),
+	}
+
+
 ## Returns deterministic return checkpoint diagnostics for tests and MCP probes.
 func get_factory_return_checkpoint_diagnostics() -> Dictionary:
 	var checkpoint_position: Vector2 = (
@@ -1599,6 +1723,9 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		"checkpoint_rear_ambush": get_factory_checkpoint_rear_ambush_diagnostics(),
 		"checkpoint_overdrive_duo": get_factory_checkpoint_overdrive_duo_diagnostics(),
 		"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
+		"checkpoint_overdrive_reward_cache": (
+			get_factory_checkpoint_overdrive_reward_cache_diagnostics()
+		),
 		"return_checkpoint": get_factory_return_checkpoint_diagnostics(),
 		"route_objective": get_factory_route_objective_diagnostics(),
 		"service_lift": get_factory_service_lift_diagnostics(),
@@ -1923,6 +2050,18 @@ func _setup_factory_return_patrol_reward_cache() -> void:
 		claimed_signal.connect(_on_factory_return_patrol_reward_cache_claimed)
 
 
+func _setup_factory_checkpoint_overdrive_reward_cache() -> void:
+	_sync_checkpoint_overdrive_reward_cache_state()
+	if (
+		_checkpoint_overdrive_reward_cache == null
+		or not _checkpoint_overdrive_reward_cache.has_signal("cache_claimed")
+	):
+		return
+	var claimed_signal: Signal = _checkpoint_overdrive_reward_cache.get("cache_claimed")
+	if not claimed_signal.is_connected(_on_factory_checkpoint_overdrive_reward_cache_claimed):
+		claimed_signal.connect(_on_factory_checkpoint_overdrive_reward_cache_claimed)
+
+
 func _setup_factory_return_checkpoint() -> void:
 	_sync_return_checkpoint_state()
 	if _return_checkpoint == null or not _return_checkpoint.has_signal("savepoint_activated"):
@@ -2111,6 +2250,7 @@ func _on_factory_checkpoint_overdrive_left_spark_rat_defeated() -> void:
 	_last_service_lift_exit_request = {}
 	_last_service_lift_exit_rejected_reason = &""
 	_sync_checkpoint_overdrive_duo_state()
+	_sync_checkpoint_overdrive_reward_cache_state()
 	_sync_service_lift_state()
 	_refresh_factory_route_objective()
 
@@ -2123,6 +2263,7 @@ func _on_factory_checkpoint_overdrive_right_spark_rat_defeated() -> void:
 	_last_service_lift_exit_request = {}
 	_last_service_lift_exit_rejected_reason = &""
 	_sync_checkpoint_overdrive_duo_state()
+	_sync_checkpoint_overdrive_reward_cache_state()
 	_sync_service_lift_state()
 	_refresh_factory_route_objective()
 
@@ -2142,6 +2283,18 @@ func _on_factory_return_patrol_reward_cache_claimed(
 	_record_return_patrol_reward_cache_claim_feedback(
 		_last_return_patrol_reward_cache_reward,
 		"Return Cache Claimed"
+	)
+
+
+func _on_factory_checkpoint_overdrive_reward_cache_claimed(
+	_cache_id: StringName,
+	reward: Dictionary
+) -> void:
+	_checkpoint_overdrive_reward_cache_claimed = true
+	_last_checkpoint_overdrive_reward_cache_reward = reward.duplicate(true)
+	_record_checkpoint_overdrive_reward_cache_claim_feedback(
+		_last_checkpoint_overdrive_reward_cache_reward,
+		"Overdrive Cache Claimed"
 	)
 
 
@@ -2435,6 +2588,26 @@ func _sync_return_patrol_reward_cache_state() -> void:
 		_return_patrol_reward_cache.call("set_claimed", _return_patrol_reward_cache_claimed)
 
 
+func _sync_checkpoint_overdrive_reward_cache_state() -> void:
+	if _checkpoint_overdrive_reward_cache == null:
+		return
+	_checkpoint_overdrive_reward_cache.visible = (
+		_checkpoint_overdrive_duo_activated
+		or _is_checkpoint_overdrive_duo_cleared()
+		or _checkpoint_overdrive_reward_cache_claimed
+	)
+	if _checkpoint_overdrive_reward_cache.has_method("set_available"):
+		_checkpoint_overdrive_reward_cache.call(
+			"set_available",
+			_is_checkpoint_overdrive_duo_cleared()
+		)
+	if _checkpoint_overdrive_reward_cache.has_method("set_claimed"):
+		_checkpoint_overdrive_reward_cache.call(
+			"set_claimed",
+			_checkpoint_overdrive_reward_cache_claimed
+		)
+
+
 func _sync_return_checkpoint_state() -> void:
 	if _return_checkpoint == null:
 		return
@@ -2572,6 +2745,18 @@ func _get_return_patrol_reward_cache_payload() -> Dictionary:
 	return {}
 
 
+func _get_checkpoint_overdrive_reward_cache_payload() -> Dictionary:
+	if (
+		_checkpoint_overdrive_reward_cache == null
+		or not _checkpoint_overdrive_reward_cache.has_method("get_reward_payload")
+	):
+		return {}
+	var reward_variant: Variant = _checkpoint_overdrive_reward_cache.call("get_reward_payload")
+	if reward_variant is Dictionary:
+		return (reward_variant as Dictionary).duplicate(true)
+	return {}
+
+
 func _record_cache_claim_feedback(reward: Dictionary, label_prefix: String) -> void:
 	_last_cache_claim_feedback = _build_cache_claim_feedback(reward, label_prefix)
 	_update_route_label(String(_last_cache_claim_feedback.get("text", "")))
@@ -2590,6 +2775,19 @@ func _record_return_patrol_reward_cache_claim_feedback(
 	))
 
 
+func _record_checkpoint_overdrive_reward_cache_claim_feedback(
+	reward: Dictionary,
+	label_prefix: String
+) -> void:
+	_last_checkpoint_overdrive_reward_cache_claim_feedback = _build_cache_claim_feedback(
+		reward,
+		label_prefix
+	)
+	_update_route_label(String(
+		_last_checkpoint_overdrive_reward_cache_claim_feedback.get("text", "")
+	))
+
+
 func _build_cache_claim_feedback(reward: Dictionary, label_prefix: String) -> Dictionary:
 	var gears: int = int(reward.get("gears", 0))
 	var text: String = "%s +%d Gears" % [label_prefix, gears]
@@ -2605,6 +2803,15 @@ func _get_return_patrol_reward_cache_prompt_text() -> String:
 	var prompt_label := (
 		_return_patrol_reward_cache.get_node_or_null("PromptLabel") as Label
 		if _return_patrol_reward_cache != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_checkpoint_overdrive_reward_cache_prompt_text() -> String:
+	var prompt_label := (
+		_checkpoint_overdrive_reward_cache.get_node_or_null("PromptLabel") as Label
+		if _checkpoint_overdrive_reward_cache != null
 		else null
 	)
 	return prompt_label.text if prompt_label != null else ""

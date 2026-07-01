@@ -49,7 +49,8 @@
   Checkpoint Steam Vent Gauntlet、Player Abilities Story048 Old Factory
   Checkpoint Rear Ambush、Player Abilities Story049 Old Factory Checkpoint
   Overdrive Duo、Player Abilities Story050 Old Factory Overdrive Duo
-  Staggered Pincer Pacing
+  Staggered Pincer Pacing、Player Abilities Story051 Old Factory Checkpoint
+  Overdrive Reward Cache
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -59,6 +60,32 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 051: Old Factory Checkpoint Overdrive Reward Cache —
+  `factory_route_transition_shell.tscn` now contains
+  `FactoryCheckpointOverdriveRewardCache`, a generated 256x256 transparent
+  reward cache that becomes claimable after the checkpoint overdrive duo is
+  cleared. The cache uses independent scene-local state
+  `old_factory_checkpoint_overdrive_cache`, grants deterministic `25` gears,
+  rejects duplicate claims, and shows `Overdrive Cache Claimed +25 Gears` on
+  `RouteLabel` without blocking the service lift. `OldFactoryEntranceScene`
+  now exposes `try_claim_factory_checkpoint_overdrive_reward_cache()` and
+  `get_factory_checkpoint_overdrive_reward_cache_diagnostics()`, persists
+  claimed/reward/feedback state through `get_local_state()` / `set_local_state()`,
+  and keeps SaveSystem/global economy out of scope. New generated asset source,
+  alpha, runtime PNG, import metadata, and imagegen metadata are recorded in
+  `design/assets/asset-manifest.md`. Verification: RED
+  `reports/report_1022/`; import refinement `reports/report_1023/`; focused
+  GREEN `reports/report_1024/` `2/2`; related regression
+  `reports/report_1025/` `16/16`; headless Factory smoke
+  `reports/old_factory_checkpoint_overdrive_reward_cache_smoke.log` exited `0`
+  with no project script/resource errors by keyword scan, retaining only known
+  cleanup-time ObjectDB/resource terminal noise. Godot MCP 4.7 runtime confirmed
+  locked `Clear overdrive duo`, unlocked `+25 Gears`, successful first claim,
+  duplicate claim rejection, route label feedback, service lift still
+  `Call lift`, persisted local state, texture path, post-clear logs with no
+  current error/warning rows, and a non-empty screenshot metadata `640x359`.
+  QA evidence:
+  `production/qa/evidence/old-factory-checkpoint-overdrive-reward-cache-2026-07-01.md`。
 - Player Abilities Story 050: Old Factory Overdrive Duo Staggered Pincer
   Pacing — the Story049 overdrive duo now uses readable staggered pressure:
   left Spark Rat opening grace is `12` frames and right Spark Rat opening grace
