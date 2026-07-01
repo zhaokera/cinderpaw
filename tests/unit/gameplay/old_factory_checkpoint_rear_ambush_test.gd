@@ -157,7 +157,7 @@ func test_rear_ambush_activation_after_steam_vent_locks_service_lift_until_defea
 	assert_bool(bool(lift.get("rear_ambush_active", false))).is_true()
 
 
-func test_rear_ambush_defeat_persists_and_unlocks_service_lift() -> void:
+func test_rear_ambush_defeat_persists_and_hands_off_to_overdrive_duo_gate() -> void:
 	var destination: Node = _factory_scene_with_checkpoint_forward_route_opened()
 	assert_that(destination).is_not_null()
 	if destination == null:
@@ -186,25 +186,26 @@ func test_rear_ambush_defeat_persists_and_unlocks_service_lift() -> void:
 	assert_bool(bool(cleared.get("defeated", false))).is_true()
 
 	var objective: Dictionary = destination.call("get_factory_route_objective_diagnostics")
-	assert_str(String(objective.get("objective_id", ""))).is_equal("checkpoint_rear_ambush_cleared")
-	assert_str(String(objective.get("route_label_text", ""))).is_equal("Vent Gauntlet Cleared")
-	assert_bool(bool(objective.get("complete", false))).is_true()
+	assert_str(String(objective.get("objective_id", ""))).is_equal("clear_checkpoint_overdrive_duo")
+	assert_str(String(objective.get("route_label_text", ""))).is_equal("Clear Overdrive Duo")
+	assert_bool(bool(objective.get("complete", true))).is_false()
 
 	player.global_position = service_lift.global_position
 	var lift: Dictionary = destination.call("get_factory_service_lift_diagnostics")
-	assert_bool(bool(lift.get("available", false))).is_true()
-	assert_bool(bool(lift.get("activation_ready", false))).is_true()
-	assert_str(String(lift.get("prompt_text", ""))).is_equal("Call lift")
-	assert_bool(bool(destination.call("try_activate_factory_service_lift", player))).is_true()
-	assert_int(scene_manager.request_calls.size()).is_equal(1)
-	assert_str(String(scene_manager.request_calls[0].get("scene_id", ""))).is_equal(String(EXIT_SCENE_ID))
-	assert_str(String(scene_manager.request_calls[0].get("spawn_point", ""))).is_equal(
-		String(EXIT_SPAWN_POINT)
-	)
+	assert_bool(bool(lift.get("available", true))).is_false()
+	assert_bool(bool(lift.get("activation_ready", true))).is_false()
+	assert_str(String(lift.get("prompt_text", ""))).is_equal("Clear overdrive duo")
+	assert_bool(bool(destination.call("try_activate_factory_service_lift", player))).is_false()
+	assert_str(String(destination.call("get_factory_service_lift_diagnostics").get(
+		"exit_rejected_reason",
+		""
+	))).is_equal("overdrive_duo_active")
+	assert_int(scene_manager.request_calls.size()).is_equal(0)
 
 	var local_state: Dictionary = destination.call("get_local_state")
 	assert_bool(bool(local_state.get("factory_checkpoint_rear_ambush_activated", false))).is_true()
 	assert_bool(bool(local_state.get("factory_checkpoint_rear_ambush_defeated", false))).is_true()
+	assert_bool(bool(local_state.get("factory_checkpoint_overdrive_duo_cleared", true))).is_false()
 
 	var restored: Node = _instantiate_factory_scene()
 	assert_that(restored).is_not_null()
@@ -217,6 +218,9 @@ func test_rear_ambush_defeat_persists_and_unlocks_service_lift() -> void:
 	assert_bool(bool(restored_rear.get("active", true))).is_false()
 	assert_bool(bool(restored_rear.get("defeated", false))).is_true()
 	assert_bool(bool(restored_rear.get("visible", true))).is_false()
+	var restored_duo: Dictionary = restored.call("get_factory_checkpoint_overdrive_duo_diagnostics")
+	assert_bool(bool(restored_duo.get("available", false))).is_true()
+	assert_bool(bool(restored_duo.get("cleared", true))).is_false()
 
 
 func _instantiate_factory_scene() -> Node:

@@ -47,7 +47,8 @@
   Factory Runtime Death Integration、Player Abilities Story046 Old Factory
   Checkpoint-Forward Combat Route、Player Abilities Story047 Old Factory
   Checkpoint Steam Vent Gauntlet、Player Abilities Story048 Old Factory
-  Checkpoint Rear Ambush
+  Checkpoint Rear Ambush、Player Abilities Story049 Old Factory Checkpoint
+  Overdrive Duo
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -57,6 +58,37 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 049: Old Factory Checkpoint Overdrive Duo —
+  `factory_route_transition_shell.tscn` now includes
+  `FactoryCheckpointOverdriveSparkRatLeft` and
+  `FactoryCheckpointOverdriveSparkRatRight`, a final service-lift overdrive
+  pair that reuses the existing Factory Spark Rat `AnimatedSprite2D +
+  SpriteFrames` asset. The duo stays hidden, non-processing, non-physics, and
+  non-colliding until the checkpoint rear ambush is defeated and Cinderpaw
+  crosses the final activation boundary. While either rat is uncleared, the
+  route objective becomes `Clear Overdrive Duo`, `FactoryServiceLift` stays
+  locked with prompt `Clear overdrive duo`, and lift activation records
+  `overdrive_duo_active` without requesting SceneManager. Defeating only entity
+  `2106` or `2107` hides that side and keeps the lift locked; defeating both
+  persists `factory_checkpoint_overdrive_duo_cleared=true`, updates route
+  objective `checkpoint_overdrive_duo_cleared`, restores prompt `Call lift`,
+  and allows the service lift to request `main / scrap_roost`. No new visual
+  assets were generated; this story reuses
+  `res://assets/characters/factory_spark_rat/factory_spark_rat_sprite_frames.tres`
+  with `idle/run/attack_tell/attack/hurt/death=3` frames each. Verification:
+  RED `reports/report_1011/`; focused GREEN `reports/report_1012/` `3/3`;
+  related regression `reports/report_1015/` `15/15`; extended regression
+  `reports/report_1016/` `23/23`; final pre-commit rerun
+  `reports/report_1017/` `23/23`; headless Factory smoke
+  `reports/old_factory_checkpoint_overdrive_duo_smoke.log` exited `0` with no
+  script/parse/invalid/missing-resource/resource-load entries, retaining only
+  cleanup-time resource warnings. Godot MCP 4.7 runtime confirmed both
+  overdrive nodes, default hidden state, activation after rear ambush state,
+  `AnimatedSprite2D + SpriteFrames` frame counts, single-kill lift lockout,
+  double-kill service-lift unlock and `main / scrap_roost` request, current
+  post-clear MCP logs without error/warning rows, and a non-empty game
+  screenshot metadata `640x360`. QA evidence:
+  `production/qa/evidence/old-factory-checkpoint-overdrive-duo-2026-07-01.md`。
 - Player Abilities Story 048: Old Factory Checkpoint Rear Ambush —
   `factory_route_transition_shell.tscn` now includes
   `FactoryCheckpointRearSparkRat`, a post-vent Spark Rat ambush that reuses the

@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-06-30
+> **Last Updated**: 2026-07-01
 
 ## Context
 
@@ -20,6 +20,10 @@ This intentionally advances the Story046/047 route-open semantics. Defeating
 the checkpoint-forward patrol still opens the next beat and activates the vent,
 but the final service-lift route is now complete only after the rear ambush is
 cleared.
+
+Story049 supersedes the final lift-unlock handoff after this story. The rear
+ambush now hands off to the checkpoint overdrive duo; the final service-lift
+route is complete only after both overdrive Spark Rats are defeated.
 
 ## Acceptance Criteria
 

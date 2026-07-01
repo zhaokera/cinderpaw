@@ -111,7 +111,7 @@ func test_checkpoint_steam_vent_does_not_relock_fully_cleared_service_lift_route
 
 	var route: Dictionary = destination.call("get_factory_route_objective_diagnostics")
 	var lift: Dictionary = destination.call("get_factory_service_lift_diagnostics")
-	assert_str(String(route.get("objective_id", ""))).is_equal("checkpoint_rear_ambush_cleared")
+	assert_str(String(route.get("objective_id", ""))).is_equal("checkpoint_overdrive_duo_cleared")
 	assert_bool(bool(route.get("complete", false))).is_true()
 	assert_bool(bool(lift.get("available", false))).is_true()
 	assert_str(String(lift.get("prompt_text", ""))).is_equal("Call lift")
@@ -138,10 +138,14 @@ func _factory_scene_with_checkpoint_route_opened() -> Node:
 		return null
 	destination.call("set_local_state", _return_checkpoint_state().merged({
 		"factory_checkpoint_forward_patrol_activated": true,
-		"factory_checkpoint_forward_patrol_defeated": true,
-		"factory_checkpoint_rear_ambush_activated": true,
-		"factory_checkpoint_rear_ambush_defeated": true,
-	}, true))
+			"factory_checkpoint_forward_patrol_defeated": true,
+			"factory_checkpoint_rear_ambush_activated": true,
+			"factory_checkpoint_rear_ambush_defeated": true,
+			"factory_checkpoint_overdrive_duo_activated": true,
+			"factory_checkpoint_overdrive_left_defeated": true,
+			"factory_checkpoint_overdrive_right_defeated": true,
+			"factory_checkpoint_overdrive_duo_cleared": true,
+		}, true))
 	return destination
 
 

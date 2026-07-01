@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 48 stories tracked
+> **Stories**: 49 stories tracked
 
 ## Overview
 
@@ -86,6 +86,7 @@ recording the reward in progression state.
 | 046 | Old Factory Checkpoint-Forward Combat Route | Integration + Gameplay Runtime + Combat Pacing | Complete | ADR-0007/0018/0021 |
 | 047 | Old Factory Checkpoint Steam Vent Gauntlet | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 048 | Old Factory Checkpoint Rear Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
+| 049 | Old Factory Checkpoint Overdrive Duo | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -105,7 +106,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-048 are complete. Continue with the next playable ACT slice:
+Stories001-049 are complete. Continue with the next playable ACT slice:
 deeper Old Factory combat encounters, savepoint/minimap gameplay, additional
 player-visible character/enemy frame-animation replacement, more skill-tree
 branches, or final Boss2 balancing/cutscene polish.
