@@ -20,6 +20,7 @@ const FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_SPARK_RAT_ENTITY_ID: int = 2107
 const FACTORY_LOWER_DECK_SPARK_RAT_ENTITY_ID: int = 2108
 const FACTORY_LOWER_DECK_EXIT_SPARK_RAT_ENTITY_ID: int = 2109
 const FACTORY_LOWER_DECK_SHORTCUT_SPARK_RAT_ENTITY_ID: int = 2110
+const FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ENTITY_ID: int = 2111
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
@@ -28,6 +29,7 @@ const FACTORY_CHECKPOINT_REAR_AMBUSH_ACTIVATION_X: float = 1108.0
 const FACTORY_CHECKPOINT_OVERDRIVE_DUO_ACTIVATION_X: float = 1196.0
 const FACTORY_LOWER_DECK_SKIRMISH_ACTIVATION_X: float = 780.0
 const FACTORY_LOWER_DECK_SHORTCUT_ACTIVATION_X: float = 1136.0
+const FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ACTIVATION_X: float = 1218.0
 const FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES: int = 18
 const FACTORY_CHECKPOINT_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES: int = 12
 const FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES: int = 30
@@ -55,6 +57,8 @@ const FACTORY_OBJECTIVE_LOWER_DECK_EXIT_CLEARED: StringName = &"lower_deck_exit_
 const FACTORY_OBJECTIVE_CLEAR_LOWER_DECK_SHORTCUT_GUARD: StringName = &"clear_lower_deck_shortcut_guard"
 const FACTORY_OBJECTIVE_OPEN_LOWER_DECK_SHORTCUT: StringName = &"open_lower_deck_shortcut"
 const FACTORY_OBJECTIVE_LOWER_DECK_SHORTCUT_OPENED: StringName = &"lower_deck_shortcut_opened"
+const FACTORY_OBJECTIVE_CLEAR_SHORTCUT_PURSUER: StringName = &"clear_shortcut_pursuer"
+const FACTORY_OBJECTIVE_SHORTCUT_PURSUER_CLEARED: StringName = &"shortcut_pursuer_cleared"
 const FACTORY_LOWER_DECK_PARRY_GATE_ID: StringName = &"old_factory_lower_deck_parry_laser"
 const FACTORY_LOWER_DECK_SHORTCUT_SEAL_ID: StringName = &"old_factory_lower_deck_shortcut_seal"
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
@@ -90,6 +94,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 )
 @onready var _lower_deck_shortcut_spark_rat: Node2D = (
 	get_node_or_null("FactoryLowerDeckShortcutSparkRat") as Node2D
+)
+@onready var _lower_deck_shortcut_pursuer_spark_rat: Node2D = (
+	get_node_or_null("FactoryLowerDeckShortcutPursuerSparkRat") as Node2D
 )
 @onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
 	get_node_or_null("FactoryCheckpointOverdriveLeftDefeatBurst") as Sprite2D
@@ -164,6 +171,8 @@ var _lower_deck_shortcut_activated: bool = false
 var _lower_deck_shortcut_guard_defeated: bool = false
 var _lower_deck_shortcut_unlocked: bool = false
 var _lower_deck_shortcut_reward_cache_claimed: bool = false
+var _lower_deck_shortcut_pursuer_activated: bool = false
+var _lower_deck_shortcut_pursuer_defeated: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -190,6 +199,7 @@ func _ready() -> void:
 	_setup_factory_lower_deck_parry_gate()
 	_setup_factory_lower_deck_shortcut_seal()
 	_setup_factory_lower_deck_shortcut_reward_cache()
+	_sync_lower_deck_shortcut_pursuer_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -820,6 +830,29 @@ func try_claim_factory_lower_deck_shortcut_reward_cache(provider: Node = null) -
 	return true
 
 
+## Attempts to activate the optional pursuer after the shortcut payoff is claimed.
+func try_activate_factory_lower_deck_shortcut_pursuer(provider: Node = null) -> bool:
+	if (
+		_lower_deck_shortcut_pursuer_spark_rat == null
+		or not _is_lower_deck_shortcut_pursuer_available()
+		or _lower_deck_shortcut_pursuer_activated
+	):
+		return false
+	var activation_provider: Node = provider
+	if activation_provider == null:
+		activation_provider = _player
+	if not _is_lower_deck_shortcut_pursuer_activation_provider_in_range(
+		activation_provider
+	):
+		return false
+	_lower_deck_shortcut_pursuer_activated = true
+	_sync_lower_deck_shortcut_pursuer_state()
+	_set_lower_deck_shortcut_pursuer_attack_target(activation_provider)
+	_begin_lower_deck_shortcut_pursuer_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	_refresh_factory_route_objective()
+	return true
+
+
 ## Attempts to activate the deep route endpoint after its guard is defeated.
 func try_activate_factory_deep_route_endpoint(provider: Node = null) -> bool:
 	if not _deep_guard_defeated or _deep_endpoint == null:
@@ -975,6 +1008,12 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_shortcut_reward_cache_claimed": (
 			_lower_deck_shortcut_reward_cache_claimed
 		),
+		"factory_lower_deck_shortcut_pursuer_activated": (
+			_lower_deck_shortcut_pursuer_activated
+		),
+		"factory_lower_deck_shortcut_pursuer_defeated": (
+			_lower_deck_shortcut_pursuer_defeated
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -1106,6 +1145,14 @@ func set_local_state(state: Dictionary) -> void:
 	))
 	_lower_deck_shortcut_reward_cache_claimed = bool(state.get(
 		"factory_lower_deck_shortcut_reward_cache_claimed",
+		false
+	))
+	_lower_deck_shortcut_pursuer_activated = bool(state.get(
+		"factory_lower_deck_shortcut_pursuer_activated",
+		false
+	))
+	_lower_deck_shortcut_pursuer_defeated = bool(state.get(
+		"factory_lower_deck_shortcut_pursuer_defeated",
 		false
 	))
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
@@ -1341,6 +1388,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_checkpoint_overdrive_reward_cache_state()
 	_sync_lower_deck_reward_cache_state()
 	_sync_lower_deck_shortcut_reward_cache_state()
+	_sync_lower_deck_shortcut_pursuer_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -1362,6 +1410,8 @@ func set_local_state(state: Dictionary) -> void:
 		_begin_lower_deck_exit_spark_rat_pacing(lower_deck_exit_opening_grace_frames)
 	if _lower_deck_shortcut_activated and not _lower_deck_shortcut_guard_defeated:
 		_begin_lower_deck_shortcut_spark_rat_pacing(lower_deck_shortcut_opening_grace_frames)
+	if _is_lower_deck_shortcut_pursuer_active():
+		_begin_lower_deck_shortcut_pursuer_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
 		_update_route_label("Service Lift Departing")
@@ -2112,6 +2162,60 @@ func get_factory_lower_deck_shortcut_reward_cache_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic shortcut pursuer diagnostics for tests and MCP probes.
+func get_factory_lower_deck_shortcut_pursuer_diagnostics() -> Dictionary:
+	var sprite: AnimatedSprite2D = (
+		_lower_deck_shortcut_pursuer_spark_rat.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _lower_deck_shortcut_pursuer_spark_rat != null
+		else null
+	)
+	return {
+		"present": _lower_deck_shortcut_pursuer_spark_rat != null,
+		"available": _is_lower_deck_shortcut_pursuer_available(),
+		"active": _is_lower_deck_shortcut_pursuer_active(),
+		"defeated": _lower_deck_shortcut_pursuer_defeated,
+		"shortcut_unlocked": _lower_deck_shortcut_unlocked,
+		"shortcut_cache_claimed": _lower_deck_shortcut_reward_cache_claimed,
+		"activation_x": FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ACTIVATION_X,
+		"enemy_visible": (
+			_lower_deck_shortcut_pursuer_spark_rat.visible
+			if _lower_deck_shortcut_pursuer_spark_rat != null
+			else false
+		),
+		"enemy_has_target": _does_lower_deck_shortcut_pursuer_have_target(),
+		"enemy_physics_enabled": (
+			_lower_deck_shortcut_pursuer_spark_rat.is_physics_processing()
+			if _lower_deck_shortcut_pursuer_spark_rat != null
+			else false
+		),
+		"enemy_process_enabled": (
+			_lower_deck_shortcut_pursuer_spark_rat.is_processing()
+			if _lower_deck_shortcut_pursuer_spark_rat != null
+			else false
+		),
+		"entity_id": (
+			int(_lower_deck_shortcut_pursuer_spark_rat.call("get_entity_id"))
+			if (
+				_lower_deck_shortcut_pursuer_spark_rat != null
+				and _lower_deck_shortcut_pursuer_spark_rat.has_method("get_entity_id")
+			)
+			else 0
+		),
+		"sprite_frames_path": (
+			sprite.sprite_frames.resource_path
+			if sprite != null and sprite.sprite_frames != null
+			else ""
+		),
+		"animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
+		"pacing": _get_lower_deck_shortcut_pursuer_pacing_diagnostics(),
+		"position": (
+			_lower_deck_shortcut_pursuer_spark_rat.global_position
+			if _lower_deck_shortcut_pursuer_spark_rat != null
+			else Vector2.ZERO
+		),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -2412,6 +2516,9 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 			"lower_deck_shortcut_seal": get_factory_lower_deck_shortcut_seal_diagnostics(),
 			"lower_deck_shortcut_reward_cache": (
 				get_factory_lower_deck_shortcut_reward_cache_diagnostics()
+			),
+			"lower_deck_shortcut_pursuer": (
+				get_factory_lower_deck_shortcut_pursuer_diagnostics()
 			),
 			"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
@@ -2740,6 +2847,13 @@ func _bind_enemy_to_player() -> void:
 		&"factory_lower_deck_shortcut_spark_rat",
 		_on_factory_lower_deck_shortcut_spark_rat_defeated
 	)
+	_bind_factory_guard(
+		_lower_deck_shortcut_pursuer_spark_rat,
+		&"old_factory_lower_deck_shortcut_pursuer",
+		FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ENTITY_ID,
+		&"factory_lower_deck_shortcut_pursuer_spark_rat",
+		_on_factory_lower_deck_shortcut_pursuer_defeated
+	)
 
 
 func _setup_factory_cache() -> void:
@@ -3063,6 +3177,13 @@ func _on_factory_lower_deck_shortcut_spark_rat_defeated() -> void:
 	_lower_deck_shortcut_activated = true
 	_lower_deck_shortcut_guard_defeated = true
 	_sync_lower_deck_shortcut_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_lower_deck_shortcut_pursuer_defeated() -> void:
+	_lower_deck_shortcut_pursuer_activated = true
+	_lower_deck_shortcut_pursuer_defeated = true
+	_sync_lower_deck_shortcut_pursuer_state()
 	_refresh_factory_route_objective()
 
 
@@ -3526,6 +3647,25 @@ func _sync_lower_deck_shortcut_reward_cache_state() -> void:
 		)
 
 
+func _sync_lower_deck_shortcut_pursuer_state() -> void:
+	if _lower_deck_shortcut_pursuer_spark_rat == null:
+		return
+	if not _is_lower_deck_shortcut_pursuer_active():
+		_lower_deck_shortcut_pursuer_spark_rat.visible = false
+		_lower_deck_shortcut_pursuer_spark_rat.set_physics_process(false)
+		_lower_deck_shortcut_pursuer_spark_rat.set_process(false)
+		_lower_deck_shortcut_pursuer_spark_rat.collision_layer = 0
+		_lower_deck_shortcut_pursuer_spark_rat.collision_mask = 0
+		_set_lower_deck_shortcut_pursuer_attack_target(null)
+		return
+	_lower_deck_shortcut_pursuer_spark_rat.visible = true
+	_lower_deck_shortcut_pursuer_spark_rat.set_physics_process(true)
+	_lower_deck_shortcut_pursuer_spark_rat.set_process(true)
+	_lower_deck_shortcut_pursuer_spark_rat.collision_layer = FACTORY_RAT_MINION_COLLISION_LAYER
+	_lower_deck_shortcut_pursuer_spark_rat.collision_mask = FACTORY_RAT_MINION_COLLISION_MASK
+	_set_lower_deck_shortcut_pursuer_attack_target(_player)
+
+
 func _sync_lower_deck_parry_gate_state() -> void:
 	if _lower_deck_parry_gate == null:
 		return
@@ -3659,6 +3799,13 @@ func _get_factory_route_objective_id() -> StringName:
 		return FACTORY_OBJECTIVE_CLEAR_LOWER_DECK_SHORTCUT_GUARD
 	if _lower_deck_shortcut_guard_defeated and not _lower_deck_shortcut_unlocked:
 		return FACTORY_OBJECTIVE_OPEN_LOWER_DECK_SHORTCUT
+	if (
+		_lower_deck_shortcut_pursuer_activated
+		and not _lower_deck_shortcut_pursuer_defeated
+	):
+		return FACTORY_OBJECTIVE_CLEAR_SHORTCUT_PURSUER
+	if _lower_deck_shortcut_pursuer_defeated:
+		return FACTORY_OBJECTIVE_SHORTCUT_PURSUER_CLEARED
 	if _lower_deck_shortcut_unlocked:
 		return FACTORY_OBJECTIVE_LOWER_DECK_SHORTCUT_OPENED
 	if _lower_deck_exit_ambush_defeated:
@@ -3728,6 +3875,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Open Lower Deck Shortcut"
 		FACTORY_OBJECTIVE_LOWER_DECK_SHORTCUT_OPENED:
 			return "Lower Deck Shortcut Opened"
+		FACTORY_OBJECTIVE_CLEAR_SHORTCUT_PURSUER:
+			return "Clear Shortcut Pursuer"
+		FACTORY_OBJECTIVE_SHORTCUT_PURSUER_CLEARED:
+			return "Shortcut Pursuer Cleared"
 		_:
 			return "Clear Factory Entrance"
 
@@ -4370,6 +4521,14 @@ func _set_lower_deck_shortcut_spark_rat_attack_target(attack_target: Node) -> vo
 		_lower_deck_shortcut_spark_rat.call("set_attack_target", attack_target)
 
 
+func _set_lower_deck_shortcut_pursuer_attack_target(attack_target: Node) -> void:
+	if (
+		_lower_deck_shortcut_pursuer_spark_rat != null
+		and _lower_deck_shortcut_pursuer_spark_rat.has_method("set_attack_target")
+	):
+		_lower_deck_shortcut_pursuer_spark_rat.call("set_attack_target", attack_target)
+
+
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
 		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
@@ -4445,6 +4604,18 @@ func _begin_lower_deck_shortcut_spark_rat_pacing(opening_grace_frames: int) -> v
 		and not _lower_deck_shortcut_guard_defeated
 	):
 		_lower_deck_shortcut_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
+
+
+func _begin_lower_deck_shortcut_pursuer_pacing(opening_grace_frames: int) -> void:
+	if (
+		_lower_deck_shortcut_pursuer_spark_rat != null
+		and _lower_deck_shortcut_pursuer_spark_rat.has_method("begin_pacing")
+		and not _lower_deck_shortcut_pursuer_defeated
+	):
+		_lower_deck_shortcut_pursuer_spark_rat.call(
+			"begin_pacing",
+			maxi(0, opening_grace_frames)
+		)
 
 
 func _get_spark_rat_pacing_diagnostics() -> Dictionary:
@@ -4637,6 +4808,23 @@ func _get_lower_deck_shortcut_opening_grace_frames() -> int:
 	return int(pacing.get("opening_grace_frames", 0))
 
 
+func _get_lower_deck_shortcut_pursuer_pacing_diagnostics() -> Dictionary:
+	if (
+		_lower_deck_shortcut_pursuer_spark_rat != null
+		and _lower_deck_shortcut_pursuer_spark_rat.has_method("get_pacing_diagnostics")
+	):
+		var pacing_variant: Variant = _lower_deck_shortcut_pursuer_spark_rat.call(
+			"get_pacing_diagnostics"
+		)
+		if pacing_variant is Dictionary:
+			return (pacing_variant as Dictionary).duplicate(true)
+	return {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+	}
+
+
 func _does_deep_guard_have_target() -> bool:
 	if _deep_guard == null:
 		return false
@@ -4726,6 +4914,14 @@ func _does_lower_deck_shortcut_spark_rat_have_target() -> bool:
 	return _lower_deck_shortcut_activated and not _lower_deck_shortcut_guard_defeated
 
 
+func _does_lower_deck_shortcut_pursuer_have_target() -> bool:
+	if _lower_deck_shortcut_pursuer_spark_rat == null:
+		return false
+	if _lower_deck_shortcut_pursuer_spark_rat.has_method("has_attack_target"):
+		return bool(_lower_deck_shortcut_pursuer_spark_rat.call("has_attack_target"))
+	return _is_lower_deck_shortcut_pursuer_active()
+
+
 func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> void:
 	if not _is_factory_damage_target_defeated(damage_target):
 		return
@@ -4763,6 +4959,9 @@ func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> 
 		FACTORY_LOWER_DECK_SHORTCUT_SPARK_RAT_ENTITY_ID:
 			if not _lower_deck_shortcut_guard_defeated:
 				_on_factory_lower_deck_shortcut_spark_rat_defeated()
+		FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ENTITY_ID:
+			if not _lower_deck_shortcut_pursuer_defeated:
+				_on_factory_lower_deck_shortcut_pursuer_defeated()
 
 
 func _is_factory_damage_target_defeated(damage_target: Node) -> bool:
@@ -4813,6 +5012,15 @@ func _is_lower_deck_shortcut_activation_provider_in_range(provider: Node) -> boo
 	return (provider as Node2D).global_position.x >= FACTORY_LOWER_DECK_SHORTCUT_ACTIVATION_X
 
 
+func _is_lower_deck_shortcut_pursuer_activation_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ACTIVATION_X
+	)
+
+
 func _is_return_checkpoint_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -4845,6 +5053,7 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 			_lower_deck_spark_rat,
 			_lower_deck_exit_spark_rat,
 			_lower_deck_shortcut_spark_rat,
+			_lower_deck_shortcut_pursuer_spark_rat,
 		]:
 		if guard == null or not guard.has_method("get_entity_id"):
 			continue
@@ -4927,6 +5136,20 @@ func _is_lower_deck_shortcut_seal_activated() -> bool:
 	if _lower_deck_shortcut_seal != null and _lower_deck_shortcut_seal.has_method("is_activated"):
 		return bool(_lower_deck_shortcut_seal.call("is_activated"))
 	return _lower_deck_shortcut_unlocked
+
+
+func _is_lower_deck_shortcut_pursuer_available() -> bool:
+	return (
+		_lower_deck_shortcut_reward_cache_claimed
+		and not _lower_deck_shortcut_pursuer_defeated
+	)
+
+
+func _is_lower_deck_shortcut_pursuer_active() -> bool:
+	return (
+		_lower_deck_shortcut_pursuer_activated
+		and not _lower_deck_shortcut_pursuer_defeated
+	)
 
 
 func _is_checkpoint_overdrive_duo_cleared() -> bool:

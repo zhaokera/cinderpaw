@@ -165,6 +165,10 @@ position = Vector2(1012, 482)
 z_index = 20
 position = Vector2(1166, 482)
 
+[node name="FactoryLowerDeckShortcutPursuerSparkRat" parent="." instance=ExtResource("13_spark_rat")]
+z_index = 20
+position = Vector2(1228, 482)
+
 [node name="FactoryCheckpointOverdriveLeftDefeatBurst" type="Sprite2D" parent="."]
 visible = false
 z_index = 24

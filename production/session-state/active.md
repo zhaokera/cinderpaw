@@ -54,7 +54,8 @@
   Defeat Burst、Player Abilities Story053 Old Factory Lower Deck Skirmish
   Cache、Player Abilities Story054 Old Factory Lower Deck Parry-Laser Ambush
   Gate、Player Abilities Story055 Old Factory Lower Deck Shortcut Seal Combat
-  Gate、Player Abilities Story056 Old Factory Lower Deck Shortcut Payoff Cache
+  Gate、Player Abilities Story056 Old Factory Lower Deck Shortcut Payoff Cache、
+  Player Abilities Story057 Old Factory Lower Deck Shortcut Pursuer
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -64,6 +65,31 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 057: Old Factory Lower Deck Shortcut Pursuer —
+  `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckShortcutPursuerSparkRat`, a reused animated Factory Spark
+  Rat pressure beat after the Story056 shortcut payoff cache. The pursuer
+  remains hidden, non-processing, non-physics, and untargeted until
+  `factory_lower_deck_shortcut_reward_cache_claimed=true` and Cinderpaw crosses
+  activation x `1218.0`. Activation assigns Cinderpaw as target, enables Spark
+  Rat pacing, updates route feedback to `Clear Shortcut Pursuer`, and keeps
+  `FactoryServiceLift` optional with prompt `Call lift`. Defeating entity
+  `2111` hides/disables the pursuer, persists
+  `factory_lower_deck_shortcut_pursuer_activated=true` and
+  `factory_lower_deck_shortcut_pursuer_defeated=true`, and updates route
+  feedback to `Shortcut Pursuer Cleared` without replaying the Story054 exit
+  ambush, Story055 shortcut guard, or Story056 shortcut payoff cache. No new
+  visual assets were generated; this story reuses the existing image-generated
+  Factory Spark Rat `AnimatedSprite2D + SpriteFrames` asset with
+  `idle/run/attack_tell/attack/hurt/death=3` frames. Verification: focused RED
+  `reports/report_1048/`; focused GREEN `reports/report_1049/` `2/2`;
+  related regression `reports/report_1050/` `12/12`; headless Factory smoke
+  `reports/old_factory_lower_deck_shortcut_pursuer_smoke.log` exited `0` with
+  no project script/resource errors by keyword scan. Godot MCP 4.7 runtime
+  confirmed hidden-to-active diagnostics, entity `2111`, frame counts, service
+  lift `Call lift`, defeat persistence, `Shortcut Pursuer Cleared`, clean
+  game/editor logs, and non-empty screenshot metadata `960x539`. QA evidence:
+  `production/qa/evidence/old-factory-lower-deck-shortcut-pursuer-2026-07-02.md`。
 - Player Abilities Story 056: Old Factory Lower Deck Shortcut Payoff Cache —
   `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckShortcutRewardCache`, a once-only payoff cache behind/near

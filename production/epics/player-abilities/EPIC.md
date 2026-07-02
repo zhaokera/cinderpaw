@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 56 stories tracked
+> **Stories**: 57 stories tracked
 
 ## Overview
 
@@ -94,6 +94,7 @@ recording the reward in progression state.
 | 054 | Old Factory Lower Deck Parry-Laser Ambush Gate | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 055 | Old Factory Lower Deck Shortcut Seal Combat Gate | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 056 | Old Factory Lower Deck Shortcut Payoff Cache | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0007/0018/0021 |
+| 057 | Old Factory Lower Deck Shortcut Pursuer | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
 
 ## Definition of Done
 
@@ -113,7 +114,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-056 are complete. Continue with the next playable ACT slice:
+Stories001-057 are complete. Continue with the next playable ACT slice:
 deeper Old Factory combat encounters, savepoint/minimap gameplay, additional
 player-visible character/enemy frame-animation replacement, more skill-tree
 branches, or final Boss2 balancing/cutscene polish.
