@@ -63,7 +63,8 @@
 	  Player Abilities Story062 Old Factory Lower Deck Breach Relay Savepoint、
 	  Player Abilities Story063 Old Factory Lower Deck Breach Relay Activation
 	  Feedback、Player Abilities Story064 Old Factory Lower Deck Breach Relay
-	  Audio Feedback
+	  Audio Feedback、Player Abilities Story065 Old Factory Lower Deck
+	  Post-Relay Combat Feedback
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -83,6 +84,27 @@
   `production/qa/evidence/godot-ai-2-8-3-upgrade-2026-07-02.md`.
 
 ## Last Completed Task
+- Player Abilities Story 065: Old Factory Lower Deck Post-Relay Combat Feedback
+  — `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckPostRelaySparkRat` and
+  `FactoryLowerDeckPostRelaySteamHazard`. After
+  `factory_lower_deck_breach_relay_activated=true`, Cinderpaw can cross x
+  `1232.0` to activate entity `2117`, the reused animated Factory Spark Rat,
+  with a live target, Spark Rat pacing, active steam hazard, and route feedback
+  `Clear Relay Forward Trial`. Defeating entity `2117` disables the enemy and
+  hazard, persists `factory_lower_deck_post_relay_trial_activated=true` and
+  `factory_lower_deck_post_relay_trial_defeated=true`, and advances feedback to
+  `Relay Forward Secured`. No new assets were generated; the story reuses the
+  existing image-generated Factory Spark Rat SpriteFrames and Old Factory steam
+  vent prop. Verification: RED `reports/report_1084/`; focused GREEN
+  `reports/report_1086/` `2/2`; related GREEN `reports/report_1088/` `12/12`;
+  headless smoke
+  `reports/old_factory_lower_deck_post_relay_combat_feedback_smoke.log` exited
+  `0`; Godot AI MCP `2.8.3` runtime confirmed active/defeated diagnostics,
+  `AnimatedSprite2D + SpriteFrames` counts
+  `idle/run/attack_tell/attack/hurt/death=3`, hazard state, persisted flags,
+  clean game log, and non-empty game framebuffer capture.
+
 - Player Abilities Story 062: Old Factory Lower Deck Breach Relay Savepoint
   — `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckBreachRelaySavepoint`, a `SavepointRuntime` relay using new
@@ -3607,3 +3629,14 @@
 - Verification: RED focused `reports/report_1080/` failed as expected before the savepoint audio API/diagnostics existed. Focused GREEN `reports/report_1081/` passed `27/27`. Related GREEN `reports/report_1082/` passed relay feedback, breach reward route, and AudioSystem suites `29/29`. Story015 stale editor-row isolation `reports/report_1083/` passed `5/5`. Headless Factory smoke `reports/old_factory_lower_deck_breach_relay_audio_feedback_smoke.log` exited `0`; keyword scan found no project script/parse/invalid-call/access/missing-resource/resource-load errors. Godot AI MCP `2.8.3` runtime launched `res://scenes/factory_route_transition_shell.tscn` with `autosave=false`, confirmed helper live, activation `true`, duplicate activation `false`, `activation_audio_request_count=1`, `savepoint_activated -> sfx_door_unlock`, relay position `(1218, 382)`, `stream_found=true`, metadata fields, route label `Lower Deck Relay Secured`, VFX spawn count `1`, clean game log, and non-empty game screenshot. Editor Debugger still displayed pre-existing stale Story015 rows with old line mappings after clear; current Story015 CLI verification passed in `reports/report_1083/`.
 - Blockers: None. New authored relay WAV, final mix/bus tuning, global savepoint audio policy, minimap markers, fast travel, SaveSystem schema expansion, service-lift route changes, broader lower-deck rooms, and boss content remain out of scope.
 - Next: continue another ACT-visible slice such as deeper Old Factory lower-deck combat, minimap/savepoint feedback, authored/final audio replacement, additional player-visible frame-animation replacement, or Boss2 polish.
+
+## Session Extract -- /dev-story 2026-07-02
+
+- Story: `production/epics/player-abilities/story-065-old-factory-lower-deck-post-relay-combat-feedback.md` -- Old Factory Lower Deck Post-Relay Combat Feedback
+- Files changed: `src/gameplay/old_factory_entrance_scene.gd`, `scenes/factory_route_transition_shell.tscn`, `tests/unit/gameplay/old_factory_lower_deck_post_relay_combat_feedback_test.gd`, `design/assets/asset-manifest.md`, `design/assets/entity-inventory.md`, `production/epics/player-abilities/story-065-old-factory-lower-deck-post-relay-combat-feedback.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/old-factory-lower-deck-post-relay-combat-feedback-2026-07-02.md`, `reports/report_1084/`, `reports/report_1086/`, `reports/report_1088/`, `reports/old_factory_lower_deck_post_relay_combat_feedback_smoke.log`, `production/session-state/active.md`
+- Implementation: Added a relay-forward combat trial after the lower-deck breach relay repair. `FactoryLowerDeckPostRelaySparkRat` and `FactoryLowerDeckPostRelaySteamHazard` stay hidden/disabled until `factory_lower_deck_breach_relay_activated=true`; crossing activation x `1232.0` enables entity `2117`, target assignment, Spark Rat pacing, steam contact pressure, and route feedback `Clear Relay Forward Trial`. Defeating entity `2117` disables enemy/hazard state, persists trial activation/defeat flags, and advances route feedback to `Relay Forward Secured` without replaying Story061-064 prerequisites. `FactoryServiceLift` remains optional with prompt `Call lift`.
+- Asset pipeline: No new visual or audio asset was generated. Story065 reuses the existing image-generated Factory Spark Rat `AnimatedSprite2D + SpriteFrames` asset, the existing Old Factory steam vent hazard prop, and the post-bulkhead backdrop. New usage is recorded in the asset manifest, entity inventory, story, and QA evidence.
+- Test written: `tests/unit/gameplay/old_factory_lower_deck_post_relay_combat_feedback_test.gd` covers relay-gated activation, Spark Rat frame counts for `idle/run/attack_tell/attack/hurt/death`, hazard activation semantics, route feedback, service-lift prompt preservation, defeat persistence, restored defeated state, and no prerequisite replay.
+- Verification: RED focused `reports/report_1084/` failed as expected before Story065 APIs existed. Focused GREEN `reports/report_1086/` passed Story065 `2/2`. Related lower-deck/service-lift regression `reports/report_1088/` passed `12/12`. Headless Factory scene smoke `reports/old_factory_lower_deck_post_relay_combat_feedback_smoke.log` exited `0`; keyword scan found no project script/parse/invalid-call/access/missing-resource/resource-load errors. Godot MCP `2.8.3` runtime confirmed helper live, active trial diagnostics, entity `2117`, Spark Rat SpriteFrames frame counts `idle/run/attack_tell/attack/hurt/death=3`, active hazard id `old_factory_lower_deck_post_relay_trial`, route label `Clear Relay Forward Trial`, service lift prompt `Call lift`, defeat transition to `Relay Forward Secured`, persisted local flags, clean game log, and non-empty `960x539` game framebuffer capture. Editor log still returned pre-existing Story015 `CombatComponent` cache rows; Story015 CLI `reports/report_1083/` passes, so no current project failure is reproduced.
+- Blockers: None. New enemy family art, authored steam/combat SFX, minimap markers, global quest state, service-lift route changes, broader lower-deck rooms, and boss content remain out of scope.
+- Next: continue another ACT-visible slice such as deeper lower-deck combat content, minimap/savepoint feedback, authored/final audio replacement, additional player-visible frame-animation replacement, or Boss2 polish.

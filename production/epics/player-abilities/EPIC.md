@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 64 stories tracked
+> **Stories**: 65 stories tracked
 
 ## Overview
 
@@ -102,6 +102,7 @@ recording the reward in progression state.
 | 062 | Old Factory Lower Deck Breach Relay Savepoint | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
 | 063 | Old Factory Lower Deck Breach Relay Activation Feedback | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0002/0007/0018/0021 |
 | 064 | Old Factory Lower Deck Breach Relay Audio Feedback | Integration + Gameplay Runtime + Visual/Feel + Audio | Complete | ADR-0002/0007/0010/0018/0021 |
+| 065 | Old Factory Lower Deck Post-Relay Combat Feedback | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -121,7 +122,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-064 are complete. Continue with the next playable ACT slice:
+Stories001-065 are complete. Continue with the next playable ACT slice:
 deeper Old Factory combat encounters, savepoint/minimap gameplay, additional
 player-visible character/enemy frame-animation replacement, more skill-tree
 branches, or final Boss2 balancing/cutscene polish.

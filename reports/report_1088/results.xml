@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-07-02" name="report_1088" tests="12" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_lower_deck_post_relay_combat_feedback_test" package="tests/unit/gameplay" timestamp="2026-07-02T08:06:55" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.278">
+		<testcase name="test_post_relay_trial_requires_activated_relay_and_keeps_lift_optional" classname="old_factory_lower_deck_post_relay_combat_feedback_test" time="0.215">
+		</testcase>
+		<testcase name="test_post_relay_trial_clear_persists_without_replaying_relay_feedback" classname="old_factory_lower_deck_post_relay_combat_feedback_test" time="0.058">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="old_factory_lower_deck_breach_relay_feedback_test" package="tests/unit/gameplay" timestamp="2026-07-02T08:06:55" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.233">
+		<testcase name="test_breach_relay_mounts_generated_activation_feedback_texture" classname="old_factory_lower_deck_breach_relay_feedback_test" time="0.056">
+		</testcase>
+		<testcase name="test_breach_relay_activation_spawns_one_short_lived_feedback_vfx" classname="old_factory_lower_deck_breach_relay_feedback_test" time="0.055">
+		</testcase>
+		<testcase name="test_breach_relay_activation_routes_one_spatial_audio_feedback_event" classname="old_factory_lower_deck_breach_relay_feedback_test" time="0.057">
+		</testcase>
+		<testcase name="test_restored_breach_relay_does_not_replay_activation_feedback" classname="old_factory_lower_deck_breach_relay_feedback_test" time="0.056">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="old_factory_lower_deck_breach_reward_route_test" package="tests/unit/gameplay" timestamp="2026-07-02T08:06:56" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.125">
+		<testcase name="test_breach_relay_requires_secured_corridor_and_keeps_lift_optional" classname="old_factory_lower_deck_breach_reward_route_test" time="0.059">
+		</testcase>
+		<testcase name="test_breach_relay_activates_once_and_becomes_non_boss_respawn_point" classname="old_factory_lower_deck_breach_reward_route_test" time="0.058">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="old_factory_lower_deck_bulkhead_breach_ambush_test" package="tests/unit/gameplay" timestamp="2026-07-02T08:06:56" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.128">
+		<testcase name="test_breach_corridor_requires_opened_bulkhead_and_escalates_to_pincer" classname="old_factory_lower_deck_bulkhead_breach_ambush_test" time="0.060">
+		</testcase>
+		<testcase name="test_breach_corridor_secures_and_persists_without_replaying_deep_bulkhead_chain" classname="old_factory_lower_deck_bulkhead_breach_ambush_test" time="0.060">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="old_factory_service_lift_scene_manager_exit_test" package="tests/unit/gameplay" timestamp="2026-07-02T08:06:56" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.145">
+		<testcase name="test_service_lift_requests_main_scrap_roost_exit_after_factory_route_clear" classname="old_factory_service_lift_scene_manager_exit_test" time="0.072">
+		</testcase>
+		<testcase name="test_service_lift_does_not_activate_when_scene_manager_rejects_exit" classname="old_factory_service_lift_scene_manager_exit_test" time="0.070">
+		</testcase>
+	</testsuite>
+</testsuites>
