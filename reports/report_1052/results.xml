@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-07-02" name="report_1052" tests="2" failures="1" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_lower_deck_pressure_valve_test" package="tests/unit/gameplay" timestamp="2026-07-02T04:11:39" hostname="localhost" tests="2" failures="1" errors="2" skipped="0" flaky="0" time="0.146">
+		<testcase name="test_pressure_valve_guard_requires_shortcut_pursuer_clear_and_keeps_lift_optional" classname="old_factory_lower_deck_pressure_valve_test" time="0.141">
+			<error message="ERROR: res://tests/unit/gameplay/old_factory_lower_deck_pressure_valve_test.gd:33" type="ABORT">
+<![CDATA[
+Godot Runtime Error !
+Error: 'Parse Error: Expected end of statement after expression, found ":" instead.'
+	at res://tests/unit/gameplay/old_factory_lower_deck_pressure_valve_test.gd:200
+	at res://tests/unit/gameplay/old_factory_lower_deck_pressure_valve_test.gd:191
+	at res://tests/unit/gameplay/old_factory_lower_deck_pressure_valve_test.gd:33
+]]>
+			</error>
+			<error message="ERROR: res://tests/unit/gameplay/old_factory_lower_deck_pressure_valve_test.gd:33" type="ABORT">
+<![CDATA[
+Godot Runtime Error !
+Error: 'Invalid call. Nonexistent function 'set_local_state (via call)' in base 'Node2D'.'
+	at res://tests/unit/gameplay/old_factory_lower_deck_pressure_valve_test.gd:194
+	at res://tests/unit/gameplay/old_factory_lower_deck_pressure_valve_test.gd:33
+]]>
+			</error>
+			<failure message="FAILED: res://tests/unit/gameplay/old_factory_lower_deck_pressure_valve_test.gd:34" type="FAILURE">
+<![CDATA[
+Expecting: not to be '<null>'
+]]>
+			</failure>
+		</testcase>
+	</testsuite>
+</testsuites>

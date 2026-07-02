@@ -17,7 +17,7 @@
 **ADR Decision Summary**: JSON 为源格式 + Resource 桥接。标准接口契约：`_ready()` 获取域 + 连接 `on_domain_changed` + `get_entry()` null→优雅降级。
 
 **Engine**: Godot 4.7 | **Risk**: LOW
-**Engine Notes**: `get_entry()` 返回 Variant — Godot 4.6 required types 下需验证是否允许返回 null。如不允许，改为 `Dictionary` + `has_entry()` 前置检查。
+**Engine Notes**: `get_entry()` 返回 Variant — Godot 4.7 required types 下需验证是否允许返回 null。如不允许，改为 `Dictionary` + `has_entry()` 前置检查。
 
 **Control Manifest Rules (Foundation layer)**:
 - Required: JSON 为源格式；标准数据消费契约
@@ -39,7 +39,7 @@
 
 1. **缓存结构**: `_cache: Dictionary[StringName, Dictionary]` — domain_name → entries
 2. **懒加载**: `get_entry()` 发现域未加载时，调用内部 `_load_domain()` 按需加载
-3. **Variant 返回**: 验证 Godot 4.6 是否允许 Variant 函数返回 null。如不允许，增加 `has_entry(domain, id) -> bool` 前置检查
+3. **Variant 返回**: 验证 Godot 4.7 是否允许 Variant 函数返回 null。如不允许，增加 `has_entry(domain, id) -> bool` 前置检查
 4. **load_input_config**: 特殊接口，返回 input_config 域的完整 Dictionary
 
 ---

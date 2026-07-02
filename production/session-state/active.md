@@ -55,7 +55,8 @@
   Cache、Player Abilities Story054 Old Factory Lower Deck Parry-Laser Ambush
   Gate、Player Abilities Story055 Old Factory Lower Deck Shortcut Seal Combat
   Gate、Player Abilities Story056 Old Factory Lower Deck Shortcut Payoff Cache、
-  Player Abilities Story057 Old Factory Lower Deck Shortcut Pursuer
+  Player Abilities Story057 Old Factory Lower Deck Shortcut Pursuer、Player
+  Abilities Story058 Old Factory Lower Deck Pressure Valve Combat Gate
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -65,6 +66,35 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 058: Old Factory Lower Deck Pressure Valve Combat
+  Gate — `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckPressureValveSparkRat` and `FactoryLowerDeckPressureValve`.
+  After Story057 shortcut pursuer state is defeated, Cinderpaw can cross
+  activation x `1240.0` to activate a pressure-valve guard with entity `2112`.
+  The guard reuses the existing Factory Spark Rat `AnimatedSprite2D +
+  SpriteFrames` resource with
+  `idle/run/attack_tell/attack/hurt/death=3` frames, targets the player, starts
+  Spark Rat pacing, updates the route objective to
+  `Clear Pressure Valve Guard`, and leaves the already available service lift
+  optional with prompt `Call lift`. Defeating entity `2112` hides/disables the
+  guard, persists `factory_lower_deck_pressure_guard_activated=true` and
+  `factory_lower_deck_pressure_guard_defeated=true`, changes the route objective
+  to `Open Pressure Valve`, and makes the pressure valve activatable with prompt
+  `Open valve`. Opening the valve persists
+  `factory_lower_deck_pressure_valve_opened=true` and changes the objective to
+  `Pressure Valve Opened` without replaying Stories054-057. No new visual
+  assets were generated; this story reuses the existing Factory Spark Rat
+  frames and Old Factory endpoint/VFX assets already imported through Godot.
+  Verification: focused RED `reports/report_1051/`; parse-fix RED
+  `reports/report_1052/`; focused GREEN `reports/report_1053/` `2/2`; related
+  regression `reports/report_1054/` `11/11`; headless Factory smoke
+  `reports/old_factory_lower_deck_pressure_valve_smoke.log` exited `0` with no
+  project script/resource-load errors by keyword scan, retaining only known
+  cleanup-time ObjectDB/resource terminal noise. Godot MCP 4.7 runtime confirmed
+  the pressure valve guard/valve nodes, active guard `2112`, frame counts,
+  service lift `Call lift`, guard defeat, valve open persistence, clean
+  game/editor logs, and non-empty screenshot metadata `960x539`. QA evidence:
+  `production/qa/evidence/old-factory-lower-deck-pressure-valve-combat-gate-2026-07-02.md`。
 - Player Abilities Story 057: Old Factory Lower Deck Shortcut Pursuer —
   `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckShortcutPursuerSparkRat`, a reused animated Factory Spark

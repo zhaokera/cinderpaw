@@ -21,6 +21,7 @@ const FACTORY_LOWER_DECK_SPARK_RAT_ENTITY_ID: int = 2108
 const FACTORY_LOWER_DECK_EXIT_SPARK_RAT_ENTITY_ID: int = 2109
 const FACTORY_LOWER_DECK_SHORTCUT_SPARK_RAT_ENTITY_ID: int = 2110
 const FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ENTITY_ID: int = 2111
+const FACTORY_LOWER_DECK_PRESSURE_GUARD_ENTITY_ID: int = 2112
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
@@ -30,6 +31,7 @@ const FACTORY_CHECKPOINT_OVERDRIVE_DUO_ACTIVATION_X: float = 1196.0
 const FACTORY_LOWER_DECK_SKIRMISH_ACTIVATION_X: float = 780.0
 const FACTORY_LOWER_DECK_SHORTCUT_ACTIVATION_X: float = 1136.0
 const FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ACTIVATION_X: float = 1218.0
+const FACTORY_LOWER_DECK_PRESSURE_VALVE_ACTIVATION_X: float = 1240.0
 const FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES: int = 18
 const FACTORY_CHECKPOINT_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES: int = 12
 const FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES: int = 30
@@ -59,8 +61,12 @@ const FACTORY_OBJECTIVE_OPEN_LOWER_DECK_SHORTCUT: StringName = &"open_lower_deck
 const FACTORY_OBJECTIVE_LOWER_DECK_SHORTCUT_OPENED: StringName = &"lower_deck_shortcut_opened"
 const FACTORY_OBJECTIVE_CLEAR_SHORTCUT_PURSUER: StringName = &"clear_shortcut_pursuer"
 const FACTORY_OBJECTIVE_SHORTCUT_PURSUER_CLEARED: StringName = &"shortcut_pursuer_cleared"
+const FACTORY_OBJECTIVE_CLEAR_PRESSURE_VALVE_GUARD: StringName = &"clear_pressure_valve_guard"
+const FACTORY_OBJECTIVE_OPEN_PRESSURE_VALVE: StringName = &"open_pressure_valve"
+const FACTORY_OBJECTIVE_PRESSURE_VALVE_OPENED: StringName = &"pressure_valve_opened"
 const FACTORY_LOWER_DECK_PARRY_GATE_ID: StringName = &"old_factory_lower_deck_parry_laser"
 const FACTORY_LOWER_DECK_SHORTCUT_SEAL_ID: StringName = &"old_factory_lower_deck_shortcut_seal"
+const FACTORY_LOWER_DECK_PRESSURE_VALVE_ID: StringName = &"old_factory_lower_deck_pressure_valve"
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
 const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
 const FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT: StringName = &"scrap_roost"
@@ -98,6 +104,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_shortcut_pursuer_spark_rat: Node2D = (
 	get_node_or_null("FactoryLowerDeckShortcutPursuerSparkRat") as Node2D
 )
+@onready var _lower_deck_pressure_guard_spark_rat: Node2D = (
+	get_node_or_null("FactoryLowerDeckPressureValveSparkRat") as Node2D
+)
 @onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
 	get_node_or_null("FactoryCheckpointOverdriveLeftDefeatBurst") as Sprite2D
 )
@@ -117,6 +126,7 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_shortcut_reward_cache: Node = get_node_or_null(
 	"FactoryLowerDeckShortcutRewardCache"
 )
+@onready var _lower_deck_pressure_valve: Node = get_node_or_null("FactoryLowerDeckPressureValve")
 @onready var _return_checkpoint: Node = get_node_or_null("FactoryReturnCheckpoint")
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
@@ -173,6 +183,9 @@ var _lower_deck_shortcut_unlocked: bool = false
 var _lower_deck_shortcut_reward_cache_claimed: bool = false
 var _lower_deck_shortcut_pursuer_activated: bool = false
 var _lower_deck_shortcut_pursuer_defeated: bool = false
+var _lower_deck_pressure_guard_activated: bool = false
+var _lower_deck_pressure_guard_defeated: bool = false
+var _lower_deck_pressure_valve_opened: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -200,6 +213,7 @@ func _ready() -> void:
 	_setup_factory_lower_deck_shortcut_seal()
 	_setup_factory_lower_deck_shortcut_reward_cache()
 	_sync_lower_deck_shortcut_pursuer_state()
+	_setup_factory_lower_deck_pressure_valve()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -853,6 +867,45 @@ func try_activate_factory_lower_deck_shortcut_pursuer(provider: Node = null) -> 
 	return true
 
 
+## Attempts to activate the pressure valve guard after the shortcut pursuer is clear.
+func try_activate_factory_lower_deck_pressure_guard(provider: Node = null) -> bool:
+	if (
+		_lower_deck_pressure_guard_spark_rat == null
+		or not _is_lower_deck_pressure_guard_available()
+		or _lower_deck_pressure_guard_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_pressure_guard_activation_provider_in_range(activation_provider):
+		return false
+	_lower_deck_pressure_guard_activated = true
+	_sync_lower_deck_pressure_valve_state()
+	_set_lower_deck_pressure_guard_attack_target(activation_provider)
+	_begin_lower_deck_pressure_guard_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	_refresh_factory_route_objective()
+	return true
+
+
+## Opens the deeper lower-deck pressure valve after its guard is defeated.
+func try_open_factory_lower_deck_pressure_valve(provider: Node = null) -> bool:
+	if (
+		_lower_deck_pressure_valve == null
+		or not _lower_deck_pressure_guard_defeated
+		or _lower_deck_pressure_valve_opened
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if (
+		not _lower_deck_pressure_valve.has_method("try_activate")
+		or not bool(_lower_deck_pressure_valve.call("try_activate", activation_provider))
+	):
+		return false
+	_lower_deck_pressure_valve_opened = true
+	_sync_lower_deck_pressure_valve_state()
+	_refresh_factory_route_objective()
+	return true
+
+
 ## Attempts to activate the deep route endpoint after its guard is defeated.
 func try_activate_factory_deep_route_endpoint(provider: Node = null) -> bool:
 	if not _deep_guard_defeated or _deep_endpoint == null:
@@ -1014,6 +1067,13 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_shortcut_pursuer_defeated": (
 			_lower_deck_shortcut_pursuer_defeated
 		),
+		"factory_lower_deck_pressure_guard_activated": (
+			_lower_deck_pressure_guard_activated
+		),
+		"factory_lower_deck_pressure_guard_defeated": (
+			_lower_deck_pressure_guard_defeated
+		),
+		"factory_lower_deck_pressure_valve_opened": _lower_deck_pressure_valve_opened,
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -1153,6 +1213,18 @@ func set_local_state(state: Dictionary) -> void:
 	))
 	_lower_deck_shortcut_pursuer_defeated = bool(state.get(
 		"factory_lower_deck_shortcut_pursuer_defeated",
+		false
+	))
+	_lower_deck_pressure_guard_activated = bool(state.get(
+		"factory_lower_deck_pressure_guard_activated",
+		false
+	))
+	_lower_deck_pressure_guard_defeated = bool(state.get(
+		"factory_lower_deck_pressure_guard_defeated",
+		false
+	))
+	_lower_deck_pressure_valve_opened = bool(state.get(
+		"factory_lower_deck_pressure_valve_opened",
 		false
 	))
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
@@ -1389,6 +1461,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_reward_cache_state()
 	_sync_lower_deck_shortcut_reward_cache_state()
 	_sync_lower_deck_shortcut_pursuer_state()
+	_sync_lower_deck_pressure_valve_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -1412,6 +1485,8 @@ func set_local_state(state: Dictionary) -> void:
 		_begin_lower_deck_shortcut_spark_rat_pacing(lower_deck_shortcut_opening_grace_frames)
 	if _is_lower_deck_shortcut_pursuer_active():
 		_begin_lower_deck_shortcut_pursuer_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	if _is_lower_deck_pressure_guard_active():
+		_begin_lower_deck_pressure_guard_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
 		_update_route_label("Service Lift Departing")
@@ -2216,6 +2291,73 @@ func get_factory_lower_deck_shortcut_pursuer_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic pressure valve diagnostics for tests and MCP probes.
+func get_factory_lower_deck_pressure_valve_diagnostics() -> Dictionary:
+	var sprite: AnimatedSprite2D = (
+		_lower_deck_pressure_guard_spark_rat.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _lower_deck_pressure_guard_spark_rat != null
+		else null
+	)
+	return {
+		"present": (
+			_lower_deck_pressure_guard_spark_rat != null
+			and _lower_deck_pressure_valve != null
+		),
+		"available": _is_lower_deck_pressure_guard_available(),
+		"guard_active": _is_lower_deck_pressure_guard_active(),
+		"guard_defeated": _lower_deck_pressure_guard_defeated,
+		"valve_available": _is_lower_deck_pressure_valve_available(),
+		"valve_opened": _lower_deck_pressure_valve_opened,
+		"shortcut_pursuer_defeated": _lower_deck_shortcut_pursuer_defeated,
+		"activation_x": FACTORY_LOWER_DECK_PRESSURE_VALVE_ACTIVATION_X,
+		"guard_visible": (
+			_lower_deck_pressure_guard_spark_rat.visible
+			if _lower_deck_pressure_guard_spark_rat != null
+			else false
+		),
+		"guard_has_target": _does_lower_deck_pressure_guard_have_target(),
+		"guard_physics_enabled": (
+			_lower_deck_pressure_guard_spark_rat.is_physics_processing()
+			if _lower_deck_pressure_guard_spark_rat != null
+			else false
+		),
+		"guard_process_enabled": (
+			_lower_deck_pressure_guard_spark_rat.is_processing()
+			if _lower_deck_pressure_guard_spark_rat != null
+			else false
+		),
+		"guard_entity_id": (
+			int(_lower_deck_pressure_guard_spark_rat.call("get_entity_id"))
+			if (
+				_lower_deck_pressure_guard_spark_rat != null
+				and _lower_deck_pressure_guard_spark_rat.has_method("get_entity_id")
+			)
+			else 0
+		),
+		"guard_sprite_frames_path": (
+			sprite.sprite_frames.resource_path
+			if sprite != null and sprite.sprite_frames != null
+			else ""
+		),
+		"guard_animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
+		"pacing": _get_lower_deck_pressure_guard_pacing_diagnostics(),
+		"valve_id": _get_lower_deck_pressure_valve_id(),
+		"valve_visible": (
+			_lower_deck_pressure_valve.visible
+			if _lower_deck_pressure_valve != null
+			else false
+		),
+		"valve_prompt_text": _get_lower_deck_pressure_valve_prompt_text(),
+		"valve_texture_path": _get_lower_deck_pressure_valve_visual_texture_path(),
+		"valve_position": _get_lower_deck_pressure_valve_position(),
+		"guard_position": (
+			_lower_deck_pressure_guard_spark_rat.global_position
+			if _lower_deck_pressure_guard_spark_rat != null
+			else Vector2.ZERO
+		),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -2520,6 +2662,7 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 			"lower_deck_shortcut_pursuer": (
 				get_factory_lower_deck_shortcut_pursuer_diagnostics()
 			),
+			"lower_deck_pressure_valve": get_factory_lower_deck_pressure_valve_diagnostics(),
 			"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
 			get_factory_checkpoint_overdrive_reward_cache_diagnostics()
@@ -2854,6 +2997,13 @@ func _bind_enemy_to_player() -> void:
 		&"factory_lower_deck_shortcut_pursuer_spark_rat",
 		_on_factory_lower_deck_shortcut_pursuer_defeated
 	)
+	_bind_factory_guard(
+		_lower_deck_pressure_guard_spark_rat,
+		&"old_factory_lower_deck_pressure_valve",
+		FACTORY_LOWER_DECK_PRESSURE_GUARD_ENTITY_ID,
+		&"factory_lower_deck_pressure_valve_spark_rat",
+		_on_factory_lower_deck_pressure_guard_defeated
+	)
 
 
 func _setup_factory_cache() -> void:
@@ -2934,6 +3084,17 @@ func _setup_factory_lower_deck_shortcut_seal() -> void:
 	var endpoint_signal: Signal = _lower_deck_shortcut_seal.get("endpoint_activated")
 	if not endpoint_signal.is_connected(_on_factory_lower_deck_shortcut_seal_activated):
 		endpoint_signal.connect(_on_factory_lower_deck_shortcut_seal_activated)
+
+
+func _setup_factory_lower_deck_pressure_valve() -> void:
+	_sync_lower_deck_pressure_valve_state()
+	if _lower_deck_pressure_valve == null or not _lower_deck_pressure_valve.has_signal(
+		"endpoint_activated"
+	):
+		return
+	var endpoint_signal: Signal = _lower_deck_pressure_valve.get("endpoint_activated")
+	if not endpoint_signal.is_connected(_on_factory_lower_deck_pressure_valve_activated):
+		endpoint_signal.connect(_on_factory_lower_deck_pressure_valve_activated)
 
 
 func _setup_factory_return_checkpoint() -> void:
@@ -3184,6 +3345,14 @@ func _on_factory_lower_deck_shortcut_pursuer_defeated() -> void:
 	_lower_deck_shortcut_pursuer_activated = true
 	_lower_deck_shortcut_pursuer_defeated = true
 	_sync_lower_deck_shortcut_pursuer_state()
+	_sync_lower_deck_pressure_valve_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_lower_deck_pressure_guard_defeated() -> void:
+	_lower_deck_pressure_guard_activated = true
+	_lower_deck_pressure_guard_defeated = true
+	_sync_lower_deck_pressure_valve_state()
 	_refresh_factory_route_objective()
 
 
@@ -3204,6 +3373,14 @@ func _on_factory_lower_deck_shortcut_seal_activated(endpoint_id: StringName) -> 
 	_lower_deck_shortcut_unlocked = true
 	_sync_lower_deck_shortcut_state()
 	_sync_lower_deck_shortcut_reward_cache_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_lower_deck_pressure_valve_activated(endpoint_id: StringName) -> void:
+	if endpoint_id != FACTORY_LOWER_DECK_PRESSURE_VALVE_ID:
+		return
+	_lower_deck_pressure_valve_opened = true
+	_sync_lower_deck_pressure_valve_state()
 	_refresh_factory_route_objective()
 
 
@@ -3666,6 +3843,43 @@ func _sync_lower_deck_shortcut_pursuer_state() -> void:
 	_set_lower_deck_shortcut_pursuer_attack_target(_player)
 
 
+func _sync_lower_deck_pressure_valve_state() -> void:
+	if _lower_deck_pressure_guard_spark_rat != null:
+		if not _is_lower_deck_pressure_guard_active():
+			_lower_deck_pressure_guard_spark_rat.visible = false
+			_lower_deck_pressure_guard_spark_rat.set_physics_process(false)
+			_lower_deck_pressure_guard_spark_rat.set_process(false)
+			_lower_deck_pressure_guard_spark_rat.collision_layer = 0
+			_lower_deck_pressure_guard_spark_rat.collision_mask = 0
+			_set_lower_deck_pressure_guard_attack_target(null)
+		else:
+			_lower_deck_pressure_guard_spark_rat.visible = true
+			_lower_deck_pressure_guard_spark_rat.set_physics_process(true)
+			_lower_deck_pressure_guard_spark_rat.set_process(true)
+			_lower_deck_pressure_guard_spark_rat.collision_layer = (
+				FACTORY_RAT_MINION_COLLISION_LAYER
+			)
+			_lower_deck_pressure_guard_spark_rat.collision_mask = (
+				FACTORY_RAT_MINION_COLLISION_MASK
+			)
+			_set_lower_deck_pressure_guard_attack_target(_player)
+	if _lower_deck_pressure_valve == null:
+		return
+	var valve_visible: bool = (
+		_lower_deck_shortcut_pursuer_defeated
+		or _lower_deck_pressure_guard_defeated
+		or _lower_deck_pressure_valve_opened
+	)
+	_lower_deck_pressure_valve.visible = valve_visible
+	if _lower_deck_pressure_valve.has_method("set_available"):
+		_lower_deck_pressure_valve.call(
+			"set_available",
+			_is_lower_deck_pressure_valve_available()
+		)
+	if _lower_deck_pressure_valve.has_method("set_activated"):
+		_lower_deck_pressure_valve.call("set_activated", _lower_deck_pressure_valve_opened)
+
+
 func _sync_lower_deck_parry_gate_state() -> void:
 	if _lower_deck_parry_gate == null:
 		return
@@ -3804,6 +4018,12 @@ func _get_factory_route_objective_id() -> StringName:
 		and not _lower_deck_shortcut_pursuer_defeated
 	):
 		return FACTORY_OBJECTIVE_CLEAR_SHORTCUT_PURSUER
+	if _lower_deck_pressure_guard_activated and not _lower_deck_pressure_guard_defeated:
+		return FACTORY_OBJECTIVE_CLEAR_PRESSURE_VALVE_GUARD
+	if _lower_deck_pressure_guard_defeated and not _lower_deck_pressure_valve_opened:
+		return FACTORY_OBJECTIVE_OPEN_PRESSURE_VALVE
+	if _lower_deck_pressure_valve_opened:
+		return FACTORY_OBJECTIVE_PRESSURE_VALVE_OPENED
 	if _lower_deck_shortcut_pursuer_defeated:
 		return FACTORY_OBJECTIVE_SHORTCUT_PURSUER_CLEARED
 	if _lower_deck_shortcut_unlocked:
@@ -3879,6 +4099,12 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Clear Shortcut Pursuer"
 		FACTORY_OBJECTIVE_SHORTCUT_PURSUER_CLEARED:
 			return "Shortcut Pursuer Cleared"
+		FACTORY_OBJECTIVE_CLEAR_PRESSURE_VALVE_GUARD:
+			return "Clear Pressure Valve Guard"
+		FACTORY_OBJECTIVE_OPEN_PRESSURE_VALVE:
+			return "Open Pressure Valve"
+		FACTORY_OBJECTIVE_PRESSURE_VALVE_OPENED:
+			return "Pressure Valve Opened"
 		_:
 			return "Clear Factory Entrance"
 
@@ -4147,6 +4373,48 @@ func _get_lower_deck_shortcut_position() -> Vector2:
 	return (
 		(_lower_deck_shortcut_seal as Node2D).global_position
 		if _lower_deck_shortcut_seal != null and _lower_deck_shortcut_seal is Node2D
+		else Vector2.ZERO
+	)
+
+
+func _get_lower_deck_pressure_valve_id() -> String:
+	if (
+		_lower_deck_pressure_valve != null
+		and _lower_deck_pressure_valve.has_method("get_endpoint_id")
+	):
+		return String(_lower_deck_pressure_valve.call("get_endpoint_id"))
+	return String(FACTORY_LOWER_DECK_PRESSURE_VALVE_ID)
+
+
+func _get_lower_deck_pressure_valve_visual_texture_path() -> String:
+	if (
+		_lower_deck_pressure_valve != null
+		and _lower_deck_pressure_valve.has_method("get_visual_texture_path")
+	):
+		return String(_lower_deck_pressure_valve.call("get_visual_texture_path"))
+	var visual := (
+		_lower_deck_pressure_valve.get_node_or_null("Visual") as Sprite2D
+		if _lower_deck_pressure_valve != null
+		else null
+	)
+	if visual == null or visual.texture == null:
+		return ""
+	return visual.texture.resource_path
+
+
+func _get_lower_deck_pressure_valve_prompt_text() -> String:
+	var prompt_label := (
+		_lower_deck_pressure_valve.get_node_or_null("PromptLabel") as Label
+		if _lower_deck_pressure_valve != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_pressure_valve_position() -> Vector2:
+	return (
+		(_lower_deck_pressure_valve as Node2D).global_position
+		if _lower_deck_pressure_valve != null and _lower_deck_pressure_valve is Node2D
 		else Vector2.ZERO
 	)
 
@@ -4529,6 +4797,14 @@ func _set_lower_deck_shortcut_pursuer_attack_target(attack_target: Node) -> void
 		_lower_deck_shortcut_pursuer_spark_rat.call("set_attack_target", attack_target)
 
 
+func _set_lower_deck_pressure_guard_attack_target(attack_target: Node) -> void:
+	if (
+		_lower_deck_pressure_guard_spark_rat != null
+		and _lower_deck_pressure_guard_spark_rat.has_method("set_attack_target")
+	):
+		_lower_deck_pressure_guard_spark_rat.call("set_attack_target", attack_target)
+
+
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
 		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
@@ -4613,6 +4889,18 @@ func _begin_lower_deck_shortcut_pursuer_pacing(opening_grace_frames: int) -> voi
 		and not _lower_deck_shortcut_pursuer_defeated
 	):
 		_lower_deck_shortcut_pursuer_spark_rat.call(
+			"begin_pacing",
+			maxi(0, opening_grace_frames)
+		)
+
+
+func _begin_lower_deck_pressure_guard_pacing(opening_grace_frames: int) -> void:
+	if (
+		_lower_deck_pressure_guard_spark_rat != null
+		and _lower_deck_pressure_guard_spark_rat.has_method("begin_pacing")
+		and not _lower_deck_pressure_guard_defeated
+	):
+		_lower_deck_pressure_guard_spark_rat.call(
 			"begin_pacing",
 			maxi(0, opening_grace_frames)
 		)
@@ -4825,6 +5113,23 @@ func _get_lower_deck_shortcut_pursuer_pacing_diagnostics() -> Dictionary:
 	}
 
 
+func _get_lower_deck_pressure_guard_pacing_diagnostics() -> Dictionary:
+	if (
+		_lower_deck_pressure_guard_spark_rat != null
+		and _lower_deck_pressure_guard_spark_rat.has_method("get_pacing_diagnostics")
+	):
+		var pacing_variant: Variant = _lower_deck_pressure_guard_spark_rat.call(
+			"get_pacing_diagnostics"
+		)
+		if pacing_variant is Dictionary:
+			return (pacing_variant as Dictionary).duplicate(true)
+	return {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+	}
+
+
 func _does_deep_guard_have_target() -> bool:
 	if _deep_guard == null:
 		return false
@@ -4922,6 +5227,14 @@ func _does_lower_deck_shortcut_pursuer_have_target() -> bool:
 	return _is_lower_deck_shortcut_pursuer_active()
 
 
+func _does_lower_deck_pressure_guard_have_target() -> bool:
+	if _lower_deck_pressure_guard_spark_rat == null:
+		return false
+	if _lower_deck_pressure_guard_spark_rat.has_method("has_attack_target"):
+		return bool(_lower_deck_pressure_guard_spark_rat.call("has_attack_target"))
+	return _is_lower_deck_pressure_guard_active()
+
+
 func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> void:
 	if not _is_factory_damage_target_defeated(damage_target):
 		return
@@ -4962,6 +5275,9 @@ func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> 
 		FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ENTITY_ID:
 			if not _lower_deck_shortcut_pursuer_defeated:
 				_on_factory_lower_deck_shortcut_pursuer_defeated()
+		FACTORY_LOWER_DECK_PRESSURE_GUARD_ENTITY_ID:
+			if not _lower_deck_pressure_guard_defeated:
+				_on_factory_lower_deck_pressure_guard_defeated()
 
 
 func _is_factory_damage_target_defeated(damage_target: Node) -> bool:
@@ -5021,6 +5337,15 @@ func _is_lower_deck_shortcut_pursuer_activation_provider_in_range(provider: Node
 	)
 
 
+func _is_lower_deck_pressure_guard_activation_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_PRESSURE_VALVE_ACTIVATION_X
+	)
+
+
 func _is_return_checkpoint_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -5054,6 +5379,7 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 			_lower_deck_exit_spark_rat,
 			_lower_deck_shortcut_spark_rat,
 			_lower_deck_shortcut_pursuer_spark_rat,
+			_lower_deck_pressure_guard_spark_rat,
 		]:
 		if guard == null or not guard.has_method("get_entity_id"):
 			continue
@@ -5150,6 +5476,26 @@ func _is_lower_deck_shortcut_pursuer_active() -> bool:
 		_lower_deck_shortcut_pursuer_activated
 		and not _lower_deck_shortcut_pursuer_defeated
 	)
+
+
+func _is_lower_deck_pressure_guard_available() -> bool:
+	return (
+		_lower_deck_shortcut_pursuer_defeated
+		and not _lower_deck_pressure_guard_defeated
+		and not _lower_deck_pressure_valve_opened
+	)
+
+
+func _is_lower_deck_pressure_guard_active() -> bool:
+	return (
+		_lower_deck_pressure_guard_activated
+		and not _lower_deck_pressure_guard_defeated
+		and not _lower_deck_pressure_valve_opened
+	)
+
+
+func _is_lower_deck_pressure_valve_available() -> bool:
+	return _lower_deck_pressure_guard_defeated and not _lower_deck_pressure_valve_opened
 
 
 func _is_checkpoint_overdrive_duo_cleared() -> bool:
