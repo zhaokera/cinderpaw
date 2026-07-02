@@ -67,6 +67,16 @@
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
+## Technical Maintenance
+- Godot AI MCP 2.8.3 Upgrade — replaced the project-local plugin from
+  `/Users/zhaok/Downloads/godot-ai-2.8.3/plugin/addons/godot_ai/`, restarted
+  the Godot 4.7 editor, and verified MCP session `cinderpaw@b83b` reports
+  plugin/server `2.8.3` with readiness `ready`. Runtime smoke launched
+  `res://scenes/factory_route_transition_shell.tscn` through MCP with
+  `autosave=false`, confirmed the game helper was live, and found no new
+  game/editor errors. Evidence:
+  `production/qa/evidence/godot-ai-2-8-3-upgrade-2026-07-02.md`.
+
 ## Last Completed Task
 - Player Abilities Story 060: Old Factory Lower Deck Deep Bulkhead Combat Gate
   — `factory_route_transition_shell.tscn` now contains
