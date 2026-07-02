@@ -58,7 +58,9 @@
   Player Abilities Story057 Old Factory Lower Deck Shortcut Pursuer、Player
   Abilities Story058 Old Factory Lower Deck Pressure Valve Combat Gate、Player
   Abilities Story059 Old Factory Lower Deck Steam Sluice Ambush、Player
-  Abilities Story060 Old Factory Lower Deck Deep Bulkhead Combat Gate
+  Abilities Story060 Old Factory Lower Deck Deep Bulkhead Combat Gate、
+  Player Abilities Story061 Old Factory Lower Deck Breach Corridor Ambush、
+  Player Abilities Story062 Old Factory Lower Deck Breach Relay Savepoint
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -78,6 +80,29 @@
   `production/qa/evidence/godot-ai-2-8-3-upgrade-2026-07-02.md`.
 
 ## Last Completed Task
+- Player Abilities Story 062: Old Factory Lower Deck Breach Relay Savepoint
+  — `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckBreachRelaySavepoint`, a `SavepointRuntime` relay using new
+  image-generated transparent relay art at
+  `assets/environment/old_factory_lower_deck_breach_relay/env_old_factory_lower_deck_breach_relay_256.png`.
+  The relay stays hidden and non-interactive until
+  `factory_lower_deck_breach_corridor_secured=true`, then becomes visible with
+  prompt `Repair Relay`. Activating it succeeds once, persists
+  `factory_lower_deck_breach_relay_activated=true`, records savepoint contract
+  `old_factory_lower_deck_breach_relay / area_03_factory /
+  lower_deck_breach_relay`, updates feedback to `Lower Deck Relay Secured`,
+  and routes later non-boss Factory respawn back to the relay with feedback
+  `Returned to Lower Deck Relay`. `FactoryServiceLift` remains optional with
+  prompt `Call lift`. Verification: RED `reports/report_1067/`; fresh focused
+  GREEN `reports/report_1071/` `2/2`; fresh related regression
+  `reports/report_1072/` `15/15`; headless smoke
+  `reports/old_factory_lower_deck_breach_relay_savepoint_smoke.log` exited
+  `0` with no project script/resource-load errors by keyword scan; Godot AI MCP
+  `2.8.3` runtime launched the Factory scene, confirmed the relay `Sprite2D`
+  texture path and size, activation/duplicate behavior, savepoint contract,
+  persisted local flag, inactive breach enemies/hazard, and non-empty game
+  framebuffer capture.
+
 - Player Abilities Story 060: Old Factory Lower Deck Deep Bulkhead Combat Gate
   — `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckDeepBulkheadSparkRat` and `FactoryLowerDeckDeepBulkhead`.
@@ -3546,3 +3571,14 @@
 - Verification: RED focused `reports/report_1064/` failed as expected before Story061 diagnostics and activation APIs existed. GREEN focused `reports/report_1065/` passed Story061 `2/2` with `0` orphans. Related lower-deck/service-lift regression `reports/report_1066/` passed pressure valve, steam sluice, deep bulkhead, breach corridor, and service-lift SceneManager exit suites `10/10` with `0` orphans. Headless Factory scene smoke `reports/old_factory_lower_deck_bulkhead_breach_ambush_smoke.log` exited `0`; keyword scan found no script/parse/invalid-call/missing-resource/resource-load errors, only the known cleanup-time resource message. Godot MCP 4.7 runtime launched `res://scenes/factory_route_transition_shell.tscn` with `autosave=false`, confirmed `PostBulkheadBackground`, breach steam hazard, entities `2115` and `2116`, `AnimatedSprite2D + SpriteFrames` frame counts `idle/run/attack_tell/attack/hurt/death=3` on both enemies, activation feedback `Clear Breach Corridor Ambush`, pincer feedback `Survive Breach Pincer`, service lift prompt `Call lift`, defeat feedback `Breach Corridor Secured`, persisted breach flags, clean game/editor logs, and nonblank screenshot `reports/visual/cinderpaw-mcp-old-factory-lower-deck-breach-corridor-ambush-20260702.png`.
 - Blockers: None. New enemy families, authored steam SFX, minimap markers, global quest state, service-lift route changes, broader lower-deck rooms, and boss content remain out of scope.
 - Next: continue another ACT-visible slice such as deeper Old Factory lower-deck combat, authored hazard/audio feedback, minimap/savepoint gameplay, additional player-visible frame-animation replacement, or Boss2 polish.
+
+## Session Extract — /dev-story 2026-07-02
+
+- Story: `production/epics/player-abilities/story-062-old-factory-lower-deck-breach-relay-savepoint.md` — Old Factory Lower Deck Breach Relay Savepoint
+- Files changed: `src/gameplay/old_factory_entrance_scene.gd`, `scenes/factory_route_transition_shell.tscn`, `tests/unit/gameplay/old_factory_lower_deck_breach_reward_route_test.gd`, `assets/environment/old_factory_lower_deck_breach_relay/env_old_factory_lower_deck_breach_relay_256.png`, `assets/environment/old_factory_lower_deck_breach_relay/env_old_factory_lower_deck_breach_relay_256.png.import`, `assets/generated/source/old_factory_lower_deck_breach_relay_imagegen_20260702.png`, `assets/generated/source/old_factory_lower_deck_breach_relay_imagegen_20260702.png.import`, `assets/generated/source/old_factory_lower_deck_breach_relay_alpha_20260702.png`, `assets/generated/source/old_factory_lower_deck_breach_relay_alpha_20260702.png.import`, `assets/generated/source/old_factory_lower_deck_breach_relay_imagegen_20260702.json`, `design/assets/asset-manifest.md`, `design/assets/entity-inventory.md`, `production/epics/player-abilities/story-062-old-factory-lower-deck-breach-relay-savepoint.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/old-factory-lower-deck-breach-relay-savepoint-2026-07-02.md`, `reports/report_1067/`, `reports/report_1071/`, `reports/report_1072/`, `reports/old_factory_lower_deck_breach_relay_savepoint_smoke.log`, `production/session-state/active.md`
+- Implementation: Added `FactoryLowerDeckBreachRelaySavepoint` as a post-Story061 lower-deck relay savepoint. It uses `SavepointRuntime`, new image-generated transparent relay art, prompt `Repair Relay`, and savepoint contract `old_factory_lower_deck_breach_relay / area_03_factory / lower_deck_breach_relay`. The relay stays hidden and non-interactive until `factory_lower_deck_breach_corridor_secured=true`; activation succeeds once, persists `factory_lower_deck_breach_relay_activated=true`, records the last return checkpoint snapshot, updates route feedback to `Lower Deck Relay Secured`, and later non-boss Factory death respawns Cinderpaw at the relay with feedback `Returned to Lower Deck Relay`. Story054-061 enemies/hazards do not replay after restore, and `FactoryServiceLift` remains optional with prompt `Call lift`.
+- Asset pipeline: Generated the relay prop through image generation, preserved source, alpha source, runtime transparent 256x256 PNG, import files, and metadata under `assets/generated/source/` plus `assets/environment/old_factory_lower_deck_breach_relay/`. Recorded the asset in `design/assets/asset-manifest.md` and `design/assets/entity-inventory.md`. This is an environment savepoint prop, not a character animation asset.
+- Test written: `tests/unit/gameplay/old_factory_lower_deck_breach_reward_route_test.gd` covers locked/available relay gating, prompt/texture/savepoint contract, service-lift independence, one-shot activation, scene-local persistence, restored breach cleanup, non-boss death respawn selection, player repositioning, and return route label.
+- Verification: RED focused `reports/report_1067/` failed as expected before Story062 diagnostics and activation APIs existed. Fresh focused GREEN `reports/report_1071/` passed Story062 `2/2` with `0` orphans. Fresh related lower-deck/respawn/service-lift regression `reports/report_1072/` passed `15/15` with `0` orphans. Headless Factory scene smoke `reports/old_factory_lower_deck_breach_relay_savepoint_smoke.log` exited `0`; keyword scan found no script/parse/invalid-call/access/missing-resource/resource-load errors, only known Godot cleanup-time ObjectDB/resource messages. Godot AI MCP `2.8.3` runtime launched `res://scenes/factory_route_transition_shell.tscn` with `autosave=false`, confirmed helper live, relay present/visible, `Sprite2D` visual, texture path and `256x256` size, activation `true`, duplicate activation `false`, route label `Lower Deck Relay Secured`, persisted local relay flag, savepoint contract, inactive breach enemies/hazard, and a non-empty `960x539` game framebuffer capture.
+- Blockers: None. Minimap markers, fast travel, SaveSystem schema expansion, authored relay SFX, broader lower-deck rooms, and boss content remain out of scope.
+- Next: continue another ACT-visible slice such as minimap/savepoint feedback, authored relay/audio feedback, deeper Old Factory lower-deck combat, additional player-visible frame-animation replacement, or Boss2 polish.

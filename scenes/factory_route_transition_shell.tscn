@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3]
+[gd_scene load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -24,6 +24,7 @@
 [ext_resource type="Texture2D" path="res://assets/environment/parry_laser_gate/parry_laser_gate_marker.png" id="22_parry_laser_gate_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_deep_bulkhead/env_old_factory_lower_deck_deep_bulkhead_closed_256.png" id="23_deep_bulkhead_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_post_bulkhead/env_old_factory_lower_deck_post_bulkhead_backdrop_1280x720.png" id="24_post_bulkhead_backdrop"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_breach_relay/env_old_factory_lower_deck_breach_relay_256.png" id="25_breach_relay_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -599,6 +600,42 @@ monitoring = false
 monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryReturnCheckpoint/InteractionArea"]
+shape = SubResource("CircleShape2D_return_checkpoint_interaction")
+
+[node name="FactoryLowerDeckBreachRelaySavepoint" type="Node2D" parent="."]
+visible = false
+z_index = 24
+position = Vector2(1218, 382)
+script = ExtResource("17_savepoint_script")
+savepoint_id = &"old_factory_lower_deck_breach_relay"
+scene_id = &"area_03_factory"
+spawn_point = &"lower_deck_breach_relay"
+display_name = "Lower Deck Breach Relay"
+prompt_text = "Repair Relay"
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckBreachRelaySavepoint"]
+scale = Vector2(0.62, 0.62)
+texture = ExtResource("25_breach_relay_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryLowerDeckBreachRelaySavepoint"]
+z_index = 4
+offset_left = -92.0
+offset_top = -126.0
+offset_right = 92.0
+offset_bottom = -100.0
+theme_override_colors/font_color = Color(0.58, 0.94, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 15
+text = "Repair Relay"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="FactoryLowerDeckBreachRelaySavepoint"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckBreachRelaySavepoint/InteractionArea"]
 shape = SubResource("CircleShape2D_return_checkpoint_interaction")
 
 [node name="FactorySteamVentHazard" type="Area2D" parent="."]

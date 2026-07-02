@@ -80,10 +80,13 @@ const FACTORY_OBJECTIVE_DEEP_BULKHEAD_OPENED: StringName = &"deep_bulkhead_opene
 const FACTORY_OBJECTIVE_CLEAR_BREACH_CORRIDOR_AMBUSH: StringName = &"clear_breach_corridor_ambush"
 const FACTORY_OBJECTIVE_SURVIVE_BREACH_PINCER: StringName = &"survive_breach_pincer"
 const FACTORY_OBJECTIVE_BREACH_CORRIDOR_SECURED: StringName = &"breach_corridor_secured"
+const FACTORY_OBJECTIVE_BREACH_RELAY_SECURED: StringName = &"breach_relay_secured"
 const FACTORY_LOWER_DECK_PARRY_GATE_ID: StringName = &"old_factory_lower_deck_parry_laser"
 const FACTORY_LOWER_DECK_SHORTCUT_SEAL_ID: StringName = &"old_factory_lower_deck_shortcut_seal"
 const FACTORY_LOWER_DECK_PRESSURE_VALVE_ID: StringName = &"old_factory_lower_deck_pressure_valve"
 const FACTORY_LOWER_DECK_DEEP_BULKHEAD_ID: StringName = &"old_factory_lower_deck_deep_bulkhead"
+const FACTORY_LOWER_DECK_BREACH_RELAY_ID: StringName = &"old_factory_lower_deck_breach_relay"
+const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: StringName = &"lower_deck_breach_relay"
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
 const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
 const FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT: StringName = &"scrap_roost"
@@ -92,6 +95,7 @@ const FACTORY_RETURN_CHECKPOINT_SPAWN_POINT: StringName = &"return_checkpoint"
 const FACTORY_GATE_ENTRY_SPAWN_POINT: StringName = &"factory_gate_entry"
 const FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS: float = 112.0
 const FACTORY_RETURN_CHECKPOINT_RESPAWN_LABEL: String = "Returned to Factory Savepoint"
+const FACTORY_LOWER_DECK_BREACH_RELAY_RESPAWN_LABEL: String = "Returned to Lower Deck Relay"
 const GAME_FLOW_SCRIPT: Script = preload("res://src/gameplay/game_flow_controller.gd")
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
@@ -158,6 +162,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_pressure_valve: Node = get_node_or_null("FactoryLowerDeckPressureValve")
 @onready var _lower_deck_deep_bulkhead: Node = get_node_or_null("FactoryLowerDeckDeepBulkhead")
 @onready var _return_checkpoint: Node = get_node_or_null("FactoryReturnCheckpoint")
+@onready var _lower_deck_breach_relay: Node = get_node_or_null(
+	"FactoryLowerDeckBreachRelaySavepoint"
+)
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
 	get_node_or_null("FactoryCheckpointSteamVentHazard") as Area2D
@@ -235,6 +242,7 @@ var _lower_deck_breach_front_guard_defeated: bool = false
 var _lower_deck_breach_rear_ambusher_activated: bool = false
 var _lower_deck_breach_rear_ambusher_defeated: bool = false
 var _lower_deck_breach_corridor_secured: bool = false
+var _lower_deck_breach_relay_activated: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -266,6 +274,7 @@ func _ready() -> void:
 	_sync_lower_deck_steam_sluice_state()
 	_setup_factory_lower_deck_deep_bulkhead()
 	_sync_lower_deck_breach_corridor_state()
+	_setup_factory_lower_deck_breach_relay()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -366,6 +375,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_OPEN_DEEP_BULKHEAD
 		or objective_id == FACTORY_OBJECTIVE_DEEP_BULKHEAD_OPENED
 		or objective_id == FACTORY_OBJECTIVE_BREACH_CORRIDOR_SECURED
+		or objective_id == FACTORY_OBJECTIVE_BREACH_RELAY_SECURED
 	)
 
 
@@ -597,8 +607,10 @@ func get_last_discovered_savepoint() -> Dictionary:
 
 func clear_last_discovered_savepoint() -> bool:
 	_return_checkpoint_activated = false
+	_lower_deck_breach_relay_activated = false
 	_last_return_checkpoint.clear()
 	_sync_return_checkpoint_state()
+	_sync_lower_deck_breach_relay_state()
 	return true
 
 
@@ -1064,6 +1076,28 @@ func try_activate_factory_lower_deck_breach_rear_ambusher(provider: Node = null)
 	return true
 
 
+## Activates the post-breach lower-deck relay savepoint after the corridor is secured.
+func try_activate_factory_lower_deck_breach_relay(provider: Node = null) -> bool:
+	if (
+		_lower_deck_breach_relay == null
+		or not _is_lower_deck_breach_relay_available()
+		or _lower_deck_breach_relay_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_breach_relay_provider_in_range(activation_provider):
+		return false
+	if (
+		not _lower_deck_breach_relay.has_method("try_activate")
+		or not bool(_lower_deck_breach_relay.call("try_activate", activation_provider))
+	):
+		return false
+	_lower_deck_breach_relay_activated = true
+	_sync_lower_deck_breach_relay_state()
+	_update_route_label("Lower Deck Relay Secured")
+	return true
+
+
 ## Attempts to activate the deep route endpoint after its guard is defeated.
 func try_activate_factory_deep_route_endpoint(provider: Node = null) -> bool:
 	if not _deep_guard_defeated or _deep_endpoint == null:
@@ -1257,6 +1291,9 @@ func get_local_state() -> Dictionary:
 		),
 		"factory_lower_deck_breach_corridor_secured": (
 			_lower_deck_breach_corridor_secured
+		),
+		"factory_lower_deck_breach_relay_activated": (
+			_lower_deck_breach_relay_activated
 		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
@@ -1454,6 +1491,10 @@ func set_local_state(state: Dictionary) -> void:
 			and _lower_deck_breach_rear_ambusher_defeated
 		)
 	))
+	_lower_deck_breach_relay_activated = bool(state.get(
+		"factory_lower_deck_breach_relay_activated",
+		false
+	))
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
 	_service_lift_exit_requested = bool(state.get(
@@ -1644,6 +1685,8 @@ func set_local_state(state: Dictionary) -> void:
 	)
 	if not _last_return_checkpoint.is_empty():
 		_return_checkpoint_activated = true
+		if String(_last_return_checkpoint.get("id", "")) == String(FACTORY_LOWER_DECK_BREACH_RELAY_ID):
+			_lower_deck_breach_relay_activated = true
 	var hazard_variant: Variant = state.get("last_hazard_damage", {})
 	_last_hazard_damage = (
 		(hazard_variant as Dictionary).duplicate(true)
@@ -1692,6 +1735,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_steam_sluice_state()
 	_sync_lower_deck_deep_bulkhead_state()
 	_sync_lower_deck_breach_corridor_state()
+	_sync_lower_deck_breach_relay_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -2877,6 +2921,49 @@ func get_factory_lower_deck_breach_corridor_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic post-breach relay savepoint diagnostics for tests and MCP probes.
+func get_factory_lower_deck_breach_relay_diagnostics() -> Dictionary:
+	var interaction_area := (
+		_lower_deck_breach_relay.get_node_or_null("InteractionArea") as Area2D
+		if _lower_deck_breach_relay != null
+		else null
+	)
+	var collision_shape := (
+		_lower_deck_breach_relay.get_node_or_null("InteractionArea/CollisionShape2D")
+		as CollisionShape2D
+		if _lower_deck_breach_relay != null
+		else null
+	)
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	return {
+		"present": _lower_deck_breach_relay != null,
+		"available": _is_lower_deck_breach_relay_available(),
+		"visible": (
+			_lower_deck_breach_relay.visible
+			if _lower_deck_breach_relay != null
+			else false
+		),
+		"activated": _lower_deck_breach_relay_activated,
+		"breach_secured": _is_lower_deck_breach_corridor_secured(),
+		"savepoint_id": _get_lower_deck_breach_relay_savepoint_id(),
+		"scene_id": _get_lower_deck_breach_relay_scene_id(),
+		"spawn_point": _get_lower_deck_breach_relay_spawn_point(),
+		"display_name": _get_lower_deck_breach_relay_display_name(),
+		"prompt_text": _get_lower_deck_breach_relay_prompt_text(),
+		"texture_path": _get_lower_deck_breach_relay_texture_path(),
+		"interaction_monitoring": interaction_area.monitoring if interaction_area != null else false,
+		"interaction_monitorable": interaction_area.monitorable if interaction_area != null else false,
+		"collision_disabled": collision_shape.disabled if collision_shape != null else true,
+		"position": (
+			(_lower_deck_breach_relay as Node2D).global_position
+			if _lower_deck_breach_relay != null and _lower_deck_breach_relay is Node2D
+			else Vector2.ZERO
+		),
+		"last_savepoint": _last_return_checkpoint.duplicate(true),
+		"route_label_text": String(route.get("route_label_text", "")),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -3385,7 +3472,10 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 	if scene_manager == null or not scene_manager.has_method("get_current_spawn_point"):
 		return false
 	var spawn_point: StringName = StringName(scene_manager.call("get_current_spawn_point"))
-	if spawn_point == FACTORY_RETURN_CHECKPOINT_SPAWN_POINT:
+	if (
+		spawn_point == FACTORY_RETURN_CHECKPOINT_SPAWN_POINT
+		or spawn_point == FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT
+	):
 		_grant_factory_hazard_respawn_grace()
 	if not _move_player_to_spawn_point(spawn_point):
 		return false
@@ -3393,6 +3483,10 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 		_factory_return_checkpoint_spawn_snap_frames = FACTORY_RETURN_CHECKPOINT_SPAWN_SNAP_FRAMES
 		_set_player_physics_pinned_for_return_checkpoint(true)
 		_update_route_label(FACTORY_RETURN_CHECKPOINT_RESPAWN_LABEL)
+	elif spawn_point == FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT:
+		_factory_return_checkpoint_spawn_snap_frames = 0
+		_set_player_physics_pinned_for_return_checkpoint(false)
+		_update_route_label(FACTORY_LOWER_DECK_BREACH_RELAY_RESPAWN_LABEL)
 	else:
 		_factory_return_checkpoint_spawn_snap_frames = 0
 		_set_player_physics_pinned_for_return_checkpoint(false)
@@ -3407,6 +3501,8 @@ func _move_player_to_spawn_point(spawn_point: StringName) -> bool:
 		spawn_node = _spawn
 	elif spawn_point == FACTORY_RETURN_CHECKPOINT_SPAWN_POINT:
 		spawn_node = _return_checkpoint as Node2D
+	elif spawn_point == FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT:
+		spawn_node = _lower_deck_breach_relay as Node2D
 	if spawn_node == null:
 		return false
 	_player.global_position = spawn_node.global_position
@@ -3688,6 +3784,18 @@ func _setup_factory_return_checkpoint() -> void:
 	var activated_signal: Signal = _return_checkpoint.get("savepoint_activated")
 	if not activated_signal.is_connected(_on_factory_return_checkpoint_activated):
 		activated_signal.connect(_on_factory_return_checkpoint_activated)
+
+
+func _setup_factory_lower_deck_breach_relay() -> void:
+	_sync_lower_deck_breach_relay_state()
+	if (
+		_lower_deck_breach_relay == null
+		or not _lower_deck_breach_relay.has_signal("savepoint_activated")
+	):
+		return
+	var activated_signal: Signal = _lower_deck_breach_relay.get("savepoint_activated")
+	if not activated_signal.is_connected(_on_factory_lower_deck_breach_relay_activated):
+		activated_signal.connect(_on_factory_lower_deck_breach_relay_activated)
 
 
 func _setup_factory_respawn_flow() -> void:
@@ -4089,6 +4197,29 @@ func _on_factory_return_checkpoint_activated(
 		_update_route_label("Factory Savepoint Secured")
 
 
+func _on_factory_lower_deck_breach_relay_activated(
+	savepoint_id: StringName,
+	scene_id: StringName,
+	spawn_point: StringName,
+	world_position: Vector2,
+	context: Dictionary
+) -> void:
+	if savepoint_id != FACTORY_LOWER_DECK_BREACH_RELAY_ID:
+		return
+	if _lower_deck_breach_relay_activated:
+		return
+	_lower_deck_breach_relay_activated = true
+	_last_return_checkpoint = _build_return_checkpoint_snapshot(
+		savepoint_id,
+		scene_id,
+		spawn_point,
+		world_position,
+		context
+	)
+	_sync_lower_deck_breach_relay_state()
+	_update_route_label("Lower Deck Relay Secured")
+
+
 func _on_factory_player_died(_death_metadata: Dictionary) -> void:
 	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
 		return
@@ -4105,6 +4236,10 @@ func _on_factory_respawn_requested(respawn_position: Vector2, revive_hp_percenta
 	var selected_respawn_point: Dictionary = _factory_game_flow.get_last_selected_respawn_point()
 	if String(selected_respawn_point.get("spawn_point", "")) == String(FACTORY_RETURN_CHECKPOINT_SPAWN_POINT):
 		_update_route_label(FACTORY_RETURN_CHECKPOINT_RESPAWN_LABEL)
+	elif String(selected_respawn_point.get("spawn_point", "")) == String(
+		FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT
+	):
+		_update_route_label(FACTORY_LOWER_DECK_BREACH_RELAY_RESPAWN_LABEL)
 	_apply_current_scene_manager_spawn_point()
 
 
@@ -4452,6 +4587,29 @@ func _sync_lower_deck_shortcut_reward_cache_state() -> void:
 		)
 
 
+func _sync_lower_deck_breach_relay_state() -> void:
+	if _lower_deck_breach_relay == null:
+		return
+	var available: bool = _is_lower_deck_breach_relay_available()
+	_lower_deck_breach_relay.visible = available or _lower_deck_breach_relay_activated
+	var interaction_area := (
+		_lower_deck_breach_relay.get_node_or_null("InteractionArea") as Area2D
+	)
+	if interaction_area != null:
+		if interaction_area.monitoring != available:
+			interaction_area.monitoring = available
+		if interaction_area.monitorable != available:
+			interaction_area.monitorable = available
+	var collision_shape := (
+		_lower_deck_breach_relay.get_node_or_null("InteractionArea/CollisionShape2D")
+		as CollisionShape2D
+	)
+	if collision_shape != null:
+		var should_disable: bool = not available
+		if collision_shape.disabled != should_disable:
+			collision_shape.disabled = should_disable
+
+
 func _sync_lower_deck_shortcut_pursuer_state() -> void:
 	if _lower_deck_shortcut_pursuer_spark_rat == null:
 		return
@@ -4761,6 +4919,8 @@ func _refresh_factory_route_objective() -> void:
 
 
 func _get_factory_route_objective_id() -> StringName:
+	if _lower_deck_breach_relay_activated:
+		return FACTORY_OBJECTIVE_BREACH_RELAY_SECURED
 	if _return_patrol_activated and not _return_patrol_defeated:
 		return FACTORY_OBJECTIVE_CLEAR_RETURN_PATROL
 	if _checkpoint_forward_patrol_activated and not _checkpoint_forward_patrol_defeated:
@@ -4912,6 +5072,8 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Survive Breach Pincer"
 		FACTORY_OBJECTIVE_BREACH_CORRIDOR_SECURED:
 			return "Breach Corridor Secured"
+		FACTORY_OBJECTIVE_BREACH_RELAY_SECURED:
+			return "Lower Deck Relay Secured"
 		_:
 			return "Clear Factory Entrance"
 
@@ -5380,6 +5542,48 @@ func _get_return_checkpoint_prompt_text() -> String:
 	var prompt_label := (
 		_return_checkpoint.get_node_or_null("PromptLabel") as Label
 		if _return_checkpoint != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_breach_relay_savepoint_id() -> String:
+	if _lower_deck_breach_relay != null and _lower_deck_breach_relay.has_method("get_savepoint_id"):
+		return String(_lower_deck_breach_relay.call("get_savepoint_id"))
+	return String(FACTORY_LOWER_DECK_BREACH_RELAY_ID)
+
+
+func _get_lower_deck_breach_relay_scene_id() -> String:
+	if _lower_deck_breach_relay != null and _lower_deck_breach_relay.has_method("get_scene_id"):
+		return String(_lower_deck_breach_relay.call("get_scene_id"))
+	return String(FACTORY_SCENE_ID)
+
+
+func _get_lower_deck_breach_relay_spawn_point() -> String:
+	if _lower_deck_breach_relay != null and _lower_deck_breach_relay.has_method("get_spawn_point"):
+		return String(_lower_deck_breach_relay.call("get_spawn_point"))
+	return String(FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT)
+
+
+func _get_lower_deck_breach_relay_display_name() -> String:
+	if _lower_deck_breach_relay != null and _lower_deck_breach_relay.has_method("get_display_name"):
+		return String(_lower_deck_breach_relay.call("get_display_name"))
+	return "Lower Deck Breach Relay"
+
+
+func _get_lower_deck_breach_relay_texture_path() -> String:
+	if (
+		_lower_deck_breach_relay != null
+		and _lower_deck_breach_relay.has_method("get_visual_texture_path")
+	):
+		return String(_lower_deck_breach_relay.call("get_visual_texture_path"))
+	return ""
+
+
+func _get_lower_deck_breach_relay_prompt_text() -> String:
+	var prompt_label := (
+		_lower_deck_breach_relay.get_node_or_null("PromptLabel") as Label
+		if _lower_deck_breach_relay != null
 		else null
 	)
 	return prompt_label.text if prompt_label != null else ""
@@ -6459,6 +6663,19 @@ func _is_lower_deck_breach_rear_activation_provider_in_range(provider: Node) -> 
 	)
 
 
+func _is_lower_deck_breach_relay_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	if _lower_deck_breach_relay == null or not _lower_deck_breach_relay is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.distance_to(
+			(_lower_deck_breach_relay as Node2D).global_position
+		)
+		<= FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS
+	)
+
+
 func _is_return_checkpoint_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -6693,6 +6910,10 @@ func _is_lower_deck_breach_corridor_secured() -> bool:
 			and _lower_deck_breach_rear_ambusher_defeated
 		)
 	)
+
+
+func _is_lower_deck_breach_relay_available() -> bool:
+	return _is_lower_deck_breach_corridor_secured()
 
 
 func _is_checkpoint_overdrive_duo_cleared() -> bool:

@@ -99,6 +99,7 @@ recording the reward in progression state.
 | 059 | Old Factory Lower Deck Steam Sluice Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 060 | Old Factory Lower Deck Deep Bulkhead Combat Gate | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 061 | Old Factory Lower Deck Breach Corridor Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
+| 062 | Old Factory Lower Deck Breach Relay Savepoint | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
 
 ## Definition of Done
 
@@ -118,7 +119,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-061 are complete. Continue with the next playable ACT slice:
+Stories001-062 are complete. Continue with the next playable ACT slice:
 deeper Old Factory combat encounters, savepoint/minimap gameplay, additional
 player-visible character/enemy frame-animation replacement, more skill-tree
 branches, or final Boss2 balancing/cutscene polish.

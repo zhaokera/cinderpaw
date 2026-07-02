@@ -1,0 +1,13 @@
+{
+  "asset_id": "old_factory_lower_deck_breach_relay",
+  "story": "Player Abilities Story 062: Old Factory Lower Deck Breach Relay Savepoint",
+  "generator": "image_gen built-in",
+  "date": "2026-07-02",
+  "source_path": "res://assets/generated/source/old_factory_lower_deck_breach_relay_imagegen_20260702.png",
+  "alpha_source_path": "res://assets/generated/source/old_factory_lower_deck_breach_relay_alpha_20260702.png",
+  "runtime_path": "res://assets/environment/old_factory_lower_deck_breach_relay/env_old_factory_lower_deck_breach_relay_256.png",
+  "prompt_summary": "Pixel-art Old Factory lower-deck breach relay savepoint prop on flat chroma-key background; rusted steel base, cat-paw latch, repaired cables, glowing cyan relay coil and amber status light, no text, no UI, no characters.",
+  "chroma_key": "auto border sampled near #05f803",
+  "postprocess": "remove_chroma_key.py, soft matte, despill, nearest-neighbor fit into 256x256 transparent PNG",
+  "purpose": "Visible post-Story061 lower-deck relay savepoint prop for Story062 runtime activation and respawn feedback."
+}
