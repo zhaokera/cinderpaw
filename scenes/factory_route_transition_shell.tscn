@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3]
+[gd_scene load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -23,6 +23,7 @@
 [ext_resource type="Script" path="res://src/feature/exploration_gate.gd" id="21_gate_script"]
 [ext_resource type="Texture2D" path="res://assets/environment/parry_laser_gate/parry_laser_gate_marker.png" id="22_parry_laser_gate_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_deep_bulkhead/env_old_factory_lower_deck_deep_bulkhead_closed_256.png" id="23_deep_bulkhead_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_post_bulkhead/env_old_factory_lower_deck_post_bulkhead_backdrop_1280x720.png" id="24_post_bulkhead_backdrop"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -60,6 +61,15 @@ z_index = -100
 offset_right = 1280.0
 offset_bottom = 720.0
 texture = ExtResource("3_backdrop")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="PostBulkheadBackground" type="TextureRect" parent="."]
+visible = false
+z_index = -99
+offset_right = 1280.0
+offset_bottom = 720.0
+texture = ExtResource("24_post_bulkhead_backdrop")
 expand_mode = 1
 stretch_mode = 6
 
@@ -181,6 +191,14 @@ position = Vector2(1128, 482)
 [node name="FactoryLowerDeckDeepBulkheadSparkRat" parent="." instance=ExtResource("13_spark_rat")]
 z_index = 20
 position = Vector2(1196, 482)
+
+[node name="FactoryLowerDeckBreachFrontSparkRat" parent="." instance=ExtResource("13_spark_rat")]
+z_index = 20
+position = Vector2(1224, 482)
+
+[node name="FactoryLowerDeckBreachRearSparkRat" parent="." instance=ExtResource("13_spark_rat")]
+z_index = 20
+position = Vector2(1120, 482)
 
 [node name="FactoryCheckpointOverdriveLeftDefeatBurst" type="Sprite2D" parent="."]
 visible = false
@@ -672,6 +690,30 @@ scale = Vector2(0.72, 0.72)
 texture = ExtResource("8_vent_texture")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckSteamSluiceHazard"]
+position = Vector2(0, -36)
+shape = SubResource("RectangleShape2D_steam_vent")
+disabled = true
+
+[node name="FactoryLowerDeckBreachSteamHazard" type="Area2D" parent="."]
+visible = false
+z_index = 18
+position = Vector2(1220, 466)
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+script = ExtResource("9_vent_script")
+hazard_id = &"old_factory_lower_deck_breach_corridor"
+damage = 8
+contact_cooldown_sec = 1.0
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckBreachSteamHazard"]
+z_index = 1
+position = Vector2(0, -78)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("8_vent_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckBreachSteamHazard"]
 position = Vector2(0, -36)
 shape = SubResource("RectangleShape2D_steam_vent")
 disabled = true

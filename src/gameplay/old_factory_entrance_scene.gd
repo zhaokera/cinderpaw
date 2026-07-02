@@ -24,6 +24,8 @@ const FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ENTITY_ID: int = 2111
 const FACTORY_LOWER_DECK_PRESSURE_GUARD_ENTITY_ID: int = 2112
 const FACTORY_LOWER_DECK_STEAM_SLUICE_ENTITY_ID: int = 2113
 const FACTORY_LOWER_DECK_DEEP_BULKHEAD_ENTITY_ID: int = 2114
+const FACTORY_LOWER_DECK_BREACH_FRONT_ENTITY_ID: int = 2115
+const FACTORY_LOWER_DECK_BREACH_REAR_ENTITY_ID: int = 2116
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
@@ -36,6 +38,8 @@ const FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ACTIVATION_X: float = 1218.0
 const FACTORY_LOWER_DECK_PRESSURE_VALVE_ACTIVATION_X: float = 1240.0
 const FACTORY_LOWER_DECK_STEAM_SLUICE_ACTIVATION_X: float = 1248.0
 const FACTORY_LOWER_DECK_DEEP_BULKHEAD_ACTIVATION_X: float = 1252.0
+const FACTORY_LOWER_DECK_BREACH_CORRIDOR_ACTIVATION_X: float = 1256.0
+const FACTORY_LOWER_DECK_BREACH_PINCER_MIDPOINT_X: float = 1264.0
 const FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES: int = 18
 const FACTORY_CHECKPOINT_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES: int = 12
 const FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES: int = 30
@@ -73,6 +77,9 @@ const FACTORY_OBJECTIVE_STEAM_SLUICE_CLEARED: StringName = &"steam_sluice_cleare
 const FACTORY_OBJECTIVE_CLEAR_DEEP_BULKHEAD_GUARD: StringName = &"clear_deep_bulkhead_guard"
 const FACTORY_OBJECTIVE_OPEN_DEEP_BULKHEAD: StringName = &"open_deep_bulkhead"
 const FACTORY_OBJECTIVE_DEEP_BULKHEAD_OPENED: StringName = &"deep_bulkhead_opened"
+const FACTORY_OBJECTIVE_CLEAR_BREACH_CORRIDOR_AMBUSH: StringName = &"clear_breach_corridor_ambush"
+const FACTORY_OBJECTIVE_SURVIVE_BREACH_PINCER: StringName = &"survive_breach_pincer"
+const FACTORY_OBJECTIVE_BREACH_CORRIDOR_SECURED: StringName = &"breach_corridor_secured"
 const FACTORY_LOWER_DECK_PARRY_GATE_ID: StringName = &"old_factory_lower_deck_parry_laser"
 const FACTORY_LOWER_DECK_SHORTCUT_SEAL_ID: StringName = &"old_factory_lower_deck_shortcut_seal"
 const FACTORY_LOWER_DECK_PRESSURE_VALVE_ID: StringName = &"old_factory_lower_deck_pressure_valve"
@@ -123,6 +130,12 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_deep_bulkhead_spark_rat: Node2D = (
 	get_node_or_null("FactoryLowerDeckDeepBulkheadSparkRat") as Node2D
 )
+@onready var _lower_deck_breach_front_spark_rat: Node2D = (
+	get_node_or_null("FactoryLowerDeckBreachFrontSparkRat") as Node2D
+)
+@onready var _lower_deck_breach_rear_spark_rat: Node2D = (
+	get_node_or_null("FactoryLowerDeckBreachRearSparkRat") as Node2D
+)
 @onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
 	get_node_or_null("FactoryCheckpointOverdriveLeftDefeatBurst") as Sprite2D
 )
@@ -155,8 +168,14 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_steam_sluice_hazard: Area2D = (
 	get_node_or_null("FactoryLowerDeckSteamSluiceHazard") as Area2D
 )
+@onready var _lower_deck_breach_steam_hazard: Area2D = (
+	get_node_or_null("FactoryLowerDeckBreachSteamHazard") as Area2D
+)
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
+@onready var _post_bulkhead_background: TextureRect = (
+	get_node_or_null("PostBulkheadBackground") as TextureRect
+)
 
 var _last_player_hit_metadata: Dictionary = {}
 var _last_cache_reward: Dictionary = {}
@@ -211,6 +230,11 @@ var _lower_deck_steam_sluice_defeated: bool = false
 var _lower_deck_deep_bulkhead_guard_activated: bool = false
 var _lower_deck_deep_bulkhead_guard_defeated: bool = false
 var _lower_deck_deep_bulkhead_opened: bool = false
+var _lower_deck_breach_corridor_activated: bool = false
+var _lower_deck_breach_front_guard_defeated: bool = false
+var _lower_deck_breach_rear_ambusher_activated: bool = false
+var _lower_deck_breach_rear_ambusher_defeated: bool = false
+var _lower_deck_breach_corridor_secured: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -241,6 +265,7 @@ func _ready() -> void:
 	_setup_factory_lower_deck_pressure_valve()
 	_sync_lower_deck_steam_sluice_state()
 	_setup_factory_lower_deck_deep_bulkhead()
+	_sync_lower_deck_breach_corridor_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -340,6 +365,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_CLEAR_DEEP_BULKHEAD_GUARD
 		or objective_id == FACTORY_OBJECTIVE_OPEN_DEEP_BULKHEAD
 		or objective_id == FACTORY_OBJECTIVE_DEEP_BULKHEAD_OPENED
+		or objective_id == FACTORY_OBJECTIVE_BREACH_CORRIDOR_SECURED
 	)
 
 
@@ -992,6 +1018,48 @@ func try_open_factory_lower_deck_deep_bulkhead(provider: Node = null) -> bool:
 		return false
 	_lower_deck_deep_bulkhead_opened = true
 	_sync_lower_deck_deep_bulkhead_state()
+	_sync_lower_deck_breach_corridor_state()
+	_refresh_factory_route_objective()
+	return true
+
+
+## Attempts to activate the breach corridor ambush after the deep bulkhead opens.
+func try_activate_factory_lower_deck_breach_corridor_ambush(provider: Node = null) -> bool:
+	if (
+		_lower_deck_breach_front_spark_rat == null
+		or not _is_lower_deck_breach_corridor_available()
+		or _lower_deck_breach_corridor_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_breach_corridor_activation_provider_in_range(
+		activation_provider
+	):
+		return false
+	_lower_deck_breach_corridor_activated = true
+	_sync_lower_deck_breach_corridor_state()
+	_set_lower_deck_breach_front_attack_target(activation_provider)
+	_begin_lower_deck_breach_front_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	_refresh_factory_route_objective()
+	return true
+
+
+## Activates the rear ambusher once Cinderpaw pushes into the breach corridor midpoint.
+func try_activate_factory_lower_deck_breach_rear_ambusher(provider: Node = null) -> bool:
+	if (
+		_lower_deck_breach_rear_spark_rat == null
+		or not _is_lower_deck_breach_corridor_active()
+		or _lower_deck_breach_rear_ambusher_activated
+		or _lower_deck_breach_rear_ambusher_defeated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_breach_rear_activation_provider_in_range(activation_provider):
+		return false
+	_lower_deck_breach_rear_ambusher_activated = true
+	_sync_lower_deck_breach_corridor_state()
+	_set_lower_deck_breach_rear_attack_target(activation_provider)
+	_begin_lower_deck_breach_rear_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	_refresh_factory_route_objective()
 	return true
 
@@ -1175,6 +1243,21 @@ func get_local_state() -> Dictionary:
 			_lower_deck_deep_bulkhead_guard_defeated
 		),
 		"factory_lower_deck_deep_bulkhead_opened": _lower_deck_deep_bulkhead_opened,
+		"factory_lower_deck_breach_corridor_activated": (
+			_lower_deck_breach_corridor_activated
+		),
+		"factory_lower_deck_breach_front_guard_defeated": (
+			_lower_deck_breach_front_guard_defeated
+		),
+		"factory_lower_deck_breach_rear_ambusher_activated": (
+			_lower_deck_breach_rear_ambusher_activated
+		),
+		"factory_lower_deck_breach_rear_ambusher_defeated": (
+			_lower_deck_breach_rear_ambusher_defeated
+		),
+		"factory_lower_deck_breach_corridor_secured": (
+			_lower_deck_breach_corridor_secured
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -1347,6 +1430,29 @@ func set_local_state(state: Dictionary) -> void:
 	_lower_deck_deep_bulkhead_opened = bool(state.get(
 		"factory_lower_deck_deep_bulkhead_opened",
 		false
+	))
+	_lower_deck_breach_corridor_activated = bool(state.get(
+		"factory_lower_deck_breach_corridor_activated",
+		false
+	))
+	_lower_deck_breach_front_guard_defeated = bool(state.get(
+		"factory_lower_deck_breach_front_guard_defeated",
+		false
+	))
+	_lower_deck_breach_rear_ambusher_activated = bool(state.get(
+		"factory_lower_deck_breach_rear_ambusher_activated",
+		false
+	))
+	_lower_deck_breach_rear_ambusher_defeated = bool(state.get(
+		"factory_lower_deck_breach_rear_ambusher_defeated",
+		false
+	))
+	_lower_deck_breach_corridor_secured = bool(state.get(
+		"factory_lower_deck_breach_corridor_secured",
+		(
+			_lower_deck_breach_front_guard_defeated
+			and _lower_deck_breach_rear_ambusher_defeated
+		)
 	))
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -1585,6 +1691,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_pressure_valve_state()
 	_sync_lower_deck_steam_sluice_state()
 	_sync_lower_deck_deep_bulkhead_state()
+	_sync_lower_deck_breach_corridor_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -1614,6 +1721,10 @@ func set_local_state(state: Dictionary) -> void:
 		_begin_lower_deck_steam_sluice_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	if _is_lower_deck_deep_bulkhead_guard_active():
 		_begin_lower_deck_deep_bulkhead_guard_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	if _is_lower_deck_breach_front_active():
+		_begin_lower_deck_breach_front_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	if _is_lower_deck_breach_rear_active():
+		_begin_lower_deck_breach_rear_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
 		_update_route_label("Service Lift Departing")
@@ -2642,6 +2753,130 @@ func get_factory_lower_deck_deep_bulkhead_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic breach corridor ambush diagnostics for tests and MCP probes.
+func get_factory_lower_deck_breach_corridor_diagnostics() -> Dictionary:
+	var front_sprite: AnimatedSprite2D = (
+		_lower_deck_breach_front_spark_rat.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _lower_deck_breach_front_spark_rat != null
+		else null
+	)
+	var rear_sprite: AnimatedSprite2D = (
+		_lower_deck_breach_rear_spark_rat.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _lower_deck_breach_rear_spark_rat != null
+		else null
+	)
+	return {
+		"present": (
+			_lower_deck_breach_front_spark_rat != null
+			and _lower_deck_breach_rear_spark_rat != null
+			and _lower_deck_breach_steam_hazard != null
+		),
+		"available": _is_lower_deck_breach_corridor_available(),
+		"active": _is_lower_deck_breach_corridor_active(),
+		"secured": _is_lower_deck_breach_corridor_secured(),
+		"deep_bulkhead_opened": _lower_deck_deep_bulkhead_opened,
+		"activation_x": FACTORY_LOWER_DECK_BREACH_CORRIDOR_ACTIVATION_X,
+		"midpoint_x": FACTORY_LOWER_DECK_BREACH_PINCER_MIDPOINT_X,
+		"front_defeated": _lower_deck_breach_front_guard_defeated,
+		"front_visible": (
+			_lower_deck_breach_front_spark_rat.visible
+			if _lower_deck_breach_front_spark_rat != null
+			else false
+		),
+		"front_has_target": _does_lower_deck_breach_front_have_target(),
+		"front_physics_enabled": (
+			_lower_deck_breach_front_spark_rat.is_physics_processing()
+			if _lower_deck_breach_front_spark_rat != null
+			else false
+		),
+		"front_process_enabled": (
+			_lower_deck_breach_front_spark_rat.is_processing()
+			if _lower_deck_breach_front_spark_rat != null
+			else false
+		),
+		"front_entity_id": (
+			int(_lower_deck_breach_front_spark_rat.call("get_entity_id"))
+			if (
+				_lower_deck_breach_front_spark_rat != null
+				and _lower_deck_breach_front_spark_rat.has_method("get_entity_id")
+			)
+			else 0
+		),
+		"front_sprite_frames_path": (
+			front_sprite.sprite_frames.resource_path
+			if front_sprite != null and front_sprite.sprite_frames != null
+			else ""
+		),
+		"front_animation_frame_counts": _get_sprite_animation_frame_counts(front_sprite),
+		"front_pacing": _get_lower_deck_breach_front_pacing_diagnostics(),
+		"front_position": (
+			_lower_deck_breach_front_spark_rat.global_position
+			if _lower_deck_breach_front_spark_rat != null
+			else Vector2.ZERO
+		),
+		"rear_activated": _lower_deck_breach_rear_ambusher_activated,
+		"rear_defeated": _lower_deck_breach_rear_ambusher_defeated,
+		"rear_visible": (
+			_lower_deck_breach_rear_spark_rat.visible
+			if _lower_deck_breach_rear_spark_rat != null
+			else false
+		),
+		"rear_has_target": _does_lower_deck_breach_rear_have_target(),
+		"rear_physics_enabled": (
+			_lower_deck_breach_rear_spark_rat.is_physics_processing()
+			if _lower_deck_breach_rear_spark_rat != null
+			else false
+		),
+		"rear_process_enabled": (
+			_lower_deck_breach_rear_spark_rat.is_processing()
+			if _lower_deck_breach_rear_spark_rat != null
+			else false
+		),
+		"rear_entity_id": (
+			int(_lower_deck_breach_rear_spark_rat.call("get_entity_id"))
+			if (
+				_lower_deck_breach_rear_spark_rat != null
+				and _lower_deck_breach_rear_spark_rat.has_method("get_entity_id")
+			)
+			else 0
+		),
+		"rear_sprite_frames_path": (
+			rear_sprite.sprite_frames.resource_path
+			if rear_sprite != null and rear_sprite.sprite_frames != null
+			else ""
+		),
+		"rear_animation_frame_counts": _get_sprite_animation_frame_counts(rear_sprite),
+		"rear_pacing": _get_lower_deck_breach_rear_pacing_diagnostics(),
+		"rear_position": (
+			_lower_deck_breach_rear_spark_rat.global_position
+			if _lower_deck_breach_rear_spark_rat != null
+			else Vector2.ZERO
+		),
+		"hazard_present": _lower_deck_breach_steam_hazard != null,
+		"hazard_active": _is_hazard_contact_active(_lower_deck_breach_steam_hazard),
+		"hazard_visible": (
+			_lower_deck_breach_steam_hazard.visible
+			if _lower_deck_breach_steam_hazard != null
+			else false
+		),
+		"hazard_id": String(_get_hazard_id(_lower_deck_breach_steam_hazard)),
+		"hazard_texture_path": (
+			String(_lower_deck_breach_steam_hazard.call("get_visual_texture_path"))
+			if (
+				_lower_deck_breach_steam_hazard != null
+				and _lower_deck_breach_steam_hazard.has_method("get_visual_texture_path")
+			)
+			else ""
+		),
+		"post_bulkhead_background_visible": (
+			_post_bulkhead_background.visible
+			if _post_bulkhead_background != null
+			else false
+		),
+		"post_bulkhead_background_texture_path": _get_post_bulkhead_background_texture_path(),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -2877,6 +3112,17 @@ func get_factory_route_objective_diagnostics() -> Dictionary:
 			_lower_deck_deep_bulkhead_guard_defeated
 		),
 		"lower_deck_deep_bulkhead_opened": _lower_deck_deep_bulkhead_opened,
+		"lower_deck_breach_corridor_activated": _lower_deck_breach_corridor_activated,
+		"lower_deck_breach_front_guard_defeated": (
+			_lower_deck_breach_front_guard_defeated
+		),
+		"lower_deck_breach_rear_ambusher_activated": (
+			_lower_deck_breach_rear_ambusher_activated
+		),
+		"lower_deck_breach_rear_ambusher_defeated": (
+			_lower_deck_breach_rear_ambusher_defeated
+		),
+		"lower_deck_breach_corridor_secured": _lower_deck_breach_corridor_secured,
 		"route_label_visible": route_label.visible if route_label != null else false,
 		"route_label_text": route_label.text if route_label != null else "",
 	}
@@ -2959,6 +3205,9 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 			"lower_deck_pressure_valve": get_factory_lower_deck_pressure_valve_diagnostics(),
 			"lower_deck_steam_sluice": get_factory_lower_deck_steam_sluice_diagnostics(),
 			"lower_deck_deep_bulkhead": get_factory_lower_deck_deep_bulkhead_diagnostics(),
+			"lower_deck_breach_corridor": (
+				get_factory_lower_deck_breach_corridor_diagnostics()
+			),
 			"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
 			get_factory_checkpoint_overdrive_reward_cache_diagnostics()
@@ -3313,6 +3562,20 @@ func _bind_enemy_to_player() -> void:
 		FACTORY_LOWER_DECK_DEEP_BULKHEAD_ENTITY_ID,
 		&"factory_lower_deck_deep_bulkhead_spark_rat",
 		_on_factory_lower_deck_deep_bulkhead_guard_defeated
+	)
+	_bind_factory_guard(
+		_lower_deck_breach_front_spark_rat,
+		&"old_factory_lower_deck_breach_corridor",
+		FACTORY_LOWER_DECK_BREACH_FRONT_ENTITY_ID,
+		&"factory_lower_deck_breach_front_spark_rat",
+		_on_factory_lower_deck_breach_front_guard_defeated
+	)
+	_bind_factory_guard(
+		_lower_deck_breach_rear_spark_rat,
+		&"old_factory_lower_deck_breach_corridor",
+		FACTORY_LOWER_DECK_BREACH_REAR_ENTITY_ID,
+		&"factory_lower_deck_breach_rear_spark_rat",
+		_on_factory_lower_deck_breach_rear_ambusher_defeated
 	)
 
 
@@ -3690,6 +3953,25 @@ func _on_factory_lower_deck_deep_bulkhead_guard_defeated() -> void:
 	_lower_deck_deep_bulkhead_guard_activated = true
 	_lower_deck_deep_bulkhead_guard_defeated = true
 	_sync_lower_deck_deep_bulkhead_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_lower_deck_breach_front_guard_defeated() -> void:
+	_lower_deck_breach_corridor_activated = true
+	_lower_deck_breach_front_guard_defeated = true
+	if _lower_deck_breach_rear_ambusher_defeated:
+		_lower_deck_breach_corridor_secured = true
+	_sync_lower_deck_breach_corridor_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_lower_deck_breach_rear_ambusher_defeated() -> void:
+	_lower_deck_breach_corridor_activated = true
+	_lower_deck_breach_rear_ambusher_activated = true
+	_lower_deck_breach_rear_ambusher_defeated = true
+	if _lower_deck_breach_front_guard_defeated:
+		_lower_deck_breach_corridor_secured = true
+	_sync_lower_deck_breach_corridor_state()
 	_refresh_factory_route_objective()
 
 
@@ -4305,6 +4587,59 @@ func _sync_lower_deck_deep_bulkhead_state() -> void:
 	)
 
 
+func _sync_lower_deck_breach_corridor_state() -> void:
+	var front_active: bool = _is_lower_deck_breach_front_active()
+	if _lower_deck_breach_front_spark_rat != null:
+		_lower_deck_breach_front_spark_rat.visible = front_active
+		_lower_deck_breach_front_spark_rat.set_physics_process(front_active)
+		_lower_deck_breach_front_spark_rat.set_process(front_active)
+		_lower_deck_breach_front_spark_rat.collision_layer = (
+			FACTORY_RAT_MINION_COLLISION_LAYER if front_active else 0
+		)
+		_lower_deck_breach_front_spark_rat.collision_mask = (
+			FACTORY_RAT_MINION_COLLISION_MASK if front_active else 0
+		)
+		_set_lower_deck_breach_front_attack_target(_player if front_active else null)
+
+	var rear_active: bool = _is_lower_deck_breach_rear_active()
+	if _lower_deck_breach_rear_spark_rat != null:
+		_lower_deck_breach_rear_spark_rat.visible = rear_active
+		_lower_deck_breach_rear_spark_rat.set_physics_process(rear_active)
+		_lower_deck_breach_rear_spark_rat.set_process(rear_active)
+		_lower_deck_breach_rear_spark_rat.collision_layer = (
+			FACTORY_RAT_MINION_COLLISION_LAYER if rear_active else 0
+		)
+		_lower_deck_breach_rear_spark_rat.collision_mask = (
+			FACTORY_RAT_MINION_COLLISION_MASK if rear_active else 0
+		)
+		_set_lower_deck_breach_rear_attack_target(_player if rear_active else null)
+
+	var hazard_active: bool = _is_lower_deck_breach_corridor_active()
+	if _lower_deck_breach_steam_hazard != null:
+		_lower_deck_breach_steam_hazard.visible = hazard_active
+		_lower_deck_breach_steam_hazard.monitoring = hazard_active
+		_lower_deck_breach_steam_hazard.monitorable = hazard_active
+		_lower_deck_breach_steam_hazard.collision_layer = (
+			CollisionComponent.COLLISION_LAYER_ENVIRONMENT if hazard_active else 0
+		)
+		_lower_deck_breach_steam_hazard.collision_mask = (
+			CollisionComponent.COLLISION_MASK_ENVIRONMENT if hazard_active else 0
+		)
+		var collision_shape := (
+			_lower_deck_breach_steam_hazard.get_node_or_null("CollisionShape2D")
+			as CollisionShape2D
+		)
+		if collision_shape != null:
+			collision_shape.disabled = not hazard_active
+
+	if _post_bulkhead_background != null:
+		_post_bulkhead_background.visible = (
+			_lower_deck_deep_bulkhead_opened
+			or _lower_deck_breach_corridor_activated
+			or _lower_deck_breach_corridor_secured
+		)
+
+
 func _sync_lower_deck_parry_gate_state() -> void:
 	if _lower_deck_parry_gate == null:
 		return
@@ -4459,6 +4794,21 @@ func _get_factory_route_objective_id() -> StringName:
 		and not _lower_deck_deep_bulkhead_opened
 	):
 		return FACTORY_OBJECTIVE_OPEN_DEEP_BULKHEAD
+	if _lower_deck_breach_corridor_secured:
+		return FACTORY_OBJECTIVE_BREACH_CORRIDOR_SECURED
+	if (
+		_lower_deck_breach_rear_ambusher_activated
+		and not _lower_deck_breach_rear_ambusher_defeated
+	):
+		return FACTORY_OBJECTIVE_SURVIVE_BREACH_PINCER
+	if (
+		_lower_deck_breach_corridor_activated
+		and _lower_deck_breach_front_guard_defeated
+		and not _lower_deck_breach_rear_ambusher_defeated
+	):
+		return FACTORY_OBJECTIVE_SURVIVE_BREACH_PINCER
+	if _lower_deck_breach_corridor_activated and not _lower_deck_breach_front_guard_defeated:
+		return FACTORY_OBJECTIVE_CLEAR_BREACH_CORRIDOR_AMBUSH
 	if _lower_deck_deep_bulkhead_opened:
 		return FACTORY_OBJECTIVE_DEEP_BULKHEAD_OPENED
 	if _lower_deck_steam_sluice_defeated:
@@ -4556,6 +4906,12 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Open Deep Bulkhead"
 		FACTORY_OBJECTIVE_DEEP_BULKHEAD_OPENED:
 			return "Deep Bulkhead Opened"
+		FACTORY_OBJECTIVE_CLEAR_BREACH_CORRIDOR_AMBUSH:
+			return "Clear Breach Corridor Ambush"
+		FACTORY_OBJECTIVE_SURVIVE_BREACH_PINCER:
+			return "Survive Breach Pincer"
+		FACTORY_OBJECTIVE_BREACH_CORRIDOR_SECURED:
+			return "Breach Corridor Secured"
 		_:
 			return "Clear Factory Entrance"
 
@@ -4912,6 +5268,17 @@ func _get_lower_deck_deep_bulkhead_position() -> Vector2:
 	)
 
 
+func _get_post_bulkhead_background_texture_path() -> String:
+	return (
+		_post_bulkhead_background.texture.resource_path
+		if (
+			_post_bulkhead_background != null
+			and _post_bulkhead_background.texture != null
+		)
+		else ""
+	)
+
+
 func _is_lower_deck_deep_bulkhead_collision_blocking() -> bool:
 	var collision_shape := _get_lower_deck_deep_bulkhead_collision_shape()
 	return collision_shape != null and not collision_shape.disabled
@@ -5062,6 +5429,8 @@ func _get_factory_hazards() -> Array[Area2D]:
 		hazards.append(_lower_deck_steam_vent)
 	if _lower_deck_steam_sluice_hazard != null:
 		hazards.append(_lower_deck_steam_sluice_hazard)
+	if _lower_deck_breach_steam_hazard != null:
+		hazards.append(_lower_deck_breach_steam_hazard)
 	return hazards
 
 
@@ -5337,6 +5706,22 @@ func _set_lower_deck_deep_bulkhead_guard_attack_target(attack_target: Node) -> v
 		_lower_deck_deep_bulkhead_spark_rat.call("set_attack_target", attack_target)
 
 
+func _set_lower_deck_breach_front_attack_target(attack_target: Node) -> void:
+	if (
+		_lower_deck_breach_front_spark_rat != null
+		and _lower_deck_breach_front_spark_rat.has_method("set_attack_target")
+	):
+		_lower_deck_breach_front_spark_rat.call("set_attack_target", attack_target)
+
+
+func _set_lower_deck_breach_rear_attack_target(attack_target: Node) -> void:
+	if (
+		_lower_deck_breach_rear_spark_rat != null
+		and _lower_deck_breach_rear_spark_rat.has_method("set_attack_target")
+	):
+		_lower_deck_breach_rear_spark_rat.call("set_attack_target", attack_target)
+
+
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
 		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
@@ -5457,6 +5842,30 @@ func _begin_lower_deck_deep_bulkhead_guard_pacing(opening_grace_frames: int) -> 
 		and not _lower_deck_deep_bulkhead_guard_defeated
 	):
 		_lower_deck_deep_bulkhead_spark_rat.call(
+			"begin_pacing",
+			maxi(0, opening_grace_frames)
+		)
+
+
+func _begin_lower_deck_breach_front_pacing(opening_grace_frames: int) -> void:
+	if (
+		_lower_deck_breach_front_spark_rat != null
+		and _lower_deck_breach_front_spark_rat.has_method("begin_pacing")
+		and not _lower_deck_breach_front_guard_defeated
+	):
+		_lower_deck_breach_front_spark_rat.call(
+			"begin_pacing",
+			maxi(0, opening_grace_frames)
+		)
+
+
+func _begin_lower_deck_breach_rear_pacing(opening_grace_frames: int) -> void:
+	if (
+		_lower_deck_breach_rear_spark_rat != null
+		and _lower_deck_breach_rear_spark_rat.has_method("begin_pacing")
+		and not _lower_deck_breach_rear_ambusher_defeated
+	):
+		_lower_deck_breach_rear_spark_rat.call(
 			"begin_pacing",
 			maxi(0, opening_grace_frames)
 		)
@@ -5720,6 +6129,40 @@ func _get_lower_deck_deep_bulkhead_guard_pacing_diagnostics() -> Dictionary:
 	}
 
 
+func _get_lower_deck_breach_front_pacing_diagnostics() -> Dictionary:
+	if (
+		_lower_deck_breach_front_spark_rat != null
+		and _lower_deck_breach_front_spark_rat.has_method("get_pacing_diagnostics")
+	):
+		var pacing_variant: Variant = _lower_deck_breach_front_spark_rat.call(
+			"get_pacing_diagnostics"
+		)
+		if pacing_variant is Dictionary:
+			return (pacing_variant as Dictionary).duplicate(true)
+	return {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+	}
+
+
+func _get_lower_deck_breach_rear_pacing_diagnostics() -> Dictionary:
+	if (
+		_lower_deck_breach_rear_spark_rat != null
+		and _lower_deck_breach_rear_spark_rat.has_method("get_pacing_diagnostics")
+	):
+		var pacing_variant: Variant = _lower_deck_breach_rear_spark_rat.call(
+			"get_pacing_diagnostics"
+		)
+		if pacing_variant is Dictionary:
+			return (pacing_variant as Dictionary).duplicate(true)
+	return {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+	}
+
+
 func _does_deep_guard_have_target() -> bool:
 	if _deep_guard == null:
 		return false
@@ -5841,6 +6284,22 @@ func _does_lower_deck_deep_bulkhead_guard_have_target() -> bool:
 	return _is_lower_deck_deep_bulkhead_guard_active()
 
 
+func _does_lower_deck_breach_front_have_target() -> bool:
+	if _lower_deck_breach_front_spark_rat == null:
+		return false
+	if _lower_deck_breach_front_spark_rat.has_method("has_attack_target"):
+		return bool(_lower_deck_breach_front_spark_rat.call("has_attack_target"))
+	return _is_lower_deck_breach_front_active()
+
+
+func _does_lower_deck_breach_rear_have_target() -> bool:
+	if _lower_deck_breach_rear_spark_rat == null:
+		return false
+	if _lower_deck_breach_rear_spark_rat.has_method("has_attack_target"):
+		return bool(_lower_deck_breach_rear_spark_rat.call("has_attack_target"))
+	return _is_lower_deck_breach_rear_active()
+
+
 func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> void:
 	if not _is_factory_damage_target_defeated(damage_target):
 		return
@@ -5890,6 +6349,12 @@ func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> 
 		FACTORY_LOWER_DECK_DEEP_BULKHEAD_ENTITY_ID:
 			if not _lower_deck_deep_bulkhead_guard_defeated:
 				_on_factory_lower_deck_deep_bulkhead_guard_defeated()
+		FACTORY_LOWER_DECK_BREACH_FRONT_ENTITY_ID:
+			if not _lower_deck_breach_front_guard_defeated:
+				_on_factory_lower_deck_breach_front_guard_defeated()
+		FACTORY_LOWER_DECK_BREACH_REAR_ENTITY_ID:
+			if not _lower_deck_breach_rear_ambusher_defeated:
+				_on_factory_lower_deck_breach_rear_ambusher_defeated()
 
 
 func _is_factory_damage_target_defeated(damage_target: Node) -> bool:
@@ -5976,6 +6441,24 @@ func _is_lower_deck_deep_bulkhead_guard_activation_provider_in_range(provider: N
 	)
 
 
+func _is_lower_deck_breach_corridor_activation_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_BREACH_CORRIDOR_ACTIVATION_X
+	)
+
+
+func _is_lower_deck_breach_rear_activation_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_BREACH_PINCER_MIDPOINT_X
+	)
+
+
 func _is_return_checkpoint_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -6012,6 +6495,8 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 			_lower_deck_pressure_guard_spark_rat,
 			_lower_deck_steam_sluice_spark_rat,
 			_lower_deck_deep_bulkhead_spark_rat,
+			_lower_deck_breach_front_spark_rat,
+			_lower_deck_breach_rear_spark_rat,
 		]:
 		if guard == null or not guard.has_method("get_entity_id"):
 			continue
@@ -6161,6 +6646,53 @@ func _is_lower_deck_deep_bulkhead_guard_active() -> bool:
 
 func _is_lower_deck_deep_bulkhead_available() -> bool:
 	return _lower_deck_deep_bulkhead_guard_defeated and not _lower_deck_deep_bulkhead_opened
+
+
+func _is_lower_deck_breach_corridor_available() -> bool:
+	return (
+		_lower_deck_deep_bulkhead_opened
+		and not _lower_deck_breach_corridor_secured
+	)
+
+
+func _is_lower_deck_breach_front_active() -> bool:
+	return (
+		_lower_deck_breach_corridor_activated
+		and _lower_deck_deep_bulkhead_opened
+		and not _lower_deck_breach_front_guard_defeated
+		and not _lower_deck_breach_corridor_secured
+	)
+
+
+func _is_lower_deck_breach_rear_active() -> bool:
+	return (
+		_lower_deck_breach_rear_ambusher_activated
+		and _lower_deck_deep_bulkhead_opened
+		and not _lower_deck_breach_rear_ambusher_defeated
+		and not _lower_deck_breach_corridor_secured
+	)
+
+
+func _is_lower_deck_breach_corridor_active() -> bool:
+	return (
+		_lower_deck_breach_corridor_activated
+		and _lower_deck_deep_bulkhead_opened
+		and not _lower_deck_breach_corridor_secured
+		and (
+			not _lower_deck_breach_front_guard_defeated
+			or not _lower_deck_breach_rear_ambusher_defeated
+		)
+	)
+
+
+func _is_lower_deck_breach_corridor_secured() -> bool:
+	return (
+		_lower_deck_breach_corridor_secured
+		or (
+			_lower_deck_breach_front_guard_defeated
+			and _lower_deck_breach_rear_ambusher_defeated
+		)
+	)
 
 
 func _is_checkpoint_overdrive_duo_cleared() -> bool:

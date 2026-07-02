@@ -1,0 +1,17 @@
+{
+  "asset_id": "old_factory_lower_deck_post_bulkhead_backdrop",
+  "generated_at": "2026-07-02",
+  "generator": "image generation",
+  "source_path": "assets/generated/source/old_factory_lower_deck_post_bulkhead_backdrop_imagegen_20260702.png",
+  "runtime_path": "assets/environment/old_factory_lower_deck_post_bulkhead/env_old_factory_lower_deck_post_bulkhead_backdrop_1280x720.png",
+  "runtime_dimensions": "1280x720",
+  "processing": [
+    "generated as 16:9 RGB pixel-art background",
+    "resized to 1280x720 runtime PNG"
+  ],
+  "prompt_summary": "Pixel-art Old Factory lower-deck chamber beyond a heavy bulkhead door with rusted grated floor, lower ceiling pipes, damp steam stains, steel-blue factory shadows, restrained rust-orange hazard panels, amber cat-eye guide lights, no text, no UI, no characters, and a readable side-scroller gameplay lane.",
+  "usage": [
+    "scenes/factory_route_transition_shell.tscn:PostBulkheadBackground",
+    "production/epics/player-abilities/story-061-old-factory-lower-deck-breach-corridor-ambush.md"
+  ]
+}
