@@ -18,6 +18,7 @@ const FACTORY_CHECKPOINT_REAR_SPARK_RAT_ENTITY_ID: int = 2105
 const FACTORY_CHECKPOINT_OVERDRIVE_LEFT_SPARK_RAT_ENTITY_ID: int = 2106
 const FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_SPARK_RAT_ENTITY_ID: int = 2107
 const FACTORY_LOWER_DECK_SPARK_RAT_ENTITY_ID: int = 2108
+const FACTORY_LOWER_DECK_EXIT_SPARK_RAT_ENTITY_ID: int = 2109
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
@@ -47,6 +48,9 @@ const FACTORY_OBJECTIVE_CLEAR_CHECKPOINT_OVERDRIVE_DUO: StringName = &"clear_che
 const FACTORY_OBJECTIVE_CHECKPOINT_OVERDRIVE_DUO_CLEARED: StringName = &"checkpoint_overdrive_duo_cleared"
 const FACTORY_OBJECTIVE_CLEAR_LOWER_DECK_SKIRMISH: StringName = &"clear_lower_deck_skirmish"
 const FACTORY_OBJECTIVE_LOWER_DECK_CLEARED: StringName = &"lower_deck_cleared"
+const FACTORY_OBJECTIVE_CLEAR_LOWER_DECK_EXIT_AMBUSH: StringName = &"clear_lower_deck_exit_ambush"
+const FACTORY_OBJECTIVE_LOWER_DECK_EXIT_CLEARED: StringName = &"lower_deck_exit_cleared"
+const FACTORY_LOWER_DECK_PARRY_GATE_ID: StringName = &"old_factory_lower_deck_parry_laser"
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
 const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
 const FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT: StringName = &"scrap_roost"
@@ -75,6 +79,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_spark_rat: Node2D = (
 	get_node_or_null("FactoryLowerDeckSparkRat") as Node2D
 )
+@onready var _lower_deck_exit_spark_rat: Node2D = (
+	get_node_or_null("FactoryLowerDeckExitSparkRat") as Node2D
+)
 @onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
 	get_node_or_null("FactoryCheckpointOverdriveLeftDefeatBurst") as Sprite2D
 )
@@ -89,6 +96,7 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 	"FactoryCheckpointOverdriveRewardCache"
 )
 @onready var _lower_deck_reward_cache: Node = get_node_or_null("FactoryLowerDeckRewardCache")
+@onready var _lower_deck_parry_gate: Node = get_node_or_null("FactoryLowerDeckParryLaserGate")
 @onready var _return_checkpoint: Node = get_node_or_null("FactoryReturnCheckpoint")
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
@@ -134,6 +142,9 @@ var _checkpoint_overdrive_reward_cache_claimed: bool = false
 var _lower_deck_skirmish_activated: bool = false
 var _lower_deck_skirmish_defeated: bool = false
 var _lower_deck_reward_cache_claimed: bool = false
+var _lower_deck_parry_gate_unlocked: bool = false
+var _lower_deck_exit_ambush_activated: bool = false
+var _lower_deck_exit_ambush_defeated: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -157,6 +168,7 @@ func _ready() -> void:
 	_setup_factory_return_patrol_reward_cache()
 	_setup_factory_checkpoint_overdrive_reward_cache()
 	_setup_factory_lower_deck_reward_cache()
+	_setup_factory_lower_deck_parry_gate()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -249,6 +261,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_RETURN_PATROL_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_CHECKPOINT_OVERDRIVE_DUO_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_LOWER_DECK_CLEARED
+		or objective_id == FACTORY_OBJECTIVE_LOWER_DECK_EXIT_CLEARED
 	)
 
 
@@ -408,6 +421,25 @@ func try_activate_factory_lower_deck_skirmish(provider: Node = null) -> bool:
 	_sync_lower_deck_reward_cache_state()
 	_set_lower_deck_spark_rat_attack_target(activation_provider)
 	_begin_lower_deck_spark_rat_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	_refresh_factory_route_objective()
+	return true
+
+
+## Activates the optional lower-deck exit ambush after the parry-laser gate opens.
+func try_activate_factory_lower_deck_exit_ambush(provider: Node = null) -> bool:
+	if (
+		_lower_deck_exit_spark_rat == null
+		or not _lower_deck_reward_cache_claimed
+		or not _lower_deck_parry_gate_unlocked
+		or _lower_deck_exit_ambush_defeated
+		or _lower_deck_exit_ambush_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	_lower_deck_exit_ambush_activated = true
+	_sync_lower_deck_exit_ambush_state()
+	_set_lower_deck_exit_spark_rat_attack_target(activation_provider)
+	_begin_lower_deck_exit_spark_rat_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	_refresh_factory_route_objective()
 	return true
 
@@ -831,6 +863,12 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_skirmish_opening_grace_frames": (
 			_get_lower_deck_skirmish_opening_grace_frames()
 		),
+		"factory_lower_deck_parry_gate_unlocked": _lower_deck_parry_gate_unlocked,
+		"factory_lower_deck_exit_ambush_activated": _lower_deck_exit_ambush_activated,
+		"factory_lower_deck_exit_ambush_defeated": _lower_deck_exit_ambush_defeated,
+		"factory_lower_deck_exit_ambush_opening_grace_frames": (
+			_get_lower_deck_exit_ambush_opening_grace_frames()
+		),
 		"factory_return_patrol_reward_cache_claimed": _return_patrol_reward_cache_claimed,
 		"factory_checkpoint_overdrive_reward_cache_claimed": (
 			_checkpoint_overdrive_reward_cache_claimed
@@ -921,6 +959,18 @@ func set_local_state(state: Dictionary) -> void:
 	))
 	_lower_deck_skirmish_defeated = bool(state.get(
 		"factory_lower_deck_skirmish_defeated",
+		false
+	))
+	_lower_deck_parry_gate_unlocked = bool(state.get(
+		"factory_lower_deck_parry_gate_unlocked",
+		false
+	))
+	_lower_deck_exit_ambush_activated = bool(state.get(
+		"factory_lower_deck_exit_ambush_activated",
+		false
+	))
+	_lower_deck_exit_ambush_defeated = bool(state.get(
+		"factory_lower_deck_exit_ambush_defeated",
 		false
 	))
 	_return_patrol_reward_cache_claimed = bool(state.get(
@@ -1014,6 +1064,14 @@ func set_local_state(state: Dictionary) -> void:
 		(
 			FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES
 			if _lower_deck_skirmish_activated and not _lower_deck_skirmish_defeated
+			else 0
+		)
+	))
+	var lower_deck_exit_opening_grace_frames: int = int(state.get(
+		"factory_lower_deck_exit_ambush_opening_grace_frames",
+		(
+			FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES
+			if _lower_deck_exit_ambush_activated and not _lower_deck_exit_ambush_defeated
 			else 0
 		)
 	))
@@ -1127,6 +1185,8 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_checkpoint_steam_vent_state()
 	_sync_lower_deck_skirmish_state()
 	_sync_lower_deck_pressure_hazard_state()
+	_sync_lower_deck_parry_gate_state()
+	_sync_lower_deck_exit_ambush_state()
 	_sync_return_patrol_reward_cache_state()
 	_sync_checkpoint_overdrive_reward_cache_state()
 	_sync_lower_deck_reward_cache_state()
@@ -1147,6 +1207,8 @@ func set_local_state(state: Dictionary) -> void:
 		)
 	if _lower_deck_skirmish_activated and not _lower_deck_skirmish_defeated:
 		_begin_lower_deck_spark_rat_pacing(lower_deck_opening_grace_frames)
+	if _lower_deck_exit_ambush_activated and not _lower_deck_exit_ambush_defeated:
+		_begin_lower_deck_exit_spark_rat_pacing(lower_deck_exit_opening_grace_frames)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
 		_update_route_label("Service Lift Departing")
@@ -1692,6 +1754,86 @@ func get_factory_lower_deck_skirmish_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic lower-deck parry-laser gate diagnostics.
+func get_factory_lower_deck_parry_gate_diagnostics() -> Dictionary:
+	var gate_position: Vector2 = (
+		(_lower_deck_parry_gate as Node2D).global_position
+		if _lower_deck_parry_gate != null and _lower_deck_parry_gate is Node2D
+		else Vector2.ZERO
+	)
+	return {
+		"present": _lower_deck_parry_gate != null,
+		"available": _is_lower_deck_parry_gate_available(),
+		"unlocked": _lower_deck_parry_gate_unlocked,
+		"gate_id": _get_lower_deck_parry_gate_id(),
+		"required_ability": _get_lower_deck_parry_gate_required_ability(),
+		"gate_state": _get_lower_deck_parry_gate_state(),
+		"collision_blocking": _is_lower_deck_parry_gate_collision_blocking(),
+		"visual_texture_path": _get_lower_deck_parry_gate_visual_texture_path(),
+		"prompt_text": _get_lower_deck_parry_gate_prompt_text(),
+		"position": gate_position,
+		"visible": _lower_deck_parry_gate.visible if _lower_deck_parry_gate != null else false,
+		"provider_in_range": (
+			bool(_lower_deck_parry_gate.call("is_provider_in_unlock_range"))
+			if (
+				_lower_deck_parry_gate != null
+				and _lower_deck_parry_gate.has_method("is_provider_in_unlock_range")
+			)
+			else false
+		),
+	}
+
+
+## Returns deterministic lower-deck exit ambush diagnostics.
+func get_factory_lower_deck_exit_ambush_diagnostics() -> Dictionary:
+	var sprite: AnimatedSprite2D = (
+		_lower_deck_exit_spark_rat.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _lower_deck_exit_spark_rat != null
+		else null
+	)
+	return {
+		"present": _lower_deck_exit_spark_rat != null,
+		"available": _lower_deck_reward_cache_claimed and not _lower_deck_exit_ambush_defeated,
+		"active": _is_lower_deck_exit_ambush_active(),
+		"defeated": _lower_deck_exit_ambush_defeated,
+		"gate_unlocked": _lower_deck_parry_gate_unlocked,
+		"enemy_visible": (
+			_lower_deck_exit_spark_rat.visible if _lower_deck_exit_spark_rat != null else false
+		),
+		"enemy_has_target": _does_lower_deck_exit_spark_rat_have_target(),
+		"enemy_physics_enabled": (
+			_lower_deck_exit_spark_rat.is_physics_processing()
+			if _lower_deck_exit_spark_rat != null
+			else false
+		),
+		"enemy_process_enabled": (
+			_lower_deck_exit_spark_rat.is_processing()
+			if _lower_deck_exit_spark_rat != null
+			else false
+		),
+		"entity_id": (
+			int(_lower_deck_exit_spark_rat.call("get_entity_id"))
+			if (
+				_lower_deck_exit_spark_rat != null
+				and _lower_deck_exit_spark_rat.has_method("get_entity_id")
+			)
+			else 0
+		),
+		"sprite_frames_path": (
+			sprite.sprite_frames.resource_path
+			if sprite != null and sprite.sprite_frames != null
+			else ""
+		),
+		"animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
+		"pacing": _get_lower_deck_exit_ambush_pacing_diagnostics(),
+		"position": (
+			_lower_deck_exit_spark_rat.global_position
+			if _lower_deck_exit_spark_rat != null
+			else Vector2.ZERO
+		),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -1911,6 +2053,9 @@ func get_factory_route_objective_diagnostics() -> Dictionary:
 		"checkpoint_overdrive_duo_cleared": _is_checkpoint_overdrive_duo_cleared(),
 		"lower_deck_skirmish_activated": _lower_deck_skirmish_activated,
 		"lower_deck_skirmish_defeated": _lower_deck_skirmish_defeated,
+		"lower_deck_parry_gate_unlocked": _lower_deck_parry_gate_unlocked,
+		"lower_deck_exit_ambush_activated": _lower_deck_exit_ambush_activated,
+		"lower_deck_exit_ambush_defeated": _lower_deck_exit_ambush_defeated,
 		"route_label_visible": route_label.visible if route_label != null else false,
 		"route_label_text": route_label.text if route_label != null else "",
 	}
@@ -1981,6 +2126,8 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		"checkpoint_rear_ambush": get_factory_checkpoint_rear_ambush_diagnostics(),
 		"checkpoint_overdrive_duo": get_factory_checkpoint_overdrive_duo_diagnostics(),
 		"lower_deck_skirmish": get_factory_lower_deck_skirmish_diagnostics(),
+		"lower_deck_parry_gate": get_factory_lower_deck_parry_gate_diagnostics(),
+		"lower_deck_exit_ambush": get_factory_lower_deck_exit_ambush_diagnostics(),
 		"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
 			get_factory_checkpoint_overdrive_reward_cache_diagnostics()
@@ -2294,6 +2441,13 @@ func _bind_enemy_to_player() -> void:
 		&"factory_lower_deck_spark_rat",
 		_on_factory_lower_deck_spark_rat_defeated
 	)
+	_bind_factory_guard(
+		_lower_deck_exit_spark_rat,
+		&"old_factory_lower_deck_exit_ambush",
+		FACTORY_LOWER_DECK_EXIT_SPARK_RAT_ENTITY_ID,
+		&"factory_lower_deck_exit_spark_rat",
+		_on_factory_lower_deck_exit_spark_rat_defeated
+	)
 
 
 func _setup_factory_cache() -> void:
@@ -2338,6 +2492,19 @@ func _setup_factory_lower_deck_reward_cache() -> void:
 	var claimed_signal: Signal = _lower_deck_reward_cache.get("cache_claimed")
 	if not claimed_signal.is_connected(_on_factory_lower_deck_reward_cache_claimed):
 		claimed_signal.connect(_on_factory_lower_deck_reward_cache_claimed)
+
+
+func _setup_factory_lower_deck_parry_gate() -> void:
+	_sync_lower_deck_parry_gate_state()
+	if _lower_deck_parry_gate == null:
+		return
+	if _lower_deck_parry_gate.has_method("set_ability_provider"):
+		_lower_deck_parry_gate.call("set_ability_provider", _player)
+	if not _lower_deck_parry_gate.has_signal("gate_state_changed"):
+		return
+	var gate_signal: Signal = _lower_deck_parry_gate.get("gate_state_changed")
+	if not gate_signal.is_connected(_on_factory_lower_deck_parry_gate_state_changed):
+		gate_signal.connect(_on_factory_lower_deck_parry_gate_state_changed)
 
 
 func _setup_factory_return_checkpoint() -> void:
@@ -2427,6 +2594,7 @@ func _setup_factory_spark_rat() -> void:
 	_sync_checkpoint_rear_ambush_state()
 	_sync_checkpoint_overdrive_duo_state()
 	_sync_lower_deck_skirmish_state()
+	_sync_lower_deck_exit_ambush_state()
 
 
 func _setup_factory_service_lift() -> void:
@@ -2565,6 +2733,26 @@ func _on_factory_lower_deck_spark_rat_defeated() -> void:
 	_refresh_factory_route_objective()
 
 
+func _on_factory_lower_deck_exit_spark_rat_defeated() -> void:
+	_lower_deck_parry_gate_unlocked = true
+	_lower_deck_exit_ambush_activated = true
+	_lower_deck_exit_ambush_defeated = true
+	_sync_lower_deck_parry_gate_state()
+	_sync_lower_deck_exit_ambush_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_lower_deck_parry_gate_state_changed(
+	gate_id: StringName,
+	gate_state: StringName
+) -> void:
+	if gate_id != FACTORY_LOWER_DECK_PARRY_GATE_ID or gate_state != &"unlocked":
+		return
+	_lower_deck_parry_gate_unlocked = true
+	_sync_lower_deck_parry_gate_state()
+	try_activate_factory_lower_deck_exit_ambush(_player)
+
+
 func _on_factory_cache_claimed(_cache_id: StringName, reward: Dictionary) -> void:
 	_cache_claimed = true
 	_last_cache_reward = reward.duplicate(true)
@@ -2605,6 +2793,7 @@ func _on_factory_lower_deck_reward_cache_claimed(
 		_last_lower_deck_reward_cache_reward,
 		"Lower Deck Cache Claimed"
 	)
+	_sync_lower_deck_parry_gate_state()
 
 
 func _on_factory_return_checkpoint_activated(
@@ -2973,6 +3162,38 @@ func _sync_lower_deck_reward_cache_state() -> void:
 		_lower_deck_reward_cache.call("set_claimed", _lower_deck_reward_cache_claimed)
 
 
+func _sync_lower_deck_parry_gate_state() -> void:
+	if _lower_deck_parry_gate == null:
+		return
+	var available: bool = _is_lower_deck_parry_gate_available()
+	_lower_deck_parry_gate.visible = available or _lower_deck_parry_gate_unlocked
+	if _lower_deck_parry_gate.has_method("set_gate_unlocked"):
+		_lower_deck_parry_gate.call("set_gate_unlocked", _lower_deck_parry_gate_unlocked)
+	if not available and not _lower_deck_parry_gate_unlocked:
+		_set_lower_deck_parry_gate_collision_enabled(false)
+	elif _lower_deck_parry_gate_unlocked:
+		_set_lower_deck_parry_gate_collision_enabled(false)
+
+
+func _sync_lower_deck_exit_ambush_state() -> void:
+	if _lower_deck_exit_spark_rat == null:
+		return
+	if not _is_lower_deck_exit_ambush_active():
+		_lower_deck_exit_spark_rat.visible = false
+		_lower_deck_exit_spark_rat.set_physics_process(false)
+		_lower_deck_exit_spark_rat.set_process(false)
+		_lower_deck_exit_spark_rat.collision_layer = 0
+		_lower_deck_exit_spark_rat.collision_mask = 0
+		_set_lower_deck_exit_spark_rat_attack_target(null)
+		return
+	_lower_deck_exit_spark_rat.visible = true
+	_lower_deck_exit_spark_rat.set_physics_process(true)
+	_lower_deck_exit_spark_rat.set_process(true)
+	_lower_deck_exit_spark_rat.collision_layer = FACTORY_RAT_MINION_COLLISION_LAYER
+	_lower_deck_exit_spark_rat.collision_mask = FACTORY_RAT_MINION_COLLISION_MASK
+	_set_lower_deck_exit_spark_rat_attack_target(_player)
+
+
 func _sync_return_checkpoint_state() -> void:
 	if _return_checkpoint == null:
 		return
@@ -3038,6 +3259,10 @@ func _get_factory_route_objective_id() -> StringName:
 		return FACTORY_OBJECTIVE_CLEAR_CHECKPOINT_FORWARD_PATROL
 	if _lower_deck_skirmish_activated and not _lower_deck_skirmish_defeated:
 		return FACTORY_OBJECTIVE_CLEAR_LOWER_DECK_SKIRMISH
+	if _lower_deck_exit_ambush_activated and not _lower_deck_exit_ambush_defeated:
+		return FACTORY_OBJECTIVE_CLEAR_LOWER_DECK_EXIT_AMBUSH
+	if _lower_deck_exit_ambush_defeated:
+		return FACTORY_OBJECTIVE_LOWER_DECK_EXIT_CLEARED
 	if _lower_deck_skirmish_defeated:
 		return FACTORY_OBJECTIVE_LOWER_DECK_CLEARED
 	if _is_checkpoint_overdrive_duo_cleared():
@@ -3093,6 +3318,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Clear Lower Deck Skirmish"
 		FACTORY_OBJECTIVE_LOWER_DECK_CLEARED:
 			return "Lower Deck Cleared"
+		FACTORY_OBJECTIVE_CLEAR_LOWER_DECK_EXIT_AMBUSH:
+			return "Clear Lower Deck Exit"
+		FACTORY_OBJECTIVE_LOWER_DECK_EXIT_CLEARED:
+			return "Lower Deck Exit Cleared"
 		_:
 			return "Clear Factory Entrance"
 
@@ -3222,6 +3451,71 @@ func _get_lower_deck_reward_cache_prompt_text() -> String:
 		else null
 	)
 	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_parry_gate_id() -> String:
+	if _lower_deck_parry_gate != null and _lower_deck_parry_gate.has_method("get_gate_id"):
+		return String(_lower_deck_parry_gate.call("get_gate_id"))
+	return String(FACTORY_LOWER_DECK_PARRY_GATE_ID)
+
+
+func _get_lower_deck_parry_gate_required_ability() -> String:
+	if (
+		_lower_deck_parry_gate != null
+		and _lower_deck_parry_gate.has_method("get_required_ability")
+	):
+		return String(_lower_deck_parry_gate.call("get_required_ability"))
+	return "parry"
+
+
+func _get_lower_deck_parry_gate_state() -> String:
+	if _lower_deck_parry_gate != null and _lower_deck_parry_gate.has_method("get_gate_state"):
+		return String(_lower_deck_parry_gate.call("get_gate_state"))
+	return "unlocked" if _lower_deck_parry_gate_unlocked else "locked"
+
+
+func _is_lower_deck_parry_gate_collision_blocking() -> bool:
+	if (
+		_lower_deck_parry_gate != null
+		and _lower_deck_parry_gate.has_method("is_collision_blocking")
+	):
+		return bool(_lower_deck_parry_gate.call("is_collision_blocking"))
+	var collision_shape := _get_lower_deck_parry_gate_collision_shape()
+	return collision_shape != null and not collision_shape.disabled
+
+
+func _get_lower_deck_parry_gate_visual_texture_path() -> String:
+	var visual := (
+		_lower_deck_parry_gate.get_node_or_null("Visual") as Sprite2D
+		if _lower_deck_parry_gate != null
+		else null
+	)
+	if visual == null or visual.texture == null:
+		return ""
+	return visual.texture.resource_path
+
+
+func _get_lower_deck_parry_gate_prompt_text() -> String:
+	var prompt_label := (
+		_lower_deck_parry_gate.get_node_or_null("PromptLabel") as Label
+		if _lower_deck_parry_gate != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_parry_gate_collision_shape() -> CollisionShape2D:
+	return (
+		_lower_deck_parry_gate.find_child("CollisionShape2D", true, false) as CollisionShape2D
+		if _lower_deck_parry_gate != null
+		else null
+	)
+
+
+func _set_lower_deck_parry_gate_collision_enabled(enabled: bool) -> void:
+	var collision_shape := _get_lower_deck_parry_gate_collision_shape()
+	if collision_shape != null:
+		collision_shape.disabled = not enabled
 
 
 func _show_checkpoint_overdrive_defeat_burst(side: StringName, spark_rat: Node2D) -> void:
@@ -3559,6 +3853,14 @@ func _set_lower_deck_spark_rat_attack_target(attack_target: Node) -> void:
 		_lower_deck_spark_rat.call("set_attack_target", attack_target)
 
 
+func _set_lower_deck_exit_spark_rat_attack_target(attack_target: Node) -> void:
+	if (
+		_lower_deck_exit_spark_rat != null
+		and _lower_deck_exit_spark_rat.has_method("set_attack_target")
+	):
+		_lower_deck_exit_spark_rat.call("set_attack_target", attack_target)
+
+
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
 		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
@@ -3616,6 +3918,15 @@ func _begin_lower_deck_spark_rat_pacing(opening_grace_frames: int) -> void:
 		and not _lower_deck_skirmish_defeated
 	):
 		_lower_deck_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
+
+
+func _begin_lower_deck_exit_spark_rat_pacing(opening_grace_frames: int) -> void:
+	if (
+		_lower_deck_exit_spark_rat != null
+		and _lower_deck_exit_spark_rat.has_method("begin_pacing")
+		and not _lower_deck_exit_ambush_defeated
+	):
+		_lower_deck_exit_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
 
 
 func _get_spark_rat_pacing_diagnostics() -> Dictionary:
@@ -3766,6 +4077,26 @@ func _get_lower_deck_skirmish_opening_grace_frames() -> int:
 	return int(pacing.get("opening_grace_frames", 0))
 
 
+func _get_lower_deck_exit_ambush_pacing_diagnostics() -> Dictionary:
+	if (
+		_lower_deck_exit_spark_rat != null
+		and _lower_deck_exit_spark_rat.has_method("get_pacing_diagnostics")
+	):
+		var pacing_variant: Variant = _lower_deck_exit_spark_rat.call("get_pacing_diagnostics")
+		if pacing_variant is Dictionary:
+			return (pacing_variant as Dictionary).duplicate(true)
+	return {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+	}
+
+
+func _get_lower_deck_exit_ambush_opening_grace_frames() -> int:
+	var pacing: Dictionary = _get_lower_deck_exit_ambush_pacing_diagnostics()
+	return int(pacing.get("opening_grace_frames", 0))
+
+
 func _does_deep_guard_have_target() -> bool:
 	if _deep_guard == null:
 		return false
@@ -3839,6 +4170,14 @@ func _does_lower_deck_spark_rat_have_target() -> bool:
 	return _lower_deck_skirmish_activated and not _lower_deck_skirmish_defeated
 
 
+func _does_lower_deck_exit_spark_rat_have_target() -> bool:
+	if _lower_deck_exit_spark_rat == null:
+		return false
+	if _lower_deck_exit_spark_rat.has_method("has_attack_target"):
+		return bool(_lower_deck_exit_spark_rat.call("has_attack_target"))
+	return _lower_deck_exit_ambush_activated and not _lower_deck_exit_ambush_defeated
+
+
 func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> void:
 	if not _is_factory_damage_target_defeated(damage_target):
 		return
@@ -3870,6 +4209,9 @@ func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> 
 		FACTORY_LOWER_DECK_SPARK_RAT_ENTITY_ID:
 			if not _lower_deck_skirmish_defeated:
 				_on_factory_lower_deck_spark_rat_defeated()
+		FACTORY_LOWER_DECK_EXIT_SPARK_RAT_ENTITY_ID:
+			if not _lower_deck_exit_ambush_defeated:
+				_on_factory_lower_deck_exit_spark_rat_defeated()
 
 
 func _is_factory_damage_target_defeated(damage_target: Node) -> bool:
@@ -3944,6 +4286,7 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 			_checkpoint_overdrive_left_spark_rat,
 			_checkpoint_overdrive_right_spark_rat,
 			_lower_deck_spark_rat,
+			_lower_deck_exit_spark_rat,
 		]:
 		if guard == null or not guard.has_method("get_entity_id"):
 			continue
@@ -3990,6 +4333,18 @@ func _is_lower_deck_skirmish_active() -> bool:
 		_lower_deck_skirmish_activated
 		and _is_checkpoint_overdrive_duo_cleared()
 		and not _lower_deck_skirmish_defeated
+	)
+
+
+func _is_lower_deck_parry_gate_available() -> bool:
+	return _lower_deck_reward_cache_claimed and not _lower_deck_parry_gate_unlocked
+
+
+func _is_lower_deck_exit_ambush_active() -> bool:
+	return (
+		_lower_deck_exit_ambush_activated
+		and _lower_deck_parry_gate_unlocked
+		and not _lower_deck_exit_ambush_defeated
 	)
 
 

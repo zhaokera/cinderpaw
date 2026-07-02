@@ -52,7 +52,8 @@
   Staggered Pincer Pacing、Player Abilities Story051 Old Factory Checkpoint
   Overdrive Reward Cache、Player Abilities Story052 Old Factory Overdrive
   Defeat Burst、Player Abilities Story053 Old Factory Lower Deck Skirmish
-  Cache
+  Cache、Player Abilities Story054 Old Factory Lower Deck Parry-Laser Ambush
+  Gate
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -62,6 +63,31 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 054: Old Factory Lower Deck Parry-Laser Ambush Gate —
+  `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckParryLaserGate` and `FactoryLowerDeckExitSparkRat`. After
+  Story053 lower-deck cache state is claimed, the reused Parry Laser
+  `ExplorationGate` becomes visible/unlockable, blocks collision, and opens
+  when Cinderpaw activates `parry` in range. Opening the gate persists
+  `factory_lower_deck_parry_gate_unlocked=true` and triggers an optional exit
+  Spark Rat ambush with entity `2109`. The ambush reuses the existing Factory
+  Spark Rat `AnimatedSprite2D + SpriteFrames` resource with
+  `idle/run/attack_tell/attack/hurt/death=3` frames, targets the player, updates
+  the route objective to `Clear Lower Deck Exit`, and leaves the already
+  available service lift at prompt `Call lift`. Defeating entity `2109` hides
+  and disables the enemy, persists activated/defeated state, and updates the
+  route objective to `Lower Deck Exit Cleared`. No new visual assets were
+  generated; this story reuses the existing image-generated Parry Laser gate
+  texture and Factory Spark Rat frames. Verification: focused RED
+  `reports/report_1034/`; focused GREEN `reports/report_1037/` `1/1`;
+  related regression `reports/report_1038/` `12/12`; headless Factory smoke
+  `reports/old_factory_lower_deck_exit_ambush_smoke.log` exited `0` with no
+  project script/resource errors by keyword scan, retaining only known
+  cleanup-time ObjectDB/resource terminal noise. Godot MCP 4.7 runtime
+  confirmed gate unlock, active exit ambush, frame counts, service lift still
+  `Call lift`, player HP unchanged after gate activation, clean game/editor
+  logs, and non-empty screenshot metadata `960x539`. QA evidence:
+  `production/qa/evidence/old-factory-lower-deck-parry-laser-ambush-gate-2026-07-01.md`。
 - Player Abilities Story 053: Old Factory Lower Deck Skirmish Cache —
   `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckSparkRat`, `FactoryLowerDeckSteamVentHazard`, and

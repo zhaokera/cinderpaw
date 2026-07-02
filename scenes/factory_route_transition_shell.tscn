@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3]
+[gd_scene load_steps=32 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -20,6 +20,8 @@
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_checkpoint_overdrive_reward_cache/env_old_factory_checkpoint_overdrive_reward_cache_claimable_256.png" id="18_overdrive_cache_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_overdrive_defeat_burst/vfx_old_factory_overdrive_defeat_burst_256.png" id="19_overdrive_burst_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_skirmish_cache/env_old_factory_lower_deck_skirmish_cache_claimable_256.png" id="20_lower_deck_cache_texture"]
+[ext_resource type="Script" path="res://src/feature/exploration_gate.gd" id="21_gate_script"]
+[ext_resource type="Texture2D" path="res://assets/environment/parry_laser_gate/parry_laser_gate_marker.png" id="22_parry_laser_gate_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -44,6 +46,9 @@ radius = 96.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_return_checkpoint_interaction"]
 radius = 112.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lower_deck_parry_gate"]
+size = Vector2(48, 118)
 
 [node name="FactoryRouteTransitionShellScene" type="Node2D"]
 script = ExtResource("1_scene")
@@ -151,6 +156,10 @@ position = Vector2(1224, 482)
 [node name="FactoryLowerDeckSparkRat" parent="." instance=ExtResource("13_spark_rat")]
 z_index = 20
 position = Vector2(820, 482)
+
+[node name="FactoryLowerDeckExitSparkRat" parent="." instance=ExtResource("13_spark_rat")]
+z_index = 20
+position = Vector2(1012, 482)
 
 [node name="FactoryCheckpointOverdriveLeftDefeatBurst" type="Sprite2D" parent="."]
 visible = false
@@ -310,6 +319,47 @@ monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckRewardCache/InteractionArea"]
 shape = SubResource("CircleShape2D_cache_interaction")
+
+[node name="FactoryLowerDeckParryLaserGate" type="Node2D" parent="."]
+visible = false
+z_index = 23
+position = Vector2(884, 438)
+script = ExtResource("21_gate_script")
+gate_id = "old_factory_lower_deck_parry_laser"
+required_ability = "parry"
+target_area_id = "area_03_factory_lower_deck"
+unlock_radius_px = 104.0
+locked_prompt_text = "Requires Parry"
+unlockable_prompt_text = "Parry the laser"
+locked_modulate = Color(1, 0.24, 0.16, 0.82)
+unlockable_modulate = Color(1, 0.86, 0.2, 0.92)
+unlocked_modulate = Color(0.46, 0.92, 1, 0.24)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="FactoryLowerDeckParryLaserGate"]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckParryLaserGate/StaticBody2D"]
+shape = SubResource("RectangleShape2D_lower_deck_parry_gate")
+disabled = true
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckParryLaserGate"]
+scale = Vector2(0.52, 0.52)
+texture = ExtResource("22_parry_laser_gate_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryLowerDeckParryLaserGate"]
+z_index = 4
+offset_left = -92.0
+offset_top = -136.0
+offset_right = 92.0
+offset_bottom = -110.0
+theme_override_colors/font_color = Color(1, 0.86, 0.24, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 15
+text = "Parry the laser"
+horizontal_alignment = 1
 
 [node name="FactoryReturnCheckpoint" type="Node2D" parent="."]
 visible = false
