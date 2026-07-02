@@ -13,6 +13,7 @@ const DODGE_IFRAME_ENTRY_FRAMES: int = 3
 const DODGE_REMAINING_FRAMES_AFTER_IFRAME_ENTRY: int = 9
 const EXPECTED_COUNTER_WINDOW_FRAMES: int = 30
 const EXPECTED_CLAW_COUNTER_BONUS_FRAMES: int = 3
+const CombatComponentScript: GDScript = preload("res://src/core/combat_component.gd")
 
 var _spawned_nodes: Array[Node] = []
 
@@ -46,7 +47,7 @@ func test_spark_rat_bite_dodged_during_iframe_opens_cat_claw_counter_window() ->
 
 	var hp_before: int = int(player.call("get_current_hp"))
 	assert_bool(bool(player.call("request_dodge"))).is_true()
-	var combat: CombatComponent = player.call("get_combat_component") as CombatComponent
+	var combat: Node = player.call("get_combat_component") as Node
 	assert_that(combat).is_not_null()
 	if combat == null:
 		return
@@ -68,7 +69,9 @@ func test_spark_rat_bite_dodged_during_iframe_opens_cat_claw_counter_window() ->
 	assert_str(String(diagnostics.get("last_bite_weapon_id", ""))).is_equal(
 		"factory_spark_rat_bite"
 	)
-	assert_int(PlayerController.DODGE_DURATION_FRAMES).is_equal(CombatComponent.DODGE_TOTAL_FRAMES)
+	assert_int(PlayerController.DODGE_DURATION_FRAMES).is_equal(
+		CombatComponentScript.DODGE_TOTAL_FRAMES
+	)
 
 
 func test_spark_rat_bite_during_visible_dodge_before_iframe_still_damages_player() -> void:
@@ -87,7 +90,7 @@ func test_spark_rat_bite_during_visible_dodge_before_iframe_still_damages_player
 
 	var hp_before: int = int(player.call("get_current_hp"))
 	assert_bool(bool(player.call("request_dodge"))).is_true()
-	var combat: CombatComponent = player.call("get_combat_component") as CombatComponent
+	var combat: Node = player.call("get_combat_component") as Node
 	assert_that(combat).is_not_null()
 	if combat == null:
 		return
@@ -159,7 +162,7 @@ func test_cat_claw_hit_during_spark_rat_counter_window_consumes_bonus_once() -> 
 		return
 
 	assert_bool(bool(player.call("request_dodge"))).is_true()
-	var combat: CombatComponent = player.call("get_combat_component") as CombatComponent
+	var combat: Node = player.call("get_combat_component") as Node
 	assert_that(combat).is_not_null()
 	if combat == null:
 		return

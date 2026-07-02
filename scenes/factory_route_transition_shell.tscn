@@ -612,6 +612,7 @@ scene_id = &"area_03_factory"
 spawn_point = &"lower_deck_breach_relay"
 display_name = "Lower Deck Breach Relay"
 prompt_text = "Repair Relay"
+activation_vfx_texture = ExtResource("12_unlock_vfx")
 
 [node name="Visual" type="Sprite2D" parent="FactoryLowerDeckBreachRelaySavepoint"]
 scale = Vector2(0.62, 0.62)

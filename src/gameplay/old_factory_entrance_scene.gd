@@ -2935,6 +2935,9 @@ func get_factory_lower_deck_breach_relay_diagnostics() -> Dictionary:
 		else null
 	)
 	var route: Dictionary = get_factory_route_objective_diagnostics()
+	var activation_vfx_snapshot: Dictionary = (
+		_get_lower_deck_breach_relay_activation_vfx_snapshot()
+	)
 	return {
 		"present": _lower_deck_breach_relay != null,
 		"available": _is_lower_deck_breach_relay_available(),
@@ -2961,6 +2964,13 @@ func get_factory_lower_deck_breach_relay_diagnostics() -> Dictionary:
 		),
 		"last_savepoint": _last_return_checkpoint.duplicate(true),
 		"route_label_text": String(route.get("route_label_text", "")),
+		"activation_feedback_texture_path": String(activation_vfx_snapshot.get(
+			"texture_path",
+			""
+		)),
+		"activation_feedback_active": int(activation_vfx_snapshot.get("active_count", 0)) > 0,
+		"activation_feedback_played": bool(activation_vfx_snapshot.get("played", false)),
+		"activation_feedback_spawn_count": int(activation_vfx_snapshot.get("spawn_count", 0)),
 	}
 
 
@@ -3319,6 +3329,18 @@ func _get_service_lift_unlock_vfx_snapshot() -> Dictionary:
 	if _service_lift == null or not _service_lift.has_method("get_unlock_vfx_snapshot"):
 		return {}
 	var snapshot_variant: Variant = _service_lift.call("get_unlock_vfx_snapshot")
+	if snapshot_variant is Dictionary:
+		return (snapshot_variant as Dictionary).duplicate(true)
+	return {}
+
+
+func _get_lower_deck_breach_relay_activation_vfx_snapshot() -> Dictionary:
+	if (
+		_lower_deck_breach_relay == null
+		or not _lower_deck_breach_relay.has_method("get_activation_vfx_snapshot")
+	):
+		return {}
+	var snapshot_variant: Variant = _lower_deck_breach_relay.call("get_activation_vfx_snapshot")
 	if snapshot_variant is Dictionary:
 		return (snapshot_variant as Dictionary).duplicate(true)
 	return {}

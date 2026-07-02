@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 61 stories tracked
+> **Stories**: 63 stories tracked
 
 ## Overview
 
@@ -100,6 +100,7 @@ recording the reward in progression state.
 | 060 | Old Factory Lower Deck Deep Bulkhead Combat Gate | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 061 | Old Factory Lower Deck Breach Corridor Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 062 | Old Factory Lower Deck Breach Relay Savepoint | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
+| 063 | Old Factory Lower Deck Breach Relay Activation Feedback | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0002/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -119,7 +120,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-062 are complete. Continue with the next playable ACT slice:
+Stories001-063 are complete. Continue with the next playable ACT slice:
 deeper Old Factory combat encounters, savepoint/minimap gameplay, additional
 player-visible character/enemy frame-animation replacement, more skill-tree
 branches, or final Boss2 balancing/cutscene polish.

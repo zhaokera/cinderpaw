@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-07-02" name="report_1076" tests="3" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_lower_deck_breach_relay_feedback_test" package="tests/unit/gameplay" timestamp="2026-07-02T07:24:52" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.324">
+		<testcase name="test_breach_relay_mounts_generated_activation_feedback_texture" classname="old_factory_lower_deck_breach_relay_feedback_test" time="0.209">
+		</testcase>
+		<testcase name="test_breach_relay_activation_spawns_one_short_lived_feedback_vfx" classname="old_factory_lower_deck_breach_relay_feedback_test" time="0.056">
+		</testcase>
+		<testcase name="test_restored_breach_relay_does_not_replay_activation_feedback" classname="old_factory_lower_deck_breach_relay_feedback_test" time="0.053">
+		</testcase>
+	</testsuite>
+</testsuites>
