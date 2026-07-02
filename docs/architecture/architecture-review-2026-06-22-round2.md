@@ -1,7 +1,7 @@
 # Architecture Review Report — Round 2
 
 > **Date**: 2026-06-22
-> **Engine**: Godot 4.6.3
+> **Engine**: Godot 4.6.3 (historical snapshot; current project baseline is Godot 4.7)
 > **GDDs Reviewed**: 22
 > **ADRs Reviewed**: 18 (0001-0018)
 > **Technical Requirements**: 185
@@ -224,6 +224,6 @@ Layer 4 — Depends on Layer 0+1+2+3:
 
 **Report Generated**: 2026-06-22  
 **Review Mode**: Full (Parallel agents)  
-**Engine**: Godot 4.6.3  
+**Engine**: Godot 4.6.3 (historical snapshot; current project baseline is Godot 4.7)
 **Total ADRs**: 18  
 **Coverage**: 28.1% covered, 9.2% partial, 62.7% gaps

@@ -1,7 +1,7 @@
 # Architecture Review Report
 
 > **Date**: 2026-06-22
-> **Engine**: Godot 4.6.3
+> **Engine**: Godot 4.6.3 (historical snapshot; current project baseline is Godot 4.7)
 > **GDDs Reviewed**: 24
 > **ADRs Reviewed**: 15 (0001-0015)
 > **Technical Requirements**: 185
