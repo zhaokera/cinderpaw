@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="x-ua-compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>GdUnit4 Testsuite</title>
+	<link rel="stylesheet" href="../css/styles.css">
+	<link href="../css/breadcrumb.css" rel="stylesheet" type="text/css" />
+
+	<script src="https://code.jquery.com/jquery-3.6.4.js"></script>
+	<script>
+		$(document).ready(function () {
+			var report_view = $('#report_area').find('.report-column')
+
+			$('#report-table tr').click(function () {
+				var report = $(this).find('.report-column').html();
+				report_view.html(report)
+				$('.selected').removeClass('selected');
+				$(this).addClass('selected');
+			});
+		});
+	</script>
+</head>
+
+<body>
+	<header>
+		<div class="logo">
+			<img src="../css/logo.png" alt="GdUnit4 Logo">
+			<span>GdUnit4</span>
+		</div>
+		<div class="report-container">
+			<h1>Testsuite Report</h1>
+			<div>
+				<span class="label">res://tests/unit/presentation/audio_system_test.gd</span>
+			</div>
+			<div class="summary">
+				<div class="summary-item">
+					<span class="label">Tests</span>
+					<span class="value">23</span>
+				</div>
+				<div class="summary-item">
+					<span class="label">Skipped</span>
+					<span class="value">0</span>
+				</div>
+				<div class="summary-item">
+					<span class="label">Flaky</span>
+					<span class="value">0</span>
+				</div>
+				<div class="summary-item">
+					<span class="label">Failures</span>
+					<span class="value">0</span>
+				</div>
+				<div class="summary-item">
+					<span class="label">Orphans</span>
+					<span class="value">0</span>
+				</div>
+				<div class="summary-item">
+					<span class="label">Duration</span>
+					<span class="value">172ms</span>
+				</div>
+				<div class="success-rate">
+					<div class="check-icon status-passed">✓</div>
+					<div class="rate-text">
+						<span class="label">Success Rate</span>
+						<span class="value">100%</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="breadcrumb">
+			<a href="../index.html"><span>All</span></a>
+			<a href="../path/tests.unit.presentation.html"><span>tests/unit/presentation</span></a>
+			<a class="active" href="#"><span>audio_system_test</span></a>
+		</div>
+	</header>
+
+	<main>
+		<div class="tab-report-grid">
+			<div class="grid-item tab">
+				<table id="report-table">
+					<thead>
+						<tr>
+							<th>Testcase</th>
+							<th>Result</th>
+							<th>Skipped</th>
+							<th>Orphans</th>
+							<th>Duration</th>
+							<th class="report-column">Report</th>
+						</tr>
+					</thead>
+					<tbody>
+
+								<tr class="testcase-group">
+									<td>test_project_registers_audio_system_between_input_and_save_system</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>2ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_audio_system_initializes_default_buses_and_player_pool</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>2ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_set_bus_volume_clamps_values_and_rejects_unknown_bus</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>4ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_play_sfx_records_pitch_spatial_metadata_and_enforces_voice_cap</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_same_sfx_within_merge_window_reuses_voice_and_boosts_volume</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_missing_sfx_asset_does_not_consume_pool_voice</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_default_core_combat_sfx_assets_load_and_play_from_imported_wav_files</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_boss2_authored_sfx_assets_load_and_event_router_maps_runtime_states</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_default_ui_audio_assets_load_and_play_on_ui_bus</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_menu_audio_state_ducks_music_and_restores_previous_state</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_default_music_and_ambient_assets_load_and_play_from_imported_wav_files</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>5ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_scene_load_start_forces_music_and_ambient_to_fade_out_over_two_seconds</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_scene_change_crossfades_default_area_music_and_ambient_cues</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_scene_audio_cues_can_be_overridden_and_unknown_scene_stays_silent</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_scene_load_failed_clears_transition_state_without_starting_new_cues</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_hit_event_routes_normal_and_crit_sfx_with_priority</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_weapon_style_attack_events_route_to_imported_sfx</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_parry_dodge_enemy_death_and_boss_phase_events_route_to_expected_sfx</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_double_jump_event_routes_bounce_sfx_with_spatial_metadata</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_exploration_gate_unlock_event_routes_door_unlock_sfx_with_metadata</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_savepoint_activation_event_routes_door_unlock_sfx_with_metadata</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_boss_music_state_hard_cuts_phase_transitions_and_ends_cleanly</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>5ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_focus_mode_switches_damage_taken_to_low_hp_cue</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+					</tbody>
+				</table>
+			</div>
+			<div id="report_area" class="grid-item tab">
+				<h4>Failure Report</h4>
+				<div class="report-column"></div>
+			</div>
+		</div>
+	</main>
+
+	<footer>
+		<p>Generated by <a href="https://github.com/MikeSchulze/gdUnit4">GdUnit4</a> at 2026-07-02 07:39:50</p>
+		<div class="status-legend">
+			<span class="status-legend-item">
+				<span class="status-box status-skipped"></span> Skipped
+			</span>
+			<span class="status-legend-item">
+				<span class="status-box status-passed"></span> Passed
+			</span>
+			<span class="status-legend-item">
+				<span class="status-box status-flaky"></span> Flaky
+			</span>
+			<span class="status-legend-item">
+				<span class="status-box status-warning"></span> Warning
+			</span>
+			<span class="status-legend-item">
+				<span class="status-box status-failed"></span> Failed
+			</span>
+			<span class="status-legend-item">
+				<span class="status-box status-error"></span> Error
+			</span>
+		</div>
+	</footer>
+</body>
+
+<script>
+	function groupTableRows() {
+		const table = document.getElementById('report-table');
+		const rows = table.querySelectorAll('tbody tr');
+
+		let previousTestCase = '';
+		let groupStartIndex = 0;
+		let groupColorToggle = true; // Toggle between two colors
+
+		rows.forEach((row, index) => {
+			const testCaseName = row.cells[0].textContent.trim();
+
+			if (testCaseName !== previousTestCase) {
+				// Close the previous group
+				if (index > 0 && groupStartIndex !== index - 1) {
+					// Apply background color to the group
+					const groupClass = groupColorToggle ? 'group-bg-1' : 'group-bg-2';
+					for (let i = groupStartIndex; i <= index - 1; i++) {
+						rows[i].classList.add(groupClass);
+					}
+
+					// Toggle background color for the next group
+					groupColorToggle = !groupColorToggle;
+				}
+
+				// Start a new group
+				groupStartIndex = index;
+			}
+
+			previousTestCase = testCaseName;
+		});
+
+		// Handle the last group
+		if (groupStartIndex !== rows.length - 1) {
+			// Apply background color to the last group
+			const groupClass = groupColorToggle ? 'group-bg-1' : 'group-bg-2';
+			for (let i = groupStartIndex; i < rows.length; i++) {
+				rows[i].classList.add(groupClass);
+			}
+		}
+	}
+
+	// Call the function to group table rows after the DOM loads
+	document.addEventListener('DOMContentLoaded', groupTableRows);
+</script>
+
+</html>

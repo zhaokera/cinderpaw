@@ -91,6 +91,53 @@ func test_breach_relay_activation_spawns_one_short_lived_feedback_vfx() -> void:
 	assert_int(int(expired.get("spawn_count", 0))).is_equal(1)
 
 
+func test_breach_relay_activation_routes_one_spatial_audio_feedback_event() -> void:
+	var destination: Node = _factory_scene_with_breach_secured(true)
+	assert_that(destination).is_not_null()
+	if destination == null:
+		return
+
+	var player: Node2D = destination.get_node_or_null(FACTORY_PLAYER_NAME) as Node2D
+	var relay: Node2D = destination.get_node_or_null(BREACH_RELAY_NODE_NAME) as Node2D
+	var audio_system := get_node_or_null("/root/AudioSystem")
+	assert_that(player).is_not_null()
+	assert_that(relay).is_not_null()
+	assert_that(audio_system).is_not_null()
+	if player == null or relay == null or audio_system == null:
+		return
+
+	player.global_position = relay.global_position
+	assert_bool(bool(destination.call("try_activate_factory_lower_deck_breach_relay", player))).is_true()
+
+	var diagnostics: Dictionary = destination.call("get_factory_lower_deck_breach_relay_diagnostics")
+	assert_int(int(diagnostics.get("activation_audio_request_count", 0))).is_equal(1)
+	assert_bool(bool(diagnostics.get("activation_audio_requested", false))).is_true()
+
+	var audio_event: Dictionary = Dictionary(diagnostics.get("activation_audio_event", {}))
+	assert_str(String(audio_event.get("event_id", &""))).is_equal("savepoint_activated")
+	assert_str(String(audio_event.get("sfx_id", &""))).is_equal("sfx_door_unlock")
+	assert_vector(audio_event.get("position", Vector2.ZERO)).is_equal(relay.global_position)
+	var event_metadata: Dictionary = Dictionary(audio_event.get("metadata", {}))
+	assert_str(String(event_metadata.get("savepoint_id", &""))).is_equal("old_factory_lower_deck_breach_relay")
+	assert_str(String(event_metadata.get("scene_id", &""))).is_equal("area_03_factory")
+	assert_str(String(event_metadata.get("spawn_point", &""))).is_equal("lower_deck_breach_relay")
+	assert_str(String(event_metadata.get("feedback_role", &""))).is_equal("savepoint_activation")
+	assert_str(String(event_metadata.get("source", &""))).is_equal("factory_lower_deck_breach_relay")
+	assert_vector(event_metadata.get("world_position", Vector2.ZERO)).is_equal(relay.global_position)
+
+	var runtime_event: Dictionary = audio_system.call("get_last_gameplay_audio_event")
+	assert_str(String(runtime_event.get("event_id", &""))).is_equal("savepoint_activated")
+	assert_str(String(runtime_event.get("sfx_id", &""))).is_equal("sfx_door_unlock")
+	assert_vector(runtime_event.get("position", Vector2.ZERO)).is_equal(relay.global_position)
+	var runtime_request: Dictionary = audio_system.call("get_last_sfx_request")
+	assert_str(String(runtime_request.get("sfx_id", &""))).is_equal("sfx_door_unlock")
+	assert_bool(bool(runtime_request.get("stream_found", false))).is_true()
+
+	assert_bool(bool(destination.call("try_activate_factory_lower_deck_breach_relay", player))).is_false()
+	diagnostics = destination.call("get_factory_lower_deck_breach_relay_diagnostics")
+	assert_int(int(diagnostics.get("activation_audio_request_count", 0))).is_equal(1)
+
+
 func test_restored_breach_relay_does_not_replay_activation_feedback() -> void:
 	var restored: Node = _factory_scene_with_breach_secured(true)
 	assert_that(restored).is_not_null()
@@ -110,6 +157,8 @@ func test_restored_breach_relay_does_not_replay_activation_feedback() -> void:
 	assert_bool(bool(diagnostics.get("activation_feedback_active", true))).is_false()
 	assert_bool(bool(diagnostics.get("activation_feedback_played", true))).is_false()
 	assert_int(int(diagnostics.get("activation_feedback_spawn_count", -1))).is_equal(0)
+	assert_bool(bool(diagnostics.get("activation_audio_requested", true))).is_false()
+	assert_int(int(diagnostics.get("activation_audio_request_count", -1))).is_equal(0)
 
 	var snapshot: Dictionary = relay.call("get_activation_vfx_snapshot")
 	assert_int(int(snapshot.get("active_count", -1))).is_equal(0)

@@ -742,6 +742,28 @@ func on_exploration_gate_unlocked(
 	)
 
 
+## Routes a fresh savepoint activation to the shared door-open confirmation SFX.
+func on_savepoint_activated(
+	savepoint_id: StringName,
+	scene_id: StringName,
+	spawn_point: StringName,
+	world_position: Vector2,
+	metadata: Dictionary = {}
+) -> bool:
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	event_metadata["savepoint_id"] = savepoint_id
+	event_metadata["scene_id"] = scene_id
+	event_metadata["spawn_point"] = spawn_point
+	event_metadata["world_position"] = world_position
+	return _request_gameplay_sfx(
+		&"savepoint_activated",
+		&"sfx_door_unlock",
+		world_position,
+		SFX_PRIORITY_HIGH,
+		event_metadata
+	)
+
+
 ## Routes weapon attack startup metadata to a weapon-specific swing SFX.
 func on_weapon_attack_event(attack_data: Dictionary) -> bool:
 	var weapon_id: StringName = StringName(String(attack_data.get("weapon_id", &"")))

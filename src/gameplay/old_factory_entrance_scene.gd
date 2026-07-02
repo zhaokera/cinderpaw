@@ -243,6 +243,8 @@ var _lower_deck_breach_rear_ambusher_activated: bool = false
 var _lower_deck_breach_rear_ambusher_defeated: bool = false
 var _lower_deck_breach_corridor_secured: bool = false
 var _lower_deck_breach_relay_activated: bool = false
+var _lower_deck_breach_relay_activation_audio_event: Dictionary = {}
+var _lower_deck_breach_relay_activation_audio_request_count: int = 0
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -2967,11 +2969,14 @@ func get_factory_lower_deck_breach_relay_diagnostics() -> Dictionary:
 		"activation_feedback_texture_path": String(activation_vfx_snapshot.get(
 			"texture_path",
 			""
-		)),
-		"activation_feedback_active": int(activation_vfx_snapshot.get("active_count", 0)) > 0,
-		"activation_feedback_played": bool(activation_vfx_snapshot.get("played", false)),
-		"activation_feedback_spawn_count": int(activation_vfx_snapshot.get("spawn_count", 0)),
-	}
+			)),
+			"activation_feedback_active": int(activation_vfx_snapshot.get("active_count", 0)) > 0,
+			"activation_feedback_played": bool(activation_vfx_snapshot.get("played", false)),
+			"activation_feedback_spawn_count": int(activation_vfx_snapshot.get("spawn_count", 0)),
+			"activation_audio_requested": _lower_deck_breach_relay_activation_audio_request_count > 0,
+			"activation_audio_request_count": _lower_deck_breach_relay_activation_audio_request_count,
+			"activation_audio_event": _lower_deck_breach_relay_activation_audio_event.duplicate(true),
+		}
 
 
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
@@ -4240,6 +4245,7 @@ func _on_factory_lower_deck_breach_relay_activated(
 	)
 	_sync_lower_deck_breach_relay_state()
 	_update_route_label("Lower Deck Relay Secured")
+	_request_lower_deck_breach_relay_activation_audio(world_position, context)
 
 
 func _on_factory_player_died(_death_metadata: Dictionary) -> void:
@@ -4311,6 +4317,40 @@ func _request_factory_audio() -> void:
 		audio_system.call("play_music", FACTORY_MUSIC_ID, FACTORY_AUDIO_FADE_SEC)
 	if audio_system.has_method("play_ambient"):
 		audio_system.call("play_ambient", FACTORY_AMBIENT_ID, FACTORY_AUDIO_FADE_SEC)
+
+
+func _request_lower_deck_breach_relay_activation_audio(world_position: Vector2, context: Dictionary) -> void:
+	var metadata: Dictionary = context.duplicate(true)
+	metadata["display_name"] = _get_lower_deck_breach_relay_display_name()
+	metadata["feedback_role"] = &"savepoint_activation"
+	metadata["route_label"] = "Lower Deck Relay Secured"
+	metadata["source"] = &"factory_lower_deck_breach_relay"
+	metadata["world_position"] = world_position
+
+	_lower_deck_breach_relay_activation_audio_request_count += 1
+	_lower_deck_breach_relay_activation_audio_event = {
+		"event_id": &"savepoint_activated",
+		"sfx_id": &"sfx_door_unlock",
+		"position": world_position,
+		"priority": 90,
+		"metadata": metadata.duplicate(true),
+	}
+
+	var audio_system := get_node_or_null("/root/AudioSystem")
+	if audio_system == null or not audio_system.has_method("on_savepoint_activated"):
+		return
+	audio_system.call(
+		"on_savepoint_activated",
+		FACTORY_LOWER_DECK_BREACH_RELAY_ID,
+		FACTORY_SCENE_ID,
+		FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT,
+		world_position,
+		metadata
+	)
+	if audio_system.has_method("get_last_gameplay_audio_event"):
+		var runtime_event: Variant = audio_system.call("get_last_gameplay_audio_event")
+		if runtime_event is Dictionary:
+			_lower_deck_breach_relay_activation_audio_event = (runtime_event as Dictionary).duplicate(true)
 
 
 func _sync_room_clear_state() -> void:

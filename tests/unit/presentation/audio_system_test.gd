@@ -703,6 +703,48 @@ func test_exploration_gate_unlock_event_routes_door_unlock_sfx_with_metadata() -
 	assert_str(String(metadata.get("target_area_id", &""))).is_equal("area_02_sewer")
 
 
+func test_savepoint_activation_event_routes_door_unlock_sfx_with_metadata() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	assert_bool(audio_system.has_method("on_savepoint_activated")).is_true()
+	if not audio_system.has_method("on_savepoint_activated"):
+		return
+
+	assert_bool(bool(audio_system.call(
+		"on_savepoint_activated",
+		&"old_factory_lower_deck_breach_relay",
+		&"area_03_factory",
+		&"lower_deck_breach_relay",
+		Vector2(1218, 382),
+		{
+			"display_name": "Lower Deck Breach Relay",
+			"feedback_role": &"savepoint_activation",
+			"source": &"factory_lower_deck_breach_relay",
+		}
+	))).is_true()
+
+	var request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(request.get("sfx_id", &""))).is_equal("sfx_door_unlock")
+	assert_vector(request.get("position", Vector2.ZERO)).is_equal(Vector2(1218, 382))
+	assert_int(int(request.get("priority", 0))).is_equal(90)
+	assert_bool(bool(request.get("stream_found", false))).is_true()
+
+	var gameplay_event: Dictionary = audio_system.call("get_last_gameplay_audio_event")
+	assert_str(String(gameplay_event.get("event_id", &""))).is_equal("savepoint_activated")
+	assert_str(String(gameplay_event.get("sfx_id", &""))).is_equal("sfx_door_unlock")
+	assert_vector(gameplay_event.get("position", Vector2.ZERO)).is_equal(Vector2(1218, 382))
+	assert_int(int(gameplay_event.get("priority", 0))).is_equal(90)
+	var metadata: Dictionary = Dictionary(gameplay_event.get("metadata", {}))
+	assert_str(String(metadata.get("savepoint_id", &""))).is_equal("old_factory_lower_deck_breach_relay")
+	assert_str(String(metadata.get("scene_id", &""))).is_equal("area_03_factory")
+	assert_str(String(metadata.get("spawn_point", &""))).is_equal("lower_deck_breach_relay")
+	assert_str(String(metadata.get("display_name", ""))).is_equal("Lower Deck Breach Relay")
+	assert_str(String(metadata.get("feedback_role", &""))).is_equal("savepoint_activation")
+	assert_str(String(metadata.get("source", &""))).is_equal("factory_lower_deck_breach_relay")
+	assert_vector(metadata.get("world_position", Vector2.ZERO)).is_equal(Vector2(1218, 382))
+
+
 func test_boss_music_state_hard_cuts_phase_transitions_and_ends_cleanly() -> void:
 	assert_object(audio_system).is_not_null()
 	if audio_system == null:
