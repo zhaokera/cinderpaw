@@ -410,6 +410,44 @@ monitorable = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckShortcutSeal/InteractionArea"]
 shape = SubResource("CircleShape2D_deep_endpoint_interaction")
 
+[node name="FactoryLowerDeckShortcutRewardCache" type="Node2D" parent="."]
+visible = false
+z_index = 22
+position = Vector2(1188, 310)
+script = ExtResource("7_cache_script")
+cache_id = &"old_factory_lower_deck_shortcut_cache"
+reward_source = &"old_factory_lower_deck_shortcut_cache"
+reward_gears = 15
+claim_radius_px = 96.0
+locked_prompt_text = "Open shortcut"
+available_prompt_text = "+15 Gears"
+claimed_prompt_text = "Claimed"
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckShortcutRewardCache"]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("20_lower_deck_cache_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryLowerDeckShortcutRewardCache"]
+z_index = 4
+offset_left = -92.0
+offset_top = -84.0
+offset_right = 92.0
+offset_bottom = -58.0
+theme_override_colors/font_color = Color(1, 0.86, 0.24, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "Open shortcut"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="FactoryLowerDeckShortcutRewardCache"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckShortcutRewardCache/InteractionArea"]
+shape = SubResource("CircleShape2D_cache_interaction")
+
 [node name="FactoryReturnCheckpoint" type="Node2D" parent="."]
 visible = false
 z_index = 23

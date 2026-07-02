@@ -54,7 +54,7 @@
   Defeat Burst、Player Abilities Story053 Old Factory Lower Deck Skirmish
   Cache、Player Abilities Story054 Old Factory Lower Deck Parry-Laser Ambush
   Gate、Player Abilities Story055 Old Factory Lower Deck Shortcut Seal Combat
-  Gate
+  Gate、Player Abilities Story056 Old Factory Lower Deck Shortcut Payoff Cache
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -64,6 +64,31 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 056: Old Factory Lower Deck Shortcut Payoff Cache —
+  `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckShortcutRewardCache`, a once-only payoff cache behind/near
+  the Story055 lower-deck shortcut seal. The cache remains hidden/unclaimable
+  until `factory_lower_deck_shortcut_unlocked=true`; once the shortcut is open,
+  it becomes visible and claimable with prompt `+15 Gears`, cache/source
+  `old_factory_lower_deck_shortcut_cache`, and deterministic `15` gears.
+  Claiming the cache updates route feedback to
+  `Shortcut Cache Claimed +15 Gears`, rejects duplicate claims, and persists
+  `factory_lower_deck_shortcut_reward_cache_claimed=true` through scene-local
+  state without replaying the Story054 exit ambush or Story055 shortcut guard.
+  The already available `FactoryServiceLift` remains optional with prompt
+  `Call lift`. No new visual assets were generated; this story reuses the
+  existing image-generated lower-deck cache texture already imported through
+  Godot. Verification: focused RED `reports/report_1045/`; focused GREEN
+  `reports/report_1046/` `2/2`; related regression `reports/report_1047/`
+  `10/10`; headless Factory smoke
+  `reports/old_factory_lower_deck_shortcut_payoff_cache_smoke.log` exited `0`
+  with no project script/resource errors by keyword scan, retaining only known
+  cleanup-time ObjectDB/resource terminal noise. Godot MCP 4.7 runtime
+  confirmed cache visibility/claimability after shortcut unlock, `+15 Gears`,
+  duplicate claim rejection, persisted local state, service lift `Call lift`,
+  clean game/editor logs, and non-empty screenshot metadata `960x539`. QA
+  evidence:
+  `production/qa/evidence/old-factory-lower-deck-shortcut-payoff-cache-2026-07-02.md`。
 - Player Abilities Story 055: Old Factory Lower Deck Shortcut Seal Combat Gate —
   `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckShortcutSparkRat` and `FactoryLowerDeckShortcutSeal`. After
