@@ -85,11 +85,15 @@ const FACTORY_OBJECTIVE_BREACH_CORRIDOR_SECURED: StringName = &"breach_corridor_
 const FACTORY_OBJECTIVE_BREACH_RELAY_SECURED: StringName = &"breach_relay_secured"
 const FACTORY_OBJECTIVE_CLEAR_POST_RELAY_TRIAL: StringName = &"clear_post_relay_trial"
 const FACTORY_OBJECTIVE_POST_RELAY_TRIAL_SECURED: StringName = &"post_relay_trial_secured"
+const FACTORY_OBJECTIVE_CLAIM_RELAY_FORWARD_CACHE: StringName = &"claim_relay_forward_cache"
+const FACTORY_OBJECTIVE_OPEN_FORWARD_HATCH: StringName = &"open_forward_hatch"
+const FACTORY_OBJECTIVE_FORWARD_HATCH_OPENED: StringName = &"forward_hatch_opened"
 const FACTORY_LOWER_DECK_PARRY_GATE_ID: StringName = &"old_factory_lower_deck_parry_laser"
 const FACTORY_LOWER_DECK_SHORTCUT_SEAL_ID: StringName = &"old_factory_lower_deck_shortcut_seal"
 const FACTORY_LOWER_DECK_PRESSURE_VALVE_ID: StringName = &"old_factory_lower_deck_pressure_valve"
 const FACTORY_LOWER_DECK_DEEP_BULKHEAD_ID: StringName = &"old_factory_lower_deck_deep_bulkhead"
 const FACTORY_LOWER_DECK_BREACH_RELAY_ID: StringName = &"old_factory_lower_deck_breach_relay"
+const FACTORY_LOWER_DECK_FORWARD_HATCH_ID: StringName = &"old_factory_lower_deck_forward_hatch"
 const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: StringName = &"lower_deck_breach_relay"
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
 const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
@@ -166,8 +170,12 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_shortcut_reward_cache: Node = get_node_or_null(
 	"FactoryLowerDeckShortcutRewardCache"
 )
+@onready var _lower_deck_relay_forward_reward_cache: Node = get_node_or_null(
+	"FactoryLowerDeckRelayForwardRewardCache"
+)
 @onready var _lower_deck_pressure_valve: Node = get_node_or_null("FactoryLowerDeckPressureValve")
 @onready var _lower_deck_deep_bulkhead: Node = get_node_or_null("FactoryLowerDeckDeepBulkhead")
+@onready var _lower_deck_forward_hatch: Node = get_node_or_null("FactoryLowerDeckForwardHatch")
 @onready var _return_checkpoint: Node = get_node_or_null("FactoryReturnCheckpoint")
 @onready var _lower_deck_breach_relay: Node = get_node_or_null(
 	"FactoryLowerDeckBreachRelaySavepoint"
@@ -205,6 +213,8 @@ var _last_lower_deck_reward_cache_reward: Dictionary = {}
 var _last_lower_deck_reward_cache_claim_feedback: Dictionary = {}
 var _last_lower_deck_shortcut_reward_cache_reward: Dictionary = {}
 var _last_lower_deck_shortcut_reward_cache_claim_feedback: Dictionary = {}
+var _last_lower_deck_relay_forward_reward_cache_reward: Dictionary = {}
+var _last_lower_deck_relay_forward_reward_cache_claim_feedback: Dictionary = {}
 var _last_checkpoint_overdrive_defeat_burst_side: StringName = &""
 var _last_hazard_damage: Dictionary = {}
 var _last_spark_rat_counter_diagnostics: Dictionary = {}
@@ -257,6 +267,8 @@ var _lower_deck_breach_relay_activation_audio_event: Dictionary = {}
 var _lower_deck_breach_relay_activation_audio_request_count: int = 0
 var _lower_deck_post_relay_trial_activated: bool = false
 var _lower_deck_post_relay_trial_defeated: bool = false
+var _lower_deck_relay_forward_reward_cache_claimed: bool = false
+var _lower_deck_forward_hatch_opened: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -290,6 +302,8 @@ func _ready() -> void:
 	_sync_lower_deck_breach_corridor_state()
 	_setup_factory_lower_deck_breach_relay()
 	_sync_lower_deck_post_relay_trial_state()
+	_setup_factory_lower_deck_relay_forward_reward_cache()
+	_setup_factory_lower_deck_forward_hatch()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -392,6 +406,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_BREACH_CORRIDOR_SECURED
 		or objective_id == FACTORY_OBJECTIVE_BREACH_RELAY_SECURED
 		or objective_id == FACTORY_OBJECTIVE_POST_RELAY_TRIAL_SECURED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_HATCH_OPENED
 	)
 
 
@@ -930,6 +945,35 @@ func try_claim_factory_lower_deck_shortcut_reward_cache(provider: Node = null) -
 	return true
 
 
+## Attempts to claim the relay-forward payoff cache after the post-relay trial is cleared.
+func try_claim_factory_lower_deck_relay_forward_reward_cache(provider: Node = null) -> bool:
+	if (
+		not _lower_deck_post_relay_trial_defeated
+		or _lower_deck_relay_forward_reward_cache == null
+	):
+		return false
+	var claim_provider: Node = provider
+	if claim_provider == null:
+		claim_provider = _player
+	if (
+		not _lower_deck_relay_forward_reward_cache.has_method("try_claim")
+		or not bool(_lower_deck_relay_forward_reward_cache.call("try_claim", claim_provider))
+	):
+		return false
+	_lower_deck_relay_forward_reward_cache_claimed = true
+	var reward_payload: Dictionary = _get_lower_deck_relay_forward_reward_cache_payload()
+	if _last_lower_deck_relay_forward_reward_cache_reward.is_empty():
+		_last_lower_deck_relay_forward_reward_cache_reward = reward_payload
+	_sync_lower_deck_relay_forward_reward_cache_state()
+	_sync_lower_deck_forward_hatch_state()
+	if _last_lower_deck_relay_forward_reward_cache_claim_feedback.is_empty():
+		_record_lower_deck_relay_forward_reward_cache_claim_feedback(
+			reward_payload,
+			"Relay Forward Cache Claimed"
+		)
+	return true
+
+
 ## Attempts to activate the optional pursuer after the shortcut payoff is claimed.
 func try_activate_factory_lower_deck_shortcut_pursuer(provider: Node = null) -> bool:
 	if (
@@ -1129,6 +1173,26 @@ func try_activate_factory_lower_deck_post_relay_trial(provider: Node = null) -> 
 	_sync_lower_deck_post_relay_trial_state()
 	_set_lower_deck_post_relay_trial_attack_target(activation_provider)
 	_begin_lower_deck_post_relay_trial_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	_refresh_factory_route_objective()
+	return true
+
+
+## Opens the relay-forward hatch after the post-relay reward cache is claimed.
+func try_open_factory_lower_deck_forward_hatch(provider: Node = null) -> bool:
+	if (
+		_lower_deck_forward_hatch == null
+		or not _is_lower_deck_forward_hatch_available()
+		or _lower_deck_forward_hatch_opened
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if (
+		not _lower_deck_forward_hatch.has_method("try_activate")
+		or not bool(_lower_deck_forward_hatch.call("try_activate", activation_provider))
+	):
+		return false
+	_lower_deck_forward_hatch_opened = true
+	_sync_lower_deck_forward_hatch_state()
 	_refresh_factory_route_objective()
 	return true
 
@@ -1336,6 +1400,10 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_post_relay_trial_defeated": (
 			_lower_deck_post_relay_trial_defeated
 		),
+		"factory_lower_deck_relay_forward_reward_cache_claimed": (
+			_lower_deck_relay_forward_reward_cache_claimed
+		),
+		"factory_lower_deck_forward_hatch_opened": _lower_deck_forward_hatch_opened,
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -1369,6 +1437,12 @@ func get_local_state() -> Dictionary:
 		),
 		"last_lower_deck_shortcut_reward_cache_claim_feedback": (
 			_last_lower_deck_shortcut_reward_cache_claim_feedback.duplicate(true)
+		),
+		"last_lower_deck_relay_forward_reward_cache_reward": (
+			_last_lower_deck_relay_forward_reward_cache_reward.duplicate(true)
+		),
+		"last_lower_deck_relay_forward_reward_cache_claim_feedback": (
+			_last_lower_deck_relay_forward_reward_cache_claim_feedback.duplicate(true)
 		),
 		"last_return_checkpoint": _last_return_checkpoint.duplicate(true),
 		"last_savepoint": _last_return_checkpoint.duplicate(true),
@@ -1542,6 +1616,14 @@ func set_local_state(state: Dictionary) -> void:
 	))
 	_lower_deck_post_relay_trial_defeated = bool(state.get(
 		"factory_lower_deck_post_relay_trial_defeated",
+		false
+	))
+	_lower_deck_relay_forward_reward_cache_claimed = bool(state.get(
+		"factory_lower_deck_relay_forward_reward_cache_claimed",
+		false
+	))
+	_lower_deck_forward_hatch_opened = bool(state.get(
+		"factory_lower_deck_forward_hatch_opened",
 		false
 	))
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
@@ -1723,6 +1805,24 @@ func set_local_state(state: Dictionary) -> void:
 		if lower_deck_shortcut_feedback_variant is Dictionary
 		else {}
 	)
+	var lower_deck_relay_forward_reward_variant: Variant = state.get(
+		"last_lower_deck_relay_forward_reward_cache_reward",
+		{}
+	)
+	_last_lower_deck_relay_forward_reward_cache_reward = (
+		(lower_deck_relay_forward_reward_variant as Dictionary).duplicate(true)
+		if lower_deck_relay_forward_reward_variant is Dictionary
+		else {}
+	)
+	var lower_deck_relay_forward_feedback_variant: Variant = state.get(
+		"last_lower_deck_relay_forward_reward_cache_claim_feedback",
+		{}
+	)
+	_last_lower_deck_relay_forward_reward_cache_claim_feedback = (
+		(lower_deck_relay_forward_feedback_variant as Dictionary).duplicate(true)
+		if lower_deck_relay_forward_feedback_variant is Dictionary
+		else {}
+	)
 	var return_checkpoint_variant: Variant = state.get(
 		"last_return_checkpoint",
 		state.get("last_savepoint", {})
@@ -1786,6 +1886,8 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_breach_corridor_state()
 	_sync_lower_deck_breach_relay_state()
 	_sync_lower_deck_post_relay_trial_state()
+	_sync_lower_deck_relay_forward_reward_cache_state()
+	_sync_lower_deck_forward_hatch_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -2852,6 +2954,85 @@ func get_factory_lower_deck_post_relay_trial_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic relay-forward reward cache diagnostics for tests and MCP probes.
+func get_factory_lower_deck_relay_forward_reward_cache_diagnostics() -> Dictionary:
+	return {
+		"present": _lower_deck_relay_forward_reward_cache != null,
+		"visible": (
+			_lower_deck_relay_forward_reward_cache.visible
+			if _lower_deck_relay_forward_reward_cache != null
+			else false
+		),
+		"cache_id": (
+			String(_lower_deck_relay_forward_reward_cache.call("get_cache_id"))
+			if (
+				_lower_deck_relay_forward_reward_cache != null
+				and _lower_deck_relay_forward_reward_cache.has_method("get_cache_id")
+			)
+			else ""
+		),
+		"texture_path": (
+			String(_lower_deck_relay_forward_reward_cache.call("get_visual_texture_path"))
+			if (
+				_lower_deck_relay_forward_reward_cache != null
+				and _lower_deck_relay_forward_reward_cache.has_method("get_visual_texture_path")
+			)
+			else ""
+		),
+		"available": (
+			bool(_lower_deck_relay_forward_reward_cache.call("is_available"))
+			if (
+				_lower_deck_relay_forward_reward_cache != null
+				and _lower_deck_relay_forward_reward_cache.has_method("is_available")
+			)
+			else false
+		),
+		"claim_available": (
+			bool(_lower_deck_relay_forward_reward_cache.call("is_claim_available"))
+			if (
+				_lower_deck_relay_forward_reward_cache != null
+				and _lower_deck_relay_forward_reward_cache.has_method("is_claim_available")
+			)
+			else false
+		),
+		"claimed": _lower_deck_relay_forward_reward_cache_claimed,
+		"prompt_text": _get_lower_deck_relay_forward_reward_cache_prompt_text(),
+		"post_relay_trial_defeated": _lower_deck_post_relay_trial_defeated,
+		"position": (
+			(_lower_deck_relay_forward_reward_cache as Node2D).global_position
+			if (
+				_lower_deck_relay_forward_reward_cache != null
+				and _lower_deck_relay_forward_reward_cache is Node2D
+			)
+			else Vector2.ZERO
+		),
+		"last_reward": _last_lower_deck_relay_forward_reward_cache_reward.duplicate(true),
+		"last_claim_feedback": (
+			_last_lower_deck_relay_forward_reward_cache_claim_feedback.duplicate(true)
+		),
+	}
+
+
+## Returns deterministic relay-forward hatch diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_hatch_diagnostics() -> Dictionary:
+	return {
+		"present": _lower_deck_forward_hatch != null,
+		"visible": (
+			_lower_deck_forward_hatch.visible
+			if _lower_deck_forward_hatch != null
+			else false
+		),
+		"available": _is_lower_deck_forward_hatch_available(),
+		"opened": _lower_deck_forward_hatch_opened,
+		"cache_claimed": _lower_deck_relay_forward_reward_cache_claimed,
+		"hatch_id": _get_lower_deck_forward_hatch_id(),
+		"prompt_text": _get_lower_deck_forward_hatch_prompt_text(),
+		"texture_path": _get_lower_deck_forward_hatch_visual_texture_path(),
+		"position": _get_lower_deck_forward_hatch_position(),
+		"collision_blocking": _is_lower_deck_forward_hatch_collision_blocking(),
+	}
+
+
 ## Returns deterministic deep bulkhead diagnostics for tests and MCP probes.
 func get_factory_lower_deck_deep_bulkhead_diagnostics() -> Dictionary:
 	var sprite: AnimatedSprite2D = (
@@ -3349,6 +3530,10 @@ func get_factory_route_objective_diagnostics() -> Dictionary:
 		"lower_deck_breach_relay_activated": _lower_deck_breach_relay_activated,
 		"lower_deck_post_relay_trial_activated": _lower_deck_post_relay_trial_activated,
 		"lower_deck_post_relay_trial_defeated": _lower_deck_post_relay_trial_defeated,
+		"lower_deck_relay_forward_reward_cache_claimed": (
+			_lower_deck_relay_forward_reward_cache_claimed
+		),
+		"lower_deck_forward_hatch_opened": _lower_deck_forward_hatch_opened,
 		"route_label_visible": route_label.visible if route_label != null else false,
 		"route_label_text": route_label.text if route_label != null else "",
 	}
@@ -3438,6 +3623,10 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 			"lower_deck_post_relay_trial": (
 				get_factory_lower_deck_post_relay_trial_diagnostics()
 			),
+			"lower_deck_relay_forward_reward_cache": (
+				get_factory_lower_deck_relay_forward_reward_cache_diagnostics()
+			),
+			"lower_deck_forward_hatch": get_factory_lower_deck_forward_hatch_diagnostics(),
 			"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
 			get_factory_checkpoint_overdrive_reward_cache_diagnostics()
@@ -3893,6 +4082,29 @@ func _setup_factory_lower_deck_shortcut_reward_cache() -> void:
 		claimed_signal.connect(_on_factory_lower_deck_shortcut_reward_cache_claimed)
 
 
+func _setup_factory_lower_deck_relay_forward_reward_cache() -> void:
+	_sync_lower_deck_relay_forward_reward_cache_state()
+	if (
+		_lower_deck_relay_forward_reward_cache == null
+		or not _lower_deck_relay_forward_reward_cache.has_signal("cache_claimed")
+	):
+		return
+	var claimed_signal: Signal = _lower_deck_relay_forward_reward_cache.get("cache_claimed")
+	if not claimed_signal.is_connected(_on_factory_lower_deck_relay_forward_reward_cache_claimed):
+		claimed_signal.connect(_on_factory_lower_deck_relay_forward_reward_cache_claimed)
+
+
+func _setup_factory_lower_deck_forward_hatch() -> void:
+	_sync_lower_deck_forward_hatch_state()
+	if _lower_deck_forward_hatch == null or not _lower_deck_forward_hatch.has_signal(
+		"endpoint_activated"
+	):
+		return
+	var endpoint_signal: Signal = _lower_deck_forward_hatch.get("endpoint_activated")
+	if not endpoint_signal.is_connected(_on_factory_lower_deck_forward_hatch_activated):
+		endpoint_signal.connect(_on_factory_lower_deck_forward_hatch_activated)
+
+
 func _setup_factory_lower_deck_parry_gate() -> void:
 	_sync_lower_deck_parry_gate_state()
 	if _lower_deck_parry_gate == null:
@@ -4249,6 +4461,8 @@ func _on_factory_lower_deck_post_relay_trial_defeated() -> void:
 	_lower_deck_post_relay_trial_activated = true
 	_lower_deck_post_relay_trial_defeated = true
 	_sync_lower_deck_post_relay_trial_state()
+	_sync_lower_deck_relay_forward_reward_cache_state()
+	_sync_lower_deck_forward_hatch_state()
 	_refresh_factory_route_objective()
 
 
@@ -4342,6 +4556,27 @@ func _on_factory_lower_deck_shortcut_reward_cache_claimed(
 		_last_lower_deck_shortcut_reward_cache_reward,
 		"Shortcut Cache Claimed"
 	)
+
+
+func _on_factory_lower_deck_relay_forward_reward_cache_claimed(
+	_cache_id: StringName,
+	reward: Dictionary
+) -> void:
+	_lower_deck_relay_forward_reward_cache_claimed = true
+	_last_lower_deck_relay_forward_reward_cache_reward = reward.duplicate(true)
+	_record_lower_deck_relay_forward_reward_cache_claim_feedback(
+		_last_lower_deck_relay_forward_reward_cache_reward,
+		"Relay Forward Cache Claimed"
+	)
+	_sync_lower_deck_forward_hatch_state()
+
+
+func _on_factory_lower_deck_forward_hatch_activated(endpoint_id: StringName) -> void:
+	if endpoint_id != FACTORY_LOWER_DECK_FORWARD_HATCH_ID:
+		return
+	_lower_deck_forward_hatch_opened = true
+	_sync_lower_deck_forward_hatch_state()
+	_refresh_factory_route_objective()
 
 
 func _on_factory_return_checkpoint_activated(
@@ -4791,6 +5026,25 @@ func _sync_lower_deck_shortcut_reward_cache_state() -> void:
 		)
 
 
+func _sync_lower_deck_relay_forward_reward_cache_state() -> void:
+	if _lower_deck_relay_forward_reward_cache == null:
+		return
+	_lower_deck_relay_forward_reward_cache.visible = (
+		_lower_deck_post_relay_trial_defeated
+		or _lower_deck_relay_forward_reward_cache_claimed
+	)
+	if _lower_deck_relay_forward_reward_cache.has_method("set_available"):
+		_lower_deck_relay_forward_reward_cache.call(
+			"set_available",
+			_lower_deck_post_relay_trial_defeated
+		)
+	if _lower_deck_relay_forward_reward_cache.has_method("set_claimed"):
+		_lower_deck_relay_forward_reward_cache.call(
+			"set_claimed",
+			_lower_deck_relay_forward_reward_cache_claimed
+		)
+
+
 func _sync_lower_deck_breach_relay_state() -> void:
 	if _lower_deck_breach_relay == null:
 		return
@@ -5034,6 +5288,27 @@ func _sync_lower_deck_post_relay_trial_state() -> void:
 		collision_shape.disabled = not trial_active
 
 
+func _sync_lower_deck_forward_hatch_state() -> void:
+	if _lower_deck_forward_hatch == null:
+		return
+	var hatch_visible: bool = (
+		_lower_deck_post_relay_trial_defeated
+		or _lower_deck_relay_forward_reward_cache_claimed
+		or _lower_deck_forward_hatch_opened
+	)
+	_lower_deck_forward_hatch.visible = hatch_visible
+	if _lower_deck_forward_hatch.has_method("set_available"):
+		_lower_deck_forward_hatch.call(
+			"set_available",
+			_is_lower_deck_forward_hatch_available()
+		)
+	if _lower_deck_forward_hatch.has_method("set_activated"):
+		_lower_deck_forward_hatch.call("set_activated", _lower_deck_forward_hatch_opened)
+	_set_lower_deck_forward_hatch_collision_blocking(
+		hatch_visible and not _lower_deck_forward_hatch_opened
+	)
+
+
 func _sync_lower_deck_parry_gate_state() -> void:
 	if _lower_deck_parry_gate == null:
 		return
@@ -5155,6 +5430,10 @@ func _refresh_factory_route_objective() -> void:
 
 
 func _get_factory_route_objective_id() -> StringName:
+	if _lower_deck_forward_hatch_opened:
+		return FACTORY_OBJECTIVE_FORWARD_HATCH_OPENED
+	if _lower_deck_relay_forward_reward_cache_claimed:
+		return FACTORY_OBJECTIVE_OPEN_FORWARD_HATCH
 	if _lower_deck_post_relay_trial_activated and not _lower_deck_post_relay_trial_defeated:
 		return FACTORY_OBJECTIVE_CLEAR_POST_RELAY_TRIAL
 	if _lower_deck_post_relay_trial_defeated:
@@ -5318,6 +5597,12 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Clear Relay Forward Trial"
 		FACTORY_OBJECTIVE_POST_RELAY_TRIAL_SECURED:
 			return "Relay Forward Secured"
+		FACTORY_OBJECTIVE_CLAIM_RELAY_FORWARD_CACHE:
+			return "Claim Relay Forward Cache"
+		FACTORY_OBJECTIVE_OPEN_FORWARD_HATCH:
+			return "Open Forward Hatch"
+		FACTORY_OBJECTIVE_FORWARD_HATCH_OPENED:
+			return "Lower Deck Forward Hatch Opened"
 		_:
 			return "Clear Factory Entrance"
 
@@ -5374,6 +5659,20 @@ func _get_lower_deck_shortcut_reward_cache_payload() -> Dictionary:
 	):
 		return {}
 	var reward_variant: Variant = _lower_deck_shortcut_reward_cache.call("get_reward_payload")
+	if reward_variant is Dictionary:
+		return (reward_variant as Dictionary).duplicate(true)
+	return {}
+
+
+func _get_lower_deck_relay_forward_reward_cache_payload() -> Dictionary:
+	if (
+		_lower_deck_relay_forward_reward_cache == null
+		or not _lower_deck_relay_forward_reward_cache.has_method("get_reward_payload")
+	):
+		return {}
+	var reward_variant: Variant = _lower_deck_relay_forward_reward_cache.call(
+		"get_reward_payload"
+	)
 	if reward_variant is Dictionary:
 		return (reward_variant as Dictionary).duplicate(true)
 	return {}
@@ -5436,6 +5735,19 @@ func _record_lower_deck_shortcut_reward_cache_claim_feedback(
 	))
 
 
+func _record_lower_deck_relay_forward_reward_cache_claim_feedback(
+	reward: Dictionary,
+	label_prefix: String
+) -> void:
+	_last_lower_deck_relay_forward_reward_cache_claim_feedback = _build_cache_claim_feedback(
+		reward,
+		label_prefix
+	)
+	_update_route_label(String(
+		_last_lower_deck_relay_forward_reward_cache_claim_feedback.get("text", "")
+	))
+
+
 func _build_cache_claim_feedback(reward: Dictionary, label_prefix: String) -> Dictionary:
 	var gears: int = int(reward.get("gears", 0))
 	var text: String = "%s +%d Gears" % [label_prefix, gears]
@@ -5478,6 +5790,15 @@ func _get_lower_deck_shortcut_reward_cache_prompt_text() -> String:
 	var prompt_label := (
 		_lower_deck_shortcut_reward_cache.get_node_or_null("PromptLabel") as Label
 		if _lower_deck_shortcut_reward_cache != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_relay_forward_reward_cache_prompt_text() -> String:
+	var prompt_label := (
+		_lower_deck_relay_forward_reward_cache.get_node_or_null("PromptLabel") as Label
+		if _lower_deck_relay_forward_reward_cache != null
 		else null
 	)
 	return prompt_label.text if prompt_label != null else ""
@@ -5674,6 +5995,48 @@ func _get_lower_deck_deep_bulkhead_position() -> Vector2:
 	)
 
 
+func _get_lower_deck_forward_hatch_id() -> String:
+	if (
+		_lower_deck_forward_hatch != null
+		and _lower_deck_forward_hatch.has_method("get_endpoint_id")
+	):
+		return String(_lower_deck_forward_hatch.call("get_endpoint_id"))
+	return String(FACTORY_LOWER_DECK_FORWARD_HATCH_ID)
+
+
+func _get_lower_deck_forward_hatch_visual_texture_path() -> String:
+	if (
+		_lower_deck_forward_hatch != null
+		and _lower_deck_forward_hatch.has_method("get_visual_texture_path")
+	):
+		return String(_lower_deck_forward_hatch.call("get_visual_texture_path"))
+	var visual := (
+		_lower_deck_forward_hatch.get_node_or_null("Visual") as Sprite2D
+		if _lower_deck_forward_hatch != null
+		else null
+	)
+	if visual == null or visual.texture == null:
+		return ""
+	return visual.texture.resource_path
+
+
+func _get_lower_deck_forward_hatch_prompt_text() -> String:
+	var prompt_label := (
+		_lower_deck_forward_hatch.get_node_or_null("PromptLabel") as Label
+		if _lower_deck_forward_hatch != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_forward_hatch_position() -> Vector2:
+	return (
+		(_lower_deck_forward_hatch as Node2D).global_position
+		if _lower_deck_forward_hatch != null and _lower_deck_forward_hatch is Node2D
+		else Vector2.ZERO
+	)
+
+
 func _get_post_bulkhead_background_texture_path() -> String:
 	return (
 		_post_bulkhead_background.texture.resource_path
@@ -5701,6 +6064,26 @@ func _get_lower_deck_deep_bulkhead_collision_shape() -> CollisionShape2D:
 		_lower_deck_deep_bulkhead.get_node_or_null("StaticBody2D/CollisionShape2D")
 		as CollisionShape2D
 		if _lower_deck_deep_bulkhead != null
+		else null
+	)
+
+
+func _is_lower_deck_forward_hatch_collision_blocking() -> bool:
+	var collision_shape := _get_lower_deck_forward_hatch_collision_shape()
+	return collision_shape != null and not collision_shape.disabled
+
+
+func _set_lower_deck_forward_hatch_collision_blocking(blocking: bool) -> void:
+	var collision_shape := _get_lower_deck_forward_hatch_collision_shape()
+	if collision_shape != null:
+		collision_shape.disabled = not blocking
+
+
+func _get_lower_deck_forward_hatch_collision_shape() -> CollisionShape2D:
+	return (
+		_lower_deck_forward_hatch.get_node_or_null("StaticBody2D/CollisionShape2D")
+		as CollisionShape2D
+		if _lower_deck_forward_hatch != null
 		else null
 	)
 
@@ -7231,6 +7614,14 @@ func _is_lower_deck_post_relay_trial_active() -> bool:
 		_lower_deck_post_relay_trial_activated
 		and _lower_deck_breach_relay_activated
 		and not _lower_deck_post_relay_trial_defeated
+	)
+
+
+func _is_lower_deck_forward_hatch_available() -> bool:
+	return (
+		_lower_deck_post_relay_trial_defeated
+		and _lower_deck_relay_forward_reward_cache_claimed
+		and not _lower_deck_forward_hatch_opened
 	)
 
 

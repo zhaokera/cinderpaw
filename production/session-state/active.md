@@ -64,7 +64,8 @@
 	  Player Abilities Story063 Old Factory Lower Deck Breach Relay Activation
 	  Feedback、Player Abilities Story064 Old Factory Lower Deck Breach Relay
 	  Audio Feedback、Player Abilities Story065 Old Factory Lower Deck
-	  Post-Relay Combat Feedback
+	  Post-Relay Combat Feedback、Player Abilities Story066 Old Factory Lower
+	  Deck Relay Forward Reward Hatch
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -84,6 +85,35 @@
   `production/qa/evidence/godot-ai-2-8-3-upgrade-2026-07-02.md`.
 
 ## Last Completed Task
+- Player Abilities Story 066: Old Factory Lower Deck Relay Forward Reward Hatch
+  — `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckRelayForwardRewardCache` and
+  `FactoryLowerDeckForwardHatch`. After
+  `factory_lower_deck_post_relay_trial_defeated=true`, the reused lower-deck
+  cache art becomes visible/claimable with prompt `+20 Gears`, cache/source
+  `old_factory_lower_deck_relay_forward_cache`, and deterministic `20` gears.
+  Claiming succeeds once, persists
+  `factory_lower_deck_relay_forward_reward_cache_claimed=true`, records
+  `Relay Forward Cache Claimed +20 Gears`, and leaves adjacent cache flags
+  independent. The reused deep-bulkhead hatch art then becomes activatable with
+  `Open forward hatch`; opening succeeds once, disables local collision,
+  persists `factory_lower_deck_forward_hatch_opened=true`, and updates route
+  feedback to `Lower Deck Forward Hatch Opened`. `FactoryServiceLift` remains
+  optional with prompt `Call lift`; no service-lift destination, SaveSystem
+  schema, minimap, or global quest state changed. No new visual/audio assets
+  were generated; Story066 reuses existing image-generated lower-deck cache,
+  deep bulkhead, and unlock spark assets. Verification: RED
+  `reports/report_1089/`; focused GREEN `reports/report_1090/` `2/2`;
+  related GREEN `reports/report_1091/` `18/18`; headless smoke
+  `reports/old_factory_lower_deck_relay_forward_reward_hatch_smoke.log` exited
+  `0` with no project script/parse/invalid-call/access/missing-resource
+  errors; Godot AI MCP `2.8.3` runtime confirmed helper live, cache/hatch
+  runtime node properties, claim/open path, route label
+  `Lower Deck Forward Hatch Opened`, service lift `Call lift`, no relay
+  VFX/audio replay, clean game log, and non-empty `960x539` game framebuffer.
+  Editor Debugger still showed pre-existing stale Story015 rows; fresh Story015
+  CLI `reports/report_1092/` passed `5/5`.
+
 - Player Abilities Story 065: Old Factory Lower Deck Post-Relay Combat Feedback
   — `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckPostRelaySparkRat` and
