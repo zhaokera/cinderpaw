@@ -205,6 +205,10 @@ position = Vector2(1120, 482)
 z_index = 20
 position = Vector2(1238, 482)
 
+[node name="FactoryLowerDeckForwardConduitSparkRat" parent="." instance=ExtResource("13_spark_rat")]
+z_index = 20
+position = Vector2(1188, 482)
+
 [node name="FactoryCheckpointOverdriveLeftDefeatBurst" type="Sprite2D" parent="."]
 visible = false
 z_index = 24
@@ -863,6 +867,30 @@ scale = Vector2(0.72, 0.72)
 texture = ExtResource("8_vent_texture")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckPostRelaySteamHazard"]
+position = Vector2(0, -36)
+shape = SubResource("RectangleShape2D_steam_vent")
+disabled = true
+
+[node name="FactoryLowerDeckForwardConduitSteamHazard" type="Area2D" parent="."]
+visible = false
+z_index = 18
+position = Vector2(1260, 466)
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+script = ExtResource("9_vent_script")
+hazard_id = &"old_factory_lower_deck_forward_conduit"
+damage = 8
+contact_cooldown_sec = 1.0
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckForwardConduitSteamHazard"]
+z_index = 1
+position = Vector2(0, -78)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("8_vent_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardConduitSteamHazard"]
 position = Vector2(0, -36)
 shape = SubResource("RectangleShape2D_steam_vent")
 disabled = true

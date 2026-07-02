@@ -65,7 +65,8 @@
 	  Feedback、Player Abilities Story064 Old Factory Lower Deck Breach Relay
 	  Audio Feedback、Player Abilities Story065 Old Factory Lower Deck
 	  Post-Relay Combat Feedback、Player Abilities Story066 Old Factory Lower
-	  Deck Relay Forward Reward Hatch
+	  Deck Relay Forward Reward Hatch、Player Abilities Story067 Old Factory
+	  Lower Deck Forward Conduit Ambush
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -85,6 +86,36 @@
   `production/qa/evidence/godot-ai-2-8-3-upgrade-2026-07-02.md`.
 
 ## Last Completed Task
+- Player Abilities Story 067: Old Factory Lower Deck Forward Conduit Ambush
+  -- `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckForwardConduitSparkRat` and
+  `FactoryLowerDeckForwardConduitSteamHazard`. After
+  `factory_lower_deck_forward_hatch_opened=true`, Cinderpaw can cross x
+  `1272.0` to activate entity `2118`, the reused animated Factory Spark Rat,
+  with a live target, Spark Rat pacing, active steam hazard, and route feedback
+  `Clear Forward Conduit Ambush`. Defeating entity `2118` disables the enemy
+  and hazard, persists `factory_lower_deck_forward_conduit_activated=true` and
+  `factory_lower_deck_forward_conduit_defeated=true`, and advances feedback to
+  `Forward Conduit Secured`. `FactoryServiceLift` remains optional with prompt
+  `Call lift`; no service-lift destination, SaveSystem schema, minimap, fast
+  travel, reward cache, or global quest state changed. No new assets were
+  generated; the story reuses the existing image-generated Factory Spark Rat
+  SpriteFrames, Old Factory steam vent prop, and post-bulkhead backdrop.
+  Verification: RED `reports/report_1093/`; focused GREEN
+  `reports/report_1094/` `2/2`; related GREEN `reports/report_1095/` `26/26`;
+  Story015 stale editor-row isolation `reports/report_1096/` `5/5`; headless
+  smoke `reports/old_factory_lower_deck_forward_conduit_ambush_smoke.log`
+  exited `0` with no project script/parse/invalid-call/access/missing-resource
+  errors, retaining only known cleanup-time `2 resources still in use` noise.
+  Godot AI MCP `2.8.3` runtime confirmed helper live, node presence, pre-active
+  hidden hazard state, active entity `2118`, Spark Rat SpriteFrames frame
+  counts `idle/run/attack_tell/attack/hurt/death=3`, active hazard id/damage/
+  cooldown, service lift `Call lift`, breach relay replay counts `0`, defeat
+  transition to `Forward Conduit Secured`, persisted local flags, clean game
+  log, and non-empty game framebuffer metadata `960x539`. Editor Debugger still
+  showed pre-existing stale Story015 rows; fresh Story015 CLI
+  `reports/report_1096/` passed.
+
 - Player Abilities Story 066: Old Factory Lower Deck Relay Forward Reward Hatch
   — `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckRelayForwardRewardCache` and
