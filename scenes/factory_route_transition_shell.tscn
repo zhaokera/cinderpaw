@@ -161,6 +161,10 @@ position = Vector2(820, 482)
 z_index = 20
 position = Vector2(1012, 482)
 
+[node name="FactoryLowerDeckShortcutSparkRat" parent="." instance=ExtResource("13_spark_rat")]
+z_index = 20
+position = Vector2(1166, 482)
+
 [node name="FactoryCheckpointOverdriveLeftDefeatBurst" type="Sprite2D" parent="."]
 visible = false
 z_index = 24
@@ -360,6 +364,51 @@ theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 15
 text = "Parry the laser"
 horizontal_alignment = 1
+
+[node name="FactoryLowerDeckShortcutSeal" type="Node2D" parent="."]
+visible = false
+z_index = 23
+position = Vector2(1230, 400)
+script = ExtResource("11_endpoint_script")
+endpoint_id = &"old_factory_lower_deck_shortcut_seal"
+activation_radius_px = 112.0
+locked_prompt_text = "Clear shortcut guard"
+available_prompt_text = "Open shortcut"
+activated_prompt_text = "Shortcut open"
+unlock_vfx_texture = ExtResource("12_unlock_vfx")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="FactoryLowerDeckShortcutSeal"]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckShortcutSeal/StaticBody2D"]
+shape = SubResource("RectangleShape2D_lower_deck_parry_gate")
+disabled = true
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckShortcutSeal"]
+scale = Vector2(0.58, 0.58)
+texture = ExtResource("10_endpoint_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryLowerDeckShortcutSeal"]
+z_index = 4
+offset_left = -96.0
+offset_top = -126.0
+offset_right = 96.0
+offset_bottom = -100.0
+theme_override_colors/font_color = Color(0.58, 0.94, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 15
+text = "Clear shortcut guard"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="FactoryLowerDeckShortcutSeal"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckShortcutSeal/InteractionArea"]
+shape = SubResource("CircleShape2D_deep_endpoint_interaction")
 
 [node name="FactoryReturnCheckpoint" type="Node2D" parent="."]
 visible = false

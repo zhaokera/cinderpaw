@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-07-02" name="report_1044" tests="14" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_lower_deck_shortcut_seal_test" package="tests/unit/gameplay" timestamp="2026-07-02T03:07:00" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.023">
+		<testcase name="test_shortcut_seal_requires_lower_deck_exit_clear_and_keeps_service_lift_optional" classname="old_factory_lower_deck_shortcut_seal_test" time="0.012">
+		</testcase>
+		<testcase name="test_shortcut_guard_defeat_unlocks_seal_and_persists_without_replaying_exit_ambush" classname="old_factory_lower_deck_shortcut_seal_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="old_factory_lower_deck_exit_ambush_test" package="tests/unit/gameplay" timestamp="2026-07-02T03:07:01" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.016">
+		<testcase name="test_lower_deck_parry_gate_unlock_triggers_exit_ambush_and_stays_optional" classname="old_factory_lower_deck_exit_ambush_test" time="0.011">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="old_factory_lower_deck_skirmish_cache_test" package="tests/unit/gameplay" timestamp="2026-07-02T03:07:01" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.022">
+		<testcase name="test_lower_deck_skirmish_requires_overdrive_clear_but_not_cache_claim" classname="old_factory_lower_deck_skirmish_cache_test" time="0.005">
+		</testcase>
+		<testcase name="test_lower_deck_skirmish_defeat_unlocks_independent_reward_cache_and_persists" classname="old_factory_lower_deck_skirmish_cache_test" time="0.012">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="old_factory_checkpoint_overdrive_duo_test" package="tests/unit/gameplay" timestamp="2026-07-02T03:07:01" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.043">
+		<testcase name="test_overdrive_duo_stays_hidden_until_checkpoint_rear_ambush_is_cleared" classname="old_factory_checkpoint_overdrive_duo_test" time="0.003">
+		</testcase>
+		<testcase name="test_overdrive_duo_activation_after_rear_ambush_locks_service_lift" classname="old_factory_checkpoint_overdrive_duo_test" time="0.003">
+		</testcase>
+		<testcase name="test_overdrive_duo_uses_staggered_pincer_pacing_after_activation" classname="old_factory_checkpoint_overdrive_duo_test" time="0.006">
+		</testcase>
+		<testcase name="test_overdrive_duo_defeat_persists_and_unlocks_service_lift" classname="old_factory_checkpoint_overdrive_duo_test" time="0.021">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="old_factory_checkpoint_overdrive_reward_cache_test" package="tests/unit/gameplay" timestamp="2026-07-02T03:07:01" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.016">
+		<testcase name="test_overdrive_reward_cache_stays_locked_until_duo_is_cleared" classname="old_factory_checkpoint_overdrive_reward_cache_test" time="0.004">
+		</testcase>
+		<testcase name="test_overdrive_reward_cache_claims_once_and_persists_after_duo_clear" classname="old_factory_checkpoint_overdrive_reward_cache_test" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="old_factory_service_lift_scene_manager_exit_test" package="tests/unit/gameplay" timestamp="2026-07-02T03:07:01" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.057">
+		<testcase name="test_service_lift_requests_main_scrap_roost_exit_after_factory_route_clear" classname="old_factory_service_lift_scene_manager_exit_test" time="0.025">
+		</testcase>
+		<testcase name="test_service_lift_does_not_activate_when_scene_manager_rejects_exit" classname="old_factory_service_lift_scene_manager_exit_test" time="0.027">
+		</testcase>
+	</testsuite>
+	<testsuite id="6" name="factory_route_runtime_roundtrip_test" package="tests/unit/gameplay" timestamp="2026-07-02T03:07:01" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.086">
+		<testcase name="test_factory_route_roundtrips_through_runtime_scene_root_to_scrap_roost" classname="factory_route_runtime_roundtrip_test" time="0.081">
+		</testcase>
+	</testsuite>
+</testsuites>

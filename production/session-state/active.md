@@ -53,6 +53,7 @@
   Overdrive Reward Cache、Player Abilities Story052 Old Factory Overdrive
   Defeat Burst、Player Abilities Story053 Old Factory Lower Deck Skirmish
   Cache、Player Abilities Story054 Old Factory Lower Deck Parry-Laser Ambush
+  Gate、Player Abilities Story055 Old Factory Lower Deck Shortcut Seal Combat
   Gate
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
@@ -63,6 +64,34 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 055: Old Factory Lower Deck Shortcut Seal Combat Gate —
+  `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckShortcutSparkRat` and `FactoryLowerDeckShortcutSeal`. After
+  Story054 lower-deck exit ambush state is defeated, Cinderpaw can cross the
+  shortcut activation boundary to activate an optional Spark Rat guard with
+  entity `2110`. The guard reuses the existing Factory Spark Rat
+  `AnimatedSprite2D + SpriteFrames` resource with
+  `idle/run/attack_tell/attack/hurt/death=3` frames, targets the player, and
+  updates the route objective to `Clear Shortcut Guard`. The already available
+  service lift remains optional with prompt `Call lift`. Defeating entity
+  `2110` hides/disables the guard, persists
+  `factory_lower_deck_shortcut_guard_defeated=true`, and changes the objective
+  to `Open Lower Deck Shortcut`; opening the seal persists
+  `factory_lower_deck_shortcut_unlocked=true`, disables shortcut collision, and
+  changes the route objective to `Lower Deck Shortcut Opened`. Restored
+  scene-local state keeps the shortcut open, keeps the guard defeated, and does
+  not replay the Story054 exit ambush. No new visual assets were generated;
+  this story reuses existing Factory Spark Rat frames, Old Factory endpoint
+  visual, and existing unlock VFX. Verification: focused RED
+  `reports/report_1039/`; final focused GREEN `reports/report_1043/` `2/2`;
+  related regression `reports/report_1044/` `14/14`; headless Factory smoke
+  `reports/old_factory_lower_deck_shortcut_seal_smoke.log` exited `0` with no
+  project script/resource errors by keyword scan, retaining only known
+  cleanup-time ObjectDB/resource terminal noise. Godot MCP 4.7 runtime
+  confirmed active guard `2110`, frame counts, service lift `Call lift`, guard
+  defeat, seal open, collision disabled, local-state persistence, clean
+  game/editor logs, and non-empty screenshot metadata `960x539`. QA evidence:
+  `production/qa/evidence/old-factory-lower-deck-shortcut-seal-combat-gate-2026-07-02.md`。
 - Player Abilities Story 054: Old Factory Lower Deck Parry-Laser Ambush Gate —
   `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckParryLaserGate` and `FactoryLowerDeckExitSparkRat`. After
