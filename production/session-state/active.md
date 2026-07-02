@@ -66,7 +66,8 @@
 	  Audio Feedback、Player Abilities Story065 Old Factory Lower Deck
 	  Post-Relay Combat Feedback、Player Abilities Story066 Old Factory Lower
 	  Deck Relay Forward Reward Hatch、Player Abilities Story067 Old Factory
-	  Lower Deck Forward Conduit Ambush
+	  Lower Deck Forward Conduit Ambush、Player Abilities Story068 Old Factory
+	  Lower Deck Forward Conduit Clear Feedback
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -86,6 +87,31 @@
   `production/qa/evidence/godot-ai-2-8-3-upgrade-2026-07-02.md`.
 
 ## Last Completed Task
+- Player Abilities Story 068: Old Factory Lower Deck Forward Conduit Clear
+  Feedback -- `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckForwardConduitClearBurst`, a hidden `Sprite2D` reusing the
+  existing image-generated
+  `res://assets/environment/old_factory_overdrive_defeat_burst/vfx_old_factory_overdrive_defeat_burst_256.png`.
+  Freshly defeating forward conduit entity `2118` shows the burst once at the
+  Spark Rat position `(1188, 482)`, records `played=true`,
+  `spawn_count=1`, `asset_source="image_generation"`, `vfx_role="forward_conduit_clear_feedback"`,
+  and keeps the Story067 clear state intact: enemy/hazard hidden, route label
+  `Forward Conduit Secured`, and `FactoryServiceLift` optional with prompt
+  `Call lift`. Restored completed state hides the feedback with `played=false`
+  and `spawn_count=0`, so save/local-state restoration does not replay the
+  burst. No new visual/audio assets, SaveSystem schema, minimap, service-lift
+  route, reward cache, or enemy content were added. Verification: RED
+  `reports/report_1097/`; focused GREEN `reports/report_1101/` `2/2`;
+  related GREEN `reports/report_1102/` `15/15`; headless smoke
+  `reports/old_factory_forward_conduit_clear_feedback_smoke.log` exited `0`
+  with only known Godot cleanup-time `2 resources still in use` noise. Godot AI
+  MCP `2.8.3` runtime confirmed helper live, fresh defeat VFX visible with the
+  reused texture, restored no-replay state, service lift `Call lift`, clean game
+  log except helper registration, and non-empty game framebuffer metadata
+  `960x539`. Editor Debugger still showed pre-existing Story015
+  `CombatComponent` stale rows; fresh related CLI `reports/report_1102/`
+  passed Story015 isolation `5/5`.
+
 - Player Abilities Story 067: Old Factory Lower Deck Forward Conduit Ambush
   -- `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckForwardConduitSparkRat` and

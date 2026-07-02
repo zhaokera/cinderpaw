@@ -221,6 +221,12 @@ z_index = 24
 scale = Vector2(0.62, 0.62)
 texture = ExtResource("19_overdrive_burst_texture")
 
+[node name="FactoryLowerDeckForwardConduitClearBurst" type="Sprite2D" parent="."]
+visible = false
+z_index = 24
+scale = Vector2(0.62, 0.62)
+texture = ExtResource("19_overdrive_burst_texture")
+
 [node name="FactoryCombatCache" type="Node2D" parent="."]
 z_index = 22
 position = Vector2(1040, 286)

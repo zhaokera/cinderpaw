@@ -164,6 +164,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _checkpoint_overdrive_right_defeat_burst: Sprite2D = (
 	get_node_or_null("FactoryCheckpointOverdriveRightDefeatBurst") as Sprite2D
 )
+@onready var _lower_deck_forward_conduit_clear_burst: Sprite2D = (
+	get_node_or_null("FactoryLowerDeckForwardConduitClearBurst") as Sprite2D
+)
 @onready var _cache: Node = $FactoryCombatCache
 @onready var _return_patrol_reward_cache: Node = get_node_or_null(
 	"FactoryReturnPatrolRewardCache"
@@ -226,6 +229,9 @@ var _last_lower_deck_shortcut_reward_cache_claim_feedback: Dictionary = {}
 var _last_lower_deck_relay_forward_reward_cache_reward: Dictionary = {}
 var _last_lower_deck_relay_forward_reward_cache_claim_feedback: Dictionary = {}
 var _last_checkpoint_overdrive_defeat_burst_side: StringName = &""
+var _lower_deck_forward_conduit_clear_feedback_played: bool = false
+var _lower_deck_forward_conduit_clear_feedback_spawn_count: int = 0
+var _last_lower_deck_forward_conduit_clear_feedback_position: Vector2 = Vector2.ZERO
 var _last_hazard_damage: Dictionary = {}
 var _last_spark_rat_counter_diagnostics: Dictionary = {}
 var _last_spark_rat_bite_sequence_id_resolved: int = -1
@@ -316,6 +322,7 @@ func _ready() -> void:
 	_sync_lower_deck_post_relay_trial_state()
 	_setup_factory_lower_deck_relay_forward_reward_cache()
 	_setup_factory_lower_deck_forward_hatch()
+	_reset_lower_deck_forward_conduit_clear_feedback()
 	_sync_lower_deck_forward_conduit_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
@@ -1672,6 +1679,7 @@ func set_local_state(state: Dictionary) -> void:
 		"factory_lower_deck_forward_conduit_defeated",
 		false
 	))
+	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
 	_service_lift_exit_requested = bool(state.get(
@@ -3163,6 +3171,26 @@ func get_factory_lower_deck_forward_conduit_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic forward conduit clear feedback diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_conduit_clear_feedback_diagnostics() -> Dictionary:
+	return {
+		"present": _lower_deck_forward_conduit_clear_burst != null,
+		"visible": (
+			_lower_deck_forward_conduit_clear_burst.visible
+			if _lower_deck_forward_conduit_clear_burst != null
+			else false
+		),
+		"played": _lower_deck_forward_conduit_clear_feedback_played,
+		"spawn_count": _lower_deck_forward_conduit_clear_feedback_spawn_count,
+		"texture_path": _get_lower_deck_forward_conduit_clear_feedback_texture_path(),
+		"last_position": _last_lower_deck_forward_conduit_clear_feedback_position,
+		"asset_source": "image_generation",
+		"vfx_role": "forward_conduit_clear_feedback",
+		"entity_id": FACTORY_LOWER_DECK_FORWARD_CONDUIT_ENTITY_ID,
+		"hazard_id": String(_get_hazard_id(_lower_deck_forward_conduit_steam_hazard)),
+	}
+
+
 ## Returns deterministic deep bulkhead diagnostics for tests and MCP probes.
 func get_factory_lower_deck_deep_bulkhead_diagnostics() -> Dictionary:
 	var sprite: AnimatedSprite2D = (
@@ -3735,34 +3763,37 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		"checkpoint_forward_patrol": get_factory_checkpoint_forward_patrol_diagnostics(),
 		"checkpoint_rear_ambush": get_factory_checkpoint_rear_ambush_diagnostics(),
 		"checkpoint_overdrive_duo": get_factory_checkpoint_overdrive_duo_diagnostics(),
-			"lower_deck_skirmish": get_factory_lower_deck_skirmish_diagnostics(),
-			"lower_deck_parry_gate": get_factory_lower_deck_parry_gate_diagnostics(),
-			"lower_deck_exit_ambush": get_factory_lower_deck_exit_ambush_diagnostics(),
-			"lower_deck_shortcut_seal": get_factory_lower_deck_shortcut_seal_diagnostics(),
-			"lower_deck_shortcut_reward_cache": (
-				get_factory_lower_deck_shortcut_reward_cache_diagnostics()
-			),
-			"lower_deck_shortcut_pursuer": (
-				get_factory_lower_deck_shortcut_pursuer_diagnostics()
-			),
-			"lower_deck_pressure_valve": get_factory_lower_deck_pressure_valve_diagnostics(),
-			"lower_deck_steam_sluice": get_factory_lower_deck_steam_sluice_diagnostics(),
-			"lower_deck_deep_bulkhead": get_factory_lower_deck_deep_bulkhead_diagnostics(),
-			"lower_deck_breach_corridor": (
-				get_factory_lower_deck_breach_corridor_diagnostics()
-			),
-			"lower_deck_breach_relay": get_factory_lower_deck_breach_relay_diagnostics(),
-			"lower_deck_post_relay_trial": (
-				get_factory_lower_deck_post_relay_trial_diagnostics()
-			),
-			"lower_deck_relay_forward_reward_cache": (
-				get_factory_lower_deck_relay_forward_reward_cache_diagnostics()
-			),
-			"lower_deck_forward_hatch": get_factory_lower_deck_forward_hatch_diagnostics(),
-			"lower_deck_forward_conduit": (
-				get_factory_lower_deck_forward_conduit_diagnostics()
-			),
-			"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
+		"lower_deck_skirmish": get_factory_lower_deck_skirmish_diagnostics(),
+		"lower_deck_parry_gate": get_factory_lower_deck_parry_gate_diagnostics(),
+		"lower_deck_exit_ambush": get_factory_lower_deck_exit_ambush_diagnostics(),
+		"lower_deck_shortcut_seal": get_factory_lower_deck_shortcut_seal_diagnostics(),
+		"lower_deck_shortcut_reward_cache": (
+			get_factory_lower_deck_shortcut_reward_cache_diagnostics()
+		),
+		"lower_deck_shortcut_pursuer": (
+			get_factory_lower_deck_shortcut_pursuer_diagnostics()
+		),
+		"lower_deck_pressure_valve": get_factory_lower_deck_pressure_valve_diagnostics(),
+		"lower_deck_steam_sluice": get_factory_lower_deck_steam_sluice_diagnostics(),
+		"lower_deck_deep_bulkhead": get_factory_lower_deck_deep_bulkhead_diagnostics(),
+		"lower_deck_breach_corridor": (
+			get_factory_lower_deck_breach_corridor_diagnostics()
+		),
+		"lower_deck_breach_relay": get_factory_lower_deck_breach_relay_diagnostics(),
+		"lower_deck_post_relay_trial": (
+			get_factory_lower_deck_post_relay_trial_diagnostics()
+		),
+		"lower_deck_relay_forward_reward_cache": (
+			get_factory_lower_deck_relay_forward_reward_cache_diagnostics()
+		),
+		"lower_deck_forward_hatch": get_factory_lower_deck_forward_hatch_diagnostics(),
+		"lower_deck_forward_conduit": (
+			get_factory_lower_deck_forward_conduit_diagnostics()
+		),
+		"lower_deck_forward_conduit_clear_feedback": (
+			get_factory_lower_deck_forward_conduit_clear_feedback_diagnostics()
+		),
+		"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
 			get_factory_checkpoint_overdrive_reward_cache_diagnostics()
 		),
@@ -4611,6 +4642,7 @@ func _on_factory_lower_deck_post_relay_trial_defeated() -> void:
 func _on_factory_lower_deck_forward_conduit_defeated() -> void:
 	_lower_deck_forward_conduit_activated = true
 	_lower_deck_forward_conduit_defeated = true
+	_show_lower_deck_forward_conduit_clear_feedback()
 	_sync_lower_deck_forward_conduit_state()
 	_refresh_factory_route_objective()
 
@@ -6312,6 +6344,41 @@ func _show_checkpoint_overdrive_defeat_burst(side: StringName, spark_rat: Node2D
 		burst.global_position = spark_rat.global_position
 	burst.visible = true
 	_last_checkpoint_overdrive_defeat_burst_side = side
+
+
+func _show_lower_deck_forward_conduit_clear_feedback() -> void:
+	if (
+		_lower_deck_forward_conduit_clear_burst == null
+		or _lower_deck_forward_conduit_clear_feedback_played
+	):
+		return
+	var feedback_position: Vector2 = (
+		_lower_deck_forward_conduit_spark_rat.global_position
+		if _lower_deck_forward_conduit_spark_rat != null
+		else Vector2.ZERO
+	)
+	_lower_deck_forward_conduit_clear_burst.global_position = feedback_position
+	_lower_deck_forward_conduit_clear_burst.visible = true
+	_last_lower_deck_forward_conduit_clear_feedback_position = feedback_position
+	_lower_deck_forward_conduit_clear_feedback_played = true
+	_lower_deck_forward_conduit_clear_feedback_spawn_count += 1
+
+
+func _reset_lower_deck_forward_conduit_clear_feedback() -> void:
+	_lower_deck_forward_conduit_clear_feedback_played = false
+	_lower_deck_forward_conduit_clear_feedback_spawn_count = 0
+	_last_lower_deck_forward_conduit_clear_feedback_position = Vector2.ZERO
+	if _lower_deck_forward_conduit_clear_burst != null:
+		_lower_deck_forward_conduit_clear_burst.visible = false
+
+
+func _get_lower_deck_forward_conduit_clear_feedback_texture_path() -> String:
+	if (
+		_lower_deck_forward_conduit_clear_burst == null
+		or _lower_deck_forward_conduit_clear_burst.texture == null
+	):
+		return ""
+	return _lower_deck_forward_conduit_clear_burst.texture.resource_path
 
 
 func _get_checkpoint_overdrive_defeat_burst_texture_path() -> String:
