@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0001: Autoload architecture; ADR-0003: Data management
 **ADR Decision Summary**: InputManager exposes timing helpers for movement systems while staying independent of player physics implementation.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Unit tests should use injected frame counters instead of relying on physics ticks.
 
 **Control Manifest Rules (Foundation)**:

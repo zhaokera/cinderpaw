@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: N/A — explicitly deferred by this epic to Feature/Polish
 **ADR Decision Summary**: The Input EPIC states key rebinding is postponed to the Feature/Polish phase.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 **Engine Notes**: Requires save/load of `user://input_bindings.cfg`, UI settings integration, and platform-specific input event serialization.
 
 **Control Manifest Rules (Foundation)**:

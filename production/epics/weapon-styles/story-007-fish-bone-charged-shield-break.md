@@ -19,7 +19,7 @@ ADR-0019: Health component
 confirmed and the target exposes a HealthComponent-compatible `break_shield()`
 method.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Adapter checks use `has_method` before calling Health hooks.
 
 ## Acceptance Criteria

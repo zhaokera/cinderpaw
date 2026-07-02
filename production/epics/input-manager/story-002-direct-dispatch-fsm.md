@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0001: Autoload architecture; ADR-0002: Signal communication
 **ADR Decision Summary**: InputManager emits signals to consumers and never calls Core systems directly. Simple signals with <=3 fields use direct parameters.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Typed signal syntax is stable; use `signal.connect(callable)` in tests and code.
 
 **Control Manifest Rules (Foundation)**:

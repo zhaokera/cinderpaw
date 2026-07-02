@@ -19,7 +19,7 @@ ADR-0001: Autoload architecture; ADR-0003: Data management
 component. The effect catalog defines seven effect ids, categories, durations,
 modifier metadata, DoT values, priorities, and a maximum of five active effects.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Pure GDScript data structures; no new engine APIs.
 
 **Control Manifest Rules (Core)**:

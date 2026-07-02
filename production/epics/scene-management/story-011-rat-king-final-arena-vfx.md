@@ -26,7 +26,7 @@ electric leak damage behavior. This story adds authored, generated visual VFX to
 those same runtime nodes without moving gameplay rules out of MainScene or
 creating another manager.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 
 **Control Manifest Rules (Feature layer)**:
 - Required: boss scene lock and arena mutation reset remain deterministic.

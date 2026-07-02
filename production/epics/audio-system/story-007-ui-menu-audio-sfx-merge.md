@@ -21,7 +21,7 @@ ADR-0011: UI focus management
 audio state boundaries, and same-SFX request coalescing without pushing audio
 logic into HUD/UI or gameplay systems.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: UI cues use global `AudioStreamPlayer` instances on the UI
 bus. Same-SFX merge reuses an active SFX player when the same cue repeats within
 100ms and boosts linear volume by 20%.

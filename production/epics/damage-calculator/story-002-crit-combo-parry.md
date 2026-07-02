@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0001: Autoload 架构; ADR-0002: 信号通信
 **ADR Decision Summary**: DamageCalculator stays pure and stateless. DamageResult metadata reports crit/parry/combo state for downstream presentation and audio systems.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Use typed `StringName` values for crit/parry labels.
 
 **Control Manifest Rules (Foundation)**:

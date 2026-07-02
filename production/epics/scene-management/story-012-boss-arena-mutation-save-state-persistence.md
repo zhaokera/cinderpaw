@@ -27,7 +27,7 @@ world state and restore when the scene loads. MainScene owns the Rat King arena
 mutation runtime nodes created by Story008/009/011; this story persists those
 active mutation descriptors through the existing SaveSystem runtime handoff.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 
 **Control Manifest Rules (Feature layer)**:
 - Required: scene-local state and boss arena reset paths remain deterministic.

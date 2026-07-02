@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0003: 数据管理架构, ADR-0001: Autoload 架构
 **ADR Decision Summary**: JSON 为源格式 + Resource 桥接。标准接口契约：`_ready()` 获取域 + 连接 `on_domain_changed` + `get_entry()` null→优雅降级。
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: `get_entry()` 返回 Variant — Godot 4.6 required types 下需验证是否允许返回 null。如不允许，改为 `Dictionary` + `has_entry()` 前置检查。
 
 **Control Manifest Rules (Foundation layer)**:

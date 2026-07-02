@@ -21,7 +21,7 @@ Godot `ResourceLoader`, masks loading behind transition animation, preserves
 runtime scene state, and enforces deferred cache constraints. Fast travel uses a
 2.0 second portal animation window to preload the target scene before switching.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 
 **Control Manifest Rules (Feature layer)**:
 - Required: fast travel preloads the target scene during a 2-second portal

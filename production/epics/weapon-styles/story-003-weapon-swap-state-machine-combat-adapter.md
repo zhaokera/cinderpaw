@@ -19,7 +19,7 @@ ADR-0005: Combat state machine; ADR-0002: Signal communication
 second deterministic timer, cyclic swap order, and adapter calls that reset
 Combat combo and dodge cooldown after a completed swap.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Deterministic `advance_time()` tests cover timing without
 depending on real AnimationPlayer playback.
 

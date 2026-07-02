@@ -17,7 +17,7 @@
 **ADR Decision Summary**: SceneManager owns scene lock and scene-state coordination;
 BossConfigComponent requests arena changes through an adapter.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: No async scene loading is required in this story; only adapter calls
 are verified.
 

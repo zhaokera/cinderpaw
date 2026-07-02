@@ -23,7 +23,7 @@ must never keep more than current scene plus one cached runtime scene resident,
 and memory diagnostics must make platform budget breaches visible before later
 UI/profile integration stories.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 
 **Control Manifest Rules (Feature layer)**:
 - Required: async scene loading uses `ResourceLoader.load_threaded_request()`.

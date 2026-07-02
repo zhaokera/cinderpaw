@@ -4,8 +4,8 @@
 |-------|-------|
 | **Engine Version** | Godot 4.7 |
 | **Local Binary Verified** | 4.7.stable.official.5b4e0cb0f |
-| **Project Pinned** | 2026-06-30 |
-| **Last Docs Verified** | 2026-06-30 |
+| **Project Pinned** | 2026-07-02 |
+| **Last Docs Verified** | 2026-07-02 |
 | **LLM Knowledge Cutoff** | May 2025 |
 | **Risk Level** | HIGH — versions 4.4, 4.5, 4.6, and 4.7 are beyond LLM training data |
 
@@ -80,7 +80,7 @@ Godot 4.7 docs before suggesting version-sensitive Godot API calls.
 
 ## Project Migration Audit — 4.6.3 → 4.7
 
-Date: 2026-06-30.
+Date: 2026-07-02.
 
 | Area | Result |
 |------|--------|

@@ -19,7 +19,7 @@ ADR-0019: Health component
 through Health-compatible adapters, expire when duration reaches zero, and expose
 movement/damage modifier query functions as pure multipliers.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Deterministic `advance_time(delta)` test hook is preferred over
 Timer-node-only behavior for unit tests.
 

@@ -17,7 +17,7 @@
 **ADR Governing Implementation**: ADR-0003: Data management
 **ADR Decision Summary**: Boss configuration source data must be JSON, registered in `data/manifest.json`, validated by schema when present, and consumed through DataManager-compatible query APIs.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: FileAccess/JSON/DirAccess read APIs are stable; no post-cutoff API is required.
 
 **Control Manifest Rules (this layer)**:

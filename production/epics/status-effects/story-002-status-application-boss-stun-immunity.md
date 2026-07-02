@@ -19,7 +19,7 @@ ADR-0002: Signal communication
 existing same-type effects, applies new effect metadata, and emits direct local
 signals. Boss STUN immunity consumes the Boss Configuration parry outcome boundary.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Use typed signals and duck-typed adapters only.
 
 ---

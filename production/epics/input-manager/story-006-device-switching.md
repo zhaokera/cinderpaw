@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0001: Autoload architecture; ADR-0002: Signal communication
 **ADR Decision Summary**: InputManager owns device detection and emits `device_changed(old, new)`; HUD and UI listen to the signal instead of being called directly.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: SDL3 gamepad handling is noted in Godot 4.6 engine reference; validate with injected InputEvent tests and headless-safe logic.
 
 **Control Manifest Rules (Foundation)**:

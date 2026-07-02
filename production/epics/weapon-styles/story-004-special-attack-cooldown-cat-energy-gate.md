@@ -19,7 +19,7 @@ ADR-0005: Combat state machine
 cooldown and CombatComponent cat energy, then emits start signals and starts the
 configured cooldown.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Cooldowns are advanced deterministically via `_physics_process`
 or public test helper.
 

@@ -20,7 +20,7 @@
 1-2 second authored transition. The UI shell should be driven by the same
 SceneManager lifecycle that owns threaded loading rather than by a fake timer.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 
 **Control Manifest Rules (Feature layer)**:
 - Required: scene changes use async loading plus transition animation.

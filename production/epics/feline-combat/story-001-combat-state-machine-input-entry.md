@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0001: Autoload architecture; ADR-0002: Signal communication; ADR-0005: Combat state machine architecture
 **ADR Decision Summary**: CombatComponent is a per-entity Core component. It uses a 6-state enum + match FSM and consumes normalized action input without becoming an Autoload.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: AnimationPlayer API is stable; this story should keep animation dependencies optional so unit tests do not need a complete scene.
 
 **Control Manifest Rules (Core)**:

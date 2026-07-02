@@ -19,7 +19,7 @@
 HUD/UI without leaking file rules, and runs a chained migration pipeline from
 older save versions to `CURRENT_SAVE_VERSION` before deserializing systems.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 **Engine Notes**: FileAccess/JSON APIs are stable; `FileAccess.get_length()`
 must be verified on target platforms before relying on byte size in shipping UI.
 

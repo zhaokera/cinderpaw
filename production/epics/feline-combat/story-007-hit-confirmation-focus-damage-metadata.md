@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0002: Signal communication; ADR-0004: Collision detection architecture; ADR-0005: Combat state machine architecture
 **ADR Decision Summary**: Collision confirms hits, Combat assembles attack metadata and DamageCalculator parameters, Health applies the result, and Presentation only listens to Combat signals.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Use typed methods and dictionaries for provisional adapters; do not require Area2D or AnimationPlayer in unit tests.
 
 **Control Manifest Rules (Core)**:

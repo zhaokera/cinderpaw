@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0005: Combat state machine architecture
 **ADR Decision Summary**: Combat owns `_combo_index`, a 300ms combo timeout, and explicit cancellation paths. Light combo logic stays inside the FSM rather than in InputManager.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Use frame counters and deterministic helper methods in tests; do not require real animations for timing tests.
 
 **Control Manifest Rules (Core)**:

@@ -21,7 +21,7 @@ timing. Gameplay and Boss systems emit domain events; MainScene may bridge the
 runtime Rat King encounter into AudioSystem without making gameplay components
 depend on Presentation.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: This story records music requests and state transitions. Real
 music assets, simultaneous crossfade players, and authored score files remain
 future audio asset stories.

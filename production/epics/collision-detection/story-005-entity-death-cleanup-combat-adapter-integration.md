@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0002: Signal communication; ADR-0004: Collision detection architecture; ADR-0005: Combat state machine architecture
 **ADR Decision Summary**: Collision listens to entity death, deactivates active hitboxes, and exposes a narrow adapter contract that Combat can use for hitbox activation and hurtbox state changes.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Signal connection and active hitbox cleanup are pure GDScript.
 
 **Control Manifest Rules (Core)**:

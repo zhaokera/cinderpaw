@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0001: Autoload architecture; ADR-0003: Data management
 **ADR Decision Summary**: InputManager is Autoload #2 after DataManager and must stay Foundation-only. Input tuning knobs are registered through DataManager's TuningKnobRegistry.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Autoload API is stable; verify `project.godot` initializes DataManager before InputManager.
 
 **Control Manifest Rules (Foundation)**:

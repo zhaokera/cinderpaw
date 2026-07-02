@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0004: Collision detection architecture; ADR-0006: AI behavior system architecture
 **ADR Decision Summary**: AI attack execution is a three-phase startup/active/recovery sequence. At the exact startup boundary, AI calls a CollisionComponent-compatible `activate_hitbox()` adapter.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Pure frame counting and adapter calls; no new engine APIs.
 
 **Control Manifest Rules (Core)**:

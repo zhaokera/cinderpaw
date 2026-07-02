@@ -19,7 +19,7 @@
 exposes Boss-specific parry outcome data so downstream Damage, AI, and StatusEffect systems
 can apply the Boss exception without hardcoding it.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: No animation or status-effect node implementation is required in this story.
 
 **Control Manifest Rules (this layer)**:

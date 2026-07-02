@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0005: Combat state machine architecture; ADR-0016: Weapon styles architecture
 **ADR Decision Summary**: Combat owns cat energy accumulation and consumption. WeaponComponent/SkillTree-specific special behavior is a proposed ADR-0016 extension, so this story implements only the shared gates and safe provider hooks.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Pure GDScript state and timers; no post-cutoff engine APIs required.
 
 **Control Manifest Rules (Core)**:

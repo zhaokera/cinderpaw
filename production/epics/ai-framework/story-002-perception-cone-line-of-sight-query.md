@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0006: AI behavior system architecture
 **ADR Decision Summary**: AI perception uses configurable radius and angle with a RayCast2D-style line-of-sight query. NavigationAgent2D is not used for MVP AI.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Use deterministic geometry helpers in tests and an injectable line-of-sight adapter for engine physics queries.
 
 **Control Manifest Rules (Core)**:

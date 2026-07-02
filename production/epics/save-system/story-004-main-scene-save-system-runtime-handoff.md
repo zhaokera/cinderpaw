@@ -20,7 +20,7 @@ Save system architecture
 coordinates JSON persistence. Scene runtime state stays in scene-owned adapters
 and is handed to `SaveSystem` through narrow, testable interfaces.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 **Engine Notes**: `MainScene` must remain unit-testable with an injected
 SaveSystem instance, while the running game uses `/root/SaveSystem`.
 

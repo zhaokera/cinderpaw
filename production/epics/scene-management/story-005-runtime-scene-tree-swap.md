@@ -22,7 +22,7 @@ the asynchronous load and transition gate finish, it must instantiate the loaded
 scene's local state, detach the outgoing scene from the tree, restore the target
 scene's local state, and then emit the existing logical loaded/changed signals.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 
 **Control Manifest Rules (Feature layer)**:
 - Required: scene state persistence uses `get_local_state()` /

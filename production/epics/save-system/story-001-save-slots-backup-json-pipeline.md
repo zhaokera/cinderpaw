@@ -19,7 +19,7 @@
 fallback, and ISerializable registration order while gameplay systems expose
 their own JSON-safe payloads.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 **Engine Notes**: FileAccess/JSON APIs are stable; Godot 4.4 changed
 `FileAccess.store_string()` return handling, so writes must explicitly validate
 the file after close.

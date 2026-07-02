@@ -17,7 +17,7 @@
 **ADR Governing Implementation**: ADR-0001: Autoload 架构, ADR-0003: 数据管理架构
 **ADR Decision Summary**: DataManager 为 Autoload #1，最先初始化。4 状态机（BOOTING→READY/ERROR，READY→RELOADING→READY）。manifest 路径为 `res://data/manifest.json`。
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: FileAccess.store_* 返回 bool (4.4)；@abstract 可用于接口定义 (4.5)
 
 **Control Manifest Rules (Foundation layer)**:

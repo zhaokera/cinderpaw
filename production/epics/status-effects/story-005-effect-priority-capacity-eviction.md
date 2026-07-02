@@ -18,7 +18,7 @@
 active effect count, preserves priority metadata, and evicts the oldest active
 effect when a sixth distinct effect is applied.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Pure GDScript list management.
 
 ---

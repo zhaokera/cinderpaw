@@ -17,7 +17,7 @@
 **ADR Decision Summary**: Boss behavior is data-driven and phase-aware; summoning is exposed
 through adapters rather than hardcoded scene dependencies.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Timer-like scheduling can be verified with deterministic `advance_time()`
 in tests.
 

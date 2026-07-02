@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0006: AI behavior system architecture
 **ADR Decision Summary**: AI queries health percentage for low-HP FLEE/berserk behavior and uses weighted random attack selection with base, phase, and HP modifiers clamped to the GDD range.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Deterministic selection can use injectable roll values in tests.
 
 **Control Manifest Rules (Core)**:

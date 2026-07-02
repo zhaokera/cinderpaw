@@ -18,7 +18,7 @@ ADR-0004: Collision detection
 **ADR Decision Summary**: Long Tail exposes range and multi-target metadata to
 CollisionComponent instead of owning hit detection itself.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Adapter calls can be tested without physics scenes.
 
 ## Acceptance Criteria

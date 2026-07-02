@@ -27,7 +27,7 @@ image-generated VFX, and Story012 persisted active mutation state. This story
 removes the remaining player-visible low-alpha placeholder shape so arena
 mutations render through imported generated sprites and VFX only.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 
 **Control Manifest Rules (Feature layer)**:
 - Required: boss scene lock and arena mutation reset remain deterministic.

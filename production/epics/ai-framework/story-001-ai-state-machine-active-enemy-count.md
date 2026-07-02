@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0006: AI behavior system architecture; ADR-0001: Autoload architecture; ADR-0002: Signal communication
 **ADR Decision Summary**: AIComponent is a Core entity component with a six-state enum + match state machine. `get_active_enemy_count()` is backed by a shared counter for enemies currently in CHASE or ATTACK.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Pure GDScript state transitions; no post-cutoff APIs.
 
 **Control Manifest Rules (Core)**:

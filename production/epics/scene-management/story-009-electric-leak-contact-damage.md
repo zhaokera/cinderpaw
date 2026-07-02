@@ -25,7 +25,7 @@ Feature-layer arena hazards into existing Core health damage APIs. Environment
 damage uses ADR-0004 collision layering and must not introduce a new global
 system or synchronous scene switch.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 
 **Control Manifest Rules (Feature layer)**:
 - Required: boss battle scene lock prevents scene switching during boss fights.

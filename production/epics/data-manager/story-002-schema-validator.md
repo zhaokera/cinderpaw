@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0003: 数据管理架构
 **ADR Decision Summary**: SchemaValidator 为静态类，检查必填字段/类型/范围/枚举/跨字段约束。三级失败处理：首次→默认值，热重载→旧缓存，manifest→ERROR。
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 
 **Control Manifest Rules (Foundation layer)**:
 - Required: SchemaValidator 三级失败处理

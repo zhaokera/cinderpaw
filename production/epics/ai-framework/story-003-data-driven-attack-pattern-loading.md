@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0003: Data manager architecture; ADR-0006: AI behavior system architecture
 **ADR Decision Summary**: Enemy attack patterns are loaded from the `enemy_stats` data domain and contain startup, active, recovery, hitbox, vulnerability, and weighting fields.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Pure JSON/domain adapter consumption; no new engine APIs.
 
 **Control Manifest Rules (Core/Foundation boundary)**:

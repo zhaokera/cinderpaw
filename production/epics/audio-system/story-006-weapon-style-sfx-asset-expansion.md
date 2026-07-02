@@ -21,7 +21,7 @@ review time)*
 005 imported the core combat SFX baseline; this story fills the remaining
 weapon-style attack cues and GOOD parry cue that were intentionally deferred.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: WAV import and default `AudioStreamWAV` loading are already
 validated by Story 005. This story expands the same import/load path without
 adding new player, bus, or scene dependencies.

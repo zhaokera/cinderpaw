@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0001: Autoload architecture; ADR-0004: Collision detection architecture
 **ADR Decision Summary**: Collision is an entity component, not an Autoload. Hitbox lifecycle is owned by `CollisionComponent`, with `HitboxArea` tracking active frames and already-hit targets.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: `Area2D` and `CollisionShape2D` are stable. This story tests activation lifecycle and duplicate tracking without relying on physics overlap timing.
 
 **Control Manifest Rules (Core)**:

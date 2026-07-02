@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0004: Collision detection architecture
 **ADR Decision Summary**: Hurtbox is one `Area2D` per entity with normal, shrunk, and gone states. Collision layers use Godot layer/mask bits for player attack, enemy attack, player hurt, enemy hurt, and environment.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Area2D monitorable and layer/mask APIs are stable.
 
 **Control Manifest Rules (Core)**:

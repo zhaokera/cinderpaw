@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0002: Signal communication; ADR-0004: Collision detection architecture
 **ADR Decision Summary**: Collision performs frame-level active hitbox vs hurtbox detection and emits `on_hit_confirmed(event: HitEvent)` with typed payload data.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Verify deterministic frame-level behavior without relying on deferred physics update timing.
 
 **Control Manifest Rules (Core)**:

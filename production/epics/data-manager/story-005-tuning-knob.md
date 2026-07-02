@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0003: 数据管理架构
 **ADR Decision Summary**: TuningKnobRegistry 集中管理旋钮。三级值优先级：调试面板运行时 > JSON 文件值 > 注册默认值。`register()` / `get_value()` / `set_value()` 接口。
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 
 **Control Manifest Rules (Foundation layer)**:
 - Required: TuningKnobRegistry 三级值优先级

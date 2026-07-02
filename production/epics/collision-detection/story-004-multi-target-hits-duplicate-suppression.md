@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0004: Collision detection architecture
 **ADR Decision Summary**: One active hitbox may hit multiple hurtboxes in the same frame, but `mark_hit(target_id)` prevents repeated hits against the same target during one activation.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Pure active-hitbox bookkeeping and frame-level detection rules.
 
 **Control Manifest Rules (Core)**:

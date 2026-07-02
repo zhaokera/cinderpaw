@@ -19,7 +19,7 @@ ADR-0017: Status effects architecture
 StatusEffectComponent-compatible adapter and refreshes duration instead of
 stacking duplicate slows.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Status integration is tested through adapter calls.
 
 ## Acceptance Criteria

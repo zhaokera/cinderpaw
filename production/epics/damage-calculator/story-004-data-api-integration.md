@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0003: 数据管理; ADR-0001: Autoload 架构; ADR-0002: 信号通信
 **ADR Decision Summary**: DamageCalculator reads `damage_params` through DataManager but remains a static utility. Data errors must degrade gracefully; metadata is returned through DamageResult.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Validate FileAccess/JSON changes through existing DataManager tests and new damage integration tests.
 
 **Control Manifest Rules (Foundation)**:

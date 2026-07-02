@@ -21,7 +21,7 @@ scene IDs, registry lookup, transition requests, scene-state cache, boss scene
 locks, and SceneManager signals. This story implements a logical baseline; real
 threaded scene-tree replacement and transition presentation remain future work.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Autoload APIs are stable. `ResourceLoader` async behavior is
 reserved for later stories so this story can stay deterministic and unit-testable.
 

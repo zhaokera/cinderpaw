@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0001: Autoload 架构
 **ADR Decision Summary**: DamageCalculator is a pure static utility. Skill tree and charm systems provide modifiers through input dictionaries rather than being called by Foundation code.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Keep `skill_modifiers: Dictionary` optional and typed at call boundaries.
 
 **Control Manifest Rules (Foundation)**:

@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0004: Collision detection architecture; ADR-0005: Combat state machine architecture
 **ADR Decision Summary**: Combat owns the 18-frame parry window and reports timing metadata for downstream stun, damage, and presentation systems.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Parry timing is pure frame logic and should be covered without physics or animations.
 
 **Control Manifest Rules (Core)**:

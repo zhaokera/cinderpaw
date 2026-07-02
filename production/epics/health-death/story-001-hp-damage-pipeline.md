@@ -18,7 +18,7 @@
 
 **Design Reference**: ADR-0019: HealthComponent deep architecture (Proposed)
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Node component pattern and typed signals are stable. Unit tests must instantiate the component directly without requiring gameplay scenes.
 
 **Control Manifest Rules (Core)**:

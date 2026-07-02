@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0004: Collision detection architecture; ADR-0005: Combat state machine architecture
 **ADR Decision Summary**: Combat controls dodge timing; CollisionComponent owns the actual Hurtbox state. Combat should call a narrow adapter method and stay testable without physics nodes.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Area2D APIs belong to CollisionComponent. This story should verify the adapter call contract, not full physics overlap behavior.
 
 **Control Manifest Rules (Core)**:

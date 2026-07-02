@@ -18,7 +18,7 @@ ADR-0005: Combat state machine
 **ADR Decision Summary**: Cat Claw opens a 0.5 second dodge-counter timer and
 adds +3 crit-window frames to the next qualifying attack through CombatComponent.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Frame-window behavior is validated with deterministic time and
 adapter calls.
 

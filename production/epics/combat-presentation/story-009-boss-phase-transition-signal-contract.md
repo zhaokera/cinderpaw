@@ -17,7 +17,7 @@
 **ADR Decision Summary**: Combat presentation must consume gameplay state through
 Godot signals instead of direct Core method calls.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Use typed direct signal connections and keep the payload at
 three arguments or fewer.
 

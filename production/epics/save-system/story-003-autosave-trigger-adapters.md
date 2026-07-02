@@ -19,7 +19,7 @@
 callers such as savepoints, boss health, key-event systems, and SceneManager
 stay decoupled through narrow adapters.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 **Engine Notes**: Godot signal connections must use typed `signal.connect`
 syntax or `Object.connect(StringName, Callable)`. Runtime signal binding must be
 verified in Godot because adapters will eventually attach to scene nodes.

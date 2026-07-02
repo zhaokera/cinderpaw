@@ -21,7 +21,7 @@ AudioSystem owns music, ambience, and fade state. MainScene may wire runtime
 Presentation services together without pushing audio decisions into
 SceneManager.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 **Engine Notes**: This story records fade requests and safe missing-asset
 behavior. Real crossfade tweening and generated audio assets remain later audio
 asset stories.

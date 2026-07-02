@@ -19,7 +19,7 @@ ADR-0002: Signal communication
 Health-compatible death signals or SceneManager-compatible scene transition hooks
 fire. Cleanup is idempotent and emits expiration/removal signals once.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Typed signal connection and duck-typed adapter behavior only.
 
 ---

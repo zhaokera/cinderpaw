@@ -20,7 +20,7 @@ safe missing-asset behavior. Gameplay and Core systems emit domain events;
 MainScene may bridge runtime signals to AudioSystem without making Core depend
 on Presentation.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 **Engine Notes**: Event adapters must stay signal-facing and tolerate missing
 streams until generated/imported audio assets exist.
 

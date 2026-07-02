@@ -19,7 +19,7 @@ ADR-0019: Health component
 application. Invincible is represented as a status effect and can also expose
 invulnerability metadata to Health-compatible consumers.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Pure adapter/query behavior.
 
 ---

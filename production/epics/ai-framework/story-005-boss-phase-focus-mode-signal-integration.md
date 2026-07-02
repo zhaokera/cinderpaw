@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0002: Signal communication; ADR-0006: AI behavior system architecture
 **ADR Decision Summary**: AI listens to boss phase and focus-mode signals. Boss phase changes switch future pattern sets; focus mode adds `windup_extension_frames` only to newly started attacks.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Signal connection and integer frame adjustments are pure GDScript.
 
 **Control Manifest Rules (Core)**:

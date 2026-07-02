@@ -19,7 +19,7 @@ ADR-0003: Data management
 DataManager into a typed WeaponConfig bridge. WeaponComponent owns current weapon
 and level queries while remaining a Core scene component.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Pure GDScript Resource and Node classes; verify typed arrays
 and required return values through headless tests.
 

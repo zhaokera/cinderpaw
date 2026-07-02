@@ -21,7 +21,7 @@ scene cue playback, and boss music boundaries. Missing assets remain
 silent-safe, but default GDD cue ids should be registered once baseline assets
 exist.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Baseline music and ambience assets are stereo WAV files
 imported by Godot and registered through `AudioSystem.load_audio_streams_from_paths()`.
 

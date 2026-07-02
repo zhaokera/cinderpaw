@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0001: Autoload architecture; ADR-0003: Data management
 **ADR Decision Summary**: InputManager owns the input buffer internally, while buffer timing and queue limits use registered tuning values.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Use `Time.get_ticks_msec()` or injected timestamps; do not use deprecated `OS.get_ticks_msec()`.
 
 **Control Manifest Rules (Foundation)**:

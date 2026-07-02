@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0003: 数据管理架构
 **ADR Decision Summary**: `_meta.version` MAJOR.MINOR，链式迁移（1.0→1.1→1.2），每步一个迁移函数。MAJOR 不兼容则拒绝加载。
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 
 **Control Manifest Rules (Foundation layer)**:
 - Required: 数据版本 MAJOR.MINOR + 链式迁移

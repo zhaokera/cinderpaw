@@ -21,7 +21,7 @@ review time)*
 story moves the first combat cue set from diagnostics-only ids to actual Godot
 AudioStream assets loaded through the project asset pipeline.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: WAV import and `load()` of `AudioStreamWAV` resources are
 stable. This story does not add music crossfade players, UI audio, or same-SFX
 merge behavior.

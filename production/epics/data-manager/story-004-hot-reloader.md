@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0003: 数据管理架构
 **ADR Decision Summary**: HotReloader 1 秒轮询文件修改时间，仅 Debug 构建。验证通过后原子替换缓存 + 信号传播。多文件同周期变更合并为一次重载。
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 
 **Control Manifest Rules (Foundation layer)**:
 - Required: 热重载 1 秒轮询（Debug only）；验证通过才替换缓存

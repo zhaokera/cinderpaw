@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0005: Combat state machine architecture
 **ADR Decision Summary**: Combat owns CHARGING, HIT_STUN, and combat-action hooks that later movement/health systems can consume.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Heavy charge and hit-stun timers are deterministic float/frame logic. Aerial bounce should be emitted as a signal or metadata hook until PlayerMovement exists.
 
 **Control Manifest Rules (Core)**:

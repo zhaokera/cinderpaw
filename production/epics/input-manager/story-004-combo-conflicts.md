@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0001: Autoload architecture; ADR-0002: Signal communication
 **ADR Decision Summary**: InputManager can compute input metadata such as combo index and priority, but it must not select combat animations or call CombatComponent.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Pure logic should be unit tested without scene tree dependencies.
 
 **Control Manifest Rules (Foundation)**:

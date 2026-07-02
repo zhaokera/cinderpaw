@@ -20,7 +20,7 @@
 coordination. BossConfigComponent requests phase arena changes through a scene
 adapter; this story connects that adapter to the playable MainScene runtime.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 
 **Control Manifest Rules (Feature layer)**:
 - Required: boss battle scene lock prevents scene switching during boss fights.

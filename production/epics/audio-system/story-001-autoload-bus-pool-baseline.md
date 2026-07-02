@@ -20,7 +20,7 @@ Audio system architecture
 that owns audio buses, SFX pooling, music request state, and safe playback
 entrypoints.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 **Engine Notes**: `AudioServer` is global state, so bus initialization must be
 idempotent and tests must not assume a fresh engine process beyond managed bus
 defaults.

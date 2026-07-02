@@ -20,7 +20,7 @@
 Godot `ResourceLoader`, gates scene commits behind a 1-2 second transition
 window, and handles timeout by retrying once before failing back to hub.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 
 **Control Manifest Rules (Feature layer)**:
 - Required: `ResourceLoader.load_threaded_request()` starts scene loads.

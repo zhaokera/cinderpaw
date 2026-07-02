@@ -23,7 +23,7 @@ This story closes the title/menu save-load handoff so player-facing New Game,
 Continue, and Load Slot paths route through SceneManager before gameplay state
 is applied.
 
-**Engine**: Godot 4.6.3 | **Risk**: MEDIUM
+**Engine**: Godot 4.7 | **Risk**: MEDIUM
 
 **Control Manifest Rules (Feature layer)**:
 - Required: Gameplay callers use SceneManager as the scene-transition boundary.

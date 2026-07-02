@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0002: Signal communication; ADR-0004: Collision detection architecture; ADR-0005: Combat state machine architecture; ADR-0016: Weapon styles architecture
 **ADR Decision Summary**: Runtime player attacks should enter CombatComponent, activate weapon hitboxes through CollisionComponent, resolve damage through DamageCalculator into HealthComponent, and enrich confirmed hit metadata with WeaponComponent effects.
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: Runtime integration uses existing GDScript components and Godot signals. CollisionComponent now extends Node2D so managed Area2D hitboxes inherit entity transforms in live scenes.
 
 **Control Manifest Rules (Feature/Core)**:

@@ -16,7 +16,7 @@
 **ADR Governing Implementation**: ADR-0001: Autoload 架构; ADR-0002: 信号通信
 **ADR Decision Summary**: DamageCalculator 是 `class_name` 静态工具类，不能做 Autoload。DamageResult 使用 `class_name` 数据类封装 final_damage 和 metadata。
 
-**Engine**: Godot 4.6.3 | **Risk**: LOW
+**Engine**: Godot 4.7 | **Risk**: LOW
 **Engine Notes**: 不使用 post-cutoff API；所有参数与返回值必须显式类型化。
 
 **Control Manifest Rules (Foundation)**:
