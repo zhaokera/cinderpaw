@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3]
+[gd_scene load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -22,6 +22,7 @@
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_skirmish_cache/env_old_factory_lower_deck_skirmish_cache_claimable_256.png" id="20_lower_deck_cache_texture"]
 [ext_resource type="Script" path="res://src/feature/exploration_gate.gd" id="21_gate_script"]
 [ext_resource type="Texture2D" path="res://assets/environment/parry_laser_gate/parry_laser_gate_marker.png" id="22_parry_laser_gate_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_deep_bulkhead/env_old_factory_lower_deck_deep_bulkhead_closed_256.png" id="23_deep_bulkhead_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -176,6 +177,10 @@ position = Vector2(1246, 482)
 [node name="FactoryLowerDeckSteamSluiceSparkRat" parent="." instance=ExtResource("13_spark_rat")]
 z_index = 20
 position = Vector2(1128, 482)
+
+[node name="FactoryLowerDeckDeepBulkheadSparkRat" parent="." instance=ExtResource("13_spark_rat")]
+z_index = 20
+position = Vector2(1196, 482)
 
 [node name="FactoryCheckpointOverdriveLeftDefeatBurst" type="Sprite2D" parent="."]
 visible = false
@@ -495,6 +500,51 @@ monitoring = false
 monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckPressureValve/InteractionArea"]
+shape = SubResource("CircleShape2D_deep_endpoint_interaction")
+
+[node name="FactoryLowerDeckDeepBulkhead" type="Node2D" parent="."]
+visible = false
+z_index = 24
+position = Vector2(1242, 392)
+script = ExtResource("11_endpoint_script")
+endpoint_id = &"old_factory_lower_deck_deep_bulkhead"
+activation_radius_px = 112.0
+locked_prompt_text = "Clear bulkhead guard"
+available_prompt_text = "Open bulkhead"
+activated_prompt_text = "Bulkhead open"
+unlock_vfx_texture = ExtResource("12_unlock_vfx")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="FactoryLowerDeckDeepBulkhead"]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckDeepBulkhead/StaticBody2D"]
+shape = SubResource("RectangleShape2D_lower_deck_parry_gate")
+disabled = true
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckDeepBulkhead"]
+scale = Vector2(0.62, 0.62)
+texture = ExtResource("23_deep_bulkhead_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryLowerDeckDeepBulkhead"]
+z_index = 4
+offset_left = -104.0
+offset_top = -130.0
+offset_right = 104.0
+offset_bottom = -104.0
+theme_override_colors/font_color = Color(1, 0.86, 0.24, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 15
+text = "Clear bulkhead guard"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="FactoryLowerDeckDeepBulkhead"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckDeepBulkhead/InteractionArea"]
 shape = SubResource("CircleShape2D_deep_endpoint_interaction")
 
 [node name="FactoryReturnCheckpoint" type="Node2D" parent="."]

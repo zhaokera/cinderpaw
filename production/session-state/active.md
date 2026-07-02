@@ -56,7 +56,9 @@
   Gate、Player Abilities Story055 Old Factory Lower Deck Shortcut Seal Combat
   Gate、Player Abilities Story056 Old Factory Lower Deck Shortcut Payoff Cache、
   Player Abilities Story057 Old Factory Lower Deck Shortcut Pursuer、Player
-  Abilities Story058 Old Factory Lower Deck Pressure Valve Combat Gate
+  Abilities Story058 Old Factory Lower Deck Pressure Valve Combat Gate、Player
+  Abilities Story059 Old Factory Lower Deck Steam Sluice Ambush、Player
+  Abilities Story060 Old Factory Lower Deck Deep Bulkhead Combat Gate
   已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -66,6 +68,35 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Last Completed Task
+- Player Abilities Story 060: Old Factory Lower Deck Deep Bulkhead Combat Gate
+  — `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckDeepBulkheadSparkRat` and `FactoryLowerDeckDeepBulkhead`.
+  After `factory_lower_deck_steam_sluice_defeated=true`, Cinderpaw can cross
+  activation x `1252.0` to activate a deep bulkhead guard with entity `2114`.
+  The guard reuses the existing Factory Spark Rat `AnimatedSprite2D +
+  SpriteFrames` resource with
+  `idle/run/attack_tell/attack/hurt/death=3` frames, targets the player, starts
+  Spark Rat pacing, updates the route objective to
+  `Clear Deep Bulkhead Guard`, and leaves the service lift optional with prompt
+  `Call lift`. Defeating entity `2114` hides/disables the guard, persists
+  `factory_lower_deck_deep_bulkhead_guard_activated=true` and
+  `factory_lower_deck_deep_bulkhead_guard_defeated=true`, changes the route
+  objective to `Open Deep Bulkhead`, and makes the bulkhead activatable with
+  prompt `Open bulkhead`. Opening the bulkhead persists
+  `factory_lower_deck_deep_bulkhead_opened=true`, disables local collision, and
+  changes the objective to `Deep Bulkhead Opened` without replaying
+  Stories054-059. New door art was generated through image generation, kept in
+  source/alpha/runtime PNG paths, imported through Godot, and recorded in the
+  asset manifest/entity inventory. Verification: focused RED
+  `reports/report_1058/`; focused GREEN `reports/report_1060/` `2/2`; related
+  regression `reports/report_1062/` `8/8`; headless Factory smoke
+  `reports/old_factory_lower_deck_deep_bulkhead_smoke.log` exited `0` with no
+  project script/resource-load errors by keyword scan, retaining only known
+  cleanup-time ObjectDB/resource terminal noise. Godot MCP 4.7 runtime confirmed
+  the deep bulkhead guard/door nodes, active guard `2114`, frame counts,
+  service lift `Call lift`, guard defeat, door open persistence, clean
+  game/editor logs, and non-empty screenshot metadata `960x539`. QA evidence:
+  `production/qa/evidence/old-factory-lower-deck-deep-bulkhead-combat-gate-2026-07-02.md`。
 - Player Abilities Story 058: Old Factory Lower Deck Pressure Valve Combat
   Gate — `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckPressureValveSparkRat` and `FactoryLowerDeckPressureValve`.

@@ -1,0 +1,18 @@
+{
+  "asset_id": "old_factory_lower_deck_deep_bulkhead",
+  "generated_at": "2026-07-02",
+  "generator": "image generation",
+  "source_path": "assets/generated/source/old_factory_lower_deck_deep_bulkhead_imagegen_20260702.png",
+  "alpha_source_path": "assets/generated/source/old_factory_lower_deck_deep_bulkhead_alpha_20260702.png",
+  "runtime_path": "assets/environment/old_factory_lower_deck_deep_bulkhead/env_old_factory_lower_deck_deep_bulkhead_closed_256.png",
+  "processing": [
+    "generated on bright green chroma key",
+    "removed chroma key to transparent alpha with soft matte",
+    "resized to 256x256 transparent runtime PNG"
+  ],
+  "prompt_summary": "Pixel-art Old Factory lower-deck deep bulkhead door with rusted heavy steel plates, cat-paw scratches, amber cat-eye lock core, cyan factory rim light, hazard-striping, and a clean side-scroller silhouette.",
+  "usage": [
+    "scenes/factory_route_transition_shell.tscn:FactoryLowerDeckDeepBulkhead",
+    "production/epics/player-abilities/story-060-old-factory-lower-deck-deep-bulkhead-combat-gate.md"
+  ]
+}

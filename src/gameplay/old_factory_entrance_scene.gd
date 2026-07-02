@@ -23,6 +23,7 @@ const FACTORY_LOWER_DECK_SHORTCUT_SPARK_RAT_ENTITY_ID: int = 2110
 const FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ENTITY_ID: int = 2111
 const FACTORY_LOWER_DECK_PRESSURE_GUARD_ENTITY_ID: int = 2112
 const FACTORY_LOWER_DECK_STEAM_SLUICE_ENTITY_ID: int = 2113
+const FACTORY_LOWER_DECK_DEEP_BULKHEAD_ENTITY_ID: int = 2114
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
@@ -34,6 +35,7 @@ const FACTORY_LOWER_DECK_SHORTCUT_ACTIVATION_X: float = 1136.0
 const FACTORY_LOWER_DECK_SHORTCUT_PURSUER_ACTIVATION_X: float = 1218.0
 const FACTORY_LOWER_DECK_PRESSURE_VALVE_ACTIVATION_X: float = 1240.0
 const FACTORY_LOWER_DECK_STEAM_SLUICE_ACTIVATION_X: float = 1248.0
+const FACTORY_LOWER_DECK_DEEP_BULKHEAD_ACTIVATION_X: float = 1252.0
 const FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES: int = 18
 const FACTORY_CHECKPOINT_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES: int = 12
 const FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES: int = 30
@@ -68,9 +70,13 @@ const FACTORY_OBJECTIVE_OPEN_PRESSURE_VALVE: StringName = &"open_pressure_valve"
 const FACTORY_OBJECTIVE_PRESSURE_VALVE_OPENED: StringName = &"pressure_valve_opened"
 const FACTORY_OBJECTIVE_CLEAR_STEAM_SLUICE_AMBUSH: StringName = &"clear_steam_sluice_ambush"
 const FACTORY_OBJECTIVE_STEAM_SLUICE_CLEARED: StringName = &"steam_sluice_cleared"
+const FACTORY_OBJECTIVE_CLEAR_DEEP_BULKHEAD_GUARD: StringName = &"clear_deep_bulkhead_guard"
+const FACTORY_OBJECTIVE_OPEN_DEEP_BULKHEAD: StringName = &"open_deep_bulkhead"
+const FACTORY_OBJECTIVE_DEEP_BULKHEAD_OPENED: StringName = &"deep_bulkhead_opened"
 const FACTORY_LOWER_DECK_PARRY_GATE_ID: StringName = &"old_factory_lower_deck_parry_laser"
 const FACTORY_LOWER_DECK_SHORTCUT_SEAL_ID: StringName = &"old_factory_lower_deck_shortcut_seal"
 const FACTORY_LOWER_DECK_PRESSURE_VALVE_ID: StringName = &"old_factory_lower_deck_pressure_valve"
+const FACTORY_LOWER_DECK_DEEP_BULKHEAD_ID: StringName = &"old_factory_lower_deck_deep_bulkhead"
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
 const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
 const FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT: StringName = &"scrap_roost"
@@ -114,6 +120,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_steam_sluice_spark_rat: Node2D = (
 	get_node_or_null("FactoryLowerDeckSteamSluiceSparkRat") as Node2D
 )
+@onready var _lower_deck_deep_bulkhead_spark_rat: Node2D = (
+	get_node_or_null("FactoryLowerDeckDeepBulkheadSparkRat") as Node2D
+)
 @onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
 	get_node_or_null("FactoryCheckpointOverdriveLeftDefeatBurst") as Sprite2D
 )
@@ -134,6 +143,7 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 	"FactoryLowerDeckShortcutRewardCache"
 )
 @onready var _lower_deck_pressure_valve: Node = get_node_or_null("FactoryLowerDeckPressureValve")
+@onready var _lower_deck_deep_bulkhead: Node = get_node_or_null("FactoryLowerDeckDeepBulkhead")
 @onready var _return_checkpoint: Node = get_node_or_null("FactoryReturnCheckpoint")
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
@@ -198,6 +208,9 @@ var _lower_deck_pressure_guard_defeated: bool = false
 var _lower_deck_pressure_valve_opened: bool = false
 var _lower_deck_steam_sluice_activated: bool = false
 var _lower_deck_steam_sluice_defeated: bool = false
+var _lower_deck_deep_bulkhead_guard_activated: bool = false
+var _lower_deck_deep_bulkhead_guard_defeated: bool = false
+var _lower_deck_deep_bulkhead_opened: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -227,6 +240,7 @@ func _ready() -> void:
 	_sync_lower_deck_shortcut_pursuer_state()
 	_setup_factory_lower_deck_pressure_valve()
 	_sync_lower_deck_steam_sluice_state()
+	_setup_factory_lower_deck_deep_bulkhead()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -323,6 +337,9 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_LOWER_DECK_SHORTCUT_OPENED
 		or objective_id == FACTORY_OBJECTIVE_PRESSURE_VALVE_OPENED
 		or objective_id == FACTORY_OBJECTIVE_STEAM_SLUICE_CLEARED
+		or objective_id == FACTORY_OBJECTIVE_CLEAR_DEEP_BULKHEAD_GUARD
+		or objective_id == FACTORY_OBJECTIVE_OPEN_DEEP_BULKHEAD
+		or objective_id == FACTORY_OBJECTIVE_DEEP_BULKHEAD_OPENED
 	)
 
 
@@ -940,6 +957,45 @@ func try_activate_factory_lower_deck_steam_sluice(provider: Node = null) -> bool
 	return true
 
 
+## Attempts to activate the deeper lower-deck bulkhead guard after the steam sluice is clear.
+func try_activate_factory_lower_deck_deep_bulkhead_guard(provider: Node = null) -> bool:
+	if (
+		_lower_deck_deep_bulkhead_spark_rat == null
+		or not _is_lower_deck_deep_bulkhead_guard_available()
+		or _lower_deck_deep_bulkhead_guard_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_deep_bulkhead_guard_activation_provider_in_range(activation_provider):
+		return false
+	_lower_deck_deep_bulkhead_guard_activated = true
+	_sync_lower_deck_deep_bulkhead_state()
+	_set_lower_deck_deep_bulkhead_guard_attack_target(activation_provider)
+	_begin_lower_deck_deep_bulkhead_guard_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	_refresh_factory_route_objective()
+	return true
+
+
+## Opens the deeper lower-deck bulkhead after its guard is defeated.
+func try_open_factory_lower_deck_deep_bulkhead(provider: Node = null) -> bool:
+	if (
+		_lower_deck_deep_bulkhead == null
+		or not _lower_deck_deep_bulkhead_guard_defeated
+		or _lower_deck_deep_bulkhead_opened
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if (
+		not _lower_deck_deep_bulkhead.has_method("try_activate")
+		or not bool(_lower_deck_deep_bulkhead.call("try_activate", activation_provider))
+	):
+		return false
+	_lower_deck_deep_bulkhead_opened = true
+	_sync_lower_deck_deep_bulkhead_state()
+	_refresh_factory_route_objective()
+	return true
+
+
 ## Attempts to activate the deep route endpoint after its guard is defeated.
 func try_activate_factory_deep_route_endpoint(provider: Node = null) -> bool:
 	if not _deep_guard_defeated or _deep_endpoint == null:
@@ -1112,6 +1168,13 @@ func get_local_state() -> Dictionary:
 			_lower_deck_steam_sluice_activated
 		),
 		"factory_lower_deck_steam_sluice_defeated": _lower_deck_steam_sluice_defeated,
+		"factory_lower_deck_deep_bulkhead_guard_activated": (
+			_lower_deck_deep_bulkhead_guard_activated
+		),
+		"factory_lower_deck_deep_bulkhead_guard_defeated": (
+			_lower_deck_deep_bulkhead_guard_defeated
+		),
+		"factory_lower_deck_deep_bulkhead_opened": _lower_deck_deep_bulkhead_opened,
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -1271,6 +1334,18 @@ func set_local_state(state: Dictionary) -> void:
 	))
 	_lower_deck_steam_sluice_defeated = bool(state.get(
 		"factory_lower_deck_steam_sluice_defeated",
+		false
+	))
+	_lower_deck_deep_bulkhead_guard_activated = bool(state.get(
+		"factory_lower_deck_deep_bulkhead_guard_activated",
+		false
+	))
+	_lower_deck_deep_bulkhead_guard_defeated = bool(state.get(
+		"factory_lower_deck_deep_bulkhead_guard_defeated",
+		false
+	))
+	_lower_deck_deep_bulkhead_opened = bool(state.get(
+		"factory_lower_deck_deep_bulkhead_opened",
 		false
 	))
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
@@ -1509,6 +1584,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_shortcut_pursuer_state()
 	_sync_lower_deck_pressure_valve_state()
 	_sync_lower_deck_steam_sluice_state()
+	_sync_lower_deck_deep_bulkhead_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -1536,6 +1612,8 @@ func set_local_state(state: Dictionary) -> void:
 		_begin_lower_deck_pressure_guard_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	if _is_lower_deck_steam_sluice_active():
 		_begin_lower_deck_steam_sluice_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	if _is_lower_deck_deep_bulkhead_guard_active():
+		_begin_lower_deck_deep_bulkhead_guard_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
 		_update_route_label("Service Lift Departing")
@@ -2496,6 +2574,74 @@ func get_factory_lower_deck_steam_sluice_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic deep bulkhead diagnostics for tests and MCP probes.
+func get_factory_lower_deck_deep_bulkhead_diagnostics() -> Dictionary:
+	var sprite: AnimatedSprite2D = (
+		_lower_deck_deep_bulkhead_spark_rat.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _lower_deck_deep_bulkhead_spark_rat != null
+		else null
+	)
+	return {
+		"present": (
+			_lower_deck_deep_bulkhead_spark_rat != null
+			and _lower_deck_deep_bulkhead != null
+		),
+		"available": _is_lower_deck_deep_bulkhead_guard_available(),
+		"guard_active": _is_lower_deck_deep_bulkhead_guard_active(),
+		"guard_defeated": _lower_deck_deep_bulkhead_guard_defeated,
+		"bulkhead_available": _is_lower_deck_deep_bulkhead_available(),
+		"bulkhead_opened": _lower_deck_deep_bulkhead_opened,
+		"steam_sluice_defeated": _lower_deck_steam_sluice_defeated,
+		"activation_x": FACTORY_LOWER_DECK_DEEP_BULKHEAD_ACTIVATION_X,
+		"guard_visible": (
+			_lower_deck_deep_bulkhead_spark_rat.visible
+			if _lower_deck_deep_bulkhead_spark_rat != null
+			else false
+		),
+		"guard_has_target": _does_lower_deck_deep_bulkhead_guard_have_target(),
+		"guard_physics_enabled": (
+			_lower_deck_deep_bulkhead_spark_rat.is_physics_processing()
+			if _lower_deck_deep_bulkhead_spark_rat != null
+			else false
+		),
+		"guard_process_enabled": (
+			_lower_deck_deep_bulkhead_spark_rat.is_processing()
+			if _lower_deck_deep_bulkhead_spark_rat != null
+			else false
+		),
+		"guard_entity_id": (
+			int(_lower_deck_deep_bulkhead_spark_rat.call("get_entity_id"))
+			if (
+				_lower_deck_deep_bulkhead_spark_rat != null
+				and _lower_deck_deep_bulkhead_spark_rat.has_method("get_entity_id")
+			)
+			else 0
+		),
+		"guard_sprite_frames_path": (
+			sprite.sprite_frames.resource_path
+			if sprite != null and sprite.sprite_frames != null
+			else ""
+		),
+		"guard_animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
+		"pacing": _get_lower_deck_deep_bulkhead_guard_pacing_diagnostics(),
+		"bulkhead_id": _get_lower_deck_deep_bulkhead_id(),
+		"bulkhead_visible": (
+			_lower_deck_deep_bulkhead.visible
+			if _lower_deck_deep_bulkhead != null
+			else false
+		),
+		"bulkhead_prompt_text": _get_lower_deck_deep_bulkhead_prompt_text(),
+		"bulkhead_texture_path": _get_lower_deck_deep_bulkhead_visual_texture_path(),
+		"bulkhead_position": _get_lower_deck_deep_bulkhead_position(),
+		"bulkhead_collision_blocking": _is_lower_deck_deep_bulkhead_collision_blocking(),
+		"guard_position": (
+			_lower_deck_deep_bulkhead_spark_rat.global_position
+			if _lower_deck_deep_bulkhead_spark_rat != null
+			else Vector2.ZERO
+		),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -2724,6 +2870,13 @@ func get_factory_route_objective_diagnostics() -> Dictionary:
 		"lower_deck_pressure_valve_opened": _lower_deck_pressure_valve_opened,
 		"lower_deck_steam_sluice_activated": _lower_deck_steam_sluice_activated,
 		"lower_deck_steam_sluice_defeated": _lower_deck_steam_sluice_defeated,
+		"lower_deck_deep_bulkhead_guard_activated": (
+			_lower_deck_deep_bulkhead_guard_activated
+		),
+		"lower_deck_deep_bulkhead_guard_defeated": (
+			_lower_deck_deep_bulkhead_guard_defeated
+		),
+		"lower_deck_deep_bulkhead_opened": _lower_deck_deep_bulkhead_opened,
 		"route_label_visible": route_label.visible if route_label != null else false,
 		"route_label_text": route_label.text if route_label != null else "",
 	}
@@ -2805,6 +2958,7 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 			),
 			"lower_deck_pressure_valve": get_factory_lower_deck_pressure_valve_diagnostics(),
 			"lower_deck_steam_sluice": get_factory_lower_deck_steam_sluice_diagnostics(),
+			"lower_deck_deep_bulkhead": get_factory_lower_deck_deep_bulkhead_diagnostics(),
 			"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
 			get_factory_checkpoint_overdrive_reward_cache_diagnostics()
@@ -3153,6 +3307,13 @@ func _bind_enemy_to_player() -> void:
 		&"factory_lower_deck_steam_sluice_spark_rat",
 		_on_factory_lower_deck_steam_sluice_defeated
 	)
+	_bind_factory_guard(
+		_lower_deck_deep_bulkhead_spark_rat,
+		&"old_factory_lower_deck_deep_bulkhead",
+		FACTORY_LOWER_DECK_DEEP_BULKHEAD_ENTITY_ID,
+		&"factory_lower_deck_deep_bulkhead_spark_rat",
+		_on_factory_lower_deck_deep_bulkhead_guard_defeated
+	)
 
 
 func _setup_factory_cache() -> void:
@@ -3244,6 +3405,17 @@ func _setup_factory_lower_deck_pressure_valve() -> void:
 	var endpoint_signal: Signal = _lower_deck_pressure_valve.get("endpoint_activated")
 	if not endpoint_signal.is_connected(_on_factory_lower_deck_pressure_valve_activated):
 		endpoint_signal.connect(_on_factory_lower_deck_pressure_valve_activated)
+
+
+func _setup_factory_lower_deck_deep_bulkhead() -> void:
+	_sync_lower_deck_deep_bulkhead_state()
+	if _lower_deck_deep_bulkhead == null or not _lower_deck_deep_bulkhead.has_signal(
+		"endpoint_activated"
+	):
+		return
+	var endpoint_signal: Signal = _lower_deck_deep_bulkhead.get("endpoint_activated")
+	if not endpoint_signal.is_connected(_on_factory_lower_deck_deep_bulkhead_activated):
+		endpoint_signal.connect(_on_factory_lower_deck_deep_bulkhead_activated)
 
 
 func _setup_factory_return_checkpoint() -> void:
@@ -3510,6 +3682,14 @@ func _on_factory_lower_deck_steam_sluice_defeated() -> void:
 	_lower_deck_steam_sluice_activated = true
 	_lower_deck_steam_sluice_defeated = true
 	_sync_lower_deck_steam_sluice_state()
+	_sync_lower_deck_deep_bulkhead_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_lower_deck_deep_bulkhead_guard_defeated() -> void:
+	_lower_deck_deep_bulkhead_guard_activated = true
+	_lower_deck_deep_bulkhead_guard_defeated = true
+	_sync_lower_deck_deep_bulkhead_state()
 	_refresh_factory_route_objective()
 
 
@@ -3539,6 +3719,14 @@ func _on_factory_lower_deck_pressure_valve_activated(endpoint_id: StringName) ->
 	_lower_deck_pressure_valve_opened = true
 	_sync_lower_deck_pressure_valve_state()
 	_sync_lower_deck_steam_sluice_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_lower_deck_deep_bulkhead_activated(endpoint_id: StringName) -> void:
+	if endpoint_id != FACTORY_LOWER_DECK_DEEP_BULKHEAD_ID:
+		return
+	_lower_deck_deep_bulkhead_opened = true
+	_sync_lower_deck_deep_bulkhead_state()
 	_refresh_factory_route_objective()
 
 
@@ -4077,6 +4265,46 @@ func _sync_lower_deck_steam_sluice_state() -> void:
 		collision_shape.disabled = not hazard_active
 
 
+func _sync_lower_deck_deep_bulkhead_state() -> void:
+	if _lower_deck_deep_bulkhead_spark_rat != null:
+		if not _is_lower_deck_deep_bulkhead_guard_active():
+			_lower_deck_deep_bulkhead_spark_rat.visible = false
+			_lower_deck_deep_bulkhead_spark_rat.set_physics_process(false)
+			_lower_deck_deep_bulkhead_spark_rat.set_process(false)
+			_lower_deck_deep_bulkhead_spark_rat.collision_layer = 0
+			_lower_deck_deep_bulkhead_spark_rat.collision_mask = 0
+			_set_lower_deck_deep_bulkhead_guard_attack_target(null)
+		else:
+			_lower_deck_deep_bulkhead_spark_rat.visible = true
+			_lower_deck_deep_bulkhead_spark_rat.set_physics_process(true)
+			_lower_deck_deep_bulkhead_spark_rat.set_process(true)
+			_lower_deck_deep_bulkhead_spark_rat.collision_layer = (
+				FACTORY_RAT_MINION_COLLISION_LAYER
+			)
+			_lower_deck_deep_bulkhead_spark_rat.collision_mask = (
+				FACTORY_RAT_MINION_COLLISION_MASK
+			)
+			_set_lower_deck_deep_bulkhead_guard_attack_target(_player)
+	if _lower_deck_deep_bulkhead == null:
+		return
+	var bulkhead_visible: bool = (
+		_lower_deck_steam_sluice_defeated
+		or _lower_deck_deep_bulkhead_guard_defeated
+		or _lower_deck_deep_bulkhead_opened
+	)
+	_lower_deck_deep_bulkhead.visible = bulkhead_visible
+	if _lower_deck_deep_bulkhead.has_method("set_available"):
+		_lower_deck_deep_bulkhead.call(
+			"set_available",
+			_is_lower_deck_deep_bulkhead_available()
+		)
+	if _lower_deck_deep_bulkhead.has_method("set_activated"):
+		_lower_deck_deep_bulkhead.call("set_activated", _lower_deck_deep_bulkhead_opened)
+	_set_lower_deck_deep_bulkhead_collision_blocking(
+		bulkhead_visible and not _lower_deck_deep_bulkhead_opened
+	)
+
+
 func _sync_lower_deck_parry_gate_state() -> void:
 	if _lower_deck_parry_gate == null:
 		return
@@ -4221,6 +4449,18 @@ func _get_factory_route_objective_id() -> StringName:
 		return FACTORY_OBJECTIVE_OPEN_PRESSURE_VALVE
 	if _lower_deck_steam_sluice_activated and not _lower_deck_steam_sluice_defeated:
 		return FACTORY_OBJECTIVE_CLEAR_STEAM_SLUICE_AMBUSH
+	if (
+		_lower_deck_deep_bulkhead_guard_activated
+		and not _lower_deck_deep_bulkhead_guard_defeated
+	):
+		return FACTORY_OBJECTIVE_CLEAR_DEEP_BULKHEAD_GUARD
+	if (
+		_lower_deck_deep_bulkhead_guard_defeated
+		and not _lower_deck_deep_bulkhead_opened
+	):
+		return FACTORY_OBJECTIVE_OPEN_DEEP_BULKHEAD
+	if _lower_deck_deep_bulkhead_opened:
+		return FACTORY_OBJECTIVE_DEEP_BULKHEAD_OPENED
 	if _lower_deck_steam_sluice_defeated:
 		return FACTORY_OBJECTIVE_STEAM_SLUICE_CLEARED
 	if _lower_deck_pressure_valve_opened:
@@ -4310,6 +4550,12 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Clear Steam Sluice Ambush"
 		FACTORY_OBJECTIVE_STEAM_SLUICE_CLEARED:
 			return "Steam Sluice Cleared"
+		FACTORY_OBJECTIVE_CLEAR_DEEP_BULKHEAD_GUARD:
+			return "Clear Deep Bulkhead Guard"
+		FACTORY_OBJECTIVE_OPEN_DEEP_BULKHEAD:
+			return "Open Deep Bulkhead"
+		FACTORY_OBJECTIVE_DEEP_BULKHEAD_OPENED:
+			return "Deep Bulkhead Opened"
 		_:
 			return "Clear Factory Entrance"
 
@@ -4621,6 +4867,68 @@ func _get_lower_deck_pressure_valve_position() -> Vector2:
 		(_lower_deck_pressure_valve as Node2D).global_position
 		if _lower_deck_pressure_valve != null and _lower_deck_pressure_valve is Node2D
 		else Vector2.ZERO
+	)
+
+
+func _get_lower_deck_deep_bulkhead_id() -> String:
+	if (
+		_lower_deck_deep_bulkhead != null
+		and _lower_deck_deep_bulkhead.has_method("get_endpoint_id")
+	):
+		return String(_lower_deck_deep_bulkhead.call("get_endpoint_id"))
+	return String(FACTORY_LOWER_DECK_DEEP_BULKHEAD_ID)
+
+
+func _get_lower_deck_deep_bulkhead_visual_texture_path() -> String:
+	if (
+		_lower_deck_deep_bulkhead != null
+		and _lower_deck_deep_bulkhead.has_method("get_visual_texture_path")
+	):
+		return String(_lower_deck_deep_bulkhead.call("get_visual_texture_path"))
+	var visual := (
+		_lower_deck_deep_bulkhead.get_node_or_null("Visual") as Sprite2D
+		if _lower_deck_deep_bulkhead != null
+		else null
+	)
+	if visual == null or visual.texture == null:
+		return ""
+	return visual.texture.resource_path
+
+
+func _get_lower_deck_deep_bulkhead_prompt_text() -> String:
+	var prompt_label := (
+		_lower_deck_deep_bulkhead.get_node_or_null("PromptLabel") as Label
+		if _lower_deck_deep_bulkhead != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_deep_bulkhead_position() -> Vector2:
+	return (
+		(_lower_deck_deep_bulkhead as Node2D).global_position
+		if _lower_deck_deep_bulkhead != null and _lower_deck_deep_bulkhead is Node2D
+		else Vector2.ZERO
+	)
+
+
+func _is_lower_deck_deep_bulkhead_collision_blocking() -> bool:
+	var collision_shape := _get_lower_deck_deep_bulkhead_collision_shape()
+	return collision_shape != null and not collision_shape.disabled
+
+
+func _set_lower_deck_deep_bulkhead_collision_blocking(blocking: bool) -> void:
+	var collision_shape := _get_lower_deck_deep_bulkhead_collision_shape()
+	if collision_shape != null:
+		collision_shape.disabled = not blocking
+
+
+func _get_lower_deck_deep_bulkhead_collision_shape() -> CollisionShape2D:
+	return (
+		_lower_deck_deep_bulkhead.get_node_or_null("StaticBody2D/CollisionShape2D")
+		as CollisionShape2D
+		if _lower_deck_deep_bulkhead != null
+		else null
 	)
 
 
@@ -5021,6 +5329,14 @@ func _set_lower_deck_steam_sluice_attack_target(attack_target: Node) -> void:
 		_lower_deck_steam_sluice_spark_rat.call("set_attack_target", attack_target)
 
 
+func _set_lower_deck_deep_bulkhead_guard_attack_target(attack_target: Node) -> void:
+	if (
+		_lower_deck_deep_bulkhead_spark_rat != null
+		and _lower_deck_deep_bulkhead_spark_rat.has_method("set_attack_target")
+	):
+		_lower_deck_deep_bulkhead_spark_rat.call("set_attack_target", attack_target)
+
+
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
 		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
@@ -5129,6 +5445,18 @@ func _begin_lower_deck_steam_sluice_pacing(opening_grace_frames: int) -> void:
 		and not _lower_deck_steam_sluice_defeated
 	):
 		_lower_deck_steam_sluice_spark_rat.call(
+			"begin_pacing",
+			maxi(0, opening_grace_frames)
+		)
+
+
+func _begin_lower_deck_deep_bulkhead_guard_pacing(opening_grace_frames: int) -> void:
+	if (
+		_lower_deck_deep_bulkhead_spark_rat != null
+		and _lower_deck_deep_bulkhead_spark_rat.has_method("begin_pacing")
+		and not _lower_deck_deep_bulkhead_guard_defeated
+	):
+		_lower_deck_deep_bulkhead_spark_rat.call(
 			"begin_pacing",
 			maxi(0, opening_grace_frames)
 		)
@@ -5375,6 +5703,23 @@ func _get_lower_deck_steam_sluice_pacing_diagnostics() -> Dictionary:
 	}
 
 
+func _get_lower_deck_deep_bulkhead_guard_pacing_diagnostics() -> Dictionary:
+	if (
+		_lower_deck_deep_bulkhead_spark_rat != null
+		and _lower_deck_deep_bulkhead_spark_rat.has_method("get_pacing_diagnostics")
+	):
+		var pacing_variant: Variant = _lower_deck_deep_bulkhead_spark_rat.call(
+			"get_pacing_diagnostics"
+		)
+		if pacing_variant is Dictionary:
+			return (pacing_variant as Dictionary).duplicate(true)
+	return {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+	}
+
+
 func _does_deep_guard_have_target() -> bool:
 	if _deep_guard == null:
 		return false
@@ -5488,6 +5833,14 @@ func _does_lower_deck_steam_sluice_have_target() -> bool:
 	return _is_lower_deck_steam_sluice_active()
 
 
+func _does_lower_deck_deep_bulkhead_guard_have_target() -> bool:
+	if _lower_deck_deep_bulkhead_spark_rat == null:
+		return false
+	if _lower_deck_deep_bulkhead_spark_rat.has_method("has_attack_target"):
+		return bool(_lower_deck_deep_bulkhead_spark_rat.call("has_attack_target"))
+	return _is_lower_deck_deep_bulkhead_guard_active()
+
+
 func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> void:
 	if not _is_factory_damage_target_defeated(damage_target):
 		return
@@ -5534,6 +5887,9 @@ func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> 
 		FACTORY_LOWER_DECK_STEAM_SLUICE_ENTITY_ID:
 			if not _lower_deck_steam_sluice_defeated:
 				_on_factory_lower_deck_steam_sluice_defeated()
+		FACTORY_LOWER_DECK_DEEP_BULKHEAD_ENTITY_ID:
+			if not _lower_deck_deep_bulkhead_guard_defeated:
+				_on_factory_lower_deck_deep_bulkhead_guard_defeated()
 
 
 func _is_factory_damage_target_defeated(damage_target: Node) -> bool:
@@ -5611,6 +5967,15 @@ func _is_lower_deck_steam_sluice_activation_provider_in_range(provider: Node) ->
 	)
 
 
+func _is_lower_deck_deep_bulkhead_guard_activation_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_DEEP_BULKHEAD_ACTIVATION_X
+	)
+
+
 func _is_return_checkpoint_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -5646,6 +6011,7 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 			_lower_deck_shortcut_pursuer_spark_rat,
 			_lower_deck_pressure_guard_spark_rat,
 			_lower_deck_steam_sluice_spark_rat,
+			_lower_deck_deep_bulkhead_spark_rat,
 		]:
 		if guard == null or not guard.has_method("get_entity_id"):
 			continue
@@ -5774,6 +6140,27 @@ func _is_lower_deck_steam_sluice_active() -> bool:
 		and _lower_deck_pressure_valve_opened
 		and not _lower_deck_steam_sluice_defeated
 	)
+
+
+func _is_lower_deck_deep_bulkhead_guard_available() -> bool:
+	return (
+		_lower_deck_steam_sluice_defeated
+		and not _lower_deck_deep_bulkhead_guard_defeated
+		and not _lower_deck_deep_bulkhead_opened
+	)
+
+
+func _is_lower_deck_deep_bulkhead_guard_active() -> bool:
+	return (
+		_lower_deck_deep_bulkhead_guard_activated
+		and _lower_deck_steam_sluice_defeated
+		and not _lower_deck_deep_bulkhead_guard_defeated
+		and not _lower_deck_deep_bulkhead_opened
+	)
+
+
+func _is_lower_deck_deep_bulkhead_available() -> bool:
+	return _lower_deck_deep_bulkhead_guard_defeated and not _lower_deck_deep_bulkhead_opened
 
 
 func _is_checkpoint_overdrive_duo_cleared() -> bool:
