@@ -610,6 +610,20 @@
   `reports/report_891/` 通过 SceneManager async request 与 Old Factory
   service lift `6/6`。QA evidence:
   `production/qa/evidence/godot-4-7-upgrade-2026-06-30.md`。
+- Technical Maintenance: Godot 4.7 Baseline Recheck —
+  用户确认项目应以 Godot 4.7 为当前基线，后续正式验证不得再切回
+  4.6.3 CLI/headless。当前本机 Godot CLI
+  `/Applications/Godot 2.app/Contents/MacOS/Godot --version` 返回
+  `4.7.stable.official.5b4e0cb0f`；`AGENTS.md`、`.claude/docs/technical-preferences.md`、
+  `docs/engine-reference/godot/VERSION.md` 与 `project.godot`
+  均已指向 Godot 4.7。2026-07-02 headless boot
+  `reports/godot_4_7_project_boot_recheck_20260702.log` 退出 `0`，
+  启动阶段无 script/parse/invalid-call/missing-resource/resource-load 错误；
+  仅保留已知退出清理期 ObjectDB/resource 提示。Godot MCP
+  `session_activate("cinderpaw")` 选中 `cinderpaw@4400`，`editor_state`
+  返回 Godot `4.7-stable (official)`、`readiness="ready"`、当前场景
+  `res://scenes/factory_route_transition_shell.tscn`。QA evidence:
+  `production/qa/evidence/godot-4-7-baseline-recheck-2026-07-02.md`。
 - Player Abilities Story 035: Old Factory Service Lift Handoff —
   `FactoryServiceLift` now mounts a visible image-generated transparent
   service lift call console in `res://scenes/factory_route_transition_shell.tscn`
