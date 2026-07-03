@@ -207,6 +207,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_relay_forward_reward_cache: Node = get_node_or_null(
 	"FactoryLowerDeckRelayForwardRewardCache"
 )
+@onready var _lower_deck_forward_pressure_reward_cache: Node = get_node_or_null(
+	"FactoryLowerDeckForwardPressureRewardCache"
+)
 @onready var _lower_deck_pressure_valve: Node = get_node_or_null("FactoryLowerDeckPressureValve")
 @onready var _lower_deck_deep_bulkhead: Node = get_node_or_null("FactoryLowerDeckDeepBulkhead")
 @onready var _lower_deck_forward_hatch: Node = get_node_or_null("FactoryLowerDeckForwardHatch")
@@ -258,6 +261,8 @@ var _last_lower_deck_shortcut_reward_cache_reward: Dictionary = {}
 var _last_lower_deck_shortcut_reward_cache_claim_feedback: Dictionary = {}
 var _last_lower_deck_relay_forward_reward_cache_reward: Dictionary = {}
 var _last_lower_deck_relay_forward_reward_cache_claim_feedback: Dictionary = {}
+var _last_lower_deck_forward_pressure_reward_cache_reward: Dictionary = {}
+var _last_lower_deck_forward_pressure_reward_cache_claim_feedback: Dictionary = {}
 var _last_checkpoint_overdrive_defeat_burst_side: StringName = &""
 var _lower_deck_forward_conduit_clear_feedback_played: bool = false
 var _lower_deck_forward_conduit_clear_feedback_spawn_count: int = 0
@@ -322,6 +327,7 @@ var _lower_deck_forward_pressure_traverse_crossed: bool = false
 var _lower_deck_forward_pressure_traverse_elapsed_sec: float = 0.0
 var _lower_deck_forward_pressure_counter_ambush_activated: bool = false
 var _lower_deck_forward_pressure_counter_ambush_defeated: bool = false
+var _lower_deck_forward_pressure_reward_cache_claimed: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -356,6 +362,7 @@ func _ready() -> void:
 	_setup_factory_lower_deck_breach_relay()
 	_sync_lower_deck_post_relay_trial_state()
 	_setup_factory_lower_deck_relay_forward_reward_cache()
+	_setup_factory_lower_deck_forward_pressure_reward_cache()
 	_setup_factory_lower_deck_forward_hatch()
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_sync_lower_deck_forward_conduit_state()
@@ -1032,6 +1039,37 @@ func try_claim_factory_lower_deck_relay_forward_reward_cache(provider: Node = nu
 	return true
 
 
+## Attempts to claim the forward-pressure payoff cache after the counter-ambush is cleared.
+func try_claim_factory_lower_deck_forward_pressure_reward_cache(provider: Node = null) -> bool:
+	if (
+		not _lower_deck_forward_pressure_counter_ambush_defeated
+		or _lower_deck_forward_pressure_reward_cache == null
+	):
+		return false
+	var claim_provider: Node = provider
+	if claim_provider == null:
+		claim_provider = _player
+	if (
+		not _lower_deck_forward_pressure_reward_cache.has_method("try_claim")
+		or not bool(_lower_deck_forward_pressure_reward_cache.call(
+			"try_claim",
+			claim_provider
+		))
+	):
+		return false
+	_lower_deck_forward_pressure_reward_cache_claimed = true
+	var reward_payload: Dictionary = _get_lower_deck_forward_pressure_reward_cache_payload()
+	if _last_lower_deck_forward_pressure_reward_cache_reward.is_empty():
+		_last_lower_deck_forward_pressure_reward_cache_reward = reward_payload
+	_sync_lower_deck_forward_pressure_reward_cache_state()
+	if _last_lower_deck_forward_pressure_reward_cache_claim_feedback.is_empty():
+		_record_lower_deck_forward_pressure_reward_cache_claim_feedback(
+			reward_payload,
+			"Forward Pressure Cache Claimed"
+		)
+	return true
+
+
 ## Attempts to activate the optional pursuer after the shortcut payoff is claimed.
 func try_activate_factory_lower_deck_shortcut_pursuer(provider: Node = null) -> bool:
 	if (
@@ -1565,6 +1603,9 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_counter_ambush_defeated": (
 			_lower_deck_forward_pressure_counter_ambush_defeated
 		),
+		"factory_lower_deck_forward_pressure_reward_cache_claimed": (
+			_lower_deck_forward_pressure_reward_cache_claimed
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -1604,6 +1645,12 @@ func get_local_state() -> Dictionary:
 		),
 		"last_lower_deck_relay_forward_reward_cache_claim_feedback": (
 			_last_lower_deck_relay_forward_reward_cache_claim_feedback.duplicate(true)
+		),
+		"last_lower_deck_forward_pressure_reward_cache_reward": (
+			_last_lower_deck_forward_pressure_reward_cache_reward.duplicate(true)
+		),
+		"last_lower_deck_forward_pressure_reward_cache_claim_feedback": (
+			_last_lower_deck_forward_pressure_reward_cache_claim_feedback.duplicate(true)
 		),
 		"last_return_checkpoint": _last_return_checkpoint.duplicate(true),
 		"last_savepoint": _last_return_checkpoint.duplicate(true),
@@ -1809,6 +1856,10 @@ func set_local_state(state: Dictionary) -> void:
 		"factory_lower_deck_forward_pressure_counter_ambush_defeated",
 		false
 	))
+	_lower_deck_forward_pressure_reward_cache_claimed = bool(state.get(
+		"factory_lower_deck_forward_pressure_reward_cache_claimed",
+		false
+	))
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -2007,6 +2058,24 @@ func set_local_state(state: Dictionary) -> void:
 		if lower_deck_relay_forward_feedback_variant is Dictionary
 		else {}
 	)
+	var lower_deck_forward_pressure_reward_variant: Variant = state.get(
+		"last_lower_deck_forward_pressure_reward_cache_reward",
+		{}
+	)
+	_last_lower_deck_forward_pressure_reward_cache_reward = (
+		(lower_deck_forward_pressure_reward_variant as Dictionary).duplicate(true)
+		if lower_deck_forward_pressure_reward_variant is Dictionary
+		else {}
+	)
+	var lower_deck_forward_pressure_feedback_variant: Variant = state.get(
+		"last_lower_deck_forward_pressure_reward_cache_claim_feedback",
+		{}
+	)
+	_last_lower_deck_forward_pressure_reward_cache_claim_feedback = (
+		(lower_deck_forward_pressure_feedback_variant as Dictionary).duplicate(true)
+		if lower_deck_forward_pressure_feedback_variant is Dictionary
+		else {}
+	)
 	var return_checkpoint_variant: Variant = state.get(
 		"last_return_checkpoint",
 		state.get("last_savepoint", {})
@@ -2071,6 +2140,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_breach_relay_state()
 	_sync_lower_deck_post_relay_trial_state()
 	_sync_lower_deck_relay_forward_reward_cache_state()
+	_sync_lower_deck_forward_pressure_reward_cache_state()
 	_sync_lower_deck_forward_hatch_state()
 	_sync_lower_deck_forward_conduit_state()
 	_sync_lower_deck_forward_pressure_traverse_state()
@@ -3206,6 +3276,73 @@ func get_factory_lower_deck_relay_forward_reward_cache_diagnostics() -> Dictiona
 	}
 
 
+## Returns deterministic forward-pressure reward cache diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_reward_cache_diagnostics() -> Dictionary:
+	return {
+		"present": _lower_deck_forward_pressure_reward_cache != null,
+		"visible": (
+			_lower_deck_forward_pressure_reward_cache.visible
+			if _lower_deck_forward_pressure_reward_cache != null
+			else false
+		),
+		"cache_id": (
+			String(_lower_deck_forward_pressure_reward_cache.call("get_cache_id"))
+			if (
+				_lower_deck_forward_pressure_reward_cache != null
+				and _lower_deck_forward_pressure_reward_cache.has_method("get_cache_id")
+			)
+			else ""
+		),
+		"texture_path": (
+			String(_lower_deck_forward_pressure_reward_cache.call(
+				"get_visual_texture_path"
+			))
+			if (
+				_lower_deck_forward_pressure_reward_cache != null
+				and _lower_deck_forward_pressure_reward_cache.has_method(
+					"get_visual_texture_path"
+				)
+			)
+			else ""
+		),
+		"available": (
+			bool(_lower_deck_forward_pressure_reward_cache.call("is_available"))
+			if (
+				_lower_deck_forward_pressure_reward_cache != null
+				and _lower_deck_forward_pressure_reward_cache.has_method("is_available")
+			)
+			else false
+		),
+		"claim_available": (
+			bool(_lower_deck_forward_pressure_reward_cache.call("is_claim_available"))
+			if (
+				_lower_deck_forward_pressure_reward_cache != null
+				and _lower_deck_forward_pressure_reward_cache.has_method(
+					"is_claim_available"
+				)
+			)
+			else false
+		),
+		"claimed": _lower_deck_forward_pressure_reward_cache_claimed,
+		"prompt_text": _get_lower_deck_forward_pressure_reward_cache_prompt_text(),
+		"counter_ambush_defeated": _lower_deck_forward_pressure_counter_ambush_defeated,
+		"position": (
+			(_lower_deck_forward_pressure_reward_cache as Node2D).global_position
+			if (
+				_lower_deck_forward_pressure_reward_cache != null
+				and _lower_deck_forward_pressure_reward_cache is Node2D
+			)
+			else Vector2.ZERO
+		),
+		"last_reward": (
+			_last_lower_deck_forward_pressure_reward_cache_reward.duplicate(true)
+		),
+		"last_claim_feedback": (
+			_last_lower_deck_forward_pressure_reward_cache_claim_feedback.duplicate(true)
+		),
+	}
+
+
 ## Returns deterministic relay-forward hatch diagnostics for tests and MCP probes.
 func get_factory_lower_deck_forward_hatch_diagnostics() -> Dictionary:
 	return {
@@ -3971,6 +4108,9 @@ func get_factory_route_objective_diagnostics() -> Dictionary:
 		"lower_deck_forward_pressure_counter_ambush_defeated": (
 			_lower_deck_forward_pressure_counter_ambush_defeated
 		),
+		"lower_deck_forward_pressure_reward_cache_claimed": (
+			_lower_deck_forward_pressure_reward_cache_claimed
+		),
 		"route_label_visible": route_label.visible if route_label != null else false,
 		"route_label_text": route_label.text if route_label != null else "",
 	}
@@ -4075,6 +4215,9 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		),
 		"lower_deck_forward_pressure_counter_ambush": (
 			get_factory_lower_deck_forward_pressure_counter_ambush_diagnostics()
+		),
+		"lower_deck_forward_pressure_reward_cache": (
+			get_factory_lower_deck_forward_pressure_reward_cache_diagnostics()
 		),
 		"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
@@ -4557,6 +4700,22 @@ func _setup_factory_lower_deck_relay_forward_reward_cache() -> void:
 		claimed_signal.connect(_on_factory_lower_deck_relay_forward_reward_cache_claimed)
 
 
+func _setup_factory_lower_deck_forward_pressure_reward_cache() -> void:
+	_sync_lower_deck_forward_pressure_reward_cache_state()
+	if (
+		_lower_deck_forward_pressure_reward_cache == null
+		or not _lower_deck_forward_pressure_reward_cache.has_signal("cache_claimed")
+	):
+		return
+	var claimed_signal: Signal = _lower_deck_forward_pressure_reward_cache.get(
+		"cache_claimed"
+	)
+	if not claimed_signal.is_connected(
+		_on_factory_lower_deck_forward_pressure_reward_cache_claimed
+	):
+		claimed_signal.connect(_on_factory_lower_deck_forward_pressure_reward_cache_claimed)
+
+
 func _setup_factory_lower_deck_forward_hatch() -> void:
 	_sync_lower_deck_forward_hatch_state()
 	if _lower_deck_forward_hatch == null or not _lower_deck_forward_hatch.has_signal(
@@ -4943,6 +5102,7 @@ func _on_factory_lower_deck_forward_pressure_counter_ambush_defeated() -> void:
 	_lower_deck_forward_pressure_counter_ambush_activated = true
 	_lower_deck_forward_pressure_counter_ambush_defeated = true
 	_sync_lower_deck_forward_pressure_counter_ambush_state()
+	_sync_lower_deck_forward_pressure_reward_cache_state()
 	_refresh_factory_route_objective()
 
 
@@ -5049,6 +5209,18 @@ func _on_factory_lower_deck_relay_forward_reward_cache_claimed(
 		"Relay Forward Cache Claimed"
 	)
 	_sync_lower_deck_forward_hatch_state()
+
+
+func _on_factory_lower_deck_forward_pressure_reward_cache_claimed(
+	_cache_id: StringName,
+	reward: Dictionary
+) -> void:
+	_lower_deck_forward_pressure_reward_cache_claimed = true
+	_last_lower_deck_forward_pressure_reward_cache_reward = reward.duplicate(true)
+	_record_lower_deck_forward_pressure_reward_cache_claim_feedback(
+		_last_lower_deck_forward_pressure_reward_cache_reward,
+		"Forward Pressure Cache Claimed"
+	)
 
 
 func _on_factory_lower_deck_forward_hatch_activated(endpoint_id: StringName) -> void:
@@ -5522,6 +5694,25 @@ func _sync_lower_deck_relay_forward_reward_cache_state() -> void:
 		_lower_deck_relay_forward_reward_cache.call(
 			"set_claimed",
 			_lower_deck_relay_forward_reward_cache_claimed
+		)
+
+
+func _sync_lower_deck_forward_pressure_reward_cache_state() -> void:
+	if _lower_deck_forward_pressure_reward_cache == null:
+		return
+	_lower_deck_forward_pressure_reward_cache.visible = (
+		_lower_deck_forward_pressure_counter_ambush_defeated
+		or _lower_deck_forward_pressure_reward_cache_claimed
+	)
+	if _lower_deck_forward_pressure_reward_cache.has_method("set_available"):
+		_lower_deck_forward_pressure_reward_cache.call(
+			"set_available",
+			_lower_deck_forward_pressure_counter_ambush_defeated
+		)
+	if _lower_deck_forward_pressure_reward_cache.has_method("set_claimed"):
+		_lower_deck_forward_pressure_reward_cache.call(
+			"set_claimed",
+			_lower_deck_forward_pressure_reward_cache_claimed
 		)
 
 
@@ -6273,6 +6464,20 @@ func _get_lower_deck_relay_forward_reward_cache_payload() -> Dictionary:
 	return {}
 
 
+func _get_lower_deck_forward_pressure_reward_cache_payload() -> Dictionary:
+	if (
+		_lower_deck_forward_pressure_reward_cache == null
+		or not _lower_deck_forward_pressure_reward_cache.has_method("get_reward_payload")
+	):
+		return {}
+	var reward_variant: Variant = _lower_deck_forward_pressure_reward_cache.call(
+		"get_reward_payload"
+	)
+	if reward_variant is Dictionary:
+		return (reward_variant as Dictionary).duplicate(true)
+	return {}
+
+
 func _record_cache_claim_feedback(reward: Dictionary, label_prefix: String) -> void:
 	_last_cache_claim_feedback = _build_cache_claim_feedback(reward, label_prefix)
 	_update_route_label(String(_last_cache_claim_feedback.get("text", "")))
@@ -6340,6 +6545,18 @@ func _record_lower_deck_relay_forward_reward_cache_claim_feedback(
 	)
 	_update_route_label(String(
 		_last_lower_deck_relay_forward_reward_cache_claim_feedback.get("text", "")
+	))
+
+
+func _record_lower_deck_forward_pressure_reward_cache_claim_feedback(
+	reward: Dictionary,
+	label_prefix: String
+) -> void:
+	_last_lower_deck_forward_pressure_reward_cache_claim_feedback = (
+		_build_cache_claim_feedback(reward, label_prefix)
+	)
+	_update_route_label(String(
+		_last_lower_deck_forward_pressure_reward_cache_claim_feedback.get("text", "")
 	))
 
 
@@ -6619,6 +6836,15 @@ func _get_lower_deck_forward_hatch_prompt_text() -> String:
 	var prompt_label := (
 		_lower_deck_forward_hatch.get_node_or_null("PromptLabel") as Label
 		if _lower_deck_forward_hatch != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_forward_pressure_reward_cache_prompt_text() -> String:
+	var prompt_label := (
+		_lower_deck_forward_pressure_reward_cache.get_node_or_null("PromptLabel") as Label
+		if _lower_deck_forward_pressure_reward_cache != null
 		else null
 	)
 	return prompt_label.text if prompt_label != null else ""

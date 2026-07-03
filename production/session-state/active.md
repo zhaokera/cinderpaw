@@ -69,7 +69,8 @@
 	  Lower Deck Forward Conduit Ambush、Player Abilities Story068 Old Factory
 	  Lower Deck Forward Conduit Clear Feedback、Player Abilities Story069 Old
 	  Factory Lower Deck Forward Pressure Traverse、Player Abilities Story070
-	  Old Factory Lower Deck Forward Pressure Counter-Ambush
+	  Old Factory Lower Deck Forward Pressure Counter-Ambush、Player Abilities
+	  Story071 Old Factory Lower Deck Forward Pressure Reward Cache
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -89,6 +90,31 @@
   `production/qa/evidence/godot-ai-2-8-3-upgrade-2026-07-02.md`.
 
 ## Last Completed Task
+- Player Abilities Story 071: Old Factory Lower Deck Forward Pressure Reward
+  Cache -- after Story070 clears the forward pressure counter-ambush,
+  `FactoryLowerDeckForwardPressureRewardCache` now appears as a visible,
+  scene-local once-only payoff using the existing image-generated lower-deck
+  cache prop. The cache stays hidden and non-claimable until
+  `factory_lower_deck_forward_pressure_counter_ambush_defeated=true`, then
+  shows prompt `+20 Gears`, uses cache id/source
+  `old_factory_lower_deck_forward_pressure_reward_cache`, grants `20` gears on
+  the first claim, rejects a second claim, records
+  `Forward Pressure Cache Claimed +20 Gears`, and persists
+  `factory_lower_deck_forward_pressure_reward_cache_claimed=true`. No new
+  visual/audio assets, SaveSystem schema, minimap markers, service-lift route
+  changes, or global quest state were added. Verification: RED
+  `reports/report_1110/`; focused GREEN `reports/report_1111/` `2/2`;
+  related GREEN `reports/report_1112/` `12/12`; headless smoke
+  `reports/old_factory_forward_pressure_reward_cache_smoke.log` exited `0`
+  with no project script/parse/invalid-call/access/missing-resource/resource-load
+  errors by keyword scan, aside from the known Godot cleanup-time resource
+  message. Godot AI MCP `2.8.3` on Godot `4.7-stable` confirmed helper live,
+  cache hidden before Story070 clear, visible/claimable after Story070 clear,
+  image-generated texture path, once-only `+20 Gears` claim, local-state
+  persistence, no Story068-070 prerequisite replay, service lift `Call lift`,
+  game log containing only helper registration, empty editor log, and non-empty
+  screenshot metadata `960x539`.
+
 - Player Abilities Story 070: Old Factory Lower Deck Forward Pressure
   Counter-Ambush -- after Story069 crosses the forward pressure traverse,
   crossing x `1336.0` now activates `FactoryLowerDeckForwardCounterSparkRat`
@@ -3806,3 +3832,14 @@
 - Verification: RED focused `reports/report_1107/` failed as expected before Story070 APIs existed. Focused GREEN `reports/report_1108/` passed Story070 `2/2`. Related GREEN `reports/report_1109/` passed Story070, Story069, Story068, Story067, Story009, and service-lift SceneManager exit suites `14/14`. Headless Factory smoke `reports/old_factory_forward_pressure_counter_ambush_smoke.log` exited `0` with no project script/parse/invalid-call/access/missing-resource/resource-load errors by keyword scan, aside from the known Godot cleanup-time resource message. Godot AI MCP `2.8.3` runtime launched `res://scenes/factory_route_transition_shell.tscn` with `autosave=false`, confirmed helper live, active entity `2119`, Spark Rat SpriteFrames frame counts `idle/run/attack_tell/attack/hurt/death=3`, active hazard id `old_factory_lower_deck_forward_pressure_counter_ambush`, damage `8`, cooldown `1.0`, route label `Survive Forward Pressure Ambush`, defeat transition `Forward Pressure Ambush Cleared`, persisted Story070 flags, no Story067-069 prerequisite replay, service lift `Call lift`, clean game/editor logs, and non-empty `960x539` game screenshot metadata.
 - Blockers: None. New enemy families, new lower-deck rooms, reward caches, authored combat/hazard audio, particles/shaders, minimap markers, fast travel, SaveSystem schema expansion, global quest state, service-lift route changes, boss content, and new generated visual assets remain out of scope.
 - Next: continue another ACT-visible slice such as deeper Old Factory route combat, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.
+
+## Session Extract -- /dev-story 2026-07-03
+
+- Story: `production/epics/player-abilities/story-071-old-factory-lower-deck-forward-pressure-reward-cache.md` -- Old Factory Lower Deck Forward Pressure Reward Cache
+- Files changed: `src/gameplay/old_factory_entrance_scene.gd`, `scenes/factory_route_transition_shell.tscn`, `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_reward_cache_test.gd`, `design/assets/asset-manifest.md`, `design/assets/entity-inventory.md`, `production/epics/player-abilities/story-071-old-factory-lower-deck-forward-pressure-reward-cache.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/old-factory-forward-pressure-reward-cache-2026-07-03.md`, `reports/report_1110/`, `reports/report_1111/`, `reports/report_1112/`, `reports/old_factory_forward_pressure_reward_cache_smoke.log`, `production/session-state/active.md`
+- Implementation: Added a once-only reward cache payoff after Story070's forward pressure counter-ambush is cleared. `FactoryLowerDeckForwardPressureRewardCache` stays hidden and non-claimable until `factory_lower_deck_forward_pressure_counter_ambush_defeated=true`; then it becomes visible, shows prompt `+20 Gears`, and claims through `FactoryCombatCache`. The first claim grants `20` gears with source/cache id `old_factory_lower_deck_forward_pressure_reward_cache`, records route feedback `Forward Pressure Cache Claimed +20 Gears`, persists `factory_lower_deck_forward_pressure_reward_cache_claimed=true`, and rejects duplicate claims.
+- Asset pipeline: No new visual or audio asset was generated. Story071 reuses the existing image-generated lower-deck reward cache texture `res://assets/environment/old_factory_lower_deck_skirmish_cache/env_old_factory_lower_deck_skirmish_cache_claimable_256.png` and records the new forward-pressure cache usage in the asset manifest, entity inventory, story, and QA evidence.
+- Test written: `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_reward_cache_test.gd` covers Story070 clear gating, cache id/texture/prompt contract, once-only claim payload/feedback, scene-local persistence, Story068-070 no-replay restore semantics, relay-forward cache continuity, and service-lift prompt preservation.
+- Verification: RED focused `reports/report_1110/` failed as expected before Story071 APIs and diagnostics existed. Focused GREEN `reports/report_1111/` passed Story071 `2/2`. Related GREEN `reports/report_1112/` passed Story071, Story070, Story069, Story068, Story066, and service-lift SceneManager exit suites `12/12`. Headless Factory smoke `reports/old_factory_forward_pressure_reward_cache_smoke.log` exited `0` with no project script/parse/invalid-call/access/missing-resource/resource-load errors by keyword scan, aside from the known Godot cleanup-time resource message. Godot AI MCP `2.8.3` runtime launched `res://scenes/factory_route_transition_shell.tscn` with `autosave=false`, confirmed helper live, cache hidden before Story070 clear, visible/claimable after Story070 clear, image-generated texture path, once-only `+20 Gears` claim, local-state persistence, no Story068-070 prerequisite replay, service lift `Call lift`, game log containing only helper registration, empty editor log, and non-empty screenshot metadata `960x539`.
+- Blockers: None. New enemy families, new room art, SaveSystem schema changes, minimap markers, global quest state, service-lift route changes, new audio, particles/shaders, new generated visual assets, and broader reward economy balancing remain out of scope.
+- Next: continue another ACT-visible slice such as deeper Old Factory route combat/reward content, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.
