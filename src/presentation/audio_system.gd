@@ -764,6 +764,28 @@ func on_savepoint_activated(
 	)
 
 
+## Routes a fresh reward-cache claim to the shared cache-open confirmation SFX.
+func on_reward_cache_claimed(
+	cache_id: StringName,
+	reward: Dictionary,
+	world_position: Vector2,
+	metadata: Dictionary = {}
+) -> bool:
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	event_metadata["cache_id"] = cache_id
+	event_metadata["source"] = StringName(String(reward.get("source", cache_id)))
+	event_metadata["gears"] = int(reward.get("gears", 0))
+	event_metadata["reward_gears"] = int(reward.get("gears", 0))
+	event_metadata["world_position"] = world_position
+	return _request_gameplay_sfx(
+		&"reward_cache_claimed",
+		&"sfx_door_unlock",
+		world_position,
+		SFX_PRIORITY_HIGH,
+		event_metadata
+	)
+
+
 ## Routes weapon attack startup metadata to a weapon-specific swing SFX.
 func on_weapon_attack_event(attack_data: Dictionary) -> bool:
 	var weapon_id: StringName = StringName(String(attack_data.get("weapon_id", &"")))

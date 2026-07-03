@@ -71,6 +71,8 @@
 	  Factory Lower Deck Forward Pressure Traverse、Player Abilities Story070
 	  Old Factory Lower Deck Forward Pressure Counter-Ambush、Player Abilities
 	  Story071 Old Factory Lower Deck Forward Pressure Reward Cache
+	  、Player Abilities Story072 Old Factory Lower Deck Forward Pressure
+	  Reward Cache Audio Feedback
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -90,6 +92,31 @@
   `production/qa/evidence/godot-ai-2-8-3-upgrade-2026-07-02.md`.
 
 ## Last Completed Task
+- Player Abilities Story 072: Old Factory Lower Deck Forward Pressure Reward
+  Cache Audio Feedback -- the Story071 forward-pressure reward cache now
+  requests once-only spatial audio on the first successful claim. `AudioSystem`
+  exposes `on_reward_cache_claimed(...)` and routes
+  `reward_cache_claimed -> sfx_door_unlock` at priority `90` with
+  `stream_found=true` and deterministic metadata for cache id/source,
+  `gears/reward_gears`, scene id, feedback role, and world position.
+  `OldFactoryEntranceScene` records `claim_audio_requested`,
+  `claim_audio_request_count`, and `claim_audio_event` diagnostics from the
+  fresh claim path only; duplicate claim and restored claimed state do not
+  replay audio. No new audio/visual assets, SaveSystem schema, service-lift
+  route changes, minimap markers, particles/shaders, or global reward-cache
+  policy were added. Verification: RED `reports/report_1113/report_1/`;
+  focused GREEN `reports/report_1114/report_2/` `26/26`; related GREEN
+  `reports/report_1115/report_1/` `42/42`; headless smoke
+  `reports/old_factory_forward_pressure_reward_cache_audio_smoke.log` exited
+  `0` with no project script/parse/invalid-call/access/missing-resource/
+  resource-load errors by keyword scan, aside from the known Godot cleanup-time
+  resource message. Godot AI MCP `2.8.3` on Godot `4.7-stable` confirmed helper
+  live, cache visible/claimable, first claim `true`, duplicate claim `false`,
+  `claim_audio_request_count=1`, `reward_cache_claimed -> sfx_door_unlock`,
+  `stream_found=true`, restored claimed no-replay, service lift `Call lift`,
+  game log containing only helper registration, empty editor log, and non-empty
+  screenshot metadata `960x539`.
+
 - Player Abilities Story 071: Old Factory Lower Deck Forward Pressure Reward
   Cache -- after Story070 clears the forward pressure counter-ambush,
   `FactoryLowerDeckForwardPressureRewardCache` now appears as a visible,
@@ -3842,4 +3869,15 @@
 - Test written: `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_reward_cache_test.gd` covers Story070 clear gating, cache id/texture/prompt contract, once-only claim payload/feedback, scene-local persistence, Story068-070 no-replay restore semantics, relay-forward cache continuity, and service-lift prompt preservation.
 - Verification: RED focused `reports/report_1110/` failed as expected before Story071 APIs and diagnostics existed. Focused GREEN `reports/report_1111/` passed Story071 `2/2`. Related GREEN `reports/report_1112/` passed Story071, Story070, Story069, Story068, Story066, and service-lift SceneManager exit suites `12/12`. Headless Factory smoke `reports/old_factory_forward_pressure_reward_cache_smoke.log` exited `0` with no project script/parse/invalid-call/access/missing-resource/resource-load errors by keyword scan, aside from the known Godot cleanup-time resource message. Godot AI MCP `2.8.3` runtime launched `res://scenes/factory_route_transition_shell.tscn` with `autosave=false`, confirmed helper live, cache hidden before Story070 clear, visible/claimable after Story070 clear, image-generated texture path, once-only `+20 Gears` claim, local-state persistence, no Story068-070 prerequisite replay, service lift `Call lift`, game log containing only helper registration, empty editor log, and non-empty screenshot metadata `960x539`.
 - Blockers: None. New enemy families, new room art, SaveSystem schema changes, minimap markers, global quest state, service-lift route changes, new audio, particles/shaders, new generated visual assets, and broader reward economy balancing remain out of scope.
+- Next: continue another ACT-visible slice such as deeper Old Factory route combat/reward content, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.
+
+## Session Extract -- /dev-story 2026-07-03
+
+- Story: `production/epics/player-abilities/story-072-old-factory-lower-deck-forward-pressure-reward-cache-audio-feedback.md` -- Old Factory Lower Deck Forward Pressure Reward Cache Audio Feedback
+- Files changed: `src/presentation/audio_system.gd`, `src/gameplay/old_factory_entrance_scene.gd`, `tests/unit/presentation/audio_system_test.gd`, `tests/unit/gameplay/old_factory_forward_pressure_reward_cache_audio_test.gd`, `design/assets/asset-manifest.md`, `design/assets/entity-inventory.md`, `production/epics/player-abilities/story-072-old-factory-lower-deck-forward-pressure-reward-cache-audio-feedback.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/old-factory-forward-pressure-reward-cache-audio-feedback-2026-07-03.md`, `reports/report_1113/`, `reports/report_1114/`, `reports/report_1115/`, `reports/old_factory_forward_pressure_reward_cache_audio_smoke.log`, `production/session-state/active.md`
+- Implementation: Added a generic reward-cache claim audio route. `AudioSystem.on_reward_cache_claimed(...)` maps `reward_cache_claimed` to the existing imported `sfx_door_unlock` cue with spatial position, priority `90`, stream-found diagnostics, and metadata for cache id/source, `gears/reward_gears`, scene id, feedback role, route label, and world position. `OldFactoryEntranceScene` now calls that route only from the Story071 forward-pressure reward cache's fresh claim handler, records deterministic claim-audio diagnostics, preserves the `+20 Gears` reward payload/route feedback/local persistence, suppresses duplicate replay, and does not replay on restored claimed state.
+- Asset pipeline: No new visual or audio asset was generated. Story072 reuses `res://assets/audio/sfx/sfx_door_unlock_baseline_short.wav`; the new usage is recorded in `design/assets/asset-manifest.md`, `design/assets/entity-inventory.md`, story, and QA evidence.
+- Test written: `tests/unit/presentation/audio_system_test.gd` covers `on_reward_cache_claimed -> sfx_door_unlock` metadata and stream routing. `tests/unit/gameplay/old_factory_forward_pressure_reward_cache_audio_test.gd` covers first-claim spatial audio, runtime AudioSystem event, duplicate suppression, restored no-replay, and deterministic scene diagnostics.
+- Verification: RED focused `reports/report_1113/report_1/` failed as expected before `AudioSystem.on_reward_cache_claimed` and Story072 claim-audio diagnostics existed. Focused GREEN `reports/report_1114/report_2/` passed AudioSystem and Story072 gameplay suites `26/26`. Related GREEN `reports/report_1115/report_1/` passed Story072, Story071, Story070, Story069, Story068, Story066, Story064 relay audio, and service-lift suites `42/42`. Headless Factory smoke `reports/old_factory_forward_pressure_reward_cache_audio_smoke.log` exited `0` with no project script/parse/invalid-call/access/missing-resource/resource-load errors by keyword scan, aside from the known Godot cleanup-time resource message. Godot AI MCP `2.8.3` runtime launched `res://scenes/factory_route_transition_shell.tscn` with `autosave=false`, confirmed helper live, cache visible/claimable, first claim `true`, duplicate claim `false`, `claim_audio_request_count=1`, `reward_cache_claimed -> sfx_door_unlock`, `stream_found=true`, restored claimed state no-replay, route label `Forward Pressure Cache Claimed +20 Gears`, service lift `Call lift`, game log containing only helper registration, empty editor log, and non-empty `960x539` game screenshot metadata.
+- Blockers: None. New WAV assets, final mixing/mastering, global reward-cache audio policy, economy tuning, SaveSystem schema changes, service-lift routing, minimap or fast-travel changes, new enemies, new room art, particles/shaders, Boss2 reward audio, and DEATH/CUTSCENE audio state work remain out of scope.
 - Next: continue another ACT-visible slice such as deeper Old Factory route combat/reward content, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.

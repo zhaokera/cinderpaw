@@ -745,6 +745,56 @@ func test_savepoint_activation_event_routes_door_unlock_sfx_with_metadata() -> v
 	assert_vector(metadata.get("world_position", Vector2.ZERO)).is_equal(Vector2(1218, 382))
 
 
+func test_reward_cache_claim_event_routes_door_unlock_sfx_with_metadata() -> void:
+	assert_object(audio_system).is_not_null()
+	if audio_system == null:
+		return
+	assert_bool(audio_system.has_method("on_reward_cache_claimed")).is_true()
+	if not audio_system.has_method("on_reward_cache_claimed"):
+		return
+
+	assert_bool(bool(audio_system.call(
+		"on_reward_cache_claimed",
+		&"old_factory_lower_deck_forward_pressure_reward_cache",
+		{
+			"cache_id": &"old_factory_lower_deck_forward_pressure_reward_cache",
+			"gears": 20,
+			"source": &"old_factory_lower_deck_forward_pressure_reward_cache",
+		},
+		Vector2(1340, 310),
+		{
+			"display_name": "Forward Pressure Cache",
+			"feedback_role": &"reward_cache_claim",
+			"route_label": "Forward Pressure Cache Claimed +20 Gears",
+			"scene_id": &"area_03_factory",
+		}
+	))).is_true()
+
+	var request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(request.get("sfx_id", &""))).is_equal("sfx_door_unlock")
+	assert_vector(request.get("position", Vector2.ZERO)).is_equal(Vector2(1340, 310))
+	assert_int(int(request.get("priority", 0))).is_equal(90)
+	assert_bool(bool(request.get("stream_found", false))).is_true()
+
+	var gameplay_event: Dictionary = audio_system.call("get_last_gameplay_audio_event")
+	assert_str(String(gameplay_event.get("event_id", &""))).is_equal("reward_cache_claimed")
+	assert_str(String(gameplay_event.get("sfx_id", &""))).is_equal("sfx_door_unlock")
+	assert_vector(gameplay_event.get("position", Vector2.ZERO)).is_equal(Vector2(1340, 310))
+	assert_int(int(gameplay_event.get("priority", 0))).is_equal(90)
+	var metadata: Dictionary = Dictionary(gameplay_event.get("metadata", {}))
+	assert_str(String(metadata.get("cache_id", &""))).is_equal(
+		"old_factory_lower_deck_forward_pressure_reward_cache"
+	)
+	assert_str(String(metadata.get("source", &""))).is_equal(
+		"old_factory_lower_deck_forward_pressure_reward_cache"
+	)
+	assert_int(int(metadata.get("gears", 0))).is_equal(20)
+	assert_int(int(metadata.get("reward_gears", 0))).is_equal(20)
+	assert_str(String(metadata.get("feedback_role", &""))).is_equal("reward_cache_claim")
+	assert_str(String(metadata.get("scene_id", &""))).is_equal("area_03_factory")
+	assert_vector(metadata.get("world_position", Vector2.ZERO)).is_equal(Vector2(1340, 310))
+
+
 func test_boss_music_state_hard_cuts_phase_transitions_and_ends_cleanly() -> void:
 	assert_object(audio_system).is_not_null()
 	if audio_system == null:

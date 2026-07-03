@@ -48,6 +48,9 @@ const FACTORY_LOWER_DECK_FORWARD_CONDUIT_ACTIVATION_X: float = 1272.0
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVATION_X: float = 1284.0
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_X: float = 1328.0
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_ACTIVATION_X: float = 1336.0
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_REWARD_CACHE_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_reward_cache"
+)
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC: float = 0.25
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC: float = 0.35
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC: float = 0.40
@@ -328,6 +331,8 @@ var _lower_deck_forward_pressure_traverse_elapsed_sec: float = 0.0
 var _lower_deck_forward_pressure_counter_ambush_activated: bool = false
 var _lower_deck_forward_pressure_counter_ambush_defeated: bool = false
 var _lower_deck_forward_pressure_reward_cache_claimed: bool = false
+var _lower_deck_forward_pressure_reward_cache_claim_audio_event: Dictionary = {}
+var _lower_deck_forward_pressure_reward_cache_claim_audio_request_count: int = 0
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -3340,6 +3345,15 @@ func get_factory_lower_deck_forward_pressure_reward_cache_diagnostics() -> Dicti
 		"last_claim_feedback": (
 			_last_lower_deck_forward_pressure_reward_cache_claim_feedback.duplicate(true)
 		),
+		"claim_audio_requested": (
+			_lower_deck_forward_pressure_reward_cache_claim_audio_request_count > 0
+		),
+		"claim_audio_request_count": (
+			_lower_deck_forward_pressure_reward_cache_claim_audio_request_count
+		),
+		"claim_audio_event": (
+			_lower_deck_forward_pressure_reward_cache_claim_audio_event.duplicate(true)
+		),
 	}
 
 
@@ -5221,6 +5235,9 @@ func _on_factory_lower_deck_forward_pressure_reward_cache_claimed(
 		_last_lower_deck_forward_pressure_reward_cache_reward,
 		"Forward Pressure Cache Claimed"
 	)
+	_request_lower_deck_forward_pressure_reward_cache_claim_audio(
+		_last_lower_deck_forward_pressure_reward_cache_reward
+	)
 
 
 func _on_factory_lower_deck_forward_hatch_activated(endpoint_id: StringName) -> void:
@@ -5380,6 +5397,48 @@ func _request_lower_deck_breach_relay_activation_audio(world_position: Vector2, 
 		var runtime_event: Variant = audio_system.call("get_last_gameplay_audio_event")
 		if runtime_event is Dictionary:
 			_lower_deck_breach_relay_activation_audio_event = (runtime_event as Dictionary).duplicate(true)
+
+
+func _request_lower_deck_forward_pressure_reward_cache_claim_audio(reward: Dictionary) -> void:
+	var world_position: Vector2 = Vector2.ZERO
+	if _lower_deck_forward_pressure_reward_cache is Node2D:
+		world_position = (_lower_deck_forward_pressure_reward_cache as Node2D).global_position
+	var metadata: Dictionary = {
+		"cache_id": FACTORY_LOWER_DECK_FORWARD_PRESSURE_REWARD_CACHE_ID,
+		"display_name": "Forward Pressure Cache",
+		"feedback_role": &"reward_cache_claim",
+		"gears": int(reward.get("gears", 0)),
+		"reward_gears": int(reward.get("gears", 0)),
+		"route_label": "Forward Pressure Cache Claimed +20 Gears",
+		"scene_id": FACTORY_SCENE_ID,
+		"source": FACTORY_LOWER_DECK_FORWARD_PRESSURE_REWARD_CACHE_ID,
+		"world_position": world_position,
+	}
+	_lower_deck_forward_pressure_reward_cache_claim_audio_request_count += 1
+	_lower_deck_forward_pressure_reward_cache_claim_audio_event = {
+		"event_id": &"reward_cache_claimed",
+		"sfx_id": &"sfx_door_unlock",
+		"position": world_position,
+		"priority": 90,
+		"metadata": metadata.duplicate(true),
+	}
+
+	var audio_system := get_node_or_null("/root/AudioSystem")
+	if audio_system == null or not audio_system.has_method("on_reward_cache_claimed"):
+		return
+	audio_system.call(
+		"on_reward_cache_claimed",
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_REWARD_CACHE_ID,
+		reward,
+		world_position,
+		metadata
+	)
+	if audio_system.has_method("get_last_gameplay_audio_event"):
+		var runtime_event: Variant = audio_system.call("get_last_gameplay_audio_event")
+		if runtime_event is Dictionary:
+			_lower_deck_forward_pressure_reward_cache_claim_audio_event = (
+				(runtime_event as Dictionary).duplicate(true)
+			)
 
 
 func _sync_room_clear_state() -> void:
