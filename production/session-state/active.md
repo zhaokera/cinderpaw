@@ -68,7 +68,8 @@
 	  Deck Relay Forward Reward Hatch、Player Abilities Story067 Old Factory
 	  Lower Deck Forward Conduit Ambush、Player Abilities Story068 Old Factory
 	  Lower Deck Forward Conduit Clear Feedback、Player Abilities Story069 Old
-	  Factory Lower Deck Forward Pressure Traverse
+	  Factory Lower Deck Forward Pressure Traverse、Player Abilities Story070
+	  Old Factory Lower Deck Forward Pressure Counter-Ambush
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -88,6 +89,32 @@
   `production/qa/evidence/godot-ai-2-8-3-upgrade-2026-07-02.md`.
 
 ## Last Completed Task
+- Player Abilities Story 070: Old Factory Lower Deck Forward Pressure
+  Counter-Ambush -- after Story069 crosses the forward pressure traverse,
+  crossing x `1336.0` now activates `FactoryLowerDeckForwardCounterSparkRat`
+  entity `2119` and `FactoryLowerDeckForwardCounterPressureVent`. The encounter
+  reuses the existing image-generated Factory Spark Rat `AnimatedSprite2D +
+  SpriteFrames` asset and Old Factory steam vent prop; no new visual/audio
+  assets, SaveSystem schema, minimap markers, service-lift route changes, or
+  global quest state were added. While active, route feedback is
+  `Survive Forward Pressure Ambush`, the pressure vent uses hazard id
+  `old_factory_lower_deck_forward_pressure_counter_ambush`, damage `8`, and
+  cooldown `1.0`, and `FactoryServiceLift` remains optional with prompt
+  `Call lift`. Defeating entity `2119` hides/disables the enemy and hazard,
+  persists `factory_lower_deck_forward_pressure_counter_ambush_activated=true`
+  and `factory_lower_deck_forward_pressure_counter_ambush_defeated=true`, and
+  advances route feedback to `Forward Pressure Ambush Cleared`. Verification:
+  RED `reports/report_1107/`; focused GREEN `reports/report_1108/` `2/2`;
+  related GREEN `reports/report_1109/` `14/14`; headless smoke
+  `reports/old_factory_forward_pressure_counter_ambush_smoke.log` exited `0`
+  with no project script/parse/invalid-call/access/missing-resource/resource-load
+  errors by keyword scan, aside from the known Godot cleanup-time resource
+  message. Godot AI MCP `2.8.3` on Godot `4.7-stable` confirmed helper live,
+  active entity `2119`, frame counts `idle/run/attack_tell/attack/hurt/death=3`,
+  active hazard state, defeat persistence, no Story067-069 prerequisite replay,
+  service lift `Call lift`, clean game/editor logs, and non-empty screenshot
+  metadata `960x539`.
+
 - Player Abilities Story 069: Old Factory Lower Deck Forward Pressure Traverse
   -- `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckForwardPressureVent`, a hidden `Area2D` pressure hazard
@@ -3768,3 +3795,14 @@
 - Verification: RED focused `reports/report_1103/` failed as expected before Story069 APIs existed. Focused GREEN `reports/report_1104/` passed `2/2`. Related GREEN `reports/report_1105/` passed `16/16`. Story015 stale-row isolation `reports/report_1106/` passed `5/5`. Headless Factory smoke `reports/old_factory_forward_pressure_traverse_smoke.log` exited `0` with no project script/parse/invalid-call/access/missing-resource/resource-load errors by keyword scan. Godot AI MCP `2.8.3` runtime launched `res://scenes/factory_route_transition_shell.tscn` with `autosave=false`, confirmed helper live, pressure vent present, phase diagnostics, active-window damage `100 -> 92`, safe-window contact disabled, crossed persistence, Story068 clear burst `spawn_count=0`, inactive entity `2118`, service lift `Call lift`, game log containing only helper registration, and non-empty screenshot metadata `960x539`. Editor Debugger still surfaced pre-existing Story015 stale `CombatComponent` rows; current Story015 CLI verification passed in `reports/report_1106/`.
 - Blockers: None. New enemy families, new lower-deck rooms, reward caches, new audio events, particles/shaders, minimap markers, fast travel, SaveSystem schema expansion, global quest state, service-lift route changes, boss content, and new generated visual assets remain out of scope.
 - Next: continue another ACT-visible slice such as a deeper Old Factory route objective, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.
+
+## Session Extract -- /dev-story 2026-07-03
+
+- Story: `production/epics/player-abilities/story-070-old-factory-lower-deck-forward-pressure-counter-ambush.md` -- Old Factory Lower Deck Forward Pressure Counter-Ambush
+- Files changed: `src/gameplay/old_factory_entrance_scene.gd`, `scenes/factory_route_transition_shell.tscn`, `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_counter_ambush_test.gd`, `design/assets/asset-manifest.md`, `design/assets/entity-inventory.md`, `production/epics/player-abilities/story-070-old-factory-lower-deck-forward-pressure-counter-ambush.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/old-factory-forward-pressure-counter-ambush-2026-07-03.md`, `reports/report_1107/`, `reports/report_1108/`, `reports/report_1109/`, `reports/old_factory_forward_pressure_counter_ambush_smoke.log`, `production/session-state/active.md`
+- Implementation: Added a one-shot counter-ambush after Story069's forward pressure traverse is crossed. `FactoryLowerDeckForwardCounterSparkRat` and `FactoryLowerDeckForwardCounterPressureVent` stay hidden/disabled until `factory_lower_deck_forward_pressure_traverse_crossed=true` and Cinderpaw crosses x `1336.0`; activation enables entity `2119`, Spark Rat pacing/targeting, steam contact pressure, and route feedback `Survive Forward Pressure Ambush`. Defeating entity `2119` disables the enemy/hazard, persists Story070 activation/defeat flags, and advances route feedback to `Forward Pressure Ambush Cleared` without replaying Story067-069 prerequisite content. `FactoryServiceLift` remains optional with prompt `Call lift`.
+- Asset pipeline: No new visual or audio asset was generated. Story070 reuses the existing image-generated Factory Spark Rat `AnimatedSprite2D + SpriteFrames` asset, the existing Old Factory steam vent hazard prop, and the post-bulkhead backdrop. New usage is recorded in the asset manifest, entity inventory, story, and QA evidence.
+- Test written: `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_counter_ambush_test.gd` covers Story069 crossed gating, activation boundary, active enemy/hazard diagnostics, Spark Rat frame counts for `idle/run/attack_tell/attack/hurt/death`, route feedback, service-lift prompt preservation, defeat persistence, and restored completed state without prerequisite replay.
+- Verification: RED focused `reports/report_1107/` failed as expected before Story070 APIs existed. Focused GREEN `reports/report_1108/` passed Story070 `2/2`. Related GREEN `reports/report_1109/` passed Story070, Story069, Story068, Story067, Story009, and service-lift SceneManager exit suites `14/14`. Headless Factory smoke `reports/old_factory_forward_pressure_counter_ambush_smoke.log` exited `0` with no project script/parse/invalid-call/access/missing-resource/resource-load errors by keyword scan, aside from the known Godot cleanup-time resource message. Godot AI MCP `2.8.3` runtime launched `res://scenes/factory_route_transition_shell.tscn` with `autosave=false`, confirmed helper live, active entity `2119`, Spark Rat SpriteFrames frame counts `idle/run/attack_tell/attack/hurt/death=3`, active hazard id `old_factory_lower_deck_forward_pressure_counter_ambush`, damage `8`, cooldown `1.0`, route label `Survive Forward Pressure Ambush`, defeat transition `Forward Pressure Ambush Cleared`, persisted Story070 flags, no Story067-069 prerequisite replay, service lift `Call lift`, clean game/editor logs, and non-empty `960x539` game screenshot metadata.
+- Blockers: None. New enemy families, new lower-deck rooms, reward caches, authored combat/hazard audio, particles/shaders, minimap markers, fast travel, SaveSystem schema expansion, global quest state, service-lift route changes, boss content, and new generated visual assets remain out of scope.
+- Next: continue another ACT-visible slice such as deeper Old Factory route combat, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.
