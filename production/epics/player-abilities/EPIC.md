@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 68 stories tracked
+> **Stories**: 69 stories tracked
 
 ## Overview
 
@@ -106,6 +106,7 @@ recording the reward in progression state.
 | 066 | Old Factory Lower Deck Relay Forward Reward Hatch | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
 | 067 | Old Factory Lower Deck Forward Conduit Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 068 | Old Factory Lower Deck Forward Conduit Clear Feedback | Integration + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
+| 069 | Old Factory Lower Deck Forward Pressure Traverse | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -125,7 +126,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-068 are complete. Continue with the next playable ACT slice: deeper
+Stories001-069 are complete. Continue with the next playable ACT slice: deeper
 Old Factory combat encounters, savepoint/minimap gameplay, additional
 player-visible character/enemy frame-animation replacement, more skill-tree
 branches, or final Boss2 balancing/cutscene polish.

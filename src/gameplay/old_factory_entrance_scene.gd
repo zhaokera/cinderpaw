@@ -44,6 +44,12 @@ const FACTORY_LOWER_DECK_BREACH_CORRIDOR_ACTIVATION_X: float = 1256.0
 const FACTORY_LOWER_DECK_BREACH_PINCER_MIDPOINT_X: float = 1264.0
 const FACTORY_LOWER_DECK_POST_RELAY_TRIAL_ACTIVATION_X: float = 1232.0
 const FACTORY_LOWER_DECK_FORWARD_CONDUIT_ACTIVATION_X: float = 1272.0
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVATION_X: float = 1284.0
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_X: float = 1328.0
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC: float = 0.25
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC: float = 0.35
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC: float = 0.40
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_SAFE_SEC: float = 0.45
 const FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES: int = 18
 const FACTORY_CHECKPOINT_OVERDRIVE_LEFT_OPENING_GRACE_FRAMES: int = 12
 const FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES: int = 30
@@ -92,6 +98,10 @@ const FACTORY_OBJECTIVE_OPEN_FORWARD_HATCH: StringName = &"open_forward_hatch"
 const FACTORY_OBJECTIVE_FORWARD_HATCH_OPENED: StringName = &"forward_hatch_opened"
 const FACTORY_OBJECTIVE_CLEAR_FORWARD_CONDUIT_AMBUSH: StringName = &"clear_forward_conduit_ambush"
 const FACTORY_OBJECTIVE_FORWARD_CONDUIT_SECURED: StringName = &"forward_conduit_secured"
+const FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_LEAK: StringName = &"cross_forward_pressure_leak"
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_TRAVERSE_CROSSED: StringName = (
+	&"forward_pressure_traverse_crossed"
+)
 const FACTORY_LOWER_DECK_PARRY_GATE_ID: StringName = &"old_factory_lower_deck_parry_laser"
 const FACTORY_LOWER_DECK_SHORTCUT_SEAL_ID: StringName = &"old_factory_lower_deck_shortcut_seal"
 const FACTORY_LOWER_DECK_PRESSURE_VALVE_ID: StringName = &"old_factory_lower_deck_pressure_valve"
@@ -209,6 +219,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_forward_conduit_steam_hazard: Area2D = (
 	get_node_or_null("FactoryLowerDeckForwardConduitSteamHazard") as Area2D
 )
+@onready var _lower_deck_forward_pressure_vent: Area2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureVent") as Area2D
+)
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
 @onready var _post_bulkhead_background: TextureRect = (
@@ -287,6 +300,9 @@ var _lower_deck_relay_forward_reward_cache_claimed: bool = false
 var _lower_deck_forward_hatch_opened: bool = false
 var _lower_deck_forward_conduit_activated: bool = false
 var _lower_deck_forward_conduit_defeated: bool = false
+var _lower_deck_forward_pressure_traverse_active: bool = false
+var _lower_deck_forward_pressure_traverse_crossed: bool = false
+var _lower_deck_forward_pressure_traverse_elapsed_sec: float = 0.0
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -324,6 +340,7 @@ func _ready() -> void:
 	_setup_factory_lower_deck_forward_hatch()
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_sync_lower_deck_forward_conduit_state()
+	_sync_lower_deck_forward_pressure_traverse_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -1236,6 +1253,53 @@ func try_activate_factory_lower_deck_forward_conduit(provider: Node = null) -> b
 	return true
 
 
+## Starts the forward pressure traversal cycle after the conduit is secured.
+func try_activate_factory_lower_deck_forward_pressure_traverse(provider: Node = null) -> bool:
+	if (
+		_lower_deck_forward_pressure_vent == null
+		or not _is_lower_deck_forward_pressure_traverse_available()
+		or _lower_deck_forward_pressure_traverse_active
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_pressure_provider_at_activation(activation_provider):
+		return false
+	_lower_deck_forward_pressure_traverse_active = true
+	_lower_deck_forward_pressure_traverse_elapsed_sec = 0.0
+	_sync_lower_deck_forward_pressure_traverse_state()
+	_refresh_factory_route_objective()
+	return true
+
+
+## Advances the forward pressure cycle deterministically for tests and MCP probes.
+func advance_factory_lower_deck_forward_pressure_traverse_time(delta_sec: float) -> void:
+	if not _lower_deck_forward_pressure_traverse_active:
+		return
+	var safe_delta_sec: float = maxf(0.0, delta_sec)
+	_lower_deck_forward_pressure_traverse_elapsed_sec += safe_delta_sec
+	_factory_hazard_elapsed_sec += safe_delta_sec
+	_sync_lower_deck_forward_pressure_traverse_state()
+
+
+## Completes the forward pressure traversal once Cinderpaw reaches the exit edge.
+func try_complete_factory_lower_deck_forward_pressure_traverse(provider: Node = null) -> bool:
+	if (
+		_lower_deck_forward_pressure_vent == null
+		or not _lower_deck_forward_pressure_traverse_active
+		or _lower_deck_forward_pressure_traverse_crossed
+	):
+		return false
+	var completion_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_pressure_provider_at_exit(completion_provider):
+		return false
+	_lower_deck_forward_pressure_traverse_active = false
+	_lower_deck_forward_pressure_traverse_crossed = true
+	_lower_deck_forward_pressure_traverse_elapsed_sec = 0.0
+	_sync_lower_deck_forward_pressure_traverse_state()
+	_refresh_factory_route_objective()
+	return true
+
+
 ## Attempts to activate the deep route endpoint after its guard is defeated.
 func try_activate_factory_deep_route_endpoint(provider: Node = null) -> bool:
 	if not _deep_guard_defeated or _deep_endpoint == null:
@@ -1448,6 +1512,9 @@ func get_local_state() -> Dictionary:
 		),
 		"factory_lower_deck_forward_conduit_defeated": (
 			_lower_deck_forward_conduit_defeated
+		),
+		"factory_lower_deck_forward_pressure_traverse_crossed": (
+			_lower_deck_forward_pressure_traverse_crossed
 		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
@@ -1679,6 +1746,12 @@ func set_local_state(state: Dictionary) -> void:
 		"factory_lower_deck_forward_conduit_defeated",
 		false
 	))
+	_lower_deck_forward_pressure_traverse_crossed = bool(state.get(
+		"factory_lower_deck_forward_pressure_traverse_crossed",
+		false
+	))
+	_lower_deck_forward_pressure_traverse_active = false
+	_lower_deck_forward_pressure_traverse_elapsed_sec = 0.0
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -1943,6 +2016,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_relay_forward_reward_cache_state()
 	_sync_lower_deck_forward_hatch_state()
 	_sync_lower_deck_forward_conduit_state()
+	_sync_lower_deck_forward_pressure_traverse_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -3191,6 +3265,52 @@ func get_factory_lower_deck_forward_conduit_clear_feedback_diagnostics() -> Dict
 	}
 
 
+## Returns deterministic forward pressure traversal diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_traverse_diagnostics() -> Dictionary:
+	return {
+		"present": _lower_deck_forward_pressure_vent != null,
+		"available": _is_lower_deck_forward_pressure_traverse_available(),
+		"visible": (
+			_lower_deck_forward_pressure_vent.visible
+			if _lower_deck_forward_pressure_vent != null
+			else false
+		),
+		"active": _lower_deck_forward_pressure_traverse_active,
+		"crossed": _lower_deck_forward_pressure_traverse_crossed,
+		"phase": String(_get_lower_deck_forward_pressure_phase()),
+		"elapsed_sec": _lower_deck_forward_pressure_traverse_elapsed_sec,
+		"initial_grace_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC,
+		"warning_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC,
+		"active_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC,
+		"safe_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_SAFE_SEC,
+		"activation_x": FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVATION_X,
+		"exit_x": FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_X,
+		"hazard_present": _lower_deck_forward_pressure_vent != null,
+		"hazard_contact_active": _is_hazard_contact_active(_lower_deck_forward_pressure_vent),
+		"hazard_visible": (
+			_lower_deck_forward_pressure_vent.visible
+			if _lower_deck_forward_pressure_vent != null
+			else false
+		),
+		"hazard_id": String(_get_hazard_id(_lower_deck_forward_pressure_vent)),
+		"hazard_damage": _get_hazard_damage(_lower_deck_forward_pressure_vent),
+		"hazard_cooldown_sec": _get_hazard_cooldown_sec(_lower_deck_forward_pressure_vent),
+		"hazard_texture_path": (
+			String(_lower_deck_forward_pressure_vent.call("get_visual_texture_path"))
+			if (
+				_lower_deck_forward_pressure_vent != null
+				and _lower_deck_forward_pressure_vent.has_method("get_visual_texture_path")
+			)
+			else ""
+		),
+		"hazard_position": (
+			_lower_deck_forward_pressure_vent.global_position
+			if _lower_deck_forward_pressure_vent != null
+			else Vector2.ZERO
+		),
+	}
+
+
 ## Returns deterministic deep bulkhead diagnostics for tests and MCP probes.
 func get_factory_lower_deck_deep_bulkhead_diagnostics() -> Dictionary:
 	var sprite: AnimatedSprite2D = (
@@ -3694,6 +3814,12 @@ func get_factory_route_objective_diagnostics() -> Dictionary:
 		"lower_deck_forward_hatch_opened": _lower_deck_forward_hatch_opened,
 		"lower_deck_forward_conduit_activated": _lower_deck_forward_conduit_activated,
 		"lower_deck_forward_conduit_defeated": _lower_deck_forward_conduit_defeated,
+		"lower_deck_forward_pressure_traverse_active": (
+			_lower_deck_forward_pressure_traverse_active
+		),
+		"lower_deck_forward_pressure_traverse_crossed": (
+			_lower_deck_forward_pressure_traverse_crossed
+		),
 		"route_label_visible": route_label.visible if route_label != null else false,
 		"route_label_text": route_label.text if route_label != null else "",
 	}
@@ -3792,6 +3918,9 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		),
 		"lower_deck_forward_conduit_clear_feedback": (
 			get_factory_lower_deck_forward_conduit_clear_feedback_diagnostics()
+		),
+		"lower_deck_forward_pressure_traverse": (
+			get_factory_lower_deck_forward_pressure_traverse_diagnostics()
 		),
 		"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
@@ -4398,6 +4527,7 @@ func _sync_factory_player_control_lock() -> void:
 func _setup_factory_hazards() -> void:
 	_sync_checkpoint_steam_vent_state()
 	_sync_lower_deck_pressure_hazard_state()
+	_sync_lower_deck_forward_pressure_traverse_state()
 	for hazard: Area2D in _get_factory_hazards():
 		var area_entered_callback := Callable(self, "_on_factory_hazard_area_entered").bind(hazard)
 		if not hazard.area_entered.is_connected(area_entered_callback):
@@ -5523,6 +5653,28 @@ func _sync_lower_deck_forward_conduit_state() -> void:
 		collision_shape.disabled = not conduit_active
 
 
+func _sync_lower_deck_forward_pressure_traverse_state() -> void:
+	if _lower_deck_forward_pressure_vent == null:
+		return
+	var available: bool = _is_lower_deck_forward_pressure_traverse_available()
+	var contact_active: bool = _is_lower_deck_forward_pressure_contact_active()
+	_lower_deck_forward_pressure_vent.visible = available or _lower_deck_forward_pressure_traverse_active
+	_lower_deck_forward_pressure_vent.monitoring = contact_active
+	_lower_deck_forward_pressure_vent.monitorable = contact_active
+	_lower_deck_forward_pressure_vent.collision_layer = (
+		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if contact_active else 0
+	)
+	_lower_deck_forward_pressure_vent.collision_mask = (
+		CollisionComponent.COLLISION_MASK_ENVIRONMENT if contact_active else 0
+	)
+	var collision_shape := (
+		_lower_deck_forward_pressure_vent.get_node_or_null("CollisionShape2D")
+		as CollisionShape2D
+	)
+	if collision_shape != null:
+		collision_shape.disabled = not contact_active
+
+
 func _sync_lower_deck_parry_gate_state() -> void:
 	if _lower_deck_parry_gate == null:
 		return
@@ -5646,6 +5798,10 @@ func _refresh_factory_route_objective() -> void:
 func _get_factory_route_objective_id() -> StringName:
 	if _lower_deck_forward_conduit_activated and not _lower_deck_forward_conduit_defeated:
 		return FACTORY_OBJECTIVE_CLEAR_FORWARD_CONDUIT_AMBUSH
+	if _lower_deck_forward_pressure_traverse_crossed:
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_TRAVERSE_CROSSED
+	if _lower_deck_forward_pressure_traverse_active:
+		return FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_LEAK
 	if _lower_deck_forward_conduit_defeated:
 		return FACTORY_OBJECTIVE_FORWARD_CONDUIT_SECURED
 	if _lower_deck_forward_hatch_opened:
@@ -5825,6 +5981,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Clear Forward Conduit Ambush"
 		FACTORY_OBJECTIVE_FORWARD_CONDUIT_SECURED:
 			return "Forward Conduit Secured"
+		FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_LEAK:
+			return "Cross Forward Pressure Leak"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_TRAVERSE_CROSSED:
+			return "Forward Pressure Traverse Crossed"
 		_:
 			return "Clear Factory Entrance"
 
@@ -6523,6 +6683,8 @@ func _get_factory_hazards() -> Array[Area2D]:
 		hazards.append(_lower_deck_post_relay_steam_hazard)
 	if _lower_deck_forward_conduit_steam_hazard != null:
 		hazards.append(_lower_deck_forward_conduit_steam_hazard)
+	if _lower_deck_forward_pressure_vent != null:
+		hazards.append(_lower_deck_forward_pressure_vent)
 	return hazards
 
 
@@ -6563,6 +6725,7 @@ func _is_factory_steam_hazard_id(hazard_id: StringName) -> bool:
 			or hazard_id == &"old_factory_lower_deck_breach_corridor"
 			or hazard_id == &"old_factory_lower_deck_post_relay_trial"
 			or hazard_id == &"old_factory_lower_deck_forward_conduit"
+			or hazard_id == &"old_factory_lower_deck_forward_pressure_traverse"
 		)
 
 
@@ -7681,6 +7844,24 @@ func _is_lower_deck_forward_conduit_provider_in_range(provider: Node) -> bool:
 	)
 
 
+func _is_lower_deck_forward_pressure_provider_at_activation(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVATION_X
+	)
+
+
+func _is_lower_deck_forward_pressure_provider_at_exit(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_X
+	)
+
+
 func _is_return_checkpoint_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -7953,6 +8134,50 @@ func _is_lower_deck_forward_conduit_active() -> bool:
 		and _lower_deck_forward_hatch_opened
 		and not _lower_deck_forward_conduit_defeated
 	)
+
+
+func _is_lower_deck_forward_pressure_traverse_available() -> bool:
+	return (
+		_lower_deck_forward_conduit_defeated
+		and not _lower_deck_forward_pressure_traverse_crossed
+	)
+
+
+func _is_lower_deck_forward_pressure_contact_active() -> bool:
+	return (
+		_lower_deck_forward_pressure_traverse_active
+		and _get_lower_deck_forward_pressure_phase() == &"active"
+	)
+
+
+func _get_lower_deck_forward_pressure_phase() -> StringName:
+	if _lower_deck_forward_pressure_traverse_crossed:
+		return &"crossed"
+	if not _lower_deck_forward_pressure_traverse_active:
+		return &"idle"
+	var elapsed_sec: float = _lower_deck_forward_pressure_traverse_elapsed_sec
+	if elapsed_sec < FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC:
+		return &"grace"
+	var cycle_sec: float = (
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC
+		+ FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC
+		+ FACTORY_LOWER_DECK_FORWARD_PRESSURE_SAFE_SEC
+	)
+	var phase_sec: float = fmod(
+		elapsed_sec - FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC,
+		cycle_sec
+	)
+	if phase_sec < FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC:
+		return &"warning"
+	if (
+		phase_sec
+		< (
+			FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC
+			+ FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC
+		)
+	):
+		return &"active"
+	return &"safe"
 
 
 func _is_checkpoint_overdrive_duo_cleared() -> bool:

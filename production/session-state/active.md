@@ -67,7 +67,8 @@
 	  Post-Relay Combat Feedback、Player Abilities Story066 Old Factory Lower
 	  Deck Relay Forward Reward Hatch、Player Abilities Story067 Old Factory
 	  Lower Deck Forward Conduit Ambush、Player Abilities Story068 Old Factory
-	  Lower Deck Forward Conduit Clear Feedback
+	  Lower Deck Forward Conduit Clear Feedback、Player Abilities Story069 Old
+	  Factory Lower Deck Forward Pressure Traverse
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -87,6 +88,35 @@
   `production/qa/evidence/godot-ai-2-8-3-upgrade-2026-07-02.md`.
 
 ## Last Completed Task
+- Player Abilities Story 069: Old Factory Lower Deck Forward Pressure Traverse
+  -- `factory_route_transition_shell.tscn` now contains
+  `FactoryLowerDeckForwardPressureVent`, a hidden `Area2D` pressure hazard
+  reusing the existing image-generated
+  `res://assets/environment/old_factory_steam_vent/factory_steam_vent_hazard.png`.
+  After `factory_lower_deck_forward_conduit_defeated=true`, the vent is visible
+  but non-contacting while Story068 route feedback remains
+  `Forward Conduit Secured`. Crossing x `1284.0` starts a deterministic
+  grace/warning/active/safe pressure cycle and updates route feedback to
+  `Cross Forward Pressure Leak`; only the active phase enables contact damage.
+  Crossing x `1328.0` succeeds once, persists
+  `factory_lower_deck_forward_pressure_traverse_crossed=true`, hides/disables
+  the vent, and advances route feedback to `Forward Pressure Traverse Crossed`.
+  `FactoryServiceLift` remains optional with prompt `Call lift`; no new assets,
+  enemies, reward caches, SaveSystem schema, minimap, service-lift route, or
+  global quest state were added. Verification: RED `reports/report_1103/`;
+  focused GREEN `reports/report_1104/` `2/2`; related GREEN
+  `reports/report_1105/` `16/16`; Story015 stale-row isolation
+  `reports/report_1106/` `5/5`; headless smoke
+  `reports/old_factory_forward_pressure_traverse_smoke.log` exited `0` with no
+  project script/parse/invalid-call/access/missing-resource/resource-load errors
+  by keyword scan. Godot AI MCP `2.8.3` runtime confirmed helper live, pressure
+  vent present, phase diagnostics, active-window damage `100 -> 92`, safe-window
+  contact disabled, crossed persistence, Story068 clear burst `spawn_count=0`,
+  inactive entity `2118`, service lift `Call lift`, clean game log except helper
+  registration, and non-empty screenshot metadata `960x539`. Editor Debugger
+  still surfaced pre-existing Story015 `CombatComponent` stale rows; fresh CLI
+  isolation passed in `reports/report_1106/`.
+
 - Player Abilities Story 068: Old Factory Lower Deck Forward Conduit Clear
   Feedback -- `factory_route_transition_shell.tscn` now contains
   `FactoryLowerDeckForwardConduitClearBurst`, a hidden `Sprite2D` reusing the
@@ -3727,3 +3757,14 @@
 - Verification: RED focused `reports/report_1084/` failed as expected before Story065 APIs existed. Focused GREEN `reports/report_1086/` passed Story065 `2/2`. Related lower-deck/service-lift regression `reports/report_1088/` passed `12/12`. Headless Factory scene smoke `reports/old_factory_lower_deck_post_relay_combat_feedback_smoke.log` exited `0`; keyword scan found no project script/parse/invalid-call/access/missing-resource/resource-load errors. Godot MCP `2.8.3` runtime confirmed helper live, active trial diagnostics, entity `2117`, Spark Rat SpriteFrames frame counts `idle/run/attack_tell/attack/hurt/death=3`, active hazard id `old_factory_lower_deck_post_relay_trial`, route label `Clear Relay Forward Trial`, service lift prompt `Call lift`, defeat transition to `Relay Forward Secured`, persisted local flags, clean game log, and non-empty `960x539` game framebuffer capture. Editor log still returned pre-existing Story015 `CombatComponent` cache rows; Story015 CLI `reports/report_1083/` passes, so no current project failure is reproduced.
 - Blockers: None. New enemy family art, authored steam/combat SFX, minimap markers, global quest state, service-lift route changes, broader lower-deck rooms, and boss content remain out of scope.
 - Next: continue another ACT-visible slice such as deeper lower-deck combat content, minimap/savepoint feedback, authored/final audio replacement, additional player-visible frame-animation replacement, or Boss2 polish.
+
+## Session Extract -- /dev-story 2026-07-03
+
+- Story: `production/epics/player-abilities/story-069-old-factory-lower-deck-forward-pressure-traverse.md` -- Old Factory Lower Deck Forward Pressure Traverse
+- Files changed: `src/gameplay/old_factory_entrance_scene.gd`, `scenes/factory_route_transition_shell.tscn`, `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_traverse_test.gd`, `design/assets/asset-manifest.md`, `design/assets/entity-inventory.md`, `production/epics/player-abilities/story-069-old-factory-lower-deck-forward-pressure-traverse.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/old-factory-forward-pressure-traverse-2026-07-03.md`, `reports/report_1103/`, `reports/report_1104/`, `reports/report_1105/`, `reports/report_1106/`, `reports/old_factory_forward_pressure_traverse_smoke.log`, `production/session-state/active.md`
+- Implementation: Added a short forward pressure traversal after the lower-deck forward conduit is cleared. `FactoryLowerDeckForwardPressureVent` stays hidden/non-contacting before the conduit is defeated; after defeat it becomes visible, then crossing x `1284.0` starts a deterministic grace/warning/active/safe cycle. Only active phase enables `apply_factory_steam_vent_contact` damage. Crossing x `1328.0` persists `factory_lower_deck_forward_pressure_traverse_crossed=true`, disables the vent, and advances route feedback to `Forward Pressure Traverse Crossed`.
+- Asset pipeline: No new visual/audio asset was generated. Story069 reuses the existing image-generated Old Factory steam vent hazard texture and records the new usage in the asset manifest, entity inventory, story, and QA evidence.
+- Test written: `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_traverse_test.gd` covers conduit-clear gating, route-label compatibility with Story068, phase diagnostics, active-window damage, safe-window disablement, one-shot completion, crossed-state persistence, Story068 no-replay, entity `2118` inactive, and service-lift prompt preservation.
+- Verification: RED focused `reports/report_1103/` failed as expected before Story069 APIs existed. Focused GREEN `reports/report_1104/` passed `2/2`. Related GREEN `reports/report_1105/` passed `16/16`. Story015 stale-row isolation `reports/report_1106/` passed `5/5`. Headless Factory smoke `reports/old_factory_forward_pressure_traverse_smoke.log` exited `0` with no project script/parse/invalid-call/access/missing-resource/resource-load errors by keyword scan. Godot AI MCP `2.8.3` runtime launched `res://scenes/factory_route_transition_shell.tscn` with `autosave=false`, confirmed helper live, pressure vent present, phase diagnostics, active-window damage `100 -> 92`, safe-window contact disabled, crossed persistence, Story068 clear burst `spawn_count=0`, inactive entity `2118`, service lift `Call lift`, game log containing only helper registration, and non-empty screenshot metadata `960x539`. Editor Debugger still surfaced pre-existing Story015 stale `CombatComponent` rows; current Story015 CLI verification passed in `reports/report_1106/`.
+- Blockers: None. New enemy families, new lower-deck rooms, reward caches, new audio events, particles/shaders, minimap markers, fast travel, SaveSystem schema expansion, global quest state, service-lift route changes, boss content, and new generated visual assets remain out of scope.
+- Next: continue another ACT-visible slice such as a deeper Old Factory route objective, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.
