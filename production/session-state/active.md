@@ -72,7 +72,8 @@
 	  Old Factory Lower Deck Forward Pressure Counter-Ambush、Player Abilities
 	  Story071 Old Factory Lower Deck Forward Pressure Reward Cache
 	  、Player Abilities Story072 Old Factory Lower Deck Forward Pressure
-	  Reward Cache Audio Feedback
+	  Reward Cache Audio Feedback、Player Abilities Story073 Old Factory Lower
+	  Deck Forward Pressure Exit Guard
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -92,6 +93,37 @@
   `production/qa/evidence/godot-ai-2-8-3-upgrade-2026-07-02.md`.
 
 ## Last Completed Task
+- Player Abilities Story 073: Old Factory Lower Deck Forward Pressure Exit Guard
+  -- after the Story071/072 forward-pressure reward cache payoff, Cinderpaw can
+  cross the next boundary to activate a short exit guard fight. The slice adds
+  `FactoryLowerDeckForwardPressureExitGuardSparkRat` as entity `2120` and
+  `FactoryLowerDeckForwardPressureExitGuardVent` in
+  `factory_route_transition_shell.tscn`. It reuses the image-generated Factory
+  Spark Rat `AnimatedSprite2D + SpriteFrames` asset and the existing Old Factory
+  steam vent hazard prop. The guard stays unavailable until
+  `factory_lower_deck_forward_pressure_reward_cache_claimed=true`; activation
+  assigns Cinderpaw as target, starts Spark Rat pacing, enables hazard id
+  `old_factory_lower_deck_forward_pressure_exit_guard`, and updates route
+  feedback to `Clear Forward Pressure Exit Guard`. Defeating entity `2120`
+  hides/disables the enemy and hazard, persists
+  `factory_lower_deck_forward_pressure_exit_guard_activated=true` and
+  `factory_lower_deck_forward_pressure_exit_guard_defeated=true`, and advances
+  route feedback to `Forward Pressure Exit Secured`. No new enemy family art,
+  new room art, audio assets, SaveSystem schema, service-lift route changes,
+  minimap markers, particles/shaders, or global quest state were added.
+  Verification: RED `reports/report_1116/`; focused GREEN
+  `reports/report_1117/report_5/` `2/2`; related GREEN
+  `reports/report_1118/report_1/` `14/14`; headless smoke
+  `reports/old_factory_forward_pressure_exit_guard_smoke.log` exited `0` with
+  no project script/parse/invalid-call/access/missing-resource/resource-load
+  errors by keyword scan. Godot AI MCP `2.8.3` on Godot `4.7-stable`
+  confirmed helper live, active entity `2120`, frame counts
+  `idle/run/attack_tell/attack/hurt/death=3`, active hazard
+  id/damage/cooldown, route labels `Clear Forward Pressure Exit Guard` and
+  `Forward Pressure Exit Secured`, persisted Story073 flags, no prerequisite
+  replay, service lift `Call lift`, game log containing only helper
+  registration, empty editor log, and non-empty screenshot metadata `960x539`.
+
 - Player Abilities Story 072: Old Factory Lower Deck Forward Pressure Reward
   Cache Audio Feedback -- the Story071 forward-pressure reward cache now
   requests once-only spatial audio on the first successful claim. `AudioSystem`

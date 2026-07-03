@@ -29,6 +29,7 @@ const FACTORY_LOWER_DECK_BREACH_REAR_ENTITY_ID: int = 2116
 const FACTORY_LOWER_DECK_POST_RELAY_ENTITY_ID: int = 2117
 const FACTORY_LOWER_DECK_FORWARD_CONDUIT_ENTITY_ID: int = 2118
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_ENTITY_ID: int = 2119
+const FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ENTITY_ID: int = 2120
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
@@ -48,6 +49,7 @@ const FACTORY_LOWER_DECK_FORWARD_CONDUIT_ACTIVATION_X: float = 1272.0
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVATION_X: float = 1284.0
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_X: float = 1328.0
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_ACTIVATION_X: float = 1336.0
+const FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ACTIVATION_X: float = 1352.0
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_REWARD_CACHE_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_reward_cache"
 )
@@ -113,8 +115,17 @@ const FACTORY_OBJECTIVE_SURVIVE_FORWARD_PRESSURE_AMBUSH: StringName = (
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AMBUSH_CLEARED: StringName = (
 	&"forward_pressure_ambush_cleared"
 )
+const FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_EXIT_GUARD: StringName = (
+	&"clear_forward_pressure_exit_guard"
+)
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_SECURED: StringName = (
+	&"forward_pressure_exit_secured"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
+)
+const FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_HAZARD_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_exit_guard"
 )
 const FACTORY_LOWER_DECK_PARRY_GATE_ID: StringName = &"old_factory_lower_deck_parry_laser"
 const FACTORY_LOWER_DECK_SHORTCUT_SEAL_ID: StringName = &"old_factory_lower_deck_shortcut_seal"
@@ -185,6 +196,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_forward_counter_spark_rat: Node2D = (
 	get_node_or_null("FactoryLowerDeckForwardCounterSparkRat") as Node2D
 )
+@onready var _lower_deck_forward_exit_guard_spark_rat: Node2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureExitGuardSparkRat") as Node2D
+)
 @onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
 	get_node_or_null("FactoryCheckpointOverdriveLeftDefeatBurst") as Sprite2D
 )
@@ -244,6 +258,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 )
 @onready var _lower_deck_forward_counter_pressure_vent: Area2D = (
 	get_node_or_null("FactoryLowerDeckForwardCounterPressureVent") as Area2D
+)
+@onready var _lower_deck_forward_exit_guard_pressure_vent: Area2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureExitGuardVent") as Area2D
 )
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
@@ -333,6 +350,8 @@ var _lower_deck_forward_pressure_counter_ambush_defeated: bool = false
 var _lower_deck_forward_pressure_reward_cache_claimed: bool = false
 var _lower_deck_forward_pressure_reward_cache_claim_audio_event: Dictionary = {}
 var _lower_deck_forward_pressure_reward_cache_claim_audio_request_count: int = 0
+var _lower_deck_forward_pressure_exit_guard_activated: bool = false
+var _lower_deck_forward_pressure_exit_guard_defeated: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -373,6 +392,7 @@ func _ready() -> void:
 	_sync_lower_deck_forward_conduit_state()
 	_sync_lower_deck_forward_pressure_traverse_state()
 	_sync_lower_deck_forward_pressure_counter_ambush_state()
+	_sync_lower_deck_forward_pressure_exit_guard_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -477,6 +497,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_POST_RELAY_TRIAL_SECURED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_HATCH_OPENED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AMBUSH_CLEARED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_SECURED
 	)
 
 
@@ -1067,11 +1088,34 @@ func try_claim_factory_lower_deck_forward_pressure_reward_cache(provider: Node =
 	if _last_lower_deck_forward_pressure_reward_cache_reward.is_empty():
 		_last_lower_deck_forward_pressure_reward_cache_reward = reward_payload
 	_sync_lower_deck_forward_pressure_reward_cache_state()
+	_sync_lower_deck_forward_pressure_exit_guard_state()
 	if _last_lower_deck_forward_pressure_reward_cache_claim_feedback.is_empty():
 		_record_lower_deck_forward_pressure_reward_cache_claim_feedback(
 			reward_payload,
 			"Forward Pressure Cache Claimed"
 		)
+	return true
+
+
+## Attempts to activate the forward-pressure exit guard after the payoff cache is claimed.
+func try_activate_factory_lower_deck_forward_pressure_exit_guard(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_exit_guard_spark_rat == null
+		or _lower_deck_forward_exit_guard_pressure_vent == null
+		or not _is_lower_deck_forward_pressure_exit_guard_available()
+		or _lower_deck_forward_pressure_exit_guard_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_exit_guard_provider_in_range(activation_provider):
+		return false
+	_lower_deck_forward_pressure_exit_guard_activated = true
+	_sync_lower_deck_forward_pressure_exit_guard_state()
+	_set_lower_deck_forward_exit_guard_attack_target(activation_provider)
+	_begin_lower_deck_forward_exit_guard_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	_refresh_factory_route_objective()
 	return true
 
 
@@ -1611,6 +1655,15 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_reward_cache_claimed": (
 			_lower_deck_forward_pressure_reward_cache_claimed
 		),
+		"factory_lower_deck_forward_pressure_exit_guard_activated": (
+			_lower_deck_forward_pressure_exit_guard_activated
+		),
+		"factory_lower_deck_forward_pressure_exit_guard_defeated": (
+			_lower_deck_forward_pressure_exit_guard_defeated
+		),
+		"factory_lower_deck_forward_pressure_exit_guard_opening_grace_frames": (
+			_get_lower_deck_forward_exit_guard_opening_grace_frames()
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -1865,6 +1918,14 @@ func set_local_state(state: Dictionary) -> void:
 		"factory_lower_deck_forward_pressure_reward_cache_claimed",
 		false
 	))
+	_lower_deck_forward_pressure_exit_guard_activated = bool(state.get(
+		"factory_lower_deck_forward_pressure_exit_guard_activated",
+		false
+	))
+	_lower_deck_forward_pressure_exit_guard_defeated = bool(state.get(
+		"factory_lower_deck_forward_pressure_exit_guard_defeated",
+		false
+	))
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -1961,6 +2022,14 @@ func set_local_state(state: Dictionary) -> void:
 		(
 			FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES
 			if _lower_deck_shortcut_activated and not _lower_deck_shortcut_guard_defeated
+			else 0
+		)
+	))
+	var lower_deck_forward_exit_guard_opening_grace_frames: int = int(state.get(
+		"factory_lower_deck_forward_pressure_exit_guard_opening_grace_frames",
+		(
+			FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES
+			if _is_lower_deck_forward_pressure_exit_guard_active()
 			else 0
 		)
 	))
@@ -2150,6 +2219,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_forward_conduit_state()
 	_sync_lower_deck_forward_pressure_traverse_state()
 	_sync_lower_deck_forward_pressure_counter_ambush_state()
+	_sync_lower_deck_forward_pressure_exit_guard_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -2190,6 +2260,10 @@ func set_local_state(state: Dictionary) -> void:
 	if _is_lower_deck_forward_pressure_counter_ambush_active():
 		_begin_lower_deck_forward_counter_ambush_pacing(
 			FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES
+		)
+	if _is_lower_deck_forward_pressure_exit_guard_active():
+		_begin_lower_deck_forward_exit_guard_pacing(
+			lower_deck_forward_exit_guard_opening_grace_frames
 		)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
@@ -3607,6 +3681,89 @@ func get_factory_lower_deck_forward_pressure_counter_ambush_diagnostics() -> Dic
 	}
 
 
+## Returns deterministic forward pressure exit guard diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_exit_guard_diagnostics() -> Dictionary:
+	var sprite: AnimatedSprite2D = (
+		_lower_deck_forward_exit_guard_spark_rat.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _lower_deck_forward_exit_guard_spark_rat != null
+		else null
+	)
+	return {
+		"present": (
+			_lower_deck_forward_exit_guard_spark_rat != null
+			and _lower_deck_forward_exit_guard_pressure_vent != null
+		),
+		"available": _is_lower_deck_forward_pressure_exit_guard_available(),
+		"active": _is_lower_deck_forward_pressure_exit_guard_active(),
+		"defeated": _lower_deck_forward_pressure_exit_guard_defeated,
+		"reward_cache_claimed": _lower_deck_forward_pressure_reward_cache_claimed,
+		"activation_x": FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ACTIVATION_X,
+		"enemy_visible": (
+			_lower_deck_forward_exit_guard_spark_rat.visible
+			if _lower_deck_forward_exit_guard_spark_rat != null
+			else false
+		),
+		"enemy_has_target": _does_lower_deck_forward_exit_guard_have_target(),
+		"enemy_physics_enabled": (
+			_lower_deck_forward_exit_guard_spark_rat.is_physics_processing()
+			if _lower_deck_forward_exit_guard_spark_rat != null
+			else false
+		),
+		"enemy_process_enabled": (
+			_lower_deck_forward_exit_guard_spark_rat.is_processing()
+			if _lower_deck_forward_exit_guard_spark_rat != null
+			else false
+		),
+		"entity_id": (
+			int(_lower_deck_forward_exit_guard_spark_rat.call("get_entity_id"))
+			if (
+				_lower_deck_forward_exit_guard_spark_rat != null
+				and _lower_deck_forward_exit_guard_spark_rat.has_method("get_entity_id")
+			)
+			else 0
+		),
+		"sprite_frames_path": (
+			sprite.sprite_frames.resource_path
+			if sprite != null and sprite.sprite_frames != null
+			else ""
+		),
+		"animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
+		"pacing": _get_lower_deck_forward_exit_guard_pacing_diagnostics(),
+		"hazard_present": _lower_deck_forward_exit_guard_pressure_vent != null,
+		"hazard_active": _is_hazard_contact_active(_lower_deck_forward_exit_guard_pressure_vent),
+		"hazard_visible": (
+			_lower_deck_forward_exit_guard_pressure_vent.visible
+			if _lower_deck_forward_exit_guard_pressure_vent != null
+			else false
+		),
+		"hazard_id": String(_get_hazard_id(_lower_deck_forward_exit_guard_pressure_vent)),
+		"hazard_damage": _get_hazard_damage(_lower_deck_forward_exit_guard_pressure_vent),
+		"hazard_cooldown_sec": _get_hazard_cooldown_sec(
+			_lower_deck_forward_exit_guard_pressure_vent
+		),
+		"hazard_texture_path": (
+			String(_lower_deck_forward_exit_guard_pressure_vent.call("get_visual_texture_path"))
+			if (
+				_lower_deck_forward_exit_guard_pressure_vent != null
+				and _lower_deck_forward_exit_guard_pressure_vent.has_method(
+					"get_visual_texture_path"
+				)
+			)
+			else ""
+		),
+		"enemy_position": (
+			_lower_deck_forward_exit_guard_spark_rat.global_position
+			if _lower_deck_forward_exit_guard_spark_rat != null
+			else Vector2.ZERO
+		),
+		"hazard_position": (
+			_lower_deck_forward_exit_guard_pressure_vent.global_position
+			if _lower_deck_forward_exit_guard_pressure_vent != null
+			else Vector2.ZERO
+		),
+	}
+
+
 ## Returns deterministic deep bulkhead diagnostics for tests and MCP probes.
 func get_factory_lower_deck_deep_bulkhead_diagnostics() -> Dictionary:
 	var sprite: AnimatedSprite2D = (
@@ -4230,6 +4387,9 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		"lower_deck_forward_pressure_counter_ambush": (
 			get_factory_lower_deck_forward_pressure_counter_ambush_diagnostics()
 		),
+		"lower_deck_forward_pressure_exit_guard": (
+			get_factory_lower_deck_forward_pressure_exit_guard_diagnostics()
+		),
 		"lower_deck_forward_pressure_reward_cache": (
 			get_factory_lower_deck_forward_pressure_reward_cache_diagnostics()
 		),
@@ -4644,6 +4804,13 @@ func _bind_enemy_to_player() -> void:
 		&"factory_lower_deck_forward_counter_spark_rat",
 		_on_factory_lower_deck_forward_pressure_counter_ambush_defeated
 	)
+	_bind_factory_guard(
+		_lower_deck_forward_exit_guard_spark_rat,
+		FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_HAZARD_ID,
+		FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ENTITY_ID,
+		&"factory_lower_deck_forward_pressure_exit_guard_spark_rat",
+		_on_factory_lower_deck_forward_pressure_exit_guard_defeated
+	)
 
 
 func _setup_factory_cache() -> void:
@@ -4862,6 +5029,7 @@ func _setup_factory_hazards() -> void:
 	_sync_checkpoint_steam_vent_state()
 	_sync_lower_deck_pressure_hazard_state()
 	_sync_lower_deck_forward_pressure_traverse_state()
+	_sync_lower_deck_forward_pressure_exit_guard_state()
 	for hazard: Area2D in _get_factory_hazards():
 		var area_entered_callback := Callable(self, "_on_factory_hazard_area_entered").bind(hazard)
 		if not hazard.area_entered.is_connected(area_entered_callback):
@@ -4891,6 +5059,7 @@ func _setup_factory_spark_rat() -> void:
 	_sync_lower_deck_shortcut_state()
 	_sync_lower_deck_steam_sluice_state()
 	_sync_lower_deck_forward_pressure_counter_ambush_state()
+	_sync_lower_deck_forward_pressure_exit_guard_state()
 
 
 func _setup_factory_service_lift() -> void:
@@ -5117,6 +5286,13 @@ func _on_factory_lower_deck_forward_pressure_counter_ambush_defeated() -> void:
 	_lower_deck_forward_pressure_counter_ambush_defeated = true
 	_sync_lower_deck_forward_pressure_counter_ambush_state()
 	_sync_lower_deck_forward_pressure_reward_cache_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_lower_deck_forward_pressure_exit_guard_defeated() -> void:
+	_lower_deck_forward_pressure_exit_guard_activated = true
+	_lower_deck_forward_pressure_exit_guard_defeated = true
+	_sync_lower_deck_forward_pressure_exit_guard_state()
 	_refresh_factory_route_objective()
 
 
@@ -6129,6 +6305,39 @@ func _sync_lower_deck_forward_pressure_counter_ambush_state() -> void:
 		collision_shape.disabled = not counter_active
 
 
+func _sync_lower_deck_forward_pressure_exit_guard_state() -> void:
+	var guard_active: bool = _is_lower_deck_forward_pressure_exit_guard_active()
+	if _lower_deck_forward_exit_guard_spark_rat != null:
+		_lower_deck_forward_exit_guard_spark_rat.visible = guard_active
+		_lower_deck_forward_exit_guard_spark_rat.set_physics_process(guard_active)
+		_lower_deck_forward_exit_guard_spark_rat.set_process(guard_active)
+		_lower_deck_forward_exit_guard_spark_rat.collision_layer = (
+			FACTORY_RAT_MINION_COLLISION_LAYER if guard_active else 0
+		)
+		_lower_deck_forward_exit_guard_spark_rat.collision_mask = (
+			FACTORY_RAT_MINION_COLLISION_MASK if guard_active else 0
+		)
+		_set_lower_deck_forward_exit_guard_attack_target(_player if guard_active else null)
+
+	if _lower_deck_forward_exit_guard_pressure_vent == null:
+		return
+	_lower_deck_forward_exit_guard_pressure_vent.visible = guard_active
+	_lower_deck_forward_exit_guard_pressure_vent.monitoring = guard_active
+	_lower_deck_forward_exit_guard_pressure_vent.monitorable = guard_active
+	_lower_deck_forward_exit_guard_pressure_vent.collision_layer = (
+		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if guard_active else 0
+	)
+	_lower_deck_forward_exit_guard_pressure_vent.collision_mask = (
+		CollisionComponent.COLLISION_MASK_ENVIRONMENT if guard_active else 0
+	)
+	var collision_shape := (
+		_lower_deck_forward_exit_guard_pressure_vent.get_node_or_null("CollisionShape2D")
+		as CollisionShape2D
+	)
+	if collision_shape != null:
+		collision_shape.disabled = not guard_active
+
+
 func _sync_lower_deck_parry_gate_state() -> void:
 	if _lower_deck_parry_gate == null:
 		return
@@ -6252,6 +6461,11 @@ func _refresh_factory_route_objective() -> void:
 func _get_factory_route_objective_id() -> StringName:
 	if _lower_deck_forward_conduit_activated and not _lower_deck_forward_conduit_defeated:
 		return FACTORY_OBJECTIVE_CLEAR_FORWARD_CONDUIT_AMBUSH
+	if _lower_deck_forward_pressure_exit_guard_activated \
+			and not _lower_deck_forward_pressure_exit_guard_defeated:
+		return FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_EXIT_GUARD
+	if _lower_deck_forward_pressure_exit_guard_defeated:
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_SECURED
 	if _lower_deck_forward_pressure_counter_ambush_activated \
 			and not _lower_deck_forward_pressure_counter_ambush_defeated:
 		return FACTORY_OBJECTIVE_SURVIVE_FORWARD_PRESSURE_AMBUSH
@@ -6448,6 +6662,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Survive Forward Pressure Ambush"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AMBUSH_CLEARED:
 			return "Forward Pressure Ambush Cleared"
+		FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_EXIT_GUARD:
+			return "Clear Forward Pressure Exit Guard"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_SECURED:
+			return "Forward Pressure Exit Secured"
 		_:
 			return "Clear Factory Entrance"
 
@@ -7185,6 +7403,8 @@ func _get_factory_hazards() -> Array[Area2D]:
 		hazards.append(_lower_deck_forward_pressure_vent)
 	if _lower_deck_forward_counter_pressure_vent != null:
 		hazards.append(_lower_deck_forward_counter_pressure_vent)
+	if _lower_deck_forward_exit_guard_pressure_vent != null:
+		hazards.append(_lower_deck_forward_exit_guard_pressure_vent)
 	return hazards
 
 
@@ -7226,6 +7446,7 @@ func _is_factory_steam_hazard_id(hazard_id: StringName) -> bool:
 			or hazard_id == &"old_factory_lower_deck_post_relay_trial"
 			or hazard_id == &"old_factory_lower_deck_forward_conduit"
 			or hazard_id == &"old_factory_lower_deck_forward_pressure_traverse"
+			or hazard_id == FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_HAZARD_ID
 		)
 
 
@@ -7504,6 +7725,14 @@ func _set_lower_deck_forward_counter_ambush_attack_target(attack_target: Node) -
 		_lower_deck_forward_counter_spark_rat.call("set_attack_target", attack_target)
 
 
+func _set_lower_deck_forward_exit_guard_attack_target(attack_target: Node) -> void:
+	if (
+		_lower_deck_forward_exit_guard_spark_rat != null
+		and _lower_deck_forward_exit_guard_spark_rat.has_method("set_attack_target")
+	):
+		_lower_deck_forward_exit_guard_spark_rat.call("set_attack_target", attack_target)
+
+
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
 		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
@@ -7660,6 +7889,18 @@ func _begin_lower_deck_forward_counter_ambush_pacing(opening_grace_frames: int) 
 		and not _lower_deck_forward_pressure_counter_ambush_defeated
 	):
 		_lower_deck_forward_counter_spark_rat.call(
+			"begin_pacing",
+			maxi(0, opening_grace_frames)
+		)
+
+
+func _begin_lower_deck_forward_exit_guard_pacing(opening_grace_frames: int) -> void:
+	if (
+		_lower_deck_forward_exit_guard_spark_rat != null
+		and _lower_deck_forward_exit_guard_spark_rat.has_method("begin_pacing")
+		and not _lower_deck_forward_pressure_exit_guard_defeated
+	):
+		_lower_deck_forward_exit_guard_spark_rat.call(
 			"begin_pacing",
 			maxi(0, opening_grace_frames)
 		)
@@ -8032,6 +8273,28 @@ func _get_lower_deck_forward_counter_ambush_pacing_diagnostics() -> Dictionary:
 	}
 
 
+func _get_lower_deck_forward_exit_guard_pacing_diagnostics() -> Dictionary:
+	if (
+		_lower_deck_forward_exit_guard_spark_rat != null
+		and _lower_deck_forward_exit_guard_spark_rat.has_method("get_pacing_diagnostics")
+	):
+		var pacing_variant: Variant = _lower_deck_forward_exit_guard_spark_rat.call(
+			"get_pacing_diagnostics"
+		)
+		if pacing_variant is Dictionary:
+			return (pacing_variant as Dictionary).duplicate(true)
+	return {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+	}
+
+
+func _get_lower_deck_forward_exit_guard_opening_grace_frames() -> int:
+	var pacing: Dictionary = _get_lower_deck_forward_exit_guard_pacing_diagnostics()
+	return int(pacing.get("opening_grace_frames", 0))
+
+
 func _does_deep_guard_have_target() -> bool:
 	if _deep_guard == null:
 		return false
@@ -8177,6 +8440,14 @@ func _does_lower_deck_forward_counter_ambush_have_target() -> bool:
 	return _is_lower_deck_forward_pressure_counter_ambush_active()
 
 
+func _does_lower_deck_forward_exit_guard_have_target() -> bool:
+	if _lower_deck_forward_exit_guard_spark_rat == null:
+		return false
+	if _lower_deck_forward_exit_guard_spark_rat.has_method("has_attack_target"):
+		return bool(_lower_deck_forward_exit_guard_spark_rat.call("has_attack_target"))
+	return _is_lower_deck_forward_pressure_exit_guard_active()
+
+
 func _does_lower_deck_breach_front_have_target() -> bool:
 	if _lower_deck_breach_front_spark_rat == null:
 		return false
@@ -8257,6 +8528,9 @@ func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> 
 		FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_ENTITY_ID:
 			if not _lower_deck_forward_pressure_counter_ambush_defeated:
 				_on_factory_lower_deck_forward_pressure_counter_ambush_defeated()
+		FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ENTITY_ID:
+			if not _lower_deck_forward_pressure_exit_guard_defeated:
+				_on_factory_lower_deck_forward_pressure_exit_guard_defeated()
 
 
 func _is_factory_damage_target_defeated(damage_target: Node) -> bool:
@@ -8419,6 +8693,15 @@ func _is_lower_deck_forward_counter_ambush_provider_in_range(provider: Node) -> 
 	)
 
 
+func _is_lower_deck_forward_exit_guard_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ACTIVATION_X
+	)
+
+
 func _is_return_checkpoint_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -8445,22 +8728,23 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 		_spark_rat,
 		_return_spark_rat,
 		_checkpoint_forward_spark_rat,
-			_checkpoint_rear_spark_rat,
-			_checkpoint_overdrive_left_spark_rat,
-			_checkpoint_overdrive_right_spark_rat,
-			_lower_deck_spark_rat,
-			_lower_deck_exit_spark_rat,
-			_lower_deck_shortcut_spark_rat,
-			_lower_deck_shortcut_pursuer_spark_rat,
-			_lower_deck_pressure_guard_spark_rat,
-			_lower_deck_steam_sluice_spark_rat,
-			_lower_deck_deep_bulkhead_spark_rat,
-			_lower_deck_breach_front_spark_rat,
-			_lower_deck_breach_rear_spark_rat,
-			_lower_deck_post_relay_spark_rat,
-			_lower_deck_forward_conduit_spark_rat,
-			_lower_deck_forward_counter_spark_rat,
-		]:
+		_checkpoint_rear_spark_rat,
+		_checkpoint_overdrive_left_spark_rat,
+		_checkpoint_overdrive_right_spark_rat,
+		_lower_deck_spark_rat,
+		_lower_deck_exit_spark_rat,
+		_lower_deck_shortcut_spark_rat,
+		_lower_deck_shortcut_pursuer_spark_rat,
+		_lower_deck_pressure_guard_spark_rat,
+		_lower_deck_steam_sluice_spark_rat,
+		_lower_deck_deep_bulkhead_spark_rat,
+		_lower_deck_breach_front_spark_rat,
+		_lower_deck_breach_rear_spark_rat,
+		_lower_deck_post_relay_spark_rat,
+		_lower_deck_forward_conduit_spark_rat,
+		_lower_deck_forward_counter_spark_rat,
+		_lower_deck_forward_exit_guard_spark_rat,
+	]:
 		if guard == null or not guard.has_method("get_entity_id"):
 			continue
 		if int(guard.call("get_entity_id")) == target_id:
@@ -8713,6 +8997,21 @@ func _is_lower_deck_forward_pressure_counter_ambush_active() -> bool:
 		_lower_deck_forward_pressure_counter_ambush_activated
 		and _lower_deck_forward_pressure_traverse_crossed
 		and not _lower_deck_forward_pressure_counter_ambush_defeated
+	)
+
+
+func _is_lower_deck_forward_pressure_exit_guard_available() -> bool:
+	return (
+		_lower_deck_forward_pressure_reward_cache_claimed
+		and not _lower_deck_forward_pressure_exit_guard_defeated
+	)
+
+
+func _is_lower_deck_forward_pressure_exit_guard_active() -> bool:
+	return (
+		_lower_deck_forward_pressure_exit_guard_activated
+		and _lower_deck_forward_pressure_reward_cache_claimed
+		and not _lower_deck_forward_pressure_exit_guard_defeated
 	)
 
 

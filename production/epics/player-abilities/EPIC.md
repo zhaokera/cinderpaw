@@ -110,6 +110,7 @@ recording the reward in progression state.
 | 070 | Old Factory Lower Deck Forward Pressure Counter-Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 071 | Old Factory Lower Deck Forward Pressure Reward Cache | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
 | 072 | Old Factory Lower Deck Forward Pressure Reward Cache Audio Feedback | Integration + Gameplay Runtime + Audio/Feel | Complete | ADR-0002/0007/0010/0018/0021 |
+| 073 | Old Factory Lower Deck Forward Pressure Exit Guard | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
