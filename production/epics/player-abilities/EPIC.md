@@ -112,6 +112,7 @@ recording the reward in progression state.
 | 072 | Old Factory Lower Deck Forward Pressure Reward Cache Audio Feedback | Integration + Gameplay Runtime + Audio/Feel | Complete | ADR-0002/0007/0010/0018/0021 |
 | 073 | Old Factory Lower Deck Forward Pressure Exit Guard | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 074 | Old Factory Lower Deck Forward Pressure Exit Relay Savepoint | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
+| 075 | Old Factory Lower Deck Forward Pressure Exit Gate Handoff | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
 
 ## Definition of Done
 
@@ -131,7 +132,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-074 are complete. Continue with the next playable ACT slice: deeper
-Old Factory combat encounters, savepoint/minimap gameplay, additional
-player-visible character/enemy frame-animation replacement, more skill-tree
-branches, or final Boss2 balancing/cutscene polish.
+Stories001-075 are complete. Continue with the next playable ACT slice: deeper
+Old Factory route content after the exit gate, savepoint/minimap gameplay,
+additional player-visible character/enemy frame-animation replacement, more
+skill-tree branches, or final Boss2 balancing/cutscene polish.
