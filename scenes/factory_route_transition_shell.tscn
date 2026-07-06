@@ -782,6 +782,43 @@ monitorable = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckBreachRelaySavepoint/InteractionArea"]
 shape = SubResource("CircleShape2D_return_checkpoint_interaction")
 
+[node name="FactoryLowerDeckForwardPressureExitRelaySavepoint" type="Node2D" parent="."]
+visible = false
+z_index = 24
+position = Vector2(1368, 382)
+script = ExtResource("17_savepoint_script")
+savepoint_id = &"old_factory_lower_deck_forward_pressure_exit_relay"
+scene_id = &"area_03_factory"
+spawn_point = &"lower_deck_forward_pressure_exit_relay"
+display_name = "Forward Pressure Exit Relay"
+prompt_text = "Repair Exit Relay"
+activation_vfx_texture = ExtResource("12_unlock_vfx")
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckForwardPressureExitRelaySavepoint"]
+scale = Vector2(0.62, 0.62)
+texture = ExtResource("25_breach_relay_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryLowerDeckForwardPressureExitRelaySavepoint"]
+z_index = 4
+offset_left = -96.0
+offset_top = -126.0
+offset_right = 96.0
+offset_bottom = -100.0
+theme_override_colors/font_color = Color(0.58, 0.94, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 15
+text = "Repair Exit Relay"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="FactoryLowerDeckForwardPressureExitRelaySavepoint"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureExitRelaySavepoint/InteractionArea"]
+shape = SubResource("CircleShape2D_return_checkpoint_interaction")
+
 [node name="FactorySteamVentHazard" type="Area2D" parent="."]
 z_index = 18
 position = Vector2(642, 466)

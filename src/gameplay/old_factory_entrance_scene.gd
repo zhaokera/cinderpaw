@@ -121,6 +121,9 @@ const FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_EXIT_GUARD: StringName = (
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_SECURED: StringName = (
 	&"forward_pressure_exit_secured"
 )
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_RELAY_SECURED: StringName = (
+	&"forward_pressure_exit_relay_secured"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -132,8 +135,14 @@ const FACTORY_LOWER_DECK_SHORTCUT_SEAL_ID: StringName = &"old_factory_lower_deck
 const FACTORY_LOWER_DECK_PRESSURE_VALVE_ID: StringName = &"old_factory_lower_deck_pressure_valve"
 const FACTORY_LOWER_DECK_DEEP_BULKHEAD_ID: StringName = &"old_factory_lower_deck_deep_bulkhead"
 const FACTORY_LOWER_DECK_BREACH_RELAY_ID: StringName = &"old_factory_lower_deck_breach_relay"
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_exit_relay"
+)
 const FACTORY_LOWER_DECK_FORWARD_HATCH_ID: StringName = &"old_factory_lower_deck_forward_hatch"
 const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: StringName = &"lower_deck_breach_relay"
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT: StringName = (
+	&"lower_deck_forward_pressure_exit_relay"
+)
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
 const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
 const FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT: StringName = &"scrap_roost"
@@ -143,6 +152,9 @@ const FACTORY_GATE_ENTRY_SPAWN_POINT: StringName = &"factory_gate_entry"
 const FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS: float = 112.0
 const FACTORY_RETURN_CHECKPOINT_RESPAWN_LABEL: String = "Returned to Factory Savepoint"
 const FACTORY_LOWER_DECK_BREACH_RELAY_RESPAWN_LABEL: String = "Returned to Lower Deck Relay"
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_RESPAWN_LABEL: String = (
+	"Returned to Forward Pressure Exit Relay"
+)
 const GAME_FLOW_SCRIPT: Script = preload("res://src/gameplay/game_flow_controller.gd")
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
@@ -233,6 +245,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _return_checkpoint: Node = get_node_or_null("FactoryReturnCheckpoint")
 @onready var _lower_deck_breach_relay: Node = get_node_or_null(
 	"FactoryLowerDeckBreachRelaySavepoint"
+)
+@onready var _lower_deck_forward_pressure_exit_relay: Node = get_node_or_null(
+	"FactoryLowerDeckForwardPressureExitRelaySavepoint"
 )
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
@@ -352,6 +367,7 @@ var _lower_deck_forward_pressure_reward_cache_claim_audio_event: Dictionary = {}
 var _lower_deck_forward_pressure_reward_cache_claim_audio_request_count: int = 0
 var _lower_deck_forward_pressure_exit_guard_activated: bool = false
 var _lower_deck_forward_pressure_exit_guard_defeated: bool = false
+var _lower_deck_forward_pressure_exit_relay_activated: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -393,6 +409,7 @@ func _ready() -> void:
 	_sync_lower_deck_forward_pressure_traverse_state()
 	_sync_lower_deck_forward_pressure_counter_ambush_state()
 	_sync_lower_deck_forward_pressure_exit_guard_state()
+	_setup_factory_lower_deck_forward_pressure_exit_relay()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -724,15 +741,25 @@ func try_open_factory_lower_deck_shortcut_seal(provider: Node = null) -> bool:
 
 
 func get_last_discovered_savepoint() -> Dictionary:
-	return _last_return_checkpoint.duplicate(true) if _return_checkpoint_activated else {}
+	return (
+		_last_return_checkpoint.duplicate(true)
+		if (
+			_return_checkpoint_activated
+			or _lower_deck_breach_relay_activated
+			or _lower_deck_forward_pressure_exit_relay_activated
+		)
+		else {}
+	)
 
 
 func clear_last_discovered_savepoint() -> bool:
 	_return_checkpoint_activated = false
 	_lower_deck_breach_relay_activated = false
+	_lower_deck_forward_pressure_exit_relay_activated = false
 	_last_return_checkpoint.clear()
 	_sync_return_checkpoint_state()
 	_sync_lower_deck_breach_relay_state()
+	_sync_lower_deck_forward_pressure_exit_relay_state()
 	return true
 
 
@@ -1303,6 +1330,35 @@ func try_activate_factory_lower_deck_breach_relay(provider: Node = null) -> bool
 	return true
 
 
+## Activates the forward-pressure exit relay savepoint after the exit guard is secured.
+func try_activate_factory_lower_deck_forward_pressure_exit_relay(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_exit_relay == null
+		or not _is_lower_deck_forward_pressure_exit_relay_available()
+		or _lower_deck_forward_pressure_exit_relay_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_pressure_exit_relay_provider_in_range(
+		activation_provider
+	):
+		return false
+	if (
+		not _lower_deck_forward_pressure_exit_relay.has_method("try_activate")
+		or not bool(_lower_deck_forward_pressure_exit_relay.call(
+			"try_activate",
+			activation_provider
+		))
+	):
+		return false
+	_lower_deck_forward_pressure_exit_relay_activated = true
+	_sync_lower_deck_forward_pressure_exit_relay_state()
+	_update_route_label("Forward Pressure Exit Relay Secured")
+	return true
+
+
 ## Attempts to activate the relay-forward combat trial after the breach relay is repaired.
 func try_activate_factory_lower_deck_post_relay_trial(provider: Node = null) -> bool:
 	if (
@@ -1664,6 +1720,9 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_exit_guard_opening_grace_frames": (
 			_get_lower_deck_forward_exit_guard_opening_grace_frames()
 		),
+		"factory_lower_deck_forward_pressure_exit_relay_activated": (
+			_lower_deck_forward_pressure_exit_relay_activated
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -1926,6 +1985,10 @@ func set_local_state(state: Dictionary) -> void:
 		"factory_lower_deck_forward_pressure_exit_guard_defeated",
 		false
 	))
+	_lower_deck_forward_pressure_exit_relay_activated = bool(state.get(
+		"factory_lower_deck_forward_pressure_exit_relay_activated",
+		false
+	))
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -2163,6 +2226,21 @@ func set_local_state(state: Dictionary) -> void:
 		_return_checkpoint_activated = true
 		if String(_last_return_checkpoint.get("id", "")) == String(FACTORY_LOWER_DECK_BREACH_RELAY_ID):
 			_lower_deck_breach_relay_activated = true
+		if (
+			String(_last_return_checkpoint.get("id", ""))
+			== String(FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_ID)
+		):
+			_lower_deck_forward_pressure_exit_relay_activated = true
+	if (
+		_lower_deck_forward_pressure_exit_relay_activated
+		and (
+			_last_return_checkpoint.is_empty()
+			or String(_last_return_checkpoint.get("id", ""))
+			!= String(FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_ID)
+		)
+	):
+		_last_return_checkpoint = _build_forward_pressure_exit_relay_checkpoint_snapshot()
+		_return_checkpoint_activated = true
 	var hazard_variant: Variant = state.get("last_hazard_damage", {})
 	_last_hazard_damage = (
 		(hazard_variant as Dictionary).duplicate(true)
@@ -2220,6 +2298,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_forward_pressure_traverse_state()
 	_sync_lower_deck_forward_pressure_counter_ambush_state()
 	_sync_lower_deck_forward_pressure_exit_guard_state()
+	_sync_lower_deck_forward_pressure_exit_relay_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -4012,6 +4091,53 @@ func get_factory_lower_deck_breach_relay_diagnostics() -> Dictionary:
 		}
 
 
+## Returns deterministic forward-pressure exit relay savepoint diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_exit_relay_diagnostics() -> Dictionary:
+	var interaction_area := (
+		_lower_deck_forward_pressure_exit_relay.get_node_or_null("InteractionArea") as Area2D
+		if _lower_deck_forward_pressure_exit_relay != null
+		else null
+	)
+	var collision_shape := (
+		_lower_deck_forward_pressure_exit_relay.get_node_or_null(
+			"InteractionArea/CollisionShape2D"
+		) as CollisionShape2D
+		if _lower_deck_forward_pressure_exit_relay != null
+		else null
+	)
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	return {
+		"present": _lower_deck_forward_pressure_exit_relay != null,
+		"available": _is_lower_deck_forward_pressure_exit_relay_available(),
+		"visible": (
+			_lower_deck_forward_pressure_exit_relay.visible
+			if _lower_deck_forward_pressure_exit_relay != null
+			else false
+		),
+		"activated": _lower_deck_forward_pressure_exit_relay_activated,
+		"exit_guard_defeated": _lower_deck_forward_pressure_exit_guard_defeated,
+		"savepoint_id": _get_lower_deck_forward_pressure_exit_relay_savepoint_id(),
+		"scene_id": _get_lower_deck_forward_pressure_exit_relay_scene_id(),
+		"spawn_point": _get_lower_deck_forward_pressure_exit_relay_spawn_point(),
+		"display_name": _get_lower_deck_forward_pressure_exit_relay_display_name(),
+		"prompt_text": _get_lower_deck_forward_pressure_exit_relay_prompt_text(),
+		"texture_path": _get_lower_deck_forward_pressure_exit_relay_texture_path(),
+		"interaction_monitoring": interaction_area.monitoring if interaction_area != null else false,
+		"interaction_monitorable": interaction_area.monitorable if interaction_area != null else false,
+		"collision_disabled": collision_shape.disabled if collision_shape != null else true,
+		"position": (
+			(_lower_deck_forward_pressure_exit_relay as Node2D).global_position
+			if (
+				_lower_deck_forward_pressure_exit_relay != null
+				and _lower_deck_forward_pressure_exit_relay is Node2D
+			)
+			else Vector2.ZERO
+		),
+		"last_savepoint": _last_return_checkpoint.duplicate(true),
+		"route_label_text": String(route.get("route_label_text", "")),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -4585,6 +4711,7 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 	if (
 		spawn_point == FACTORY_RETURN_CHECKPOINT_SPAWN_POINT
 		or spawn_point == FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT
+		or spawn_point == FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT
 	):
 		_grant_factory_hazard_respawn_grace()
 	if not _move_player_to_spawn_point(spawn_point):
@@ -4597,6 +4724,10 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 		_factory_return_checkpoint_spawn_snap_frames = 0
 		_set_player_physics_pinned_for_return_checkpoint(false)
 		_update_route_label(FACTORY_LOWER_DECK_BREACH_RELAY_RESPAWN_LABEL)
+	elif spawn_point == FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT:
+		_factory_return_checkpoint_spawn_snap_frames = 0
+		_set_player_physics_pinned_for_return_checkpoint(false)
+		_update_route_label(FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_RESPAWN_LABEL)
 	else:
 		_factory_return_checkpoint_spawn_snap_frames = 0
 		_set_player_physics_pinned_for_return_checkpoint(false)
@@ -4613,6 +4744,8 @@ func _move_player_to_spawn_point(spawn_point: StringName) -> bool:
 		spawn_node = _return_checkpoint as Node2D
 	elif spawn_point == FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT:
 		spawn_node = _lower_deck_breach_relay as Node2D
+	elif spawn_point == FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT:
+		spawn_node = _lower_deck_forward_pressure_exit_relay as Node2D
 	if spawn_node == null:
 		return false
 	_player.global_position = spawn_node.global_position
@@ -4973,6 +5106,24 @@ func _setup_factory_lower_deck_breach_relay() -> void:
 	var activated_signal: Signal = _lower_deck_breach_relay.get("savepoint_activated")
 	if not activated_signal.is_connected(_on_factory_lower_deck_breach_relay_activated):
 		activated_signal.connect(_on_factory_lower_deck_breach_relay_activated)
+
+
+func _setup_factory_lower_deck_forward_pressure_exit_relay() -> void:
+	_sync_lower_deck_forward_pressure_exit_relay_state()
+	if (
+		_lower_deck_forward_pressure_exit_relay == null
+		or not _lower_deck_forward_pressure_exit_relay.has_signal("savepoint_activated")
+	):
+		return
+	var activated_signal: Signal = _lower_deck_forward_pressure_exit_relay.get(
+		"savepoint_activated"
+	)
+	if not activated_signal.is_connected(
+		_on_factory_lower_deck_forward_pressure_exit_relay_activated
+	):
+		activated_signal.connect(
+			_on_factory_lower_deck_forward_pressure_exit_relay_activated
+		)
 
 
 func _setup_factory_respawn_flow() -> void:
@@ -5470,6 +5621,29 @@ func _on_factory_lower_deck_breach_relay_activated(
 	_request_lower_deck_breach_relay_activation_audio(world_position, context)
 
 
+func _on_factory_lower_deck_forward_pressure_exit_relay_activated(
+	savepoint_id: StringName,
+	scene_id: StringName,
+	spawn_point: StringName,
+	world_position: Vector2,
+	context: Dictionary
+) -> void:
+	if savepoint_id != FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_ID:
+		return
+	if _lower_deck_forward_pressure_exit_relay_activated:
+		return
+	_lower_deck_forward_pressure_exit_relay_activated = true
+	_last_return_checkpoint = _build_return_checkpoint_snapshot(
+		savepoint_id,
+		scene_id,
+		spawn_point,
+		world_position,
+		context
+	)
+	_sync_lower_deck_forward_pressure_exit_relay_state()
+	_update_route_label("Forward Pressure Exit Relay Secured")
+
+
 func _on_factory_player_died(_death_metadata: Dictionary) -> void:
 	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
 		return
@@ -5490,6 +5664,10 @@ func _on_factory_respawn_requested(respawn_position: Vector2, revive_hp_percenta
 		FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT
 	):
 		_update_route_label(FACTORY_LOWER_DECK_BREACH_RELAY_RESPAWN_LABEL)
+	elif String(selected_respawn_point.get("spawn_point", "")) == String(
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT
+	):
+		_update_route_label(FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_RESPAWN_LABEL)
 	_apply_current_scene_manager_spawn_point()
 
 
@@ -6421,6 +6599,33 @@ func _sync_return_checkpoint_state() -> void:
 			collision_shape.disabled = should_disable
 
 
+func _sync_lower_deck_forward_pressure_exit_relay_state() -> void:
+	if _lower_deck_forward_pressure_exit_relay == null:
+		return
+	var available: bool = _is_lower_deck_forward_pressure_exit_relay_available()
+	_lower_deck_forward_pressure_exit_relay.visible = (
+		available or _lower_deck_forward_pressure_exit_relay_activated
+	)
+	var interaction_area := (
+		_lower_deck_forward_pressure_exit_relay.get_node_or_null("InteractionArea")
+		as Area2D
+	)
+	if interaction_area != null:
+		if interaction_area.monitoring != available:
+			interaction_area.monitoring = available
+		if interaction_area.monitorable != available:
+			interaction_area.monitorable = available
+	var collision_shape := (
+		_lower_deck_forward_pressure_exit_relay.get_node_or_null(
+			"InteractionArea/CollisionShape2D"
+		) as CollisionShape2D
+	)
+	if collision_shape != null:
+		var should_disable: bool = not available
+		if collision_shape.disabled != should_disable:
+			collision_shape.disabled = should_disable
+
+
 func _sync_service_lift_state() -> void:
 	if _service_lift == null:
 		return
@@ -6464,6 +6669,8 @@ func _get_factory_route_objective_id() -> StringName:
 	if _lower_deck_forward_pressure_exit_guard_activated \
 			and not _lower_deck_forward_pressure_exit_guard_defeated:
 		return FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_EXIT_GUARD
+	if _lower_deck_forward_pressure_exit_relay_activated:
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_RELAY_SECURED
 	if _lower_deck_forward_pressure_exit_guard_defeated:
 		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_SECURED
 	if _lower_deck_forward_pressure_counter_ambush_activated \
@@ -6666,6 +6873,8 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Clear Forward Pressure Exit Guard"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_SECURED:
 			return "Forward Pressure Exit Secured"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_RELAY_SECURED:
+			return "Forward Pressure Exit Relay Secured"
 		_:
 			return "Clear Factory Entrance"
 
@@ -7347,6 +7556,75 @@ func _get_lower_deck_breach_relay_prompt_text() -> String:
 		else null
 	)
 	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_forward_pressure_exit_relay_savepoint_id() -> String:
+	if (
+		_lower_deck_forward_pressure_exit_relay != null
+		and _lower_deck_forward_pressure_exit_relay.has_method("get_savepoint_id")
+	):
+		return String(_lower_deck_forward_pressure_exit_relay.call("get_savepoint_id"))
+	return String(FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_ID)
+
+
+func _get_lower_deck_forward_pressure_exit_relay_scene_id() -> String:
+	if (
+		_lower_deck_forward_pressure_exit_relay != null
+		and _lower_deck_forward_pressure_exit_relay.has_method("get_scene_id")
+	):
+		return String(_lower_deck_forward_pressure_exit_relay.call("get_scene_id"))
+	return String(FACTORY_SCENE_ID)
+
+
+func _get_lower_deck_forward_pressure_exit_relay_spawn_point() -> String:
+	if (
+		_lower_deck_forward_pressure_exit_relay != null
+		and _lower_deck_forward_pressure_exit_relay.has_method("get_spawn_point")
+	):
+		return String(_lower_deck_forward_pressure_exit_relay.call("get_spawn_point"))
+	return String(FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT)
+
+
+func _get_lower_deck_forward_pressure_exit_relay_display_name() -> String:
+	if (
+		_lower_deck_forward_pressure_exit_relay != null
+		and _lower_deck_forward_pressure_exit_relay.has_method("get_display_name")
+	):
+		return String(_lower_deck_forward_pressure_exit_relay.call("get_display_name"))
+	return "Forward Pressure Exit Relay"
+
+
+func _get_lower_deck_forward_pressure_exit_relay_texture_path() -> String:
+	if (
+		_lower_deck_forward_pressure_exit_relay != null
+		and _lower_deck_forward_pressure_exit_relay.has_method("get_visual_texture_path")
+	):
+		return String(_lower_deck_forward_pressure_exit_relay.call("get_visual_texture_path"))
+	return ""
+
+
+func _get_lower_deck_forward_pressure_exit_relay_prompt_text() -> String:
+	var prompt_label := (
+		_lower_deck_forward_pressure_exit_relay.get_node_or_null("PromptLabel") as Label
+		if _lower_deck_forward_pressure_exit_relay != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _build_forward_pressure_exit_relay_checkpoint_snapshot() -> Dictionary:
+	var world_position := Vector2.ZERO
+	if _lower_deck_forward_pressure_exit_relay is Node2D:
+		world_position = (_lower_deck_forward_pressure_exit_relay as Node2D).global_position
+	return _build_return_checkpoint_snapshot(
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_ID,
+		FACTORY_SCENE_ID,
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT,
+		world_position,
+		{
+			"display_name": _get_lower_deck_forward_pressure_exit_relay_display_name(),
+		}
+	)
 
 
 func _build_return_checkpoint_snapshot(
@@ -8648,6 +8926,22 @@ func _is_lower_deck_breach_relay_provider_in_range(provider: Node) -> bool:
 	)
 
 
+func _is_lower_deck_forward_pressure_exit_relay_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	if (
+		_lower_deck_forward_pressure_exit_relay == null
+		or not _lower_deck_forward_pressure_exit_relay is Node2D
+	):
+		return false
+	return (
+		(provider as Node2D).global_position.distance_to(
+			(_lower_deck_forward_pressure_exit_relay as Node2D).global_position
+		)
+		<= FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS
+	)
+
+
 func _is_lower_deck_post_relay_trial_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -9012,6 +9306,13 @@ func _is_lower_deck_forward_pressure_exit_guard_active() -> bool:
 		_lower_deck_forward_pressure_exit_guard_activated
 		and _lower_deck_forward_pressure_reward_cache_claimed
 		and not _lower_deck_forward_pressure_exit_guard_defeated
+	)
+
+
+func _is_lower_deck_forward_pressure_exit_relay_available() -> bool:
+	return (
+		_lower_deck_forward_pressure_exit_guard_defeated
+		and not _lower_deck_forward_pressure_exit_relay_activated
 	)
 
 
