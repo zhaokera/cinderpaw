@@ -12,9 +12,6 @@ extends VBoxContainer
 signal logging_enabled_changed(enabled: bool)
 
 const Dock := preload("res://addons/godot_ai/mcp_dock.gd")
-## Preload (not the McpSettings class_name) for consistency with the parse
-## hazard note on `_log_buffer` below.
-const Settings := preload("res://addons/godot_ai/utils/settings.gd")
 
 ## Untyped: a `: McpLogBuffer` annotation hits the class_name registry at
 ## script-load and trips the self-update parse hazard (#398). The type fence
@@ -53,9 +50,7 @@ func _build_ui() -> void:
 
 	_log_toggle = CheckButton.new()
 	_log_toggle.text = "Log"
-	## Restore the persisted choice — a hardcoded `true` here meant the
-	## toggle reset to noisy on every editor restart (#626).
-	_log_toggle.button_pressed = Settings.mcp_logging_enabled()
+	_log_toggle.button_pressed = true
 	_log_toggle.toggled.connect(_on_log_toggled)
 	log_header_row.add_child(_log_toggle)
 
@@ -67,7 +62,6 @@ func _build_ui() -> void:
 	_log_display.scroll_following = true
 	_log_display.bbcode_enabled = false
 	_log_display.selection_enabled = true
-	_log_display.visible = _log_toggle.button_pressed
 	add_child(_log_display)
 
 
@@ -97,6 +91,5 @@ func tick() -> void:
 
 
 func _on_log_toggled(enabled: bool) -> void:
-	Settings.set_mcp_logging_enabled(enabled)
 	_log_display.visible = enabled
 	logging_enabled_changed.emit(enabled)
