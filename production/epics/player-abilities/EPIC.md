@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 74 stories tracked
+> **Stories**: 76 stories tracked
 
 ## Overview
 
@@ -113,6 +113,7 @@ recording the reward in progression state.
 | 073 | Old Factory Lower Deck Forward Pressure Exit Guard | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 074 | Old Factory Lower Deck Forward Pressure Exit Relay Savepoint | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
 | 075 | Old Factory Lower Deck Forward Pressure Exit Gate Handoff | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
+| 076 | Old Factory Lower Deck Forward Pressure Route Handoff Marker | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0007/0018/0021 |
 
 ## Definition of Done
 
@@ -132,7 +133,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-075 are complete. Continue with the next playable ACT slice: deeper
-Old Factory route content after the exit gate, savepoint/minimap gameplay,
+Stories001-076 are complete. Continue with the next playable ACT slice: deeper
+Old Factory route content after the route handoff marker, savepoint/minimap gameplay,
 additional player-visible character/enemy frame-animation replacement, more
 skill-tree branches, or final Boss2 balancing/cutscene polish.

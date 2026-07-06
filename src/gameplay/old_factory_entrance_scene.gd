@@ -127,6 +127,9 @@ const FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_RELAY_SECURED: StringName = (
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_GATE_OPENED: StringName = (
 	&"forward_pressure_exit_gate_opened"
 )
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_ROUTE_BEACON_LIT: StringName = (
+	&"forward_pressure_route_beacon_lit"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -143,6 +146,9 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_ID: StringName = (
 )
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_GATE_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_exit_gate"
+)
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_ROUTE_HANDOFF_MARKER_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_route_handoff_marker"
 )
 const FACTORY_LOWER_DECK_FORWARD_HATCH_ID: StringName = &"old_factory_lower_deck_forward_hatch"
 const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: StringName = &"lower_deck_breach_relay"
@@ -257,6 +263,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 )
 @onready var _lower_deck_forward_pressure_exit_gate: Node = get_node_or_null(
 	"FactoryLowerDeckForwardPressureExitGate"
+)
+@onready var _lower_deck_forward_pressure_route_handoff_marker: Node = get_node_or_null(
+	"FactoryLowerDeckForwardPressureRouteHandoffMarker"
 )
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
@@ -378,6 +387,7 @@ var _lower_deck_forward_pressure_exit_guard_activated: bool = false
 var _lower_deck_forward_pressure_exit_guard_defeated: bool = false
 var _lower_deck_forward_pressure_exit_relay_activated: bool = false
 var _lower_deck_forward_pressure_exit_gate_opened: bool = false
+var _lower_deck_forward_pressure_route_handoff_marker_lit: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -421,6 +431,7 @@ func _ready() -> void:
 	_sync_lower_deck_forward_pressure_exit_guard_state()
 	_setup_factory_lower_deck_forward_pressure_exit_relay()
 	_setup_factory_lower_deck_forward_pressure_exit_gate()
+	_setup_factory_lower_deck_forward_pressure_route_handoff_marker()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -1397,6 +1408,35 @@ func try_open_factory_lower_deck_forward_pressure_exit_gate(provider: Node = nul
 	return true
 
 
+## Lights the route handoff marker after the forward-pressure exit gate is opened.
+func try_activate_factory_lower_deck_forward_pressure_route_handoff_marker(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_route_handoff_marker == null
+		or not _is_lower_deck_forward_pressure_route_handoff_marker_available()
+		or _lower_deck_forward_pressure_route_handoff_marker_lit
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_pressure_route_handoff_marker_provider_in_range(
+		activation_provider
+	):
+		return false
+	if (
+		not _lower_deck_forward_pressure_route_handoff_marker.has_method("try_activate")
+		or not bool(_lower_deck_forward_pressure_route_handoff_marker.call(
+			"try_activate",
+			activation_provider
+		))
+	):
+		return false
+	_lower_deck_forward_pressure_route_handoff_marker_lit = true
+	_sync_lower_deck_forward_pressure_route_handoff_marker_state()
+	_update_route_label("Forward Pressure Route Beacon Lit")
+	return true
+
+
 ## Attempts to activate the relay-forward combat trial after the breach relay is repaired.
 func try_activate_factory_lower_deck_post_relay_trial(provider: Node = null) -> bool:
 	if (
@@ -1764,6 +1804,9 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_exit_gate_opened": (
 			_lower_deck_forward_pressure_exit_gate_opened
 		),
+		"factory_lower_deck_forward_pressure_route_handoff_marker_lit": (
+			_lower_deck_forward_pressure_route_handoff_marker_lit
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -2032,6 +2075,10 @@ func set_local_state(state: Dictionary) -> void:
 	))
 	_lower_deck_forward_pressure_exit_gate_opened = bool(state.get(
 		"factory_lower_deck_forward_pressure_exit_gate_opened",
+		false
+	))
+	_lower_deck_forward_pressure_route_handoff_marker_lit = bool(state.get(
+		"factory_lower_deck_forward_pressure_route_handoff_marker_lit",
 		false
 	))
 	_reset_lower_deck_forward_conduit_clear_feedback()
@@ -2345,6 +2392,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_forward_pressure_exit_guard_state()
 	_sync_lower_deck_forward_pressure_exit_relay_state()
 	_sync_lower_deck_forward_pressure_exit_gate_state()
+	_sync_lower_deck_forward_pressure_route_handoff_marker_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -4216,6 +4264,51 @@ func get_factory_lower_deck_forward_pressure_exit_gate_diagnostics() -> Dictiona
 	}
 
 
+## Returns deterministic forward-pressure route handoff marker diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_route_handoff_marker_diagnostics() -> Dictionary:
+	var interaction_area := (
+		_lower_deck_forward_pressure_route_handoff_marker.get_node_or_null(
+			"InteractionArea"
+		) as Area2D
+		if _lower_deck_forward_pressure_route_handoff_marker != null
+		else null
+	)
+	var collision_shape := (
+		_lower_deck_forward_pressure_route_handoff_marker.get_node_or_null(
+			"InteractionArea/CollisionShape2D"
+		) as CollisionShape2D
+		if _lower_deck_forward_pressure_route_handoff_marker != null
+		else null
+	)
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	var unlock_vfx_snapshot: Dictionary = (
+		_get_lower_deck_forward_pressure_route_handoff_marker_unlock_vfx_snapshot()
+	)
+	return {
+		"present": _lower_deck_forward_pressure_route_handoff_marker != null,
+		"available": _is_lower_deck_forward_pressure_route_handoff_marker_available(),
+		"visible": (
+			_lower_deck_forward_pressure_route_handoff_marker.visible
+			if _lower_deck_forward_pressure_route_handoff_marker != null
+			else false
+		),
+		"lit": _lower_deck_forward_pressure_route_handoff_marker_lit,
+		"exit_gate_opened": _lower_deck_forward_pressure_exit_gate_opened,
+		"marker_id": _get_lower_deck_forward_pressure_route_handoff_marker_id(),
+		"prompt_text": _get_lower_deck_forward_pressure_route_handoff_marker_prompt_text(),
+		"texture_path": _get_lower_deck_forward_pressure_route_handoff_marker_texture_path(),
+		"interaction_monitoring": interaction_area.monitoring if interaction_area != null else false,
+		"interaction_monitorable": interaction_area.monitorable if interaction_area != null else false,
+		"collision_disabled": collision_shape.disabled if collision_shape != null else true,
+		"position": _get_lower_deck_forward_pressure_route_handoff_marker_position(),
+		"route_label_text": String(route.get("route_label_text", "")),
+		"unlock_feedback_texture_path": String(unlock_vfx_snapshot.get("texture_path", "")),
+		"unlock_feedback_active": int(unlock_vfx_snapshot.get("active_count", 0)) > 0,
+		"unlock_feedback_played": bool(unlock_vfx_snapshot.get("played", false)),
+		"unlock_feedback_spawn_count": int(unlock_vfx_snapshot.get("spawn_count", 0)),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -4602,6 +4695,9 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		),
 		"lower_deck_forward_pressure_exit_gate": (
 			get_factory_lower_deck_forward_pressure_exit_gate_diagnostics()
+		),
+		"lower_deck_forward_pressure_route_handoff_marker": (
+			get_factory_lower_deck_forward_pressure_route_handoff_marker_diagnostics()
 		),
 		"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
@@ -5228,6 +5324,26 @@ func _setup_factory_lower_deck_forward_pressure_exit_gate() -> void:
 		)
 
 
+func _setup_factory_lower_deck_forward_pressure_route_handoff_marker() -> void:
+	_sync_lower_deck_forward_pressure_route_handoff_marker_state()
+	if (
+		_lower_deck_forward_pressure_route_handoff_marker == null
+		or not _lower_deck_forward_pressure_route_handoff_marker.has_signal(
+			"endpoint_activated"
+		)
+	):
+		return
+	var activated_signal: Signal = _lower_deck_forward_pressure_route_handoff_marker.get(
+		"endpoint_activated"
+	)
+	if not activated_signal.is_connected(
+		_on_factory_lower_deck_forward_pressure_route_handoff_marker_activated
+	):
+		activated_signal.connect(
+			_on_factory_lower_deck_forward_pressure_route_handoff_marker_activated
+		)
+
+
 func _setup_factory_respawn_flow() -> void:
 	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
 		var existing_flow := get_node_or_null("FactoryGameFlowController") as GameFlowController
@@ -5684,7 +5800,18 @@ func _on_factory_lower_deck_forward_pressure_exit_gate_activated(
 		return
 	_lower_deck_forward_pressure_exit_gate_opened = true
 	_sync_lower_deck_forward_pressure_exit_gate_state()
+	_sync_lower_deck_forward_pressure_route_handoff_marker_state()
 	_update_route_label("Forward Pressure Exit Gate Opened")
+
+
+func _on_factory_lower_deck_forward_pressure_route_handoff_marker_activated(
+	endpoint_id: StringName
+) -> void:
+	if endpoint_id != FACTORY_LOWER_DECK_FORWARD_PRESSURE_ROUTE_HANDOFF_MARKER_ID:
+		return
+	_lower_deck_forward_pressure_route_handoff_marker_lit = true
+	_sync_lower_deck_forward_pressure_route_handoff_marker_state()
+	_update_route_label("Forward Pressure Route Beacon Lit")
 
 
 func _on_factory_return_checkpoint_activated(
@@ -6772,6 +6899,26 @@ func _sync_lower_deck_forward_pressure_exit_gate_state() -> void:
 	)
 
 
+func _sync_lower_deck_forward_pressure_route_handoff_marker_state() -> void:
+	if _lower_deck_forward_pressure_route_handoff_marker == null:
+		return
+	var marker_visible: bool = (
+		_lower_deck_forward_pressure_exit_gate_opened
+		or _lower_deck_forward_pressure_route_handoff_marker_lit
+	)
+	_lower_deck_forward_pressure_route_handoff_marker.visible = marker_visible
+	if _lower_deck_forward_pressure_route_handoff_marker.has_method("set_available"):
+		_lower_deck_forward_pressure_route_handoff_marker.call(
+			"set_available",
+			_is_lower_deck_forward_pressure_route_handoff_marker_available()
+		)
+	if _lower_deck_forward_pressure_route_handoff_marker.has_method("set_activated"):
+		_lower_deck_forward_pressure_route_handoff_marker.call(
+			"set_activated",
+			_lower_deck_forward_pressure_route_handoff_marker_lit
+		)
+
+
 func _sync_service_lift_state() -> void:
 	if _service_lift == null:
 		return
@@ -6815,6 +6962,8 @@ func _get_factory_route_objective_id() -> StringName:
 	if _lower_deck_forward_pressure_exit_guard_activated \
 			and not _lower_deck_forward_pressure_exit_guard_defeated:
 		return FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_EXIT_GUARD
+	if _lower_deck_forward_pressure_route_handoff_marker_lit:
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_ROUTE_BEACON_LIT
 	if _lower_deck_forward_pressure_exit_gate_opened:
 		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_GATE_OPENED
 	if _lower_deck_forward_pressure_exit_relay_activated:
@@ -7025,6 +7174,8 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Forward Pressure Exit Relay Secured"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_GATE_OPENED:
 			return "Forward Pressure Exit Gate Opened"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_ROUTE_BEACON_LIT:
+			return "Forward Pressure Route Beacon Lit"
 		_:
 			return "Clear Factory Entrance"
 
@@ -7537,6 +7688,77 @@ func _get_lower_deck_forward_pressure_exit_gate_position() -> Vector2:
 		)
 		else Vector2.ZERO
 	)
+
+
+func _get_lower_deck_forward_pressure_route_handoff_marker_id() -> String:
+	if (
+		_lower_deck_forward_pressure_route_handoff_marker != null
+		and _lower_deck_forward_pressure_route_handoff_marker.has_method("get_endpoint_id")
+	):
+		return String(_lower_deck_forward_pressure_route_handoff_marker.call(
+			"get_endpoint_id"
+		))
+	return String(FACTORY_LOWER_DECK_FORWARD_PRESSURE_ROUTE_HANDOFF_MARKER_ID)
+
+
+func _get_lower_deck_forward_pressure_route_handoff_marker_texture_path() -> String:
+	if (
+		_lower_deck_forward_pressure_route_handoff_marker != null
+		and _lower_deck_forward_pressure_route_handoff_marker.has_method(
+			"get_visual_texture_path"
+		)
+	):
+		return String(_lower_deck_forward_pressure_route_handoff_marker.call(
+			"get_visual_texture_path"
+		))
+	var visual := (
+		_lower_deck_forward_pressure_route_handoff_marker.get_node_or_null("Visual")
+		as Sprite2D
+		if _lower_deck_forward_pressure_route_handoff_marker != null
+		else null
+	)
+	if visual == null or visual.texture == null:
+		return ""
+	return visual.texture.resource_path
+
+
+func _get_lower_deck_forward_pressure_route_handoff_marker_prompt_text() -> String:
+	var prompt_label := (
+		_lower_deck_forward_pressure_route_handoff_marker.get_node_or_null(
+			"PromptLabel"
+		) as Label
+		if _lower_deck_forward_pressure_route_handoff_marker != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_forward_pressure_route_handoff_marker_position() -> Vector2:
+	return (
+		(_lower_deck_forward_pressure_route_handoff_marker as Node2D).global_position
+		if (
+			_lower_deck_forward_pressure_route_handoff_marker != null
+			and _lower_deck_forward_pressure_route_handoff_marker is Node2D
+		)
+		else Vector2.ZERO
+	)
+
+
+func _get_lower_deck_forward_pressure_route_handoff_marker_unlock_vfx_snapshot(
+) -> Dictionary:
+	if (
+		_lower_deck_forward_pressure_route_handoff_marker == null
+		or not _lower_deck_forward_pressure_route_handoff_marker.has_method(
+			"get_unlock_vfx_snapshot"
+		)
+	):
+		return {}
+	var snapshot_variant: Variant = _lower_deck_forward_pressure_route_handoff_marker.call(
+		"get_unlock_vfx_snapshot"
+	)
+	if snapshot_variant is Dictionary:
+		return (snapshot_variant as Dictionary).duplicate(true)
+	return {}
 
 
 func _get_post_bulkhead_background_texture_path() -> String:
@@ -9178,6 +9400,30 @@ func _is_lower_deck_forward_pressure_exit_gate_provider_in_range(provider: Node)
 	)
 
 
+func _is_lower_deck_forward_pressure_route_handoff_marker_provider_in_range(
+	provider: Node
+) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	if _lower_deck_forward_pressure_route_handoff_marker == null:
+		return false
+	if _lower_deck_forward_pressure_route_handoff_marker.has_method(
+		"is_provider_in_activation_range"
+	):
+		return bool(_lower_deck_forward_pressure_route_handoff_marker.call(
+			"is_provider_in_activation_range",
+			provider
+		))
+	if not _lower_deck_forward_pressure_route_handoff_marker is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.distance_to(
+			(_lower_deck_forward_pressure_route_handoff_marker as Node2D).global_position
+		)
+		<= FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS
+	)
+
+
 func _is_lower_deck_post_relay_trial_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -9556,6 +9802,13 @@ func _is_lower_deck_forward_pressure_exit_gate_available() -> bool:
 	return (
 		_lower_deck_forward_pressure_exit_relay_activated
 		and not _lower_deck_forward_pressure_exit_gate_opened
+	)
+
+
+func _is_lower_deck_forward_pressure_route_handoff_marker_available() -> bool:
+	return (
+		_lower_deck_forward_pressure_exit_gate_opened
+		and not _lower_deck_forward_pressure_route_handoff_marker_lit
 	)
 
 
