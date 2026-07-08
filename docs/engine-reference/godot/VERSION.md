@@ -4,6 +4,7 @@
 |-------|-------|
 | **Engine Version** | Godot 4.7 |
 | **Local Binary Verified** | 4.7.stable.official.5b4e0cb0f |
+| **Godot AI MCP Baseline** | 2.9.1 |
 | **Project Pinned** | 2026-07-02 |
 | **Last Docs Verified** | 2026-07-02 |
 | **LLM Knowledge Cutoff** | May 2025 |
