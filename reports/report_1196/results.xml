@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-07-09" name="report_1196" tests="3" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_test" package="tests/unit/gameplay" timestamp="2026-07-08T21:52:30" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.417">
+		<testcase name="test_exhaust_pursuer_reward_cache_requires_pursuer_clear_and_keeps_lift_optional" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_test" time="0.276">
+		</testcase>
+		<testcase name="test_exhaust_pursuer_reward_cache_claim_persists_without_replaying_forward_chain" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_test" time="0.068">
+		</testcase>
+		<testcase name="test_exhaust_pursuer_reward_cache_unlocks_on_live_pursuer_defeat" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_test" time="0.064">
+		</testcase>
+	</testsuite>
+</testsuites>

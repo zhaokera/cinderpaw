@@ -97,6 +97,30 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 088: Old Factory Lower Deck Forward Pressure
+  Aftershock Exhaust Pursuer Reward Cache -- after Story087 clears the
+  aftershock exhaust pursuer, `FactoryLowerDeckForwardPressureAftershockExhaustPursuerRewardCache`
+  becomes visible and claimable at x `2664.0`. The payoff cache reuses the
+  image-generated lower-deck reward cache prop, grants `20` gears exactly once
+  through cache id/source
+  `old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache`,
+  persists
+  `factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed=true`,
+  and advances route feedback to
+  `Forward Pressure Exhaust Pursuer Cache Claimed +20 Gears`. No new visual or
+  audio assets, character animation, enemy family, hazard, savepoint,
+  service-lift route change, or global save schema were added. Verification:
+  RED `reports/report_1195/`; focused GREEN `reports/report_1196/` `3/3`;
+  related GREEN `reports/report_1197/` `26/26`; headless smoke
+  `reports/old_factory_forward_pressure_aftershock_exhaust_pursuer_reward_cache_smoke.log`
+  exited `0` with no project script/parse/invalid-call/access/missing-resource/
+  resource-load/shadowed-variable errors by keyword scan. Godot AI MCP `2.9.1`
+  on Godot `4.7-stable` confirmed helper live, live Story087 defeat-to-cache
+  unlock, cache node properties, runtime texture path, first claim `true`,
+  duplicate claim `false`, restored claimed state, Story074 relay, service
+  lift `Call lift`, Story068/071 no-replay sentinels, clean final game/editor
+  logs, and non-empty `960x539` game screenshot metadata.
+
 - Player Abilities Story 087: Old Factory Lower Deck Forward Pressure
   Aftershock Exhaust Pursuer -- after Story086 crosses the aftershock exhaust,
   Cinderpaw can push to x `2552.0` to activate
@@ -4081,3 +4105,14 @@
 - Verification: RED focused `reports/report_1187/` failed as expected before Story086 diagnostics/APIs existed. Focused GREEN `reports/report_1188/` passed Story086 `3/3`. Final related GREEN `reports/report_1190/` passed Story086 plus Story085, Story084, Story083, Story069 steam traversal, Story074 relay, service-lift, audio no-replay, and no-loss respawn coverage `25/25`. Headless Factory smoke `reports/old_factory_forward_pressure_aftershock_exhaust_traverse_smoke.log` exited `0` with no project script/parse/invalid-call/access/missing-resource/resource-load errors by keyword scan. Godot AI MCP `2.9.1` on Godot `4.7-stable` confirmed helper live, the exhaust vent node/script/texture/hazard id/damage/cooldown, locked/ready/grace/warning/active/safe/crossed/restored diagnostics, active-only player damage, Story074 exit-relay savepoint contract, Story068/071 no-replay, service lift `Call lift`, clean final game/editor logs, and a non-empty `960x539` MCP game screenshot showing the active exhaust vent.
 - Blockers: None for Story086. ADR-0018 and ADR-0021 are still marked `Proposed` in project documentation; this is an existing governance/documentation risk rather than a Story086 runtime blocker.
 - Next: continue another ACT-visible slice after the aftershock exhaust traverse, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.
+
+## Session Extract -- /dev-story 2026-07-09
+
+- Story: `production/epics/player-abilities/story-088-old-factory-lower-deck-forward-pressure-aftershock-exhaust-pursuer-reward-cache.md` -- Old Factory Lower Deck Forward Pressure Aftershock Exhaust Pursuer Reward Cache
+- Files changed: `src/gameplay/old_factory_entrance_scene.gd`, `scenes/factory_route_transition_shell.tscn`, `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_test.gd`, `design/assets/asset-manifest.md`, `design/assets/entity-inventory.md`, `production/epics/player-abilities/story-088-old-factory-lower-deck-forward-pressure-aftershock-exhaust-pursuer-reward-cache.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/old-factory-forward-pressure-aftershock-exhaust-pursuer-reward-cache-2026-07-09.md`, `reports/report_1195/`, `reports/report_1196/`, `reports/report_1197/`, `reports/old_factory_forward_pressure_aftershock_exhaust_pursuer_reward_cache_smoke.log`, `production/session-state/active.md`
+- Implementation: Added a Story087-gated once-only aftershock exhaust pursuer reward cache. `FactoryLowerDeckForwardPressureAftershockExhaustPursuerRewardCache` stays hidden/non-claimable until `factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_cleared=true`; once available it shows `+20 Gears`, uses cache id/source `old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache`, grants `20` gears on the first claim, rejects duplicate claims, persists `factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed=true`, and advances route feedback to `Forward Pressure Exhaust Pursuer Cache Claimed +20 Gears` without changing the Story074 exit relay savepoint or service-lift routing.
+- Asset pipeline: No new visual or audio assets were generated. Story088 reuses the imported image-generated lower-deck reward cache prop `res://assets/environment/old_factory_lower_deck_skirmish_cache/env_old_factory_lower_deck_skirmish_cache_claimable_256.png`; its original image-generation source, alpha source, and metadata remain under `assets/generated/source/old_factory_lower_deck_skirmish_cache_*`. Reuse is recorded in the asset manifest, entity inventory, story, and QA evidence. The AGENTS 2D frame animation rule is not triggered because Story088 adds an environment reward prop, not a player-visible character.
+- Test written: `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_test.gd` covers Story087-clear gating, hidden/non-claimable locked state, live Story087 Exhaust Pursuer defeat unlocking the cache, cache id/source, texture path, `+20 Gears` prompt, once-only claim payload and feedback, local-state persistence, restored claimed state, Story087/086/085/084 continuity, Story074 exit-relay savepoint contract, Story068 clear-feedback no-replay, Story071 reward-cache audio no-replay, and `FactoryServiceLift` prompt preservation.
+- Verification: RED focused `reports/report_1195/` failed as expected before Story088 diagnostics/APIs existed. Focused GREEN `reports/report_1196/` passed Story088 `3/3`. Related GREEN `reports/report_1197/` passed Story088, Story087, Story086, Story085, Story084, Story083, Story074 exit relay, service-lift, no-loss respawn, Story068 no-replay, and Story071 reward-cache audio no-replay suites `26/26`. Headless Factory smoke `reports/old_factory_forward_pressure_aftershock_exhaust_pursuer_reward_cache_smoke.log` exited `0` with no project script/parse/invalid-call/access/missing-resource/resource-load/shadowed-variable errors by keyword scan. Godot AI MCP `2.9.1` on Godot `4.7-stable` launched the factory scene with helper live, confirmed live Story087 activation `true`, damage to entity `2131` `true`, cache visible/available/claimable after the defeat, node `reward_gears=20`, runtime texture path, `+20 Gears` prompt, first claim `true`, duplicate claim `false`, `20` gear payload, route label `Forward Pressure Exhaust Pursuer Cache Claimed +20 Gears`, restored claimed-state contract, Story074 exit-relay savepoint contract, service lift `Call lift`, Story068/071 no-replay sentinels, game log containing only helper registration, empty editor log, and a non-empty `960x539` game screenshot with the cache visible.
+- Blockers: None. New generated character art, new character animation, new enemy family, new AI behavior tree, new hazard, new reward economy, SaveSystem schema changes, service-lift route changes, minimap/fast-travel UI, authored audio, particles/shaders, Boss2, and broader lower-deck layout work remain out of scope.
+- Next: continue another ACT-visible slice such as deeper Old Factory route content after the aftershock exhaust pursuer payoff, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.

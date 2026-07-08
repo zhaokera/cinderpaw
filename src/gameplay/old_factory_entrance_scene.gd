@@ -78,6 +78,9 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_REWARD_CACHE_ID: StringName = (
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_REWARD_CACHE_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_aftershock_reward_cache"
 )
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_REWARD_CACHE_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache"
+)
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC: float = 0.25
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC: float = 0.35
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC: float = 0.40
@@ -224,6 +227,9 @@ const FACTORY_OBJECTIVE_PURGE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER: Strin
 )
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CLEARED: StringName = (
 	&"forward_pressure_aftershock_exhaust_pursuer_cleared"
+)
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CACHE_CLAIMED: StringName = (
+	&"forward_pressure_aftershock_exhaust_pursuer_cache_claimed"
 )
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
@@ -421,6 +427,11 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_forward_pressure_aftershock_reward_cache: Node = (
 	get_node_or_null("FactoryLowerDeckForwardPressureAftershockRewardCache")
 )
+@onready var _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache: Node = (
+	get_node_or_null(
+		"FactoryLowerDeckForwardPressureAftershockExhaustPursuerRewardCache"
+	)
+)
 @onready var _lower_deck_pressure_valve: Node = get_node_or_null("FactoryLowerDeckPressureValve")
 @onready var _lower_deck_deep_bulkhead: Node = get_node_or_null("FactoryLowerDeckDeepBulkhead")
 @onready var _lower_deck_forward_hatch: Node = get_node_or_null("FactoryLowerDeckForwardHatch")
@@ -506,6 +517,8 @@ var _last_lower_deck_forward_pressure_reward_cache_reward: Dictionary = {}
 var _last_lower_deck_forward_pressure_reward_cache_claim_feedback: Dictionary = {}
 var _last_lower_deck_forward_pressure_aftershock_reward_cache_reward: Dictionary = {}
 var _last_lower_deck_forward_pressure_aftershock_reward_cache_claim_feedback: Dictionary = {}
+var _last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_reward: Dictionary = {}
+var _last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback: Dictionary = {}
 var _last_checkpoint_overdrive_defeat_burst_side: StringName = &""
 var _lower_deck_forward_conduit_clear_feedback_played: bool = false
 var _lower_deck_forward_conduit_clear_feedback_spawn_count: int = 0
@@ -603,6 +616,7 @@ var _lower_deck_forward_pressure_aftershock_exhaust_crossed: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_elapsed_sec: float = 0.0
 var _lower_deck_forward_pressure_aftershock_exhaust_pursuer_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated: bool = false
+var _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -658,6 +672,7 @@ func _ready() -> void:
 	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_state()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_state()
+	_setup_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -784,6 +799,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXIT_SKIRMISH_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_CROSSED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CLEARED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CACHE_CLAIMED
 		)
 
 
@@ -1426,6 +1442,50 @@ func try_claim_factory_lower_deck_forward_pressure_aftershock_reward_cache(
 			"Forward Pressure Aftershock Cache Claimed"
 		)
 	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
+	_refresh_factory_route_objective()
+	return true
+
+
+## Attempts to claim the payoff cache after the aftershock exhaust pursuer is cleared.
+func try_claim_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache(
+	provider: Node = null
+) -> bool:
+	if (
+		not _lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated
+		or _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache == null
+	):
+		return false
+	var claim_provider: Node = provider if provider != null else _player
+	if (
+		not _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache.has_method(
+			"try_claim"
+		)
+		or not bool(_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache.call(
+			"try_claim",
+			claim_provider
+		))
+	):
+		return false
+	_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed = true
+	var reward_payload: Dictionary = (
+		_get_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_payload()
+	)
+	if (
+		_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_reward
+		.is_empty()
+	):
+		_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_reward = (
+			reward_payload
+		)
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_state()
+	if (
+		_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback
+		.is_empty()
+	):
+		_record_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback(
+			reward_payload,
+			"Forward Pressure Exhaust Pursuer Cache Claimed"
+		)
 	_refresh_factory_route_objective()
 	return true
 
@@ -2492,6 +2552,9 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_cleared": (
 			_lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated
 		),
+		"factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed": (
+			_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -2543,6 +2606,16 @@ func get_local_state() -> Dictionary:
 		),
 		"last_lower_deck_forward_pressure_aftershock_reward_cache_claim_feedback": (
 			_last_lower_deck_forward_pressure_aftershock_reward_cache_claim_feedback.duplicate(
+				true
+			)
+		),
+		"last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_reward": (
+			_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_reward.duplicate(
+				true
+			)
+		),
+		"last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback": (
+			_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback.duplicate(
 				true
 			)
 		),
@@ -2891,6 +2964,12 @@ func set_local_state(state: Dictionary) -> void:
 		false
 	)):
 		_lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated = true
+	_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed",
+			false
+		)
+	)
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -3137,6 +3216,30 @@ func set_local_state(state: Dictionary) -> void:
 		if lower_deck_forward_pressure_aftershock_feedback_variant is Dictionary
 		else {}
 	)
+	var lower_deck_forward_pressure_exhaust_pursuer_reward_variant: Variant = state.get(
+		"last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_reward",
+		{}
+	)
+	_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_reward = (
+		(
+			lower_deck_forward_pressure_exhaust_pursuer_reward_variant
+			as Dictionary
+		).duplicate(true)
+		if lower_deck_forward_pressure_exhaust_pursuer_reward_variant is Dictionary
+		else {}
+	)
+	var lower_deck_forward_pressure_exhaust_pursuer_feedback_variant: Variant = state.get(
+		"last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback",
+		{}
+	)
+	_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback = (
+		(
+			lower_deck_forward_pressure_exhaust_pursuer_feedback_variant
+			as Dictionary
+		).duplicate(true)
+		if lower_deck_forward_pressure_exhaust_pursuer_feedback_variant is Dictionary
+		else {}
+	)
 	var return_checkpoint_variant: Variant = state.get(
 		"last_return_checkpoint",
 		state.get("last_savepoint", {})
@@ -3237,6 +3340,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_state()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_state()
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -4556,6 +4660,58 @@ func get_factory_lower_deck_forward_pressure_aftershock_reward_cache_diagnostics
 			_last_lower_deck_forward_pressure_aftershock_reward_cache_claim_feedback.duplicate(
 				true
 			)
+		),
+	}
+
+
+## Returns deterministic exhaust-pursuer reward cache diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_diagnostics(
+) -> Dictionary:
+	var cache: Node = _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache
+	return {
+		"present": cache != null,
+		"visible": cache.visible if cache != null else false,
+		"cache_id": (
+			String(cache.call("get_cache_id"))
+			if cache != null and cache.has_method("get_cache_id")
+			else ""
+		),
+		"texture_path": (
+			String(cache.call("get_visual_texture_path"))
+			if cache != null and cache.has_method("get_visual_texture_path")
+			else ""
+		),
+		"available": (
+			bool(cache.call("is_available"))
+			if cache != null and cache.has_method("is_available")
+			else false
+		),
+		"claim_available": (
+			bool(cache.call("is_claim_available"))
+			if cache != null and cache.has_method("is_claim_available")
+			else false
+		),
+		"claimed": (
+			_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed
+		),
+		"prompt_text": (
+			_get_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_prompt_text()
+		),
+		"exhaust_pursuer_cleared": (
+			_lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated
+		),
+		"position": (
+			(cache as Node2D).global_position
+			if cache != null and cache is Node2D
+			else Vector2.ZERO
+		),
+		"last_reward": (
+			_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_reward
+			.duplicate(true)
+		),
+		"last_claim_feedback": (
+			_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback
+			.duplicate(true)
 		),
 	}
 
@@ -7253,6 +7409,29 @@ func _setup_factory_lower_deck_forward_pressure_aftershock_reward_cache() -> voi
 		)
 
 
+func _setup_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache(
+) -> void:
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_state()
+	if (
+		_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache == null
+		or not _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache.has_signal(
+			"cache_claimed"
+		)
+	):
+		return
+	var claimed_signal: Signal = (
+		_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache.get(
+			"cache_claimed"
+		)
+	)
+	if not claimed_signal.is_connected(
+		_on_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed
+	):
+		claimed_signal.connect(
+			_on_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed
+		)
+
+
 func _setup_factory_lower_deck_forward_hatch() -> void:
 	_sync_lower_deck_forward_hatch_state()
 	if _lower_deck_forward_hatch == null or not _lower_deck_forward_hatch.has_signal(
@@ -7806,6 +7985,7 @@ func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated
 	_lower_deck_forward_pressure_aftershock_exhaust_pursuer_activated = true
 	_lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated = true
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_state()
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_state()
 	_refresh_factory_route_objective()
 
 
@@ -7942,6 +8122,22 @@ func _on_factory_lower_deck_forward_pressure_aftershock_reward_cache_claimed(
 		"Forward Pressure Aftershock Cache Claimed"
 	)
 	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed(
+	_cache_id: StringName,
+	reward: Dictionary
+) -> void:
+	_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed = true
+	_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_reward = (
+		reward.duplicate(true)
+	)
+	_record_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback(
+		_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_reward,
+		"Forward Pressure Exhaust Pursuer Cache Claimed"
+	)
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_state()
 	_refresh_factory_route_objective()
 
 
@@ -8554,6 +8750,27 @@ func _sync_lower_deck_forward_pressure_aftershock_reward_cache_state() -> void:
 		_lower_deck_forward_pressure_aftershock_reward_cache.call(
 			"set_claimed",
 			_lower_deck_forward_pressure_aftershock_reward_cache_claimed
+		)
+
+
+func _sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_state(
+) -> void:
+	var cache: Node = _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache
+	if cache == null:
+		return
+	cache.visible = (
+		_lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated
+		or _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed
+	)
+	if cache.has_method("set_available"):
+		cache.call(
+			"set_available",
+			_lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated
+		)
+	if cache.has_method("set_claimed"):
+		cache.call(
+			"set_claimed",
+			_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed
 		)
 
 
@@ -9486,6 +9703,8 @@ func _get_factory_route_objective_id() -> StringName:
 		return FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST
 	if _is_lower_deck_forward_pressure_aftershock_exhaust_pursuer_active():
 		return FACTORY_OBJECTIVE_PURGE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER
+	if _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed:
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CACHE_CLAIMED
 	if _lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated:
 		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CLEARED
 	if _lower_deck_forward_pressure_aftershock_exhaust_crossed:
@@ -9768,6 +9987,8 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Purge Aftershock Exhaust Pursuer"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CLEARED:
 			return "Forward Pressure Exhaust Pursuer Cleared"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CACHE_CLAIMED:
+			return "Forward Pressure Exhaust Pursuer Cache Claimed +20 Gears"
 		_:
 			return "Clear Factory Entrance"
 
@@ -9873,6 +10094,17 @@ func _get_lower_deck_forward_pressure_aftershock_reward_cache_payload() -> Dicti
 	return {}
 
 
+func _get_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_payload(
+) -> Dictionary:
+	var cache: Node = _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache
+	if cache == null or not cache.has_method("get_reward_payload"):
+		return {}
+	var reward_variant: Variant = cache.call("get_reward_payload")
+	if reward_variant is Dictionary:
+		return (reward_variant as Dictionary).duplicate(true)
+	return {}
+
+
 func _record_cache_claim_feedback(reward: Dictionary, label_prefix: String) -> void:
 	_last_cache_claim_feedback = _build_cache_claim_feedback(reward, label_prefix)
 	_update_route_label(String(_last_cache_claim_feedback.get("text", "")))
@@ -9964,6 +10196,22 @@ func _record_lower_deck_forward_pressure_aftershock_reward_cache_claim_feedback(
 	)
 	_update_route_label(String(
 		_last_lower_deck_forward_pressure_aftershock_reward_cache_claim_feedback.get(
+			"text",
+			""
+		)
+	))
+
+
+func _record_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback(
+	reward: Dictionary,
+	label_prefix: String
+) -> void:
+	_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback = (
+		_build_cache_claim_feedback(reward, label_prefix)
+	)
+	_update_route_label(String(
+		_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback
+		.get(
 			"text",
 			""
 		)
@@ -10266,6 +10514,17 @@ func _get_lower_deck_forward_pressure_aftershock_reward_cache_prompt_text() -> S
 			"PromptLabel"
 		) as Label
 		if _lower_deck_forward_pressure_aftershock_reward_cache != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_prompt_text(
+) -> String:
+	var cache: Node = _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache
+	var prompt_label: Label = (
+		cache.get_node_or_null("PromptLabel") as Label
+		if cache != null
 		else null
 	)
 	return prompt_label.text if prompt_label != null else ""
