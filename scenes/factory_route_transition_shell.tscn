@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -25,6 +25,7 @@
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_deep_bulkhead/env_old_factory_lower_deck_deep_bulkhead_closed_256.png" id="23_deep_bulkhead_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_post_bulkhead/env_old_factory_lower_deck_post_bulkhead_backdrop_1280x720.png" id="24_post_bulkhead_backdrop"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_breach_relay/env_old_factory_lower_deck_breach_relay_256.png" id="25_breach_relay_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_forward_pressure_breaker/env_old_factory_forward_pressure_breaker_console_256.png" id="26_breaker_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -224,6 +225,10 @@ position = Vector2(1608, 482)
 [node name="FactoryLowerDeckForwardPressureOverrunSparkRat" parent="." instance=ExtResource("13_spark_rat")]
 z_index = 20
 position = Vector2(1672, 482)
+
+[node name="FactoryLowerDeckForwardPressureBreakerSparkRat" parent="." instance=ExtResource("13_spark_rat")]
+z_index = 20
+position = Vector2(1712, 482)
 
 [node name="FactoryCheckpointOverdriveLeftDefeatBurst" type="Sprite2D" parent="."]
 visible = false
@@ -909,6 +914,43 @@ monitorable = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureRouteHandoffMarker/InteractionArea"]
 shape = SubResource("CircleShape2D_deep_endpoint_interaction")
 
+[node name="FactoryLowerDeckForwardPressureBreaker" type="Node2D" parent="."]
+visible = false
+z_index = 27
+position = Vector2(1738, 382)
+script = ExtResource("11_endpoint_script")
+endpoint_id = &"old_factory_lower_deck_forward_pressure_breaker"
+activation_radius_px = 112.0
+locked_prompt_text = "Secure breaker"
+available_prompt_text = "Cut Pressure"
+activated_prompt_text = "Pressure Cut"
+unlock_vfx_texture = ExtResource("12_unlock_vfx")
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckForwardPressureBreaker"]
+scale = Vector2(0.62, 0.62)
+texture = ExtResource("26_breaker_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryLowerDeckForwardPressureBreaker"]
+z_index = 4
+offset_left = -104.0
+offset_top = -126.0
+offset_right = 104.0
+offset_bottom = -100.0
+theme_override_colors/font_color = Color(0.58, 0.94, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 15
+text = "Secure breaker"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="FactoryLowerDeckForwardPressureBreaker"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureBreaker/InteractionArea"]
+shape = SubResource("CircleShape2D_deep_endpoint_interaction")
+
 [node name="FactorySteamVentHazard" type="Area2D" parent="."]
 z_index = 18
 position = Vector2(642, 466)
@@ -1190,6 +1232,30 @@ scale = Vector2(0.72, 0.72)
 texture = ExtResource("8_vent_texture")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureOverrunVent"]
+position = Vector2(0, -36)
+shape = SubResource("RectangleShape2D_steam_vent")
+disabled = true
+
+[node name="FactoryLowerDeckForwardPressureBreakerVent" type="Area2D" parent="."]
+visible = false
+z_index = 18
+position = Vector2(1694, 466)
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+script = ExtResource("9_vent_script")
+hazard_id = &"old_factory_lower_deck_forward_pressure_breaker"
+damage = 8
+contact_cooldown_sec = 1.0
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckForwardPressureBreakerVent"]
+z_index = 1
+position = Vector2(0, -78)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("8_vent_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureBreakerVent"]
 position = Vector2(0, -36)
 shape = SubResource("RectangleShape2D_steam_vent")
 disabled = true

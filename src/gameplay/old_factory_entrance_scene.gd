@@ -32,6 +32,7 @@ const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_ENTITY_ID: int = 2119
 const FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ENTITY_ID: int = 2120
 const FACTORY_LOWER_DECK_FORWARD_BEACON_AMBUSH_ENTITY_ID: int = 2121
 const FACTORY_LOWER_DECK_FORWARD_OVERRUN_ENTITY_ID: int = 2122
+const FACTORY_LOWER_DECK_FORWARD_BREAKER_ENTITY_ID: int = 2123
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
@@ -54,6 +55,7 @@ const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_ACTIVATION_X: float = 1336.0
 const FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ACTIVATION_X: float = 1352.0
 const FACTORY_LOWER_DECK_FORWARD_BEACON_AMBUSH_ACTIVATION_X: float = 1560.0
 const FACTORY_LOWER_DECK_FORWARD_OVERRUN_ACTIVATION_X: float = 1620.0
+const FACTORY_LOWER_DECK_FORWARD_BREAKER_ACTIVATION_X: float = 1668.0
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_REWARD_CACHE_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_reward_cache"
 )
@@ -146,6 +148,13 @@ const FACTORY_OBJECTIVE_SURVIVE_FORWARD_PRESSURE_OVERRUN: StringName = (
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_OVERRUN_CLEARED: StringName = (
 	&"forward_pressure_overrun_cleared"
 )
+const FACTORY_OBJECTIVE_SECURE_FORWARD_PRESSURE_BREAKER: StringName = (
+	&"secure_forward_pressure_breaker"
+)
+const FACTORY_OBJECTIVE_CUT_FORWARD_PRESSURE: StringName = &"cut_forward_pressure"
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_BREAKER_CUT: StringName = (
+	&"forward_pressure_breaker_cut"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -157,6 +166,9 @@ const FACTORY_LOWER_DECK_FORWARD_BEACON_AMBUSH_HAZARD_ID: StringName = (
 )
 const FACTORY_LOWER_DECK_FORWARD_OVERRUN_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_overrun"
+)
+const FACTORY_LOWER_DECK_FORWARD_BREAKER_HAZARD_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_breaker"
 )
 const FACTORY_LOWER_DECK_PARRY_GATE_ID: StringName = &"old_factory_lower_deck_parry_laser"
 const FACTORY_LOWER_DECK_SHORTCUT_SEAL_ID: StringName = &"old_factory_lower_deck_shortcut_seal"
@@ -171,6 +183,9 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_GATE_ID: StringName = (
 )
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_ROUTE_HANDOFF_MARKER_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_route_handoff_marker"
+)
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_BREAKER_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_breaker"
 )
 const FACTORY_LOWER_DECK_FORWARD_HATCH_ID: StringName = &"old_factory_lower_deck_forward_hatch"
 const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: StringName = &"lower_deck_breach_relay"
@@ -251,6 +266,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_forward_overrun_spark_rat: Node2D = (
 	get_node_or_null("FactoryLowerDeckForwardPressureOverrunSparkRat") as Node2D
 )
+@onready var _lower_deck_forward_breaker_spark_rat: Node2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureBreakerSparkRat") as Node2D
+)
 @onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
 	get_node_or_null("FactoryCheckpointOverdriveLeftDefeatBurst") as Sprite2D
 )
@@ -295,6 +313,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_forward_pressure_route_handoff_marker: Node = get_node_or_null(
 	"FactoryLowerDeckForwardPressureRouteHandoffMarker"
 )
+@onready var _lower_deck_forward_pressure_breaker: Node = get_node_or_null(
+	"FactoryLowerDeckForwardPressureBreaker"
+)
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
 	get_node_or_null("FactoryCheckpointSteamVentHazard") as Area2D
@@ -328,6 +349,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 )
 @onready var _lower_deck_forward_overrun_pressure_vent: Area2D = (
 	get_node_or_null("FactoryLowerDeckForwardPressureOverrunVent") as Area2D
+)
+@onready var _lower_deck_forward_breaker_pressure_vent: Area2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureBreakerVent") as Area2D
 )
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
@@ -426,6 +450,9 @@ var _lower_deck_forward_pressure_beacon_ambush_activated: bool = false
 var _lower_deck_forward_pressure_beacon_ambush_defeated: bool = false
 var _lower_deck_forward_pressure_overrun_activated: bool = false
 var _lower_deck_forward_pressure_overrun_defeated: bool = false
+var _lower_deck_forward_pressure_breaker_activated: bool = false
+var _lower_deck_forward_pressure_breaker_secured: bool = false
+var _lower_deck_forward_pressure_breaker_cut: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -472,6 +499,7 @@ func _ready() -> void:
 	_setup_factory_lower_deck_forward_pressure_route_handoff_marker()
 	_sync_lower_deck_forward_pressure_beacon_ambush_state()
 	_sync_lower_deck_forward_pressure_overrun_state()
+	_setup_factory_lower_deck_forward_pressure_breaker()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -491,6 +519,7 @@ func _process(_delta: float) -> void:
 	_try_auto_activate_checkpoint_overdrive_duo()
 	_try_auto_activate_forward_pressure_beacon_ambush()
 	_try_auto_activate_forward_pressure_overrun()
+	_try_auto_activate_forward_pressure_breaker()
 	_sync_factory_player_control_lock()
 
 
@@ -581,6 +610,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_EXIT_SECURED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_BEACON_AMBUSH_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_OVERRUN_CLEARED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_BREAKER_CUT
 	)
 
 
@@ -1529,6 +1559,57 @@ func try_activate_factory_lower_deck_forward_pressure_overrun(
 	return true
 
 
+## Activates the forward-pressure breaker stand after the overrun is cleared.
+func try_activate_factory_lower_deck_forward_pressure_breaker_stand(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_breaker_spark_rat == null
+		or _lower_deck_forward_breaker_pressure_vent == null
+		or not _is_lower_deck_forward_pressure_breaker_stand_available()
+		or _lower_deck_forward_pressure_breaker_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_breaker_provider_in_range(activation_provider):
+		return false
+	_lower_deck_forward_pressure_breaker_activated = true
+	_sync_lower_deck_forward_pressure_breaker_state()
+	_set_lower_deck_forward_breaker_attack_target(activation_provider)
+	_begin_lower_deck_forward_breaker_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	_refresh_factory_route_objective()
+	return true
+
+
+## Cuts the forward-pressure breaker once its guard is secured.
+func try_activate_factory_lower_deck_forward_pressure_breaker(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_breaker == null
+		or not _is_lower_deck_forward_pressure_breaker_available()
+		or _lower_deck_forward_pressure_breaker_cut
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_pressure_breaker_provider_in_range(
+		activation_provider
+	):
+		return false
+	if (
+		not _lower_deck_forward_pressure_breaker.has_method("try_activate")
+		or not bool(_lower_deck_forward_pressure_breaker.call(
+			"try_activate",
+			activation_provider
+		))
+	):
+		return false
+	_lower_deck_forward_pressure_breaker_cut = true
+	_sync_lower_deck_forward_pressure_breaker_endpoint_state()
+	_update_route_label("Forward Pressure Breaker Cut")
+	return true
+
+
 ## Attempts to activate the relay-forward combat trial after the breach relay is repaired.
 func try_activate_factory_lower_deck_post_relay_trial(provider: Node = null) -> bool:
 	if (
@@ -1911,6 +1992,15 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_overrun_defeated": (
 			_lower_deck_forward_pressure_overrun_defeated
 		),
+		"factory_lower_deck_forward_pressure_breaker_activated": (
+			_lower_deck_forward_pressure_breaker_activated
+		),
+		"factory_lower_deck_forward_pressure_breaker_secured": (
+			_lower_deck_forward_pressure_breaker_secured
+		),
+		"factory_lower_deck_forward_pressure_breaker_cut": (
+			_lower_deck_forward_pressure_breaker_cut
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -2199,6 +2289,18 @@ func set_local_state(state: Dictionary) -> void:
 	))
 	_lower_deck_forward_pressure_overrun_defeated = bool(state.get(
 		"factory_lower_deck_forward_pressure_overrun_defeated",
+		false
+	))
+	_lower_deck_forward_pressure_breaker_activated = bool(state.get(
+		"factory_lower_deck_forward_pressure_breaker_activated",
+		false
+	))
+	_lower_deck_forward_pressure_breaker_secured = bool(state.get(
+		"factory_lower_deck_forward_pressure_breaker_secured",
+		false
+	))
+	_lower_deck_forward_pressure_breaker_cut = bool(state.get(
+		"factory_lower_deck_forward_pressure_breaker_cut",
 		false
 	))
 	_reset_lower_deck_forward_conduit_clear_feedback()
@@ -2515,6 +2617,8 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_forward_pressure_route_handoff_marker_state()
 	_sync_lower_deck_forward_pressure_beacon_ambush_state()
 	_sync_lower_deck_forward_pressure_overrun_state()
+	_sync_lower_deck_forward_pressure_breaker_state()
+	_sync_lower_deck_forward_pressure_breaker_endpoint_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -2566,6 +2670,8 @@ func set_local_state(state: Dictionary) -> void:
 		)
 	if _is_lower_deck_forward_pressure_overrun_active():
 		_begin_lower_deck_forward_overrun_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
+	if _is_lower_deck_forward_pressure_breaker_stand_active():
+		_begin_lower_deck_forward_breaker_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
 		_update_route_label("Service Lift Departing")
@@ -4621,6 +4727,150 @@ func get_factory_lower_deck_forward_pressure_overrun_diagnostics() -> Dictionary
 	}
 
 
+## Returns deterministic forward-pressure breaker stand diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_breaker_stand_diagnostics() -> Dictionary:
+	var sprite: AnimatedSprite2D = (
+		_lower_deck_forward_breaker_spark_rat.get_node_or_null("Sprite")
+		as AnimatedSprite2D
+		if _lower_deck_forward_breaker_spark_rat != null
+		else null
+	)
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	return {
+		"present": (
+			_lower_deck_forward_breaker_spark_rat != null
+			and _lower_deck_forward_breaker_pressure_vent != null
+			and _lower_deck_forward_pressure_breaker != null
+		),
+		"available": _is_lower_deck_forward_pressure_breaker_stand_available(),
+		"active": _is_lower_deck_forward_pressure_breaker_stand_active(),
+		"secured": _lower_deck_forward_pressure_breaker_secured,
+		"cut": _lower_deck_forward_pressure_breaker_cut,
+		"overrun_defeated": _lower_deck_forward_pressure_overrun_defeated,
+		"activation_x": FACTORY_LOWER_DECK_FORWARD_BREAKER_ACTIVATION_X,
+		"enemy_visible": (
+			_lower_deck_forward_breaker_spark_rat.visible
+			if _lower_deck_forward_breaker_spark_rat != null
+			else false
+		),
+		"enemy_has_target": _does_lower_deck_forward_breaker_have_target(),
+		"enemy_physics_enabled": (
+			_lower_deck_forward_breaker_spark_rat.is_physics_processing()
+			if _lower_deck_forward_breaker_spark_rat != null
+			else false
+		),
+		"enemy_process_enabled": (
+			_lower_deck_forward_breaker_spark_rat.is_processing()
+			if _lower_deck_forward_breaker_spark_rat != null
+			else false
+		),
+		"entity_id": (
+			int(_lower_deck_forward_breaker_spark_rat.call("get_entity_id"))
+			if (
+				_lower_deck_forward_breaker_spark_rat != null
+				and _lower_deck_forward_breaker_spark_rat.has_method("get_entity_id")
+			)
+			else 0
+		),
+		"sprite_frames_path": (
+			sprite.sprite_frames.resource_path
+			if sprite != null and sprite.sprite_frames != null
+			else ""
+		),
+		"animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
+		"pacing": _get_lower_deck_forward_breaker_pacing_diagnostics(),
+		"hazard_present": _lower_deck_forward_breaker_pressure_vent != null,
+		"hazard_active": _is_hazard_contact_active(_lower_deck_forward_breaker_pressure_vent),
+		"hazard_visible": (
+			_lower_deck_forward_breaker_pressure_vent.visible
+			if _lower_deck_forward_breaker_pressure_vent != null
+			else false
+		),
+		"hazard_id": String(_get_hazard_id(_lower_deck_forward_breaker_pressure_vent)),
+		"hazard_damage": _get_hazard_damage(_lower_deck_forward_breaker_pressure_vent),
+		"hazard_cooldown_sec": _get_hazard_cooldown_sec(
+			_lower_deck_forward_breaker_pressure_vent
+		),
+		"hazard_texture_path": (
+			String(_lower_deck_forward_breaker_pressure_vent.call(
+				"get_visual_texture_path"
+			))
+			if (
+				_lower_deck_forward_breaker_pressure_vent != null
+				and _lower_deck_forward_breaker_pressure_vent.has_method(
+					"get_visual_texture_path"
+				)
+			)
+			else ""
+		),
+		"breaker_visible": (
+			_lower_deck_forward_pressure_breaker.visible
+			if _lower_deck_forward_pressure_breaker != null
+			else false
+		),
+		"breaker_id": _get_lower_deck_forward_pressure_breaker_id(),
+		"prompt_text": _get_lower_deck_forward_pressure_breaker_prompt_text(),
+		"texture_path": _get_lower_deck_forward_pressure_breaker_texture_path(),
+		"enemy_position": (
+			_lower_deck_forward_breaker_spark_rat.global_position
+			if _lower_deck_forward_breaker_spark_rat != null
+			else Vector2.ZERO
+		),
+		"hazard_position": (
+			_lower_deck_forward_breaker_pressure_vent.global_position
+			if _lower_deck_forward_breaker_pressure_vent != null
+			else Vector2.ZERO
+		),
+		"breaker_position": _get_lower_deck_forward_pressure_breaker_position(),
+		"route_label_text": String(route.get("route_label_text", "")),
+	}
+
+
+## Returns deterministic forward-pressure breaker console diagnostics.
+func get_factory_lower_deck_forward_pressure_breaker_diagnostics() -> Dictionary:
+	var interaction_area := (
+		_lower_deck_forward_pressure_breaker.get_node_or_null("InteractionArea")
+		as Area2D
+		if _lower_deck_forward_pressure_breaker != null
+		else null
+	)
+	var collision_shape := (
+		_lower_deck_forward_pressure_breaker.get_node_or_null(
+			"InteractionArea/CollisionShape2D"
+		) as CollisionShape2D
+		if _lower_deck_forward_pressure_breaker != null
+		else null
+	)
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	var unlock_vfx_snapshot: Dictionary = (
+		_get_lower_deck_forward_pressure_breaker_unlock_vfx_snapshot()
+	)
+	return {
+		"present": _lower_deck_forward_pressure_breaker != null,
+		"overrun_defeated": _lower_deck_forward_pressure_overrun_defeated,
+		"secured": _lower_deck_forward_pressure_breaker_secured,
+		"cut": _lower_deck_forward_pressure_breaker_cut,
+		"available": _is_lower_deck_forward_pressure_breaker_available(),
+		"visible": (
+			_lower_deck_forward_pressure_breaker.visible
+			if _lower_deck_forward_pressure_breaker != null
+			else false
+		),
+		"breaker_id": _get_lower_deck_forward_pressure_breaker_id(),
+		"prompt_text": _get_lower_deck_forward_pressure_breaker_prompt_text(),
+		"texture_path": _get_lower_deck_forward_pressure_breaker_texture_path(),
+		"interaction_monitoring": interaction_area.monitoring if interaction_area != null else false,
+		"interaction_monitorable": interaction_area.monitorable if interaction_area != null else false,
+		"collision_disabled": collision_shape.disabled if collision_shape != null else true,
+		"position": _get_lower_deck_forward_pressure_breaker_position(),
+		"route_label_text": String(route.get("route_label_text", "")),
+		"unlock_feedback_texture_path": String(unlock_vfx_snapshot.get("texture_path", "")),
+		"unlock_feedback_active": int(unlock_vfx_snapshot.get("active_count", 0)) > 0,
+		"unlock_feedback_played": bool(unlock_vfx_snapshot.get("played", false)),
+		"unlock_feedback_spawn_count": int(unlock_vfx_snapshot.get("spawn_count", 0)),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -5016,6 +5266,12 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		),
 		"lower_deck_forward_pressure_overrun": (
 			get_factory_lower_deck_forward_pressure_overrun_diagnostics()
+		),
+		"lower_deck_forward_pressure_breaker_stand": (
+			get_factory_lower_deck_forward_pressure_breaker_stand_diagnostics()
+		),
+		"lower_deck_forward_pressure_breaker": (
+			get_factory_lower_deck_forward_pressure_breaker_diagnostics()
 		),
 		"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
@@ -5456,6 +5712,13 @@ func _bind_enemy_to_player() -> void:
 		&"factory_lower_deck_forward_pressure_overrun_spark_rat",
 		_on_factory_lower_deck_forward_pressure_overrun_defeated
 	)
+	_bind_factory_guard(
+		_lower_deck_forward_breaker_spark_rat,
+		FACTORY_LOWER_DECK_FORWARD_BREAKER_HAZARD_ID,
+		FACTORY_LOWER_DECK_FORWARD_BREAKER_ENTITY_ID,
+		&"factory_lower_deck_forward_pressure_breaker_spark_rat",
+		_on_factory_lower_deck_forward_pressure_breaker_defeated
+	)
 
 
 func _setup_factory_cache() -> void:
@@ -5673,6 +5936,25 @@ func _setup_factory_lower_deck_forward_pressure_route_handoff_marker() -> void:
 	):
 		activated_signal.connect(
 			_on_factory_lower_deck_forward_pressure_route_handoff_marker_activated
+		)
+
+
+func _setup_factory_lower_deck_forward_pressure_breaker() -> void:
+	_sync_lower_deck_forward_pressure_breaker_state()
+	_sync_lower_deck_forward_pressure_breaker_endpoint_state()
+	if (
+		_lower_deck_forward_pressure_breaker == null
+		or not _lower_deck_forward_pressure_breaker.has_signal("endpoint_activated")
+	):
+		return
+	var activated_signal: Signal = _lower_deck_forward_pressure_breaker.get(
+		"endpoint_activated"
+	)
+	if not activated_signal.is_connected(
+		_on_factory_lower_deck_forward_pressure_breaker_activated
+	):
+		activated_signal.connect(
+			_on_factory_lower_deck_forward_pressure_breaker_activated
 		)
 
 
@@ -6011,6 +6293,14 @@ func _on_factory_lower_deck_forward_pressure_overrun_defeated() -> void:
 	_refresh_factory_route_objective()
 
 
+func _on_factory_lower_deck_forward_pressure_breaker_defeated() -> void:
+	_lower_deck_forward_pressure_breaker_activated = true
+	_lower_deck_forward_pressure_breaker_secured = true
+	_sync_lower_deck_forward_pressure_breaker_state()
+	_sync_lower_deck_forward_pressure_breaker_endpoint_state()
+	_refresh_factory_route_objective()
+
+
 func _on_factory_lower_deck_parry_gate_state_changed(
 	gate_id: StringName,
 	gate_state: StringName
@@ -6158,6 +6448,16 @@ func _on_factory_lower_deck_forward_pressure_route_handoff_marker_activated(
 	_lower_deck_forward_pressure_route_handoff_marker_lit = true
 	_sync_lower_deck_forward_pressure_route_handoff_marker_state()
 	_update_route_label("Forward Pressure Route Beacon Lit")
+
+
+func _on_factory_lower_deck_forward_pressure_breaker_activated(
+	endpoint_id: StringName
+) -> void:
+	if endpoint_id != FACTORY_LOWER_DECK_FORWARD_PRESSURE_BREAKER_ID:
+		return
+	_lower_deck_forward_pressure_breaker_cut = true
+	_sync_lower_deck_forward_pressure_breaker_endpoint_state()
+	_update_route_label("Forward Pressure Breaker Cut")
 
 
 func _on_factory_return_checkpoint_activated(
@@ -7170,6 +7470,60 @@ func _sync_lower_deck_forward_pressure_overrun_state() -> void:
 		collision_shape.disabled = not overrun_active
 
 
+func _sync_lower_deck_forward_pressure_breaker_state() -> void:
+	var breaker_active: bool = _is_lower_deck_forward_pressure_breaker_stand_active()
+	if _lower_deck_forward_breaker_spark_rat != null:
+		_lower_deck_forward_breaker_spark_rat.visible = breaker_active
+		_lower_deck_forward_breaker_spark_rat.set_physics_process(breaker_active)
+		_lower_deck_forward_breaker_spark_rat.set_process(breaker_active)
+		_lower_deck_forward_breaker_spark_rat.collision_layer = (
+			FACTORY_RAT_MINION_COLLISION_LAYER if breaker_active else 0
+		)
+		_lower_deck_forward_breaker_spark_rat.collision_mask = (
+			FACTORY_RAT_MINION_COLLISION_MASK if breaker_active else 0
+		)
+		_set_lower_deck_forward_breaker_attack_target(
+			_player if breaker_active else null
+		)
+
+	if _lower_deck_forward_breaker_pressure_vent != null:
+		_lower_deck_forward_breaker_pressure_vent.visible = breaker_active
+		_lower_deck_forward_breaker_pressure_vent.monitoring = breaker_active
+		_lower_deck_forward_breaker_pressure_vent.monitorable = breaker_active
+		_lower_deck_forward_breaker_pressure_vent.collision_layer = (
+			CollisionComponent.COLLISION_LAYER_ENVIRONMENT if breaker_active else 0
+		)
+		_lower_deck_forward_breaker_pressure_vent.collision_mask = (
+			CollisionComponent.COLLISION_MASK_ENVIRONMENT if breaker_active else 0
+		)
+		var collision_shape := (
+			_lower_deck_forward_breaker_pressure_vent.get_node_or_null(
+				"CollisionShape2D"
+			) as CollisionShape2D
+		)
+		if collision_shape != null:
+			collision_shape.disabled = not breaker_active
+
+
+func _sync_lower_deck_forward_pressure_breaker_endpoint_state() -> void:
+	if _lower_deck_forward_pressure_breaker == null:
+		return
+	_lower_deck_forward_pressure_breaker.visible = (
+		_lower_deck_forward_pressure_breaker_secured
+		or _lower_deck_forward_pressure_breaker_cut
+	)
+	if _lower_deck_forward_pressure_breaker.has_method("set_available"):
+		_lower_deck_forward_pressure_breaker.call(
+			"set_available",
+			_is_lower_deck_forward_pressure_breaker_available()
+		)
+	if _lower_deck_forward_pressure_breaker.has_method("set_activated"):
+		_lower_deck_forward_pressure_breaker.call(
+			"set_activated",
+			_lower_deck_forward_pressure_breaker_cut
+		)
+
+
 func _sync_lower_deck_parry_gate_state() -> void:
 	if _lower_deck_parry_gate == null:
 		return
@@ -7383,6 +7737,13 @@ func _get_factory_route_objective_id() -> StringName:
 	if _lower_deck_forward_pressure_overrun_activated \
 			and not _lower_deck_forward_pressure_overrun_defeated:
 		return FACTORY_OBJECTIVE_SURVIVE_FORWARD_PRESSURE_OVERRUN
+	if _lower_deck_forward_pressure_breaker_activated \
+			and not _lower_deck_forward_pressure_breaker_secured:
+		return FACTORY_OBJECTIVE_SECURE_FORWARD_PRESSURE_BREAKER
+	if _lower_deck_forward_pressure_breaker_cut:
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_BREAKER_CUT
+	if _lower_deck_forward_pressure_breaker_secured:
+		return FACTORY_OBJECTIVE_CUT_FORWARD_PRESSURE
 	if _lower_deck_forward_pressure_overrun_defeated:
 		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_OVERRUN_CLEARED
 	if _lower_deck_forward_pressure_beacon_ambush_defeated:
@@ -7609,6 +7970,12 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Survive Forward Pressure Overrun"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_OVERRUN_CLEARED:
 			return "Forward Pressure Overrun Cleared"
+		FACTORY_OBJECTIVE_SECURE_FORWARD_PRESSURE_BREAKER:
+			return "Secure Forward Pressure Breaker"
+		FACTORY_OBJECTIVE_CUT_FORWARD_PRESSURE:
+			return "Cut Forward Pressure"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_BREAKER_CUT:
+			return "Forward Pressure Breaker Cut"
 		_:
 			return "Clear Factory Entrance"
 
@@ -8187,6 +8554,70 @@ func _get_lower_deck_forward_pressure_route_handoff_marker_unlock_vfx_snapshot(
 	):
 		return {}
 	var snapshot_variant: Variant = _lower_deck_forward_pressure_route_handoff_marker.call(
+		"get_unlock_vfx_snapshot"
+	)
+	if snapshot_variant is Dictionary:
+		return (snapshot_variant as Dictionary).duplicate(true)
+	return {}
+
+
+func _get_lower_deck_forward_pressure_breaker_id() -> String:
+	if (
+		_lower_deck_forward_pressure_breaker != null
+		and _lower_deck_forward_pressure_breaker.has_method("get_endpoint_id")
+	):
+		return String(_lower_deck_forward_pressure_breaker.call("get_endpoint_id"))
+	return String(FACTORY_LOWER_DECK_FORWARD_PRESSURE_BREAKER_ID)
+
+
+func _get_lower_deck_forward_pressure_breaker_texture_path() -> String:
+	if (
+		_lower_deck_forward_pressure_breaker != null
+		and _lower_deck_forward_pressure_breaker.has_method("get_visual_texture_path")
+	):
+		return String(_lower_deck_forward_pressure_breaker.call(
+			"get_visual_texture_path"
+		))
+	var visual := (
+		_lower_deck_forward_pressure_breaker.get_node_or_null("Visual")
+		as Sprite2D
+		if _lower_deck_forward_pressure_breaker != null
+		else null
+	)
+	if visual == null or visual.texture == null:
+		return ""
+	return visual.texture.resource_path
+
+
+func _get_lower_deck_forward_pressure_breaker_prompt_text() -> String:
+	var prompt_label := (
+		_lower_deck_forward_pressure_breaker.get_node_or_null("PromptLabel") as Label
+		if _lower_deck_forward_pressure_breaker != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_forward_pressure_breaker_position() -> Vector2:
+	return (
+		(_lower_deck_forward_pressure_breaker as Node2D).global_position
+		if (
+			_lower_deck_forward_pressure_breaker != null
+			and _lower_deck_forward_pressure_breaker is Node2D
+		)
+		else Vector2.ZERO
+	)
+
+
+func _get_lower_deck_forward_pressure_breaker_unlock_vfx_snapshot() -> Dictionary:
+	if (
+		_lower_deck_forward_pressure_breaker == null
+		or not _lower_deck_forward_pressure_breaker.has_method(
+			"get_unlock_vfx_snapshot"
+		)
+	):
+		return {}
+	var snapshot_variant: Variant = _lower_deck_forward_pressure_breaker.call(
 		"get_unlock_vfx_snapshot"
 	)
 	if snapshot_variant is Dictionary:
@@ -8901,6 +9332,14 @@ func _set_lower_deck_forward_overrun_attack_target(attack_target: Node) -> void:
 		_lower_deck_forward_overrun_spark_rat.call("set_attack_target", attack_target)
 
 
+func _set_lower_deck_forward_breaker_attack_target(attack_target: Node) -> void:
+	if (
+		_lower_deck_forward_breaker_spark_rat != null
+		and _lower_deck_forward_breaker_spark_rat.has_method("set_attack_target")
+	):
+		_lower_deck_forward_breaker_spark_rat.call("set_attack_target", attack_target)
+
+
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
 		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
@@ -9093,6 +9532,18 @@ func _begin_lower_deck_forward_overrun_pacing(opening_grace_frames: int) -> void
 		and not _lower_deck_forward_pressure_overrun_defeated
 	):
 		_lower_deck_forward_overrun_spark_rat.call(
+			"begin_pacing",
+			maxi(0, opening_grace_frames)
+		)
+
+
+func _begin_lower_deck_forward_breaker_pacing(opening_grace_frames: int) -> void:
+	if (
+		_lower_deck_forward_breaker_spark_rat != null
+		and _lower_deck_forward_breaker_spark_rat.has_method("begin_pacing")
+		and not _lower_deck_forward_pressure_breaker_secured
+	):
+		_lower_deck_forward_breaker_spark_rat.call(
 			"begin_pacing",
 			maxi(0, opening_grace_frames)
 		)
@@ -9520,6 +9971,25 @@ func _get_lower_deck_forward_overrun_pacing_diagnostics() -> Dictionary:
 	}
 
 
+func _get_lower_deck_forward_breaker_pacing_diagnostics() -> Dictionary:
+	if (
+		_lower_deck_forward_breaker_spark_rat != null
+		and _lower_deck_forward_breaker_spark_rat.has_method(
+			"get_pacing_diagnostics"
+		)
+	):
+		var pacing_variant: Variant = _lower_deck_forward_breaker_spark_rat.call(
+			"get_pacing_diagnostics"
+		)
+		if pacing_variant is Dictionary:
+			return (pacing_variant as Dictionary).duplicate(true)
+	return {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+	}
+
+
 func _get_lower_deck_forward_exit_guard_opening_grace_frames() -> int:
 	var pacing: Dictionary = _get_lower_deck_forward_exit_guard_pacing_diagnostics()
 	return int(pacing.get("opening_grace_frames", 0))
@@ -9692,6 +10162,14 @@ func _does_lower_deck_forward_overrun_have_target() -> bool:
 	if _lower_deck_forward_overrun_spark_rat.has_method("has_attack_target"):
 		return bool(_lower_deck_forward_overrun_spark_rat.call("has_attack_target"))
 	return _is_lower_deck_forward_pressure_overrun_active()
+
+
+func _does_lower_deck_forward_breaker_have_target() -> bool:
+	if _lower_deck_forward_breaker_spark_rat == null:
+		return false
+	if _lower_deck_forward_breaker_spark_rat.has_method("has_attack_target"):
+		return bool(_lower_deck_forward_breaker_spark_rat.call("has_attack_target"))
+	return _is_lower_deck_forward_pressure_breaker_stand_active()
 
 
 func _does_lower_deck_breach_front_have_target() -> bool:
@@ -10032,6 +10510,35 @@ func _is_lower_deck_forward_overrun_provider_in_range(provider: Node) -> bool:
 	)
 
 
+func _is_lower_deck_forward_breaker_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_BREAKER_ACTIVATION_X
+	)
+
+
+func _is_lower_deck_forward_pressure_breaker_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	if _lower_deck_forward_pressure_breaker == null:
+		return false
+	if _lower_deck_forward_pressure_breaker.has_method("is_provider_in_activation_range"):
+		return bool(_lower_deck_forward_pressure_breaker.call(
+			"is_provider_in_activation_range",
+			provider
+		))
+	if not _lower_deck_forward_pressure_breaker is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.distance_to(
+			(_lower_deck_forward_pressure_breaker as Node2D).global_position
+		)
+		<= FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS
+	)
+
+
 func _is_return_checkpoint_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -10076,6 +10583,7 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 			_lower_deck_forward_exit_guard_spark_rat,
 			_lower_deck_forward_beacon_ambush_spark_rat,
 			_lower_deck_forward_overrun_spark_rat,
+			_lower_deck_forward_breaker_spark_rat,
 		]:
 		if guard == null or not guard.has_method("get_entity_id"):
 			continue
@@ -10398,6 +10906,28 @@ func _is_lower_deck_forward_pressure_overrun_active() -> bool:
 	)
 
 
+func _is_lower_deck_forward_pressure_breaker_stand_available() -> bool:
+	return (
+		_lower_deck_forward_pressure_overrun_defeated
+		and not _lower_deck_forward_pressure_breaker_secured
+	)
+
+
+func _is_lower_deck_forward_pressure_breaker_stand_active() -> bool:
+	return (
+		_lower_deck_forward_pressure_breaker_activated
+		and _lower_deck_forward_pressure_overrun_defeated
+		and not _lower_deck_forward_pressure_breaker_secured
+	)
+
+
+func _is_lower_deck_forward_pressure_breaker_available() -> bool:
+	return (
+		_lower_deck_forward_pressure_breaker_secured
+		and not _lower_deck_forward_pressure_breaker_cut
+	)
+
+
 func _is_lower_deck_forward_pressure_contact_active() -> bool:
 	return (
 		_lower_deck_forward_pressure_traverse_active
@@ -10495,6 +11025,17 @@ func _try_auto_activate_forward_pressure_overrun() -> void:
 	if not _lower_deck_forward_pressure_beacon_ambush_defeated:
 		return
 	try_activate_factory_lower_deck_forward_pressure_overrun(_player)
+
+
+func _try_auto_activate_forward_pressure_breaker() -> void:
+	if (
+		_lower_deck_forward_pressure_breaker_activated
+		or _lower_deck_forward_pressure_breaker_secured
+	):
+		return
+	if not _lower_deck_forward_pressure_overrun_defeated:
+		return
+	try_activate_factory_lower_deck_forward_pressure_breaker_stand(_player)
 
 
 func _is_service_lift_return_contract_in_state(state: Dictionary) -> bool:

@@ -70,10 +70,16 @@
 	  Lower Deck Forward Conduit Clear Feedback、Player Abilities Story069 Old
 	  Factory Lower Deck Forward Pressure Traverse、Player Abilities Story070
 	  Old Factory Lower Deck Forward Pressure Counter-Ambush、Player Abilities
-	  Story071 Old Factory Lower Deck Forward Pressure Reward Cache
-	  、Player Abilities Story072 Old Factory Lower Deck Forward Pressure
+	  Story071 Old Factory Lower Deck Forward Pressure Reward Cache、
+	  Player Abilities Story072 Old Factory Lower Deck Forward Pressure
 	  Reward Cache Audio Feedback、Player Abilities Story073 Old Factory Lower
-	  Deck Forward Pressure Exit Guard
+	  Deck Forward Pressure Exit Guard、Player Abilities Story074 Old Factory
+	  Lower Deck Forward Pressure Exit Relay Savepoint、Player Abilities Story075
+	  Old Factory Lower Deck Forward Pressure Exit Gate Handoff、Player Abilities
+	  Story076 Old Factory Lower Deck Forward Pressure Route Handoff Marker、
+	  Player Abilities Story077 Old Factory Lower Deck Forward Pressure Beacon
+	  Ambush、Player Abilities Story078 Old Factory Lower Deck Forward Pressure
+	  Overrun
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -83,14 +89,12 @@
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Technical Maintenance
-- Godot AI MCP 2.8.3 Upgrade — replaced the project-local plugin from
-  `/Users/zhaok/Downloads/godot-ai-2.8.3/plugin/addons/godot_ai/`, restarted
-  the Godot 4.7 editor, and verified MCP session `cinderpaw@b83b` reports
-  plugin/server `2.8.3` with readiness `ready`. Runtime smoke launched
-  `res://scenes/factory_route_transition_shell.tscn` through MCP with
-  `autosave=false`, confirmed the game helper was live, and found no new
-  game/editor errors. Evidence:
-  `production/qa/evidence/godot-ai-2-8-3-upgrade-2026-07-02.md`.
+- Godot AI MCP current baseline — the project-local plugin reports version
+  `2.9.1`, Godot 4.7 editor settings use managed server version `2.9.1`,
+  and live MCP session `cinderpaw@3094` reports plugin/server `2.9.1` with
+  readiness `ready`. Current runtime validation should use Godot `4.7-stable`
+  and Godot AI MCP `2.9.1`; older 2.8.x entries below are historical evidence
+  from the stories validated at that time.
 
 ## Last Completed Task
 - Player Abilities Story 073: Old Factory Lower Deck Forward Pressure Exit Guard
@@ -3968,3 +3972,14 @@
 - Verification: RED focused `reports/report_1139/` failed as expected before Story078 APIs existed. Focused GREEN `reports/report_1142/` passed Story078 `2/2`. Related GREEN `reports/report_1143/` passed Story078, Story077, Story076, Story075, Story074, Story073, Story070, service-lift, and no-loss respawn suites `18/18`. Headless Factory smoke `reports/old_factory_forward_pressure_overrun_smoke.log` exited `0` with no project script/parse/invalid-call/access/missing-resource/resource-load errors by keyword scan, aside from known Godot cleanup-time ObjectDB/resource messages in terminal output. Godot AI MCP `2.9.1` on Godot `4.7-stable` launched the factory scene with `autosave=false`, confirmed helper live, locked/ready/active/defeated/restored diagnostics, Spark Rat SpriteFrames frame counts `3` for all required animations, entity `2122`, active hazard id/damage/cooldown/texture, persisted local flags, stable Story074 savepoint contract, Story068/071/073/077 no-replay, service lift `Call lift`, game log containing only helper registration, empty editor log, and a non-empty `960x539` game screenshot.
 - Blockers: None. New room art, new enemy family art, authored combat/hazard SFX, minimap/fast travel UI, SaveSystem schema expansion, service-lift route changes, reward economy changes, particles/shaders, and boss content remain out of scope.
 - Next: continue another ACT-visible slice such as deeper Old Factory route combat after the overrun, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.
+
+## Session Extract -- /dev-story 2026-07-08
+
+- Story: `production/epics/player-abilities/story-079-old-factory-lower-deck-forward-pressure-breaker.md` -- Old Factory Lower Deck Forward Pressure Breaker
+- Files changed: `src/gameplay/old_factory_entrance_scene.gd`, `scenes/factory_route_transition_shell.tscn`, `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_breaker_test.gd`, `assets/environment/old_factory_forward_pressure_breaker/env_old_factory_forward_pressure_breaker_console_256.png`, `assets/generated/source/old_factory_forward_pressure_breaker_console_imagegen_20260708.png`, `assets/generated/source/old_factory_forward_pressure_breaker_console_alpha_20260708.png`, `assets/generated/source/old_factory_forward_pressure_breaker_console_imagegen_20260708.md`, `design/assets/asset-manifest.md`, `design/assets/entity-inventory.md`, `production/epics/player-abilities/story-079-old-factory-lower-deck-forward-pressure-breaker.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/old-factory-forward-pressure-breaker-2026-07-08.md`, `reports/report_1144/`, `reports/report_1147/`, `reports/report_1148/`, `reports/old_factory_forward_pressure_breaker_smoke.log`, `production/session-state/active.md`
+- Implementation: Added a Story078-gated forward-pressure breaker stand. `FactoryLowerDeckForwardPressureBreakerSparkRat`, `FactoryLowerDeckForwardPressureBreakerVent`, and `FactoryLowerDeckForwardPressureBreaker` stay hidden/inactive until `factory_lower_deck_forward_pressure_overrun_defeated=true`; crossing activation x `1668.0` activates entity `2123`, targets Cinderpaw, enables Spark Rat process/physics, enables pressure vent hazard `old_factory_lower_deck_forward_pressure_breaker`, and shows route feedback `Secure Forward Pressure Breaker`. Defeating entity `2123` disables the enemy/hazard, persists activation/secured flags, reveals the breaker console, and allows a one-shot pressure cut that persists `factory_lower_deck_forward_pressure_breaker_cut=true`, plays existing unlock VFX once, rejects duplicate cuts, and advances feedback to `Forward Pressure Breaker Cut`.
+- Asset pipeline: Generated a new breaker console PNG through image generation, preserved chroma-key and alpha-matted sources, processed it to a transparent `256x256` RGBA runtime prop, imported it through Godot, and recorded the prompt/source in `assets/generated/source/old_factory_forward_pressure_breaker_console_imagegen_20260708.md`, the asset manifest, entity inventory, story, and QA evidence. Story079 reuses Factory Spark Rat `AnimatedSprite2D + SpriteFrames`, the Old Factory steam vent prop, post-bulkhead backdrop, and unlock spark VFX.
+- Test written: `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_breaker_test.gd` covers overrun-clear gating, activation range, entity `2123`, Spark Rat frame counts for `idle/run/attack_tell/attack/hurt/death`, hazard activation semantics, generated breaker texture path, one-shot cut activation, local-state persistence, restored no-replay, Story078 overrun inactive/defeated continuity, route objective completion, Story074 savepoint contract, and service-lift prompt preservation.
+- Verification: RED focused `reports/report_1144/` failed as expected before Story079 diagnostics/APIs existed. Focused GREEN `reports/report_1147/` passed Story079 `2/2`. Related GREEN `reports/report_1148/` passed Story079, Story078, Story077, Story076, Story075, Story074, Story073, service-lift, and no-loss respawn suites `18/18`. Headless Factory smoke `reports/old_factory_forward_pressure_breaker_smoke.log` exited `0` with no project script/parse/invalid-call/access/missing-resource/resource-load errors by keyword scan, aside from known Godot cleanup-time ObjectDB/resource messages in terminal output. Godot AI MCP `2.9.1` on Godot `4.7-stable` launched the factory scene with `autosave=false`, confirmed helper live, locked/ready/active/secured/cut/restored diagnostics, Spark Rat SpriteFrames frame counts `3`, entity `2123`, generated breaker texture, active hazard id/damage/cooldown, cut activation true, duplicate cut false, persisted local flags, restored unlock VFX no-replay `spawn_count=0`, service lift `Call lift`, game log containing only helper registration, empty editor log, and non-empty `960x539` MCP game screenshots for active and secured states.
+- Blockers: None. New enemy family art, new room scene, SaveSystem schema changes, service-lift route changes, minimap/fast-travel UI, authored audio, particles/shaders, boss content, and broader lower-deck layout work remain out of scope.
+- Next: continue another ACT-visible slice such as deeper Old Factory route content after the breaker, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.
