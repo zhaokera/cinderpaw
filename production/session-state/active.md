@@ -97,6 +97,27 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 087: Old Factory Lower Deck Forward Pressure
+  Aftershock Exhaust Pursuer -- after Story086 crosses the aftershock exhaust,
+  Cinderpaw can push to x `2552.0` to activate
+  `FactoryLowerDeckForwardPressureAftershockExhaustPursuerCoilRat` as entity
+  `2131`. The slice reuses the image-generated Factory Coil Rat
+  `AnimatedSprite2D + SpriteFrames` asset, assigns the player as target,
+  enables process/physics, starts `10` opening-grace frames, persists
+  activated/defeated/cleared scene-local flags, and advances route feedback to
+  `Forward Pressure Exhaust Pursuer Cleared`. No new visual/audio assets,
+  enemy family, reward cache, savepoint, service-lift route change, or global
+  save schema were added. Verification: RED `reports/report_1191/`; focused
+  GREEN `reports/report_1192/` `2/2`; related GREEN `reports/report_1193/`
+  `23/23`; headless smoke
+  `reports/old_factory_forward_pressure_aftershock_exhaust_pursuer_smoke.log`
+  exited `0` with no project script/parse/invalid-call/access/missing-resource/
+  resource-load/shadowed-variable errors by keyword scan. Godot AI MCP
+  `2.9.1` on Godot `4.7-stable` confirmed helper live, active entity `2131`,
+  frame counts `idle/run/attack_tell/attack/hurt/death=3`, target/process/
+  physics enabled, route label `Purge Aftershock Exhaust Pursuer`, clean final
+  game/editor logs, and non-empty `960x539` game screenshot metadata.
+
 - Player Abilities Story 073: Old Factory Lower Deck Forward Pressure Exit Guard
   -- after the Story071/072 forward-pressure reward cache payoff, Cinderpaw can
   cross the next boundary to activate a short exit guard fight. The slice adds

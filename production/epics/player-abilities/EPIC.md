@@ -124,6 +124,7 @@ recording the reward in progression state.
 | 084 | Old Factory Lower Deck Forward Pressure Aftershock Reward Cache | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
 | 085 | Old Factory Lower Deck Forward Pressure Aftershock Exit Skirmish | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 086 | Old Factory Lower Deck Forward Pressure Aftershock Exhaust Traverse | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
+| 087 | Old Factory Lower Deck Forward Pressure Aftershock Exhaust Pursuer | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -143,8 +144,8 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-086 are complete. Continue with deeper Old Factory route content
-after the forward-pressure aftershock exhaust traverse, savepoint/minimap gameplay,
+Stories001-087 are complete. Continue with deeper Old Factory route content
+after the forward-pressure aftershock exhaust pursuer, savepoint/minimap gameplay,
 additional player-visible character/enemy frame-animation replacement, more
 skill-tree branches, authored hazard/audio polish, or final Boss2
 balancing/cutscene polish.

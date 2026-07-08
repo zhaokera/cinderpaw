@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-07-09" name="report_1192" tests="2" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_test" package="tests/unit/gameplay" timestamp="2026-07-08T21:22:26" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.356">
+		<testcase name="test_aftershock_exhaust_pursuer_requires_exhaust_crossed_and_activates" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_test" time="0.283">
+		</testcase>
+		<testcase name="test_aftershock_exhaust_pursuer_defeat_persists_without_replaying_chain" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_test" time="0.066">
+		</testcase>
+	</testsuite>
+</testsuites>
