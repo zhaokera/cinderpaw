@@ -117,6 +117,7 @@ recording the reward in progression state.
 | 077 | Old Factory Lower Deck Forward Pressure Beacon Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 078 | Old Factory Lower Deck Forward Pressure Overrun | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 079 | Old Factory Lower Deck Forward Pressure Breaker | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
+| 080 | Old Factory Lower Deck Forward Pressure Relief Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -136,8 +137,8 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-079 are complete. Continue with deeper Old Factory route content
-after the forward-pressure breaker, savepoint/minimap gameplay, additional
+Stories001-080 are complete. Continue with deeper Old Factory route content
+after the forward-pressure relief ambush, savepoint/minimap gameplay, additional
 player-visible character/enemy frame-animation replacement, more skill-tree
 branches, authored hazard/audio polish, or final Boss2 balancing/cutscene
 polish.

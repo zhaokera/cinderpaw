@@ -33,6 +33,7 @@ const FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ENTITY_ID: int = 2120
 const FACTORY_LOWER_DECK_FORWARD_BEACON_AMBUSH_ENTITY_ID: int = 2121
 const FACTORY_LOWER_DECK_FORWARD_OVERRUN_ENTITY_ID: int = 2122
 const FACTORY_LOWER_DECK_FORWARD_BREAKER_ENTITY_ID: int = 2123
+const FACTORY_LOWER_DECK_FORWARD_RELIEF_AMBUSH_ENTITY_ID: int = 2124
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
@@ -56,6 +57,7 @@ const FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ACTIVATION_X: float = 1352.0
 const FACTORY_LOWER_DECK_FORWARD_BEACON_AMBUSH_ACTIVATION_X: float = 1560.0
 const FACTORY_LOWER_DECK_FORWARD_OVERRUN_ACTIVATION_X: float = 1620.0
 const FACTORY_LOWER_DECK_FORWARD_BREAKER_ACTIVATION_X: float = 1668.0
+const FACTORY_LOWER_DECK_FORWARD_RELIEF_AMBUSH_ACTIVATION_X: float = 1804.0
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_REWARD_CACHE_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_reward_cache"
 )
@@ -155,6 +157,12 @@ const FACTORY_OBJECTIVE_CUT_FORWARD_PRESSURE: StringName = &"cut_forward_pressur
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_BREAKER_CUT: StringName = (
 	&"forward_pressure_breaker_cut"
 )
+const FACTORY_OBJECTIVE_SURVIVE_FORWARD_PRESSURE_RELIEF_AMBUSH: StringName = (
+	&"survive_forward_pressure_relief_ambush"
+)
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_RELIEF_AMBUSH_CLEARED: StringName = (
+	&"forward_pressure_relief_ambush_cleared"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -169,6 +177,9 @@ const FACTORY_LOWER_DECK_FORWARD_OVERRUN_HAZARD_ID: StringName = (
 )
 const FACTORY_LOWER_DECK_FORWARD_BREAKER_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_breaker"
+)
+const FACTORY_LOWER_DECK_FORWARD_RELIEF_AMBUSH_HAZARD_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_relief_ambush"
 )
 const FACTORY_LOWER_DECK_PARRY_GATE_ID: StringName = &"old_factory_lower_deck_parry_laser"
 const FACTORY_LOWER_DECK_SHORTCUT_SEAL_ID: StringName = &"old_factory_lower_deck_shortcut_seal"
@@ -269,6 +280,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_forward_breaker_spark_rat: Node2D = (
 	get_node_or_null("FactoryLowerDeckForwardPressureBreakerSparkRat") as Node2D
 )
+@onready var _lower_deck_forward_relief_ambush_spark_rat: Node2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureReliefSparkRat") as Node2D
+)
 @onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
 	get_node_or_null("FactoryCheckpointOverdriveLeftDefeatBurst") as Sprite2D
 )
@@ -352,6 +366,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 )
 @onready var _lower_deck_forward_breaker_pressure_vent: Area2D = (
 	get_node_or_null("FactoryLowerDeckForwardPressureBreakerVent") as Area2D
+)
+@onready var _lower_deck_forward_relief_ambush_pressure_vent: Area2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureReliefVent") as Area2D
 )
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
@@ -453,6 +470,8 @@ var _lower_deck_forward_pressure_overrun_defeated: bool = false
 var _lower_deck_forward_pressure_breaker_activated: bool = false
 var _lower_deck_forward_pressure_breaker_secured: bool = false
 var _lower_deck_forward_pressure_breaker_cut: bool = false
+var _lower_deck_forward_pressure_relief_ambush_activated: bool = false
+var _lower_deck_forward_pressure_relief_ambush_defeated: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -500,6 +519,7 @@ func _ready() -> void:
 	_sync_lower_deck_forward_pressure_beacon_ambush_state()
 	_sync_lower_deck_forward_pressure_overrun_state()
 	_setup_factory_lower_deck_forward_pressure_breaker()
+	_sync_lower_deck_forward_pressure_relief_ambush_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -520,6 +540,7 @@ func _process(_delta: float) -> void:
 	_try_auto_activate_forward_pressure_beacon_ambush()
 	_try_auto_activate_forward_pressure_overrun()
 	_try_auto_activate_forward_pressure_breaker()
+	_try_auto_activate_forward_pressure_relief_ambush()
 	_sync_factory_player_control_lock()
 
 
@@ -611,6 +632,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_BEACON_AMBUSH_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_OVERRUN_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_BREAKER_CUT
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_RELIEF_AMBUSH_CLEARED
 	)
 
 
@@ -1610,6 +1632,32 @@ func try_activate_factory_lower_deck_forward_pressure_breaker(
 	return true
 
 
+## Activates the breaker-cut follow-up relief ambush after pressure is released.
+func try_activate_factory_lower_deck_forward_pressure_relief_ambush(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_relief_ambush_spark_rat == null
+		or _lower_deck_forward_relief_ambush_pressure_vent == null
+		or not _is_lower_deck_forward_pressure_relief_ambush_available()
+		or _lower_deck_forward_pressure_relief_ambush_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_relief_ambush_provider_in_range(
+		activation_provider
+	):
+		return false
+	_lower_deck_forward_pressure_relief_ambush_activated = true
+	_sync_lower_deck_forward_pressure_relief_ambush_state()
+	_set_lower_deck_forward_relief_ambush_attack_target(activation_provider)
+	_begin_lower_deck_forward_relief_ambush_pacing(
+		FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES
+	)
+	_refresh_factory_route_objective()
+	return true
+
+
 ## Attempts to activate the relay-forward combat trial after the breach relay is repaired.
 func try_activate_factory_lower_deck_post_relay_trial(provider: Node = null) -> bool:
 	if (
@@ -2001,6 +2049,12 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_breaker_cut": (
 			_lower_deck_forward_pressure_breaker_cut
 		),
+		"factory_lower_deck_forward_pressure_relief_ambush_activated": (
+			_lower_deck_forward_pressure_relief_ambush_activated
+		),
+		"factory_lower_deck_forward_pressure_relief_ambush_defeated": (
+			_lower_deck_forward_pressure_relief_ambush_defeated
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -2301,6 +2355,14 @@ func set_local_state(state: Dictionary) -> void:
 	))
 	_lower_deck_forward_pressure_breaker_cut = bool(state.get(
 		"factory_lower_deck_forward_pressure_breaker_cut",
+		false
+	))
+	_lower_deck_forward_pressure_relief_ambush_activated = bool(state.get(
+		"factory_lower_deck_forward_pressure_relief_ambush_activated",
+		false
+	))
+	_lower_deck_forward_pressure_relief_ambush_defeated = bool(state.get(
+		"factory_lower_deck_forward_pressure_relief_ambush_defeated",
 		false
 	))
 	_reset_lower_deck_forward_conduit_clear_feedback()
@@ -4871,6 +4933,102 @@ func get_factory_lower_deck_forward_pressure_breaker_diagnostics() -> Dictionary
 	}
 
 
+## Returns deterministic forward-pressure relief ambush diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_relief_ambush_diagnostics() -> Dictionary:
+	var sprite: AnimatedSprite2D = (
+		_lower_deck_forward_relief_ambush_spark_rat.get_node_or_null("Sprite")
+		as AnimatedSprite2D
+		if _lower_deck_forward_relief_ambush_spark_rat != null
+		else null
+	)
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	return {
+		"present": (
+			_lower_deck_forward_relief_ambush_spark_rat != null
+			and _lower_deck_forward_relief_ambush_pressure_vent != null
+		),
+		"available": _is_lower_deck_forward_pressure_relief_ambush_available(),
+		"active": _is_lower_deck_forward_pressure_relief_ambush_active(),
+		"defeated": _lower_deck_forward_pressure_relief_ambush_defeated,
+		"breaker_cut": _lower_deck_forward_pressure_breaker_cut,
+		"activation_x": FACTORY_LOWER_DECK_FORWARD_RELIEF_AMBUSH_ACTIVATION_X,
+		"enemy_visible": (
+			_lower_deck_forward_relief_ambush_spark_rat.visible
+			if _lower_deck_forward_relief_ambush_spark_rat != null
+			else false
+		),
+		"enemy_has_target": _does_lower_deck_forward_relief_ambush_have_target(),
+		"enemy_physics_enabled": (
+			_lower_deck_forward_relief_ambush_spark_rat.is_physics_processing()
+			if _lower_deck_forward_relief_ambush_spark_rat != null
+			else false
+		),
+		"enemy_process_enabled": (
+			_lower_deck_forward_relief_ambush_spark_rat.is_processing()
+			if _lower_deck_forward_relief_ambush_spark_rat != null
+			else false
+		),
+		"entity_id": (
+			int(_lower_deck_forward_relief_ambush_spark_rat.call("get_entity_id"))
+			if (
+				_lower_deck_forward_relief_ambush_spark_rat != null
+				and _lower_deck_forward_relief_ambush_spark_rat.has_method(
+					"get_entity_id"
+				)
+			)
+			else 0
+		),
+		"sprite_frames_path": (
+			sprite.sprite_frames.resource_path
+			if sprite != null and sprite.sprite_frames != null
+			else ""
+		),
+		"animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
+		"pacing": _get_lower_deck_forward_relief_ambush_pacing_diagnostics(),
+		"hazard_present": _lower_deck_forward_relief_ambush_pressure_vent != null,
+		"hazard_active": _is_hazard_contact_active(
+			_lower_deck_forward_relief_ambush_pressure_vent
+		),
+		"hazard_visible": (
+			_lower_deck_forward_relief_ambush_pressure_vent.visible
+			if _lower_deck_forward_relief_ambush_pressure_vent != null
+			else false
+		),
+		"hazard_id": String(_get_hazard_id(
+			_lower_deck_forward_relief_ambush_pressure_vent
+		)),
+		"hazard_damage": _get_hazard_damage(
+			_lower_deck_forward_relief_ambush_pressure_vent
+		),
+		"hazard_cooldown_sec": _get_hazard_cooldown_sec(
+			_lower_deck_forward_relief_ambush_pressure_vent
+		),
+		"hazard_texture_path": (
+			String(_lower_deck_forward_relief_ambush_pressure_vent.call(
+				"get_visual_texture_path"
+			))
+			if (
+				_lower_deck_forward_relief_ambush_pressure_vent != null
+				and _lower_deck_forward_relief_ambush_pressure_vent.has_method(
+					"get_visual_texture_path"
+				)
+			)
+			else ""
+		),
+		"enemy_position": (
+			_lower_deck_forward_relief_ambush_spark_rat.global_position
+			if _lower_deck_forward_relief_ambush_spark_rat != null
+			else Vector2.ZERO
+		),
+		"hazard_position": (
+			_lower_deck_forward_relief_ambush_pressure_vent.global_position
+			if _lower_deck_forward_relief_ambush_pressure_vent != null
+			else Vector2.ZERO
+		),
+		"route_label_text": String(route.get("route_label_text", "")),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -5272,6 +5430,9 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 		),
 		"lower_deck_forward_pressure_breaker": (
 			get_factory_lower_deck_forward_pressure_breaker_diagnostics()
+		),
+		"lower_deck_forward_pressure_relief_ambush": (
+			get_factory_lower_deck_forward_pressure_relief_ambush_diagnostics()
 		),
 		"return_patrol_reward_cache": get_factory_return_patrol_reward_cache_diagnostics(),
 		"checkpoint_overdrive_reward_cache": (
@@ -5718,6 +5879,13 @@ func _bind_enemy_to_player() -> void:
 		FACTORY_LOWER_DECK_FORWARD_BREAKER_ENTITY_ID,
 		&"factory_lower_deck_forward_pressure_breaker_spark_rat",
 		_on_factory_lower_deck_forward_pressure_breaker_defeated
+	)
+	_bind_factory_guard(
+		_lower_deck_forward_relief_ambush_spark_rat,
+		FACTORY_LOWER_DECK_FORWARD_RELIEF_AMBUSH_HAZARD_ID,
+		FACTORY_LOWER_DECK_FORWARD_RELIEF_AMBUSH_ENTITY_ID,
+		&"factory_lower_deck_forward_pressure_relief_ambush_spark_rat",
+		_on_factory_lower_deck_forward_pressure_relief_ambush_defeated
 	)
 
 
@@ -6298,6 +6466,13 @@ func _on_factory_lower_deck_forward_pressure_breaker_defeated() -> void:
 	_lower_deck_forward_pressure_breaker_secured = true
 	_sync_lower_deck_forward_pressure_breaker_state()
 	_sync_lower_deck_forward_pressure_breaker_endpoint_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_lower_deck_forward_pressure_relief_ambush_defeated() -> void:
+	_lower_deck_forward_pressure_relief_ambush_activated = true
+	_lower_deck_forward_pressure_relief_ambush_defeated = true
+	_sync_lower_deck_forward_pressure_relief_ambush_state()
 	_refresh_factory_route_objective()
 
 
@@ -7524,6 +7699,42 @@ func _sync_lower_deck_forward_pressure_breaker_endpoint_state() -> void:
 		)
 
 
+func _sync_lower_deck_forward_pressure_relief_ambush_state() -> void:
+	var relief_active: bool = _is_lower_deck_forward_pressure_relief_ambush_active()
+	if _lower_deck_forward_relief_ambush_spark_rat != null:
+		_lower_deck_forward_relief_ambush_spark_rat.visible = relief_active
+		_lower_deck_forward_relief_ambush_spark_rat.set_physics_process(relief_active)
+		_lower_deck_forward_relief_ambush_spark_rat.set_process(relief_active)
+		_lower_deck_forward_relief_ambush_spark_rat.collision_layer = (
+			FACTORY_RAT_MINION_COLLISION_LAYER if relief_active else 0
+		)
+		_lower_deck_forward_relief_ambush_spark_rat.collision_mask = (
+			FACTORY_RAT_MINION_COLLISION_MASK if relief_active else 0
+		)
+		_set_lower_deck_forward_relief_ambush_attack_target(
+			_player if relief_active else null
+		)
+
+	if _lower_deck_forward_relief_ambush_pressure_vent == null:
+		return
+	_lower_deck_forward_relief_ambush_pressure_vent.visible = relief_active
+	_lower_deck_forward_relief_ambush_pressure_vent.monitoring = relief_active
+	_lower_deck_forward_relief_ambush_pressure_vent.monitorable = relief_active
+	_lower_deck_forward_relief_ambush_pressure_vent.collision_layer = (
+		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if relief_active else 0
+	)
+	_lower_deck_forward_relief_ambush_pressure_vent.collision_mask = (
+		CollisionComponent.COLLISION_MASK_ENVIRONMENT if relief_active else 0
+	)
+	var collision_shape := (
+		_lower_deck_forward_relief_ambush_pressure_vent.get_node_or_null(
+			"CollisionShape2D"
+		) as CollisionShape2D
+	)
+	if collision_shape != null:
+		collision_shape.disabled = not relief_active
+
+
 func _sync_lower_deck_parry_gate_state() -> void:
 	if _lower_deck_parry_gate == null:
 		return
@@ -7740,6 +7951,11 @@ func _get_factory_route_objective_id() -> StringName:
 	if _lower_deck_forward_pressure_breaker_activated \
 			and not _lower_deck_forward_pressure_breaker_secured:
 		return FACTORY_OBJECTIVE_SECURE_FORWARD_PRESSURE_BREAKER
+	if _lower_deck_forward_pressure_relief_ambush_activated \
+			and not _lower_deck_forward_pressure_relief_ambush_defeated:
+		return FACTORY_OBJECTIVE_SURVIVE_FORWARD_PRESSURE_RELIEF_AMBUSH
+	if _lower_deck_forward_pressure_relief_ambush_defeated:
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_RELIEF_AMBUSH_CLEARED
 	if _lower_deck_forward_pressure_breaker_cut:
 		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_BREAKER_CUT
 	if _lower_deck_forward_pressure_breaker_secured:
@@ -7976,6 +8192,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Cut Forward Pressure"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_BREAKER_CUT:
 			return "Forward Pressure Breaker Cut"
+		FACTORY_OBJECTIVE_SURVIVE_FORWARD_PRESSURE_RELIEF_AMBUSH:
+			return "Survive Forward Pressure Relief Ambush"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_RELIEF_AMBUSH_CLEARED:
+			return "Forward Pressure Relief Ambush Cleared"
 		_:
 			return "Clear Factory Entrance"
 
@@ -8985,6 +9205,14 @@ func _get_factory_hazards() -> Array[Area2D]:
 		hazards.append(_lower_deck_forward_counter_pressure_vent)
 	if _lower_deck_forward_exit_guard_pressure_vent != null:
 		hazards.append(_lower_deck_forward_exit_guard_pressure_vent)
+	if _lower_deck_forward_beacon_ambush_pressure_vent != null:
+		hazards.append(_lower_deck_forward_beacon_ambush_pressure_vent)
+	if _lower_deck_forward_overrun_pressure_vent != null:
+		hazards.append(_lower_deck_forward_overrun_pressure_vent)
+	if _lower_deck_forward_breaker_pressure_vent != null:
+		hazards.append(_lower_deck_forward_breaker_pressure_vent)
+	if _lower_deck_forward_relief_ambush_pressure_vent != null:
+		hazards.append(_lower_deck_forward_relief_ambush_pressure_vent)
 	return hazards
 
 
@@ -9340,6 +9568,19 @@ func _set_lower_deck_forward_breaker_attack_target(attack_target: Node) -> void:
 		_lower_deck_forward_breaker_spark_rat.call("set_attack_target", attack_target)
 
 
+func _set_lower_deck_forward_relief_ambush_attack_target(attack_target: Node) -> void:
+	if (
+		_lower_deck_forward_relief_ambush_spark_rat != null
+		and _lower_deck_forward_relief_ambush_spark_rat.has_method(
+			"set_attack_target"
+		)
+	):
+		_lower_deck_forward_relief_ambush_spark_rat.call(
+			"set_attack_target",
+			attack_target
+		)
+
+
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
 		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
@@ -9544,6 +9785,18 @@ func _begin_lower_deck_forward_breaker_pacing(opening_grace_frames: int) -> void
 		and not _lower_deck_forward_pressure_breaker_secured
 	):
 		_lower_deck_forward_breaker_spark_rat.call(
+			"begin_pacing",
+			maxi(0, opening_grace_frames)
+		)
+
+
+func _begin_lower_deck_forward_relief_ambush_pacing(opening_grace_frames: int) -> void:
+	if (
+		_lower_deck_forward_relief_ambush_spark_rat != null
+		and _lower_deck_forward_relief_ambush_spark_rat.has_method("begin_pacing")
+		and not _lower_deck_forward_pressure_relief_ambush_defeated
+	):
+		_lower_deck_forward_relief_ambush_spark_rat.call(
 			"begin_pacing",
 			maxi(0, opening_grace_frames)
 		)
@@ -9990,6 +10243,25 @@ func _get_lower_deck_forward_breaker_pacing_diagnostics() -> Dictionary:
 	}
 
 
+func _get_lower_deck_forward_relief_ambush_pacing_diagnostics() -> Dictionary:
+	if (
+		_lower_deck_forward_relief_ambush_spark_rat != null
+		and _lower_deck_forward_relief_ambush_spark_rat.has_method(
+			"get_pacing_diagnostics"
+		)
+	):
+		var pacing_variant: Variant = _lower_deck_forward_relief_ambush_spark_rat.call(
+			"get_pacing_diagnostics"
+		)
+		if pacing_variant is Dictionary:
+			return (pacing_variant as Dictionary).duplicate(true)
+	return {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES,
+	}
+
+
 func _get_lower_deck_forward_exit_guard_opening_grace_frames() -> int:
 	var pacing: Dictionary = _get_lower_deck_forward_exit_guard_pacing_diagnostics()
 	return int(pacing.get("opening_grace_frames", 0))
@@ -10172,6 +10444,16 @@ func _does_lower_deck_forward_breaker_have_target() -> bool:
 	return _is_lower_deck_forward_pressure_breaker_stand_active()
 
 
+func _does_lower_deck_forward_relief_ambush_have_target() -> bool:
+	if _lower_deck_forward_relief_ambush_spark_rat == null:
+		return false
+	if _lower_deck_forward_relief_ambush_spark_rat.has_method("has_attack_target"):
+		return bool(_lower_deck_forward_relief_ambush_spark_rat.call(
+			"has_attack_target"
+		))
+	return _is_lower_deck_forward_pressure_relief_ambush_active()
+
+
 func _does_lower_deck_breach_front_have_target() -> bool:
 	if _lower_deck_breach_front_spark_rat == null:
 		return false
@@ -10261,6 +10543,12 @@ func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> 
 		FACTORY_LOWER_DECK_FORWARD_OVERRUN_ENTITY_ID:
 			if not _lower_deck_forward_pressure_overrun_defeated:
 				_on_factory_lower_deck_forward_pressure_overrun_defeated()
+		FACTORY_LOWER_DECK_FORWARD_BREAKER_ENTITY_ID:
+			if not _lower_deck_forward_pressure_breaker_secured:
+				_on_factory_lower_deck_forward_pressure_breaker_defeated()
+		FACTORY_LOWER_DECK_FORWARD_RELIEF_AMBUSH_ENTITY_ID:
+			if not _lower_deck_forward_pressure_relief_ambush_defeated:
+				_on_factory_lower_deck_forward_pressure_relief_ambush_defeated()
 
 
 func _is_factory_damage_target_defeated(damage_target: Node) -> bool:
@@ -10519,6 +10807,15 @@ func _is_lower_deck_forward_breaker_provider_in_range(provider: Node) -> bool:
 	)
 
 
+func _is_lower_deck_forward_relief_ambush_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_RELIEF_AMBUSH_ACTIVATION_X
+	)
+
+
 func _is_lower_deck_forward_pressure_breaker_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -10584,6 +10881,7 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 			_lower_deck_forward_beacon_ambush_spark_rat,
 			_lower_deck_forward_overrun_spark_rat,
 			_lower_deck_forward_breaker_spark_rat,
+			_lower_deck_forward_relief_ambush_spark_rat,
 		]:
 		if guard == null or not guard.has_method("get_entity_id"):
 			continue
@@ -10928,6 +11226,21 @@ func _is_lower_deck_forward_pressure_breaker_available() -> bool:
 	)
 
 
+func _is_lower_deck_forward_pressure_relief_ambush_available() -> bool:
+	return (
+		_lower_deck_forward_pressure_breaker_cut
+		and not _lower_deck_forward_pressure_relief_ambush_defeated
+	)
+
+
+func _is_lower_deck_forward_pressure_relief_ambush_active() -> bool:
+	return (
+		_lower_deck_forward_pressure_relief_ambush_activated
+		and _lower_deck_forward_pressure_breaker_cut
+		and not _lower_deck_forward_pressure_relief_ambush_defeated
+	)
+
+
 func _is_lower_deck_forward_pressure_contact_active() -> bool:
 	return (
 		_lower_deck_forward_pressure_traverse_active
@@ -11036,6 +11349,17 @@ func _try_auto_activate_forward_pressure_breaker() -> void:
 	if not _lower_deck_forward_pressure_overrun_defeated:
 		return
 	try_activate_factory_lower_deck_forward_pressure_breaker_stand(_player)
+
+
+func _try_auto_activate_forward_pressure_relief_ambush() -> void:
+	if (
+		_lower_deck_forward_pressure_relief_ambush_activated
+		or _lower_deck_forward_pressure_relief_ambush_defeated
+	):
+		return
+	if not _lower_deck_forward_pressure_breaker_cut:
+		return
+	try_activate_factory_lower_deck_forward_pressure_relief_ambush(_player)
 
 
 func _is_service_lift_return_contract_in_state(state: Dictionary) -> bool:
