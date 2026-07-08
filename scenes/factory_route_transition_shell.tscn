@@ -263,6 +263,16 @@ visible = false
 z_index = 20
 position = Vector2(2176, 482)
 
+[node name="FactoryLowerDeckForwardPressureAftershockExitSkirmishSparkRat" parent="." instance=ExtResource("13_spark_rat")]
+visible = false
+z_index = 20
+position = Vector2(2296, 482)
+
+[node name="FactoryLowerDeckForwardPressureAftershockExitSkirmishCoilRat" parent="." instance=ExtResource("27_coil_rat")]
+visible = false
+z_index = 20
+position = Vector2(2350, 482)
+
 [node name="FactoryCheckpointOverdriveLeftDefeatBurst" type="Sprite2D" parent="."]
 visible = false
 z_index = 24

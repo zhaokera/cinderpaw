@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 84 stories tracked
+> **Stories**: 85 stories tracked
 
 ## Overview
 
@@ -122,6 +122,7 @@ recording the reward in progression state.
 | 082 | Old Factory Lower Deck Forward Pressure Coil Pincer | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 083 | Old Factory Lower Deck Forward Pressure Coil Aftershock | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 084 | Old Factory Lower Deck Forward Pressure Aftershock Reward Cache | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
+| 085 | Old Factory Lower Deck Forward Pressure Aftershock Exit Skirmish | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -141,8 +142,8 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-084 are complete. Continue with deeper Old Factory route content
-after the forward-pressure aftershock payoff cache, savepoint/minimap gameplay,
+Stories001-085 are complete. Continue with deeper Old Factory route content
+after the forward-pressure aftershock exit skirmish, savepoint/minimap gameplay,
 additional player-visible character/enemy frame-animation replacement, more
 skill-tree branches, authored hazard/audio polish, or final Boss2
 balancing/cutscene polish.

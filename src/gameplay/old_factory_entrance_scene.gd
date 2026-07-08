@@ -38,6 +38,8 @@ const FACTORY_LOWER_DECK_FORWARD_COIL_RAT_ENTITY_ID: int = 2125
 const FACTORY_LOWER_DECK_FORWARD_COIL_PINCER_SPARK_RAT_ENTITY_ID: int = 2126
 const FACTORY_LOWER_DECK_FORWARD_COIL_PINCER_COIL_RAT_ENTITY_ID: int = 2127
 const FACTORY_LOWER_DECK_FORWARD_COIL_AFTERSHOCK_COIL_RAT_ENTITY_ID: int = 2128
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_SPARK_RAT_ENTITY_ID: int = 2129
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_COIL_RAT_ENTITY_ID: int = 2130
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
@@ -65,6 +67,7 @@ const FACTORY_LOWER_DECK_FORWARD_RELIEF_AMBUSH_ACTIVATION_X: float = 1804.0
 const FACTORY_LOWER_DECK_FORWARD_COIL_RAT_ACTIVATION_X: float = 1888.0
 const FACTORY_LOWER_DECK_FORWARD_COIL_PINCER_ACTIVATION_X: float = 2016.0
 const FACTORY_LOWER_DECK_FORWARD_COIL_AFTERSHOCK_ACTIVATION_X: float = 2144.0
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_SKIRMISH_ACTIVATION_X: float = 2288.0
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_REWARD_CACHE_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_reward_cache"
 )
@@ -81,6 +84,8 @@ const FACTORY_CHECKPOINT_OVERDRIVE_RIGHT_OPENING_GRACE_FRAMES: int = 30
 const FACTORY_COIL_PINCER_SPARK_RAT_OPENING_GRACE_FRAMES: int = 10
 const FACTORY_COIL_PINCER_COIL_RAT_OPENING_GRACE_FRAMES: int = 26
 const FACTORY_COIL_AFTERSHOCK_COIL_RAT_OPENING_GRACE_FRAMES: int = 8
+const FACTORY_AFTERSHOCK_EXIT_SPARK_RAT_OPENING_GRACE_FRAMES: int = 12
+const FACTORY_AFTERSHOCK_EXIT_COIL_RAT_OPENING_GRACE_FRAMES: int = 24
 const FACTORY_RESPAWN_HAZARD_GRACE_FRAMES: int = 18
 const FACTORY_RETURN_CHECKPOINT_SPAWN_SNAP_FRAMES: int = 18
 const FACTORY_RAT_MINION_COLLISION_LAYER: int = 2
@@ -197,6 +202,12 @@ const FACTORY_OBJECTIVE_FORWARD_PRESSURE_COIL_AFTERSHOCK_CLEARED: StringName = (
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CACHE_CLAIMED: StringName = (
 	&"forward_pressure_aftershock_cache_claimed"
 )
+const FACTORY_OBJECTIVE_BREAK_FORWARD_PRESSURE_AFTERSHOCK_EXIT_SKIRMISH: StringName = (
+	&"break_forward_pressure_aftershock_exit_skirmish"
+)
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXIT_SKIRMISH_CLEARED: StringName = (
+	&"forward_pressure_aftershock_exit_skirmish_cleared"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -240,6 +251,9 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_COIL_PINCER_ID: StringName = (
 )
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_COIL_AFTERSHOCK_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_coil_aftershock"
+)
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXIT_SKIRMISH_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_aftershock_exit_skirmish"
 )
 const FACTORY_LOWER_DECK_FORWARD_HATCH_ID: StringName = &"old_factory_lower_deck_forward_hatch"
 const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: StringName = &"lower_deck_breach_relay"
@@ -337,6 +351,16 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 )
 @onready var _lower_deck_forward_pressure_coil_aftershock_coil_rat: Node2D = (
 	get_node_or_null("FactoryLowerDeckForwardPressureCoilAftershockCoilRat") as Node2D
+)
+@onready var _lower_deck_forward_pressure_aftershock_exit_spark_rat: Node2D = (
+	get_node_or_null(
+		"FactoryLowerDeckForwardPressureAftershockExitSkirmishSparkRat"
+	) as Node2D
+)
+@onready var _lower_deck_forward_pressure_aftershock_exit_coil_rat: Node2D = (
+	get_node_or_null(
+		"FactoryLowerDeckForwardPressureAftershockExitSkirmishCoilRat"
+	) as Node2D
 )
 @onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
 	get_node_or_null("FactoryCheckpointOverdriveLeftDefeatBurst") as Sprite2D
@@ -540,6 +564,9 @@ var _lower_deck_forward_pressure_coil_pincer_coil_rat_defeated: bool = false
 var _lower_deck_forward_pressure_coil_aftershock_activated: bool = false
 var _lower_deck_forward_pressure_coil_aftershock_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_reward_cache_claimed: bool = false
+var _lower_deck_forward_pressure_aftershock_exit_skirmish_activated: bool = false
+var _lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated: bool = false
+var _lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -592,6 +619,7 @@ func _ready() -> void:
 	_sync_lower_deck_forward_pressure_coil_pincer_state()
 	_sync_lower_deck_forward_pressure_coil_aftershock_state()
 	_setup_factory_lower_deck_forward_pressure_aftershock_reward_cache()
+	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -616,6 +644,7 @@ func _process(_delta: float) -> void:
 	_try_auto_activate_forward_pressure_coil_rat_breakthrough()
 	_try_auto_activate_forward_pressure_coil_pincer()
 	_try_auto_activate_forward_pressure_coil_aftershock()
+	_try_auto_activate_forward_pressure_aftershock_exit_skirmish()
 	_sync_factory_player_control_lock()
 
 
@@ -712,6 +741,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_COIL_PINCER_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_COIL_AFTERSHOCK_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CACHE_CLAIMED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXIT_SKIRMISH_CLEARED
 		)
 
 
@@ -1353,6 +1383,8 @@ func try_claim_factory_lower_deck_forward_pressure_aftershock_reward_cache(
 			reward_payload,
 			"Forward Pressure Aftershock Cache Claimed"
 		)
+	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
+	_refresh_factory_route_objective()
 	return true
 
 
@@ -1851,6 +1883,35 @@ func try_activate_factory_lower_deck_forward_pressure_coil_aftershock(
 	return true
 
 
+## Activates the Story084 follow-up Spark Rat + Coil Rat exit skirmish.
+func try_activate_factory_lower_deck_forward_pressure_aftershock_exit_skirmish(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_exit_spark_rat == null
+		or _lower_deck_forward_pressure_aftershock_exit_coil_rat == null
+		or not _is_lower_deck_forward_pressure_aftershock_exit_skirmish_available()
+		or _lower_deck_forward_pressure_aftershock_exit_skirmish_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_pressure_aftershock_exit_skirmish_provider_in_range(
+		activation_provider
+	):
+		return false
+	_lower_deck_forward_pressure_aftershock_exit_skirmish_activated = true
+	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
+	_set_lower_deck_forward_pressure_aftershock_exit_skirmish_attack_targets(
+		activation_provider
+	)
+	_begin_lower_deck_forward_pressure_aftershock_exit_skirmish_pacing(
+		FACTORY_AFTERSHOCK_EXIT_SPARK_RAT_OPENING_GRACE_FRAMES,
+		FACTORY_AFTERSHOCK_EXIT_COIL_RAT_OPENING_GRACE_FRAMES
+	)
+	_refresh_factory_route_objective()
+	return true
+
+
 ## Attempts to activate the relay-forward combat trial after the breach relay is repaired.
 func try_activate_factory_lower_deck_post_relay_trial(provider: Node = null) -> bool:
 	if (
@@ -2278,6 +2339,18 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_aftershock_reward_cache_claimed": (
 			_lower_deck_forward_pressure_aftershock_reward_cache_claimed
 		),
+		"factory_lower_deck_forward_pressure_aftershock_exit_skirmish_activated": (
+			_lower_deck_forward_pressure_aftershock_exit_skirmish_activated
+		),
+		"factory_lower_deck_forward_pressure_aftershock_exit_skirmish_spark_rat_defeated": (
+			_lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated
+		),
+		"factory_lower_deck_forward_pressure_aftershock_exit_skirmish_coil_rat_defeated": (
+			_lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated
+		),
+		"factory_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared": (
+			_is_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared()
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -2633,6 +2706,24 @@ func set_local_state(state: Dictionary) -> void:
 		"factory_lower_deck_forward_pressure_aftershock_reward_cache_claimed",
 		false
 	))
+	_lower_deck_forward_pressure_aftershock_exit_skirmish_activated = bool(state.get(
+		"factory_lower_deck_forward_pressure_aftershock_exit_skirmish_activated",
+		false
+	))
+	_lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated = bool(state.get(
+		"factory_lower_deck_forward_pressure_aftershock_exit_skirmish_spark_rat_defeated",
+		false
+	))
+	_lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated = bool(state.get(
+		"factory_lower_deck_forward_pressure_aftershock_exit_skirmish_coil_rat_defeated",
+		false
+	))
+	if bool(state.get(
+		"factory_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared",
+		false
+	)):
+		_lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated = true
+		_lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated = true
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -2976,6 +3067,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_forward_pressure_coil_pincer_state()
 	_sync_lower_deck_forward_pressure_coil_aftershock_state()
 	_sync_lower_deck_forward_pressure_aftershock_reward_cache_state()
+	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -3043,6 +3135,11 @@ func set_local_state(state: Dictionary) -> void:
 	if _is_lower_deck_forward_pressure_coil_aftershock_active():
 		_begin_lower_deck_forward_pressure_coil_aftershock_pacing(
 			FACTORY_COIL_AFTERSHOCK_COIL_RAT_OPENING_GRACE_FRAMES
+		)
+	if _is_lower_deck_forward_pressure_aftershock_exit_skirmish_active():
+		_begin_lower_deck_forward_pressure_aftershock_exit_skirmish_pacing(
+			FACTORY_AFTERSHOCK_EXIT_SPARK_RAT_OPENING_GRACE_FRAMES,
+			FACTORY_AFTERSHOCK_EXIT_COIL_RAT_OPENING_GRACE_FRAMES
 		)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
@@ -5694,6 +5791,116 @@ func get_factory_lower_deck_forward_pressure_coil_aftershock_diagnostics() -> Di
 	}
 
 
+## Returns deterministic forward-pressure aftershock exit skirmish diagnostics.
+func get_factory_lower_deck_forward_pressure_aftershock_exit_skirmish_diagnostics(
+) -> Dictionary:
+	var spark_sprite: AnimatedSprite2D = (
+		_lower_deck_forward_pressure_aftershock_exit_spark_rat.get_node_or_null("Sprite")
+		as AnimatedSprite2D
+		if _lower_deck_forward_pressure_aftershock_exit_spark_rat != null
+		else null
+	)
+	var coil_sprite: AnimatedSprite2D = (
+		_lower_deck_forward_pressure_aftershock_exit_coil_rat.get_node_or_null("Sprite")
+		as AnimatedSprite2D
+		if _lower_deck_forward_pressure_aftershock_exit_coil_rat != null
+		else null
+	)
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	return {
+		"present": (
+			_lower_deck_forward_pressure_aftershock_exit_spark_rat != null
+			and _lower_deck_forward_pressure_aftershock_exit_coil_rat != null
+		),
+		"available": (
+			_is_lower_deck_forward_pressure_aftershock_exit_skirmish_available()
+		),
+		"active": _is_lower_deck_forward_pressure_aftershock_exit_skirmish_active(),
+		"cleared": _is_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared(),
+		"aftershock_reward_cache_claimed": (
+			_lower_deck_forward_pressure_aftershock_reward_cache_claimed
+		),
+		"encounter_id": String(
+			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXIT_SKIRMISH_ID
+		),
+		"activation_x": FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_SKIRMISH_ACTIVATION_X,
+		"spark_visible": (
+			_lower_deck_forward_pressure_aftershock_exit_spark_rat.visible
+			if _lower_deck_forward_pressure_aftershock_exit_spark_rat != null
+			else false
+		),
+		"coil_visible": (
+			_lower_deck_forward_pressure_aftershock_exit_coil_rat.visible
+			if _lower_deck_forward_pressure_aftershock_exit_coil_rat != null
+			else false
+		),
+		"spark_has_target": (
+			_does_lower_deck_forward_pressure_aftershock_exit_spark_rat_have_target()
+		),
+		"coil_has_target": (
+			_does_lower_deck_forward_pressure_aftershock_exit_coil_rat_have_target()
+		),
+		"spark_physics_enabled": (
+			_lower_deck_forward_pressure_aftershock_exit_spark_rat.is_physics_processing()
+			if _lower_deck_forward_pressure_aftershock_exit_spark_rat != null
+			else false
+		),
+		"coil_physics_enabled": (
+			_lower_deck_forward_pressure_aftershock_exit_coil_rat.is_physics_processing()
+			if _lower_deck_forward_pressure_aftershock_exit_coil_rat != null
+			else false
+		),
+		"spark_process_enabled": (
+			_lower_deck_forward_pressure_aftershock_exit_spark_rat.is_processing()
+			if _lower_deck_forward_pressure_aftershock_exit_spark_rat != null
+			else false
+		),
+		"coil_process_enabled": (
+			_lower_deck_forward_pressure_aftershock_exit_coil_rat.is_processing()
+			if _lower_deck_forward_pressure_aftershock_exit_coil_rat != null
+			else false
+		),
+		"spark_defeated": _lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated,
+		"coil_defeated": _lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated,
+		"spark_entity_id": _get_enemy_entity_id(
+			_lower_deck_forward_pressure_aftershock_exit_spark_rat
+		),
+		"coil_entity_id": _get_enemy_entity_id(
+			_lower_deck_forward_pressure_aftershock_exit_coil_rat
+		),
+		"spark_family_id": _get_enemy_family_id(
+			_lower_deck_forward_pressure_aftershock_exit_spark_rat
+		),
+		"coil_family_id": _get_enemy_family_id(
+			_lower_deck_forward_pressure_aftershock_exit_coil_rat
+		),
+		"spark_sprite_frames_path": (
+			spark_sprite.sprite_frames.resource_path
+			if spark_sprite != null and spark_sprite.sprite_frames != null
+			else ""
+		),
+		"coil_sprite_frames_path": (
+			coil_sprite.sprite_frames.resource_path
+			if coil_sprite != null and coil_sprite.sprite_frames != null
+			else ""
+		),
+		"spark_animation_frame_counts": _get_sprite_animation_frame_counts(spark_sprite),
+		"coil_animation_frame_counts": _get_sprite_animation_frame_counts(coil_sprite),
+		"pacing": _get_lower_deck_forward_pressure_aftershock_exit_skirmish_pacing_diagnostics(),
+		"spark_position": (
+			_lower_deck_forward_pressure_aftershock_exit_spark_rat.global_position
+			if _lower_deck_forward_pressure_aftershock_exit_spark_rat != null
+			else Vector2.ZERO
+		),
+		"coil_position": (
+			_lower_deck_forward_pressure_aftershock_exit_coil_rat.global_position
+			if _lower_deck_forward_pressure_aftershock_exit_coil_rat != null
+			else Vector2.ZERO
+		),
+		"route_label_text": String(route.get("route_label_text", "")),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -5961,10 +6168,19 @@ func get_factory_route_objective_diagnostics() -> Dictionary:
 		"lower_deck_forward_pressure_counter_ambush_defeated": (
 			_lower_deck_forward_pressure_counter_ambush_defeated
 		),
-		"lower_deck_forward_pressure_reward_cache_claimed": (
-			_lower_deck_forward_pressure_reward_cache_claimed
-		),
-		"route_label_visible": route_label.visible if route_label != null else false,
+			"lower_deck_forward_pressure_reward_cache_claimed": (
+				_lower_deck_forward_pressure_reward_cache_claimed
+			),
+			"lower_deck_forward_pressure_aftershock_reward_cache_claimed": (
+				_lower_deck_forward_pressure_aftershock_reward_cache_claimed
+			),
+			"lower_deck_forward_pressure_aftershock_exit_skirmish_activated": (
+				_lower_deck_forward_pressure_aftershock_exit_skirmish_activated
+			),
+			"lower_deck_forward_pressure_aftershock_exit_skirmish_cleared": (
+				_is_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared()
+			),
+			"route_label_visible": route_label.visible if route_label != null else false,
 		"route_label_text": route_label.text if route_label != null else "",
 	}
 
@@ -6579,6 +6795,20 @@ func _bind_enemy_to_player() -> void:
 		FACTORY_LOWER_DECK_FORWARD_COIL_AFTERSHOCK_COIL_RAT_ENTITY_ID,
 		&"factory_lower_deck_forward_pressure_coil_aftershock_coil_rat",
 		_on_factory_lower_deck_forward_pressure_coil_aftershock_defeated
+	)
+	_bind_factory_guard(
+		_lower_deck_forward_pressure_aftershock_exit_spark_rat,
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXIT_SKIRMISH_ID,
+		FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_SPARK_RAT_ENTITY_ID,
+		&"factory_lower_deck_forward_pressure_aftershock_exit_spark_rat",
+		_on_factory_lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated
+	)
+	_bind_factory_guard(
+		_lower_deck_forward_pressure_aftershock_exit_coil_rat,
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXIT_SKIRMISH_ID,
+		FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_COIL_RAT_ENTITY_ID,
+		&"factory_lower_deck_forward_pressure_aftershock_exit_coil_rat",
+		_on_factory_lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated
 	)
 
 
@@ -7218,6 +7448,22 @@ func _on_factory_lower_deck_forward_pressure_coil_aftershock_defeated() -> void:
 	_refresh_factory_route_objective()
 
 
+func _on_factory_lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated(
+) -> void:
+	_lower_deck_forward_pressure_aftershock_exit_skirmish_activated = true
+	_lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated = true
+	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
+	_refresh_factory_route_objective()
+
+
+func _on_factory_lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated(
+) -> void:
+	_lower_deck_forward_pressure_aftershock_exit_skirmish_activated = true
+	_lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated = true
+	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
+	_refresh_factory_route_objective()
+
+
 func _on_factory_lower_deck_parry_gate_state_changed(
 	gate_id: StringName,
 	gate_state: StringName
@@ -7350,6 +7596,8 @@ func _on_factory_lower_deck_forward_pressure_aftershock_reward_cache_claimed(
 		_last_lower_deck_forward_pressure_aftershock_reward_cache_reward,
 		"Forward Pressure Aftershock Cache Claimed"
 	)
+	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
+	_refresh_factory_route_objective()
 
 
 func _on_factory_lower_deck_forward_hatch_activated(endpoint_id: StringName) -> void:
@@ -8575,6 +8823,37 @@ func _sync_lower_deck_forward_pressure_coil_aftershock_state() -> void:
 	)
 
 
+func _sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state() -> void:
+	var skirmish_active: bool = (
+		_is_lower_deck_forward_pressure_aftershock_exit_skirmish_active()
+	)
+	_sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
+		_lower_deck_forward_pressure_aftershock_exit_spark_rat,
+		skirmish_active
+			and not _lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated
+	)
+	_sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
+		_lower_deck_forward_pressure_aftershock_exit_coil_rat,
+		skirmish_active
+			and not _lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated
+	)
+
+
+func _sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
+		enemy: Node2D,
+		enemy_active: bool
+) -> void:
+	if enemy == null:
+		return
+	enemy.visible = enemy_active
+	enemy.set_physics_process(enemy_active)
+	enemy.set_process(enemy_active)
+	enemy.collision_layer = FACTORY_RAT_MINION_COLLISION_LAYER if enemy_active else 0
+	enemy.collision_mask = FACTORY_RAT_MINION_COLLISION_MASK if enemy_active else 0
+	if enemy.has_method("set_attack_target"):
+		enemy.call("set_attack_target", _player if enemy_active else null)
+
+
 func _sync_lower_deck_parry_gate_state() -> void:
 	if _lower_deck_parry_gate == null:
 		return
@@ -8801,6 +9080,10 @@ func _get_factory_route_objective_id() -> StringName:
 		return FACTORY_OBJECTIVE_BREAK_FORWARD_PRESSURE_COIL_PINCER
 	if _is_lower_deck_forward_pressure_coil_aftershock_active():
 		return FACTORY_OBJECTIVE_CONTAIN_FORWARD_PRESSURE_COIL_AFTERSHOCK
+	if _is_lower_deck_forward_pressure_aftershock_exit_skirmish_active():
+		return FACTORY_OBJECTIVE_BREAK_FORWARD_PRESSURE_AFTERSHOCK_EXIT_SKIRMISH
+	if _is_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared():
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXIT_SKIRMISH_CLEARED
 	if _lower_deck_forward_pressure_aftershock_reward_cache_claimed:
 		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CACHE_CLAIMED
 	if _lower_deck_forward_pressure_coil_aftershock_defeated:
@@ -9065,6 +9348,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Forward Pressure Coil Aftershock Cleared"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CACHE_CLAIMED:
 			return "Forward Pressure Aftershock Cache Claimed +20 Gears"
+		FACTORY_OBJECTIVE_BREAK_FORWARD_PRESSURE_AFTERSHOCK_EXIT_SKIRMISH:
+			return "Break Aftershock Exit Skirmish"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXIT_SKIRMISH_CLEARED:
+			return "Forward Pressure Aftershock Exit Skirmish Cleared"
 		_:
 			return "Clear Factory Entrance"
 
@@ -10538,6 +10825,31 @@ func _set_lower_deck_forward_pressure_coil_aftershock_attack_target(
 		)
 
 
+func _set_lower_deck_forward_pressure_aftershock_exit_skirmish_attack_targets(
+	attack_target: Node
+) -> void:
+	if (
+		_lower_deck_forward_pressure_aftershock_exit_spark_rat != null
+		and _lower_deck_forward_pressure_aftershock_exit_spark_rat.has_method(
+			"set_attack_target"
+		)
+	):
+		_lower_deck_forward_pressure_aftershock_exit_spark_rat.call(
+			"set_attack_target",
+			attack_target
+		)
+	if (
+		_lower_deck_forward_pressure_aftershock_exit_coil_rat != null
+		and _lower_deck_forward_pressure_aftershock_exit_coil_rat.has_method(
+			"set_attack_target"
+		)
+	):
+		_lower_deck_forward_pressure_aftershock_exit_coil_rat.call(
+			"set_attack_target",
+			attack_target
+		)
+
+
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
 		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
@@ -10812,6 +11124,34 @@ func _begin_lower_deck_forward_pressure_coil_aftershock_pacing(
 		_lower_deck_forward_pressure_coil_aftershock_coil_rat.call(
 			"begin_pacing",
 			maxi(0, opening_grace_frames)
+		)
+
+
+func _begin_lower_deck_forward_pressure_aftershock_exit_skirmish_pacing(
+	spark_opening_grace_frames: int,
+	coil_opening_grace_frames: int
+) -> void:
+	if (
+		_lower_deck_forward_pressure_aftershock_exit_spark_rat != null
+		and _lower_deck_forward_pressure_aftershock_exit_spark_rat.has_method(
+			"begin_pacing"
+		)
+		and not _lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated
+	):
+		_lower_deck_forward_pressure_aftershock_exit_spark_rat.call(
+			"begin_pacing",
+			maxi(0, spark_opening_grace_frames)
+		)
+	if (
+		_lower_deck_forward_pressure_aftershock_exit_coil_rat != null
+		and _lower_deck_forward_pressure_aftershock_exit_coil_rat.has_method(
+			"begin_pacing"
+		)
+		and not _lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated
+	):
+		_lower_deck_forward_pressure_aftershock_exit_coil_rat.call(
+			"begin_pacing",
+			maxi(0, coil_opening_grace_frames)
 		)
 
 
@@ -11343,6 +11683,20 @@ func _get_lower_deck_forward_pressure_coil_aftershock_pacing_diagnostics() -> Di
 	}
 
 
+func _get_lower_deck_forward_pressure_aftershock_exit_skirmish_pacing_diagnostics(
+) -> Dictionary:
+	return {
+		"spark": _get_lower_deck_forward_pressure_coil_pincer_enemy_pacing_diagnostics(
+			_lower_deck_forward_pressure_aftershock_exit_spark_rat,
+			FACTORY_AFTERSHOCK_EXIT_SPARK_RAT_OPENING_GRACE_FRAMES
+		),
+		"coil": _get_lower_deck_forward_pressure_coil_pincer_enemy_pacing_diagnostics(
+			_lower_deck_forward_pressure_aftershock_exit_coil_rat,
+			FACTORY_AFTERSHOCK_EXIT_COIL_RAT_OPENING_GRACE_FRAMES
+		),
+	}
+
+
 func _get_lower_deck_forward_exit_guard_opening_grace_frames() -> int:
 	var pacing: Dictionary = _get_lower_deck_forward_exit_guard_pacing_diagnostics()
 	return int(pacing.get("opening_grace_frames", 0))
@@ -11571,8 +11925,32 @@ func _does_lower_deck_forward_pressure_coil_aftershock_coil_rat_have_target() ->
 	):
 		return bool(_lower_deck_forward_pressure_coil_aftershock_coil_rat.call(
 			"has_attack_target"
-		))
+			))
 	return _is_lower_deck_forward_pressure_coil_aftershock_active()
+
+
+func _does_lower_deck_forward_pressure_aftershock_exit_spark_rat_have_target() -> bool:
+	if _lower_deck_forward_pressure_aftershock_exit_spark_rat == null:
+		return false
+	if _lower_deck_forward_pressure_aftershock_exit_spark_rat.has_method(
+		"has_attack_target"
+	):
+		return bool(_lower_deck_forward_pressure_aftershock_exit_spark_rat.call(
+			"has_attack_target"
+		))
+	return _is_lower_deck_forward_pressure_aftershock_exit_skirmish_active()
+
+
+func _does_lower_deck_forward_pressure_aftershock_exit_coil_rat_have_target() -> bool:
+	if _lower_deck_forward_pressure_aftershock_exit_coil_rat == null:
+		return false
+	if _lower_deck_forward_pressure_aftershock_exit_coil_rat.has_method(
+		"has_attack_target"
+	):
+		return bool(_lower_deck_forward_pressure_aftershock_exit_coil_rat.call(
+			"has_attack_target"
+		))
+	return _is_lower_deck_forward_pressure_aftershock_exit_skirmish_active()
 
 
 func _does_lower_deck_breach_front_have_target() -> bool:
@@ -11682,6 +12060,12 @@ func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> 
 		FACTORY_LOWER_DECK_FORWARD_COIL_AFTERSHOCK_COIL_RAT_ENTITY_ID:
 			if not _lower_deck_forward_pressure_coil_aftershock_defeated:
 				_on_factory_lower_deck_forward_pressure_coil_aftershock_defeated()
+		FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_SPARK_RAT_ENTITY_ID:
+			if not _lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated:
+				_on_factory_lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated()
+		FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_COIL_RAT_ENTITY_ID:
+			if not _lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated:
+				_on_factory_lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated()
 
 
 func _is_factory_damage_target_defeated(damage_target: Node) -> bool:
@@ -11974,7 +12358,18 @@ func _is_lower_deck_forward_pressure_coil_aftershock_provider_in_range(
 		return false
 	return (
 		(provider as Node2D).global_position.x
-		>= FACTORY_LOWER_DECK_FORWARD_COIL_AFTERSHOCK_ACTIVATION_X
+			>= FACTORY_LOWER_DECK_FORWARD_COIL_AFTERSHOCK_ACTIVATION_X
+		)
+
+
+func _is_lower_deck_forward_pressure_aftershock_exit_skirmish_provider_in_range(
+	provider: Node
+) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_SKIRMISH_ACTIVATION_X
 	)
 
 
@@ -12045,15 +12440,29 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 			_lower_deck_forward_breaker_spark_rat,
 			_lower_deck_forward_relief_ambush_spark_rat,
 			_lower_deck_forward_pressure_coil_rat,
-			_lower_deck_forward_pressure_coil_pincer_spark_rat,
-			_lower_deck_forward_pressure_coil_pincer_coil_rat,
-			_lower_deck_forward_pressure_coil_aftershock_coil_rat,
-		]:
+				_lower_deck_forward_pressure_coil_pincer_spark_rat,
+				_lower_deck_forward_pressure_coil_pincer_coil_rat,
+				_lower_deck_forward_pressure_coil_aftershock_coil_rat,
+				_lower_deck_forward_pressure_aftershock_exit_spark_rat,
+				_lower_deck_forward_pressure_aftershock_exit_coil_rat,
+			]:
 		if guard == null or not guard.has_method("get_entity_id"):
 			continue
 		if int(guard.call("get_entity_id")) == target_id:
 			return guard
 	return null
+
+
+func _get_enemy_entity_id(enemy: Node) -> int:
+	if enemy != null and enemy.has_method("get_entity_id"):
+		return int(enemy.call("get_entity_id"))
+	return 0
+
+
+func _get_enemy_family_id(enemy: Node) -> String:
+	if enemy != null and enemy.has_method("get_enemy_family_id"):
+		return String(enemy.call("get_enemy_family_id"))
+	return ""
 
 
 func _get_sprite_animation_frame_counts(sprite: AnimatedSprite2D) -> Dictionary:
@@ -12459,6 +12868,28 @@ func _is_lower_deck_forward_pressure_coil_aftershock_active() -> bool:
 	)
 
 
+func _is_lower_deck_forward_pressure_aftershock_exit_skirmish_available() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_reward_cache_claimed
+		and not _is_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared()
+	)
+
+
+func _is_lower_deck_forward_pressure_aftershock_exit_skirmish_active() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_exit_skirmish_activated
+		and _lower_deck_forward_pressure_aftershock_reward_cache_claimed
+		and not _is_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared()
+	)
+
+
+func _is_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated
+		and _lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated
+	)
+
+
 func _is_lower_deck_forward_pressure_contact_active() -> bool:
 	return (
 		_lower_deck_forward_pressure_traverse_active
@@ -12611,6 +13042,17 @@ func _try_auto_activate_forward_pressure_coil_aftershock() -> void:
 	if not _is_lower_deck_forward_pressure_coil_pincer_cleared():
 		return
 	try_activate_factory_lower_deck_forward_pressure_coil_aftershock(_player)
+
+
+func _try_auto_activate_forward_pressure_aftershock_exit_skirmish() -> void:
+	if (
+		_lower_deck_forward_pressure_aftershock_exit_skirmish_activated
+		or _is_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared()
+	):
+		return
+	if not _lower_deck_forward_pressure_aftershock_reward_cache_claimed:
+		return
+	try_activate_factory_lower_deck_forward_pressure_aftershock_exit_skirmish(_player)
 
 
 func _is_service_lift_return_contract_in_state(state: Dictionary) -> bool:
