@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-07-08" name="report_1161" tests="22" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_lower_deck_forward_pressure_coil_rat_breakthrough_test" package="tests/unit/gameplay" timestamp="2026-07-08T15:51:31" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.315">
+		<testcase name="test_coil_rat_requires_relief_clear_and_activates_runtime_contract" classname="old_factory_lower_deck_forward_pressure_coil_rat_breakthrough_test" time="0.246">
+		</testcase>
+		<testcase name="test_coil_rat_defeat_persists_without_replaying_route_chain" classname="old_factory_lower_deck_forward_pressure_coil_rat_breakthrough_test" time="0.062">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="old_factory_lower_deck_forward_pressure_relief_ambush_test" package="tests/unit/gameplay" timestamp="2026-07-08T15:51:32" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.132">
+		<testcase name="test_relief_requires_breaker_cut_and_activates_enemy_hazard" classname="old_factory_lower_deck_forward_pressure_relief_ambush_test" time="0.063">
+		</testcase>
+		<testcase name="test_relief_defeat_persists_without_replaying_route_chain" classname="old_factory_lower_deck_forward_pressure_relief_ambush_test" time="0.062">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="old_factory_lower_deck_forward_pressure_breaker_test" package="tests/unit/gameplay" timestamp="2026-07-08T15:51:32" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.134">
+		<testcase name="test_breaker_stand_requires_overrun_clear_and_activates_enemy_hazard" classname="old_factory_lower_deck_forward_pressure_breaker_test" time="0.064">
+		</testcase>
+		<testcase name="test_breaker_cut_persists_without_replaying_route_chain" classname="old_factory_lower_deck_forward_pressure_breaker_test" time="0.063">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="old_factory_lower_deck_forward_pressure_overrun_test" package="tests/unit/gameplay" timestamp="2026-07-08T15:51:32" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.133">
+		<testcase name="test_overrun_requires_beacon_ambush_clear_and_activates_enemy_hazard" classname="old_factory_lower_deck_forward_pressure_overrun_test" time="0.064">
+		</testcase>
+		<testcase name="test_overrun_defeat_persists_without_replaying_route_chain" classname="old_factory_lower_deck_forward_pressure_overrun_test" time="0.063">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="old_factory_lower_deck_forward_pressure_beacon_ambush_test" package="tests/unit/gameplay" timestamp="2026-07-08T15:51:32" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.133">
+		<testcase name="test_beacon_ambush_requires_route_beacon_lit_and_activates_enemy_hazard" classname="old_factory_lower_deck_forward_pressure_beacon_ambush_test" time="0.064">
+		</testcase>
+		<testcase name="test_beacon_ambush_defeat_persists_without_replaying_route_chain" classname="old_factory_lower_deck_forward_pressure_beacon_ambush_test" time="0.063">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="old_factory_lower_deck_forward_pressure_route_handoff_marker_test" package="tests/unit/gameplay" timestamp="2026-07-08T15:51:32" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.149">
+		<testcase name="test_route_handoff_marker_requires_exit_gate_open_and_becomes_visible" classname="old_factory_lower_deck_forward_pressure_route_handoff_marker_test" time="0.061">
+		</testcase>
+		<testcase name="test_route_handoff_marker_persists_without_replaying_completed_chain" classname="old_factory_lower_deck_forward_pressure_route_handoff_marker_test" time="0.082">
+		</testcase>
+	</testsuite>
+	<testsuite id="6" name="old_factory_lower_deck_forward_pressure_exit_gate_test" package="tests/unit/gameplay" timestamp="2026-07-08T15:51:32" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.125">
+		<testcase name="test_exit_gate_requires_exit_relay_and_opens_once" classname="old_factory_lower_deck_forward_pressure_exit_gate_test" time="0.060">
+		</testcase>
+		<testcase name="test_exit_gate_restored_open_state_preserves_completed_chain" classname="old_factory_lower_deck_forward_pressure_exit_gate_test" time="0.055">
+		</testcase>
+	</testsuite>
+	<testsuite id="7" name="old_factory_lower_deck_forward_pressure_exit_relay_test" package="tests/unit/gameplay" timestamp="2026-07-08T15:51:33" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.125">
+		<testcase name="test_forward_pressure_exit_relay_requires_exit_guard_defeat_and_preserves_lift" classname="old_factory_lower_deck_forward_pressure_exit_relay_test" time="0.060">
+		</testcase>
+		<testcase name="test_forward_pressure_exit_relay_persists_and_respawns_without_replaying_chain" classname="old_factory_lower_deck_forward_pressure_exit_relay_test" time="0.059">
+		</testcase>
+	</testsuite>
+	<testsuite id="8" name="old_factory_service_lift_handoff_test" package="tests/unit/gameplay" timestamp="2026-07-08T15:51:33" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.133">
+		<testcase name="test_service_lift_is_visible_locked_until_spark_rat_clear_then_activates_once" classname="old_factory_service_lift_handoff_test" time="0.072">
+		</testcase>
+		<testcase name="test_service_lift_restores_activated_state_without_replaying_feedback" classname="old_factory_service_lift_handoff_test" time="0.056">
+		</testcase>
+	</testsuite>
+	<testsuite id="9" name="old_factory_service_lift_scene_manager_exit_test" package="tests/unit/gameplay" timestamp="2026-07-08T15:51:33" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.145">
+		<testcase name="test_service_lift_requests_main_scrap_roost_exit_after_factory_route_clear" classname="old_factory_service_lift_scene_manager_exit_test" time="0.071">
+		</testcase>
+		<testcase name="test_service_lift_does_not_activate_when_scene_manager_rejects_exit" classname="old_factory_service_lift_scene_manager_exit_test" time="0.071">
+		</testcase>
+	</testsuite>
+	<testsuite id="10" name="no_loss_respawn_state_contract_test" package="tests/unit/gameplay" timestamp="2026-07-08T15:51:33" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.015">
+		<testcase name="test_death_respawn_restores_currency_inventory_weapons_and_world_flags" classname="no_loss_respawn_state_contract_test" time="0.003">
+		</testcase>
+		<testcase name="test_no_loss_contract_keeps_health_restore_owned_by_revive_percentage" classname="no_loss_respawn_state_contract_test" time="0.008">
+		</testcase>
+	</testsuite>
+</testsuites>
