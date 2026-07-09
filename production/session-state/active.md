@@ -118,7 +118,9 @@
 	  Condenser Overflow Pump Reward Cache、Player Abilities Story107 Old
 	  Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump
 	  Runoff Duct Traverse、Player Abilities Story108 Old Factory Lower Deck
-	  Forward Pressure Aftershock Condenser Overflow Pump Runoff Exit Skirmish
+	  Forward Pressure Aftershock Condenser Overflow Pump Runoff Exit Skirmish、
+	  Player Abilities Story109 Old Factory Lower Deck Forward Pressure
+	  Aftershock Condenser Overflow Pump Runoff Exit Reward Cache
 	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
@@ -136,6 +138,23 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 109: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Overflow Pump Runoff Exit Reward Cache -- after Story108
+  clears the runoff exit skirmish, a reused image-generated cache appears,
+  pays `20` gears once, then reveals a reused image-generated deep-bulkhead
+  runoff exit gate. Opening the gate disables blocking collision and advances
+  route feedback to `Overflow Pump Runoff Exit Gate Open`; restored state
+  backfills the Story106/107/108 chain so the duct/skirmish/cache do not replay.
+  Verification: RED `reports/report_1293/`; focused GREEN
+  `reports/report_1294/` (`2/2`); related GREEN `reports/report_1295/`
+  (`8/8`); pre-push focused rerun `reports/report_1296/` (`2/2`);
+  headless smoke
+  `reports/old_factory_overflow_pump_runoff_exit_reward_cache_smoke.log` exit
+  `0`; Godot MCP 2.9.1 on Godot 4.7 verified disk-reloaded scene nodes,
+  runtime cache/gate scripts, IDs, prompts, reused texture bindings,
+  `current_run_errors=[]`, clean current game/editor logs, and a non-empty
+  `960x539` game screenshot response.
+
 - Player Abilities Story 108: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Overflow Pump Runoff Exit Skirmish -- after Story107
   crosses the overflow pump runoff duct, the route extends to right wall
