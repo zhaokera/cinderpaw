@@ -43,13 +43,19 @@ func test_exploration_gate_requires_dash_then_unlocks_on_dash_activation() -> vo
 	assert_bool(bool(gate.call("is_collision_blocking"))).is_true()
 	assert_bool(bool(gate.call("is_unlocked"))).is_false()
 	assert_str(prompt.text).is_equal("Requires Dash")
-	assert_bool(prompt.visible).is_true()
+	assert_bool(prompt.visible).is_false()
 
 	assert_bool(player.unlock_ability(DASH_ABILITY)).is_true()
 	assert_str(String(gate.call("get_gate_state"))).is_equal(String(STATE_UNLOCKABLE))
 	assert_bool(bool(gate.call("is_collision_blocking"))).is_true()
 	assert_str(prompt.text).is_equal("Dash through")
 	assert_bool(bool(gate.call("is_provider_in_unlock_range"))).is_false()
+	assert_bool(prompt.visible).is_false()
+
+	player.global_position = gate.global_position + Vector2(-160, 0)
+	gate.call("refresh_gate_state")
+	assert_bool(bool(gate.call("is_provider_in_unlock_range"))).is_false()
+	assert_bool(prompt.visible).is_true()
 
 	player.global_position = gate.global_position + Vector2(-48, 0)
 	assert_bool(bool(gate.call("is_provider_in_unlock_range"))).is_true()
@@ -73,12 +79,19 @@ func test_main_scene_dash_gate_uses_runtime_dash_reward_and_persists_unlock() ->
 	assert_str(String(gate.call("get_required_ability"))).is_equal(String(DASH_ABILITY))
 	assert_str(String(gate.call("get_gate_state"))).is_equal(String(STATE_LOCKED))
 	assert_bool(bool(gate.call("is_collision_blocking"))).is_true()
+	assert_bool(bool(gate.call("is_prompt_visible"))).is_false()
 
 	scene.call("unlock_ability", DASH_ABILITY)
 	assert_str(String(gate.call("get_gate_state"))).is_equal(String(STATE_UNLOCKABLE))
 	assert_bool(bool(gate.call("is_collision_blocking"))).is_true()
+	assert_bool(bool(gate.call("is_prompt_visible"))).is_false()
 
 	var player := scene.get_node("Player") as PlayerController
+	player.global_position = (gate as Node2D).global_position + Vector2(-160, 0)
+	gate.call("refresh_gate_state")
+	assert_bool(bool(gate.call("is_provider_in_unlock_range"))).is_false()
+	assert_bool(bool(gate.call("is_prompt_visible"))).is_true()
+
 	player.global_position = (gate as Node2D).global_position + Vector2(-48, 0)
 	assert_bool(player.request_dash()).is_true()
 	assert_str(String(gate.call("get_gate_state"))).is_equal(String(STATE_UNLOCKED))

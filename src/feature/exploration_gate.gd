@@ -16,6 +16,7 @@ const UNLOCK_VFX_NODE_NAME: StringName = &"UnlockVfx"
 @export var required_ability: String = "dash"
 @export var target_area_id: String = "area_02_sewer"
 @export var unlock_radius_px: float = 96.0
+@export var prompt_radius_px: float = 192.0
 @export var unlock_feedback_texture_path: String = DEFAULT_UNLOCK_FEEDBACK_TEXTURE_PATH
 @export var unlock_feedback_duration_sec: float = 0.5
 @export var unlock_feedback_scale: float = 1.0
@@ -50,7 +51,10 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	advance_unlock_feedback_time(delta)
+	if _is_unlock_feedback_active():
+		advance_unlock_feedback_time(delta)
+	_refresh_prompt_visibility()
+	_update_process_state()
 
 
 ## Sets the ability provider used for has_ability queries and ability signals.
@@ -113,6 +117,25 @@ func is_provider_in_unlock_range() -> bool:
 		return false
 	var provider_node := _ability_provider as Node2D
 	return provider_node.global_position.distance_to(global_position) <= maxf(0.0, unlock_radius_px)
+
+
+func is_provider_in_prompt_range() -> bool:
+	if _ability_provider == null or not is_instance_valid(_ability_provider):
+		return false
+	if not (_ability_provider is Node2D):
+		return false
+	var provider_node := _ability_provider as Node2D
+	var safe_prompt_radius_px: float = maxf(prompt_radius_px, unlock_radius_px)
+	return provider_node.global_position.distance_to(global_position) <= safe_prompt_radius_px
+
+
+func get_prompt_text() -> String:
+	return _prompt_for_state(_state)
+
+
+func is_prompt_visible() -> bool:
+	_resolve_child_nodes()
+	return _prompt_label != null and _prompt_label.visible
 
 
 ## Rechecks ability state unless the gate has already been permanently opened.
@@ -242,9 +265,7 @@ func _apply_state(
 		_collision_shape.disabled = _state == STATE_UNLOCKED
 	if _visual != null:
 		_visual.modulate = _modulate_for_state(_state)
-	if _prompt_label != null:
-		_prompt_label.text = _prompt_for_state(_state)
-		_prompt_label.visible = _state != STATE_UNLOCKED
+	_refresh_prompt_visibility()
 	set_meta("gate_id", String(get_gate_id()))
 	set_meta("required_ability", String(get_required_ability()))
 	set_meta("target_area_id", String(get_target_area_id()))
@@ -253,6 +274,7 @@ func _apply_state(
 		_spawn_unlock_feedback_vfx()
 	if state_changed and emit_state_signal:
 		gate_state_changed.emit(get_gate_id(), _state)
+	_update_process_state()
 
 
 func _modulate_for_state(state: StringName) -> Color:
@@ -273,6 +295,18 @@ func _prompt_for_state(state: StringName) -> String:
 			return unlockable_prompt_text
 		_:
 			return locked_prompt_text
+
+
+func _refresh_prompt_visibility() -> void:
+	_resolve_child_nodes()
+	if _prompt_label == null:
+		return
+	_prompt_label.text = _prompt_for_state(_state)
+	_prompt_label.visible = _state != STATE_UNLOCKED and is_provider_in_prompt_range()
+
+
+func _update_process_state() -> void:
+	set_process(_is_unlock_feedback_active() or (_state != STATE_UNLOCKED and _ability_provider is Node2D))
 
 
 func _spawn_unlock_feedback_vfx() -> void:
@@ -303,7 +337,7 @@ func _spawn_unlock_feedback_vfx() -> void:
 		"asset_source": UNLOCK_FEEDBACK_ASSET_SOURCE,
 		"world_position": global_position,
 	}
-	set_process(true)
+	_update_process_state()
 
 
 func _load_unlock_feedback_texture() -> Texture2D:
@@ -333,4 +367,4 @@ func _clear_unlock_feedback_vfx() -> void:
 		_unlock_feedback_vfx.free()
 	_unlock_feedback_vfx = null
 	_unlock_feedback_elapsed_sec = 0.0
-	set_process(false)
+	_update_process_state()

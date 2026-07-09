@@ -115,12 +115,19 @@ func test_main_scene_double_jump_high_platform_gate_unlocks_and_persists() -> vo
 	assert_str(String(gate.call("get_target_area_id"))).is_equal(String(TARGET_AREA_ID))
 	assert_str(String(gate.call("get_gate_state"))).is_equal(String(STATE_LOCKED))
 	assert_bool(bool(gate.call("is_collision_blocking"))).is_true()
+	assert_bool(bool(gate.call("is_prompt_visible"))).is_false()
 
 	scene.call("unlock_ability", DOUBLE_JUMP_ABILITY)
 	assert_str(String(gate.call("get_gate_state"))).is_equal(String(STATE_UNLOCKABLE))
 	assert_bool(bool(gate.call("is_collision_blocking"))).is_true()
+	assert_bool(bool(gate.call("is_prompt_visible"))).is_false()
 
 	var scene_player := scene.get_node("Player") as PlayerController
+	scene_player.global_position = (gate as Node2D).global_position + Vector2(-160, 0)
+	gate.call("refresh_gate_state")
+	assert_bool(bool(gate.call("is_provider_in_unlock_range"))).is_false()
+	assert_bool(bool(gate.call("is_prompt_visible"))).is_true()
+
 	scene_player.global_position = (gate as Node2D).global_position + Vector2(-48, 0)
 	scene_player.call("set_airborne", true)
 	assert_bool(scene_player.call("request_double_jump")).is_true()

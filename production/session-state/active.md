@@ -126,6 +126,20 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 105: Main Scene Gate Prompt Proximity -- ability gate
+  prompts now use a finite provider proximity radius separate from unlock
+  radius. `ExplorationGate` exposes `prompt_radius_px`,
+  `is_provider_in_prompt_range()`, `get_prompt_text()`, and
+  `is_prompt_visible()`, and refreshes prompt visibility while a Node2D
+  provider exists without changing Dash/DoubleJump/Parry unlock behavior.
+  Verification: RED `reports/report_1279/`; focused GREEN
+  `reports/report_1280/` (`5/5`); related GREEN `reports/report_1281/`
+  (`18/18`); Godot MCP 2.9.1 on Godot 4.7 verified MainScene live with
+  `current_run_errors=[]`, clean current game log, runtime gate diagnostics,
+  and a non-empty screenshot at
+  `reports/visual/cinderpaw-mcp-main-scene-gate-prompt-proximity-20260710.png`
+  showing no far-away `Requires Double Jump` or `Requires Dash` prompt clutter.
+
 - Player Abilities Story 104: Main Scene Reward Prompt Proximity -- reward
   prompts now use a finite provider proximity radius separate from claim radius.
   `AbilityRewardSource` exposes `prompt_radius_px` and

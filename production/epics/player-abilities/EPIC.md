@@ -142,6 +142,7 @@ recording the reward in progression state.
 | 102 | Old Factory Route Floor Platform Visual Pass | Integration + Visual | Complete | ADR-0004/0005/0007/0018/0021 |
 | 103 | Main Scene Boundary Wall Visual Pass | Integration + Visual | Complete | ADR-0004/0005/0007/0018 |
 | 104 | Main Scene Reward Prompt Proximity | Integration + UI/Visual Feel | Complete | ADR-0004/0005/0007/0018 |
+| 105 | Main Scene Gate Prompt Proximity | Integration + UI/Visual Feel | Complete | ADR-0004/0005/0007/0018 |
 
 ## Definition of Done
 
@@ -161,7 +162,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-104 are complete. Continue deeper Old Factory route content after the
+Stories001-105 are complete. Continue deeper Old Factory route content after the
 route floor/platform visual pass, broader MainScene art cleanup, minimap
 gameplay, additional player-visible character/enemy frame-animation replacement,
 more skill-tree branches, authored hazard/audio polish, or final Boss2
