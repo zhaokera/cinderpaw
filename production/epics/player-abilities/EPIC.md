@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 98 stories tracked
+> **Stories**: 99 stories tracked
 
 ## Overview
 
@@ -136,6 +136,7 @@ recording the reward in progression state.
 | 096 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Outlet Traverse | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 097 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Outlet Clamp Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 098 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Outlet Drip Vent Traverse | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
+| 099 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Skirmish | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0005/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -155,8 +156,8 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-098 are complete. Continue deeper Old Factory route content after the
-aftershock condenser outlet drip vent traverse, minimap gameplay,
+Stories001-099 are complete. Continue deeper Old Factory route content after the
+aftershock condenser overflow pump skirmish, minimap gameplay,
 additional player-visible character/enemy frame-animation replacement, more
 skill-tree branches, authored hazard/audio polish, or final Boss2 balancing/
 cutscene polish.

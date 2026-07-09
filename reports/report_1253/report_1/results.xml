@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-07-09" name="report_1" tests="10" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_skirmish_test" package="tests/unit/gameplay" timestamp="2026-07-09T11:04:09" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.341">
+		<testcase name="test_overflow_pump_requires_drip_vent_crossed_and_extends_playable_space" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_skirmish_test" time="0.259">
+		</testcase>
+		<testcase name="test_overflow_pump_defeat_persists_without_replaying_condenser_chain" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_skirmish_test" time="0.075">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent_traverse_test" package="tests/unit/gameplay" timestamp="2026-07-09T11:04:09" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.161">
+		<testcase name="test_outlet_drip_vent_requires_outlet_clamp_clear_and_extends_playable_space" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent_traverse_test" time="0.074">
+		</testcase>
+		<testcase name="test_outlet_drip_vent_pressure_window_damage_and_crossed_state_persist" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent_traverse_test" time="0.077">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush_test" package="tests/unit/gameplay" timestamp="2026-07-09T11:04:09" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.161">
+		<testcase name="test_outlet_clamp_requires_outlet_crossed_and_extends_combat_pocket" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush_test" time="0.080">
+		</testcase>
+		<testcase name="test_outlet_clamp_defeat_persists_without_replaying_condenser_chain" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush_test" time="0.076">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_traverse_test" package="tests/unit/gameplay" timestamp="2026-07-09T11:04:09" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.161">
+		<testcase name="test_condenser_outlet_requires_savepoint_and_extends_playable_space" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_traverse_test" time="0.076">
+		</testcase>
+		<testcase name="test_condenser_outlet_hazard_window_and_crossed_state_persist" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_traverse_test" time="0.076">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="old_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_test" package="tests/unit/gameplay" timestamp="2026-07-09T11:04:10" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.158">
+		<testcase name="test_condenser_savepoint_requires_landing_secured_and_records_respawn" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_test" time="0.075">
+		</testcase>
+		<testcase name="test_condenser_savepoint_persists_and_respawns_without_replaying_landing" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_test" time="0.076">
+		</testcase>
+	</testsuite>
+</testsuites>

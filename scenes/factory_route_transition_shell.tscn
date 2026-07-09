@@ -1,4 +1,4 @@
-[gd_scene load_steps=43 format=3]
+[gd_scene load_steps=44 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -33,9 +33,10 @@
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_aftershock_condenser_outlet/env_old_factory_aftershock_condenser_outlet_768.png" id="31_condenser_outlet_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_aftershock_condenser_outlet_clamp/env_old_factory_aftershock_condenser_outlet_clamp_256.png" id="32_condenser_outlet_clamp_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_aftershock_condenser_drain_gantry/env_old_factory_aftershock_condenser_drain_gantry_768.png" id="33_drain_gantry_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_aftershock_condenser_overflow_pump/env_old_factory_aftershock_condenser_overflow_pump_768.png" id="34_overflow_pump_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
-size = Vector2(6400, 40)
+size = Vector2(7040, 40)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
 size = Vector2(40, 720)
@@ -67,7 +68,7 @@ metadata/scene_id = "area_03_factory"
 
 [node name="Background" type="TextureRect" parent="."]
 z_index = -100
-offset_right = 6400.0
+offset_right = 7040.0
 offset_bottom = 720.0
 texture = ExtResource("3_backdrop")
 expand_mode = 1
@@ -76,7 +77,7 @@ stretch_mode = 6
 [node name="PostBulkheadBackground" type="TextureRect" parent="."]
 visible = false
 z_index = -99
-offset_right = 6400.0
+offset_right = 7040.0
 offset_bottom = 720.0
 texture = ExtResource("24_post_bulkhead_backdrop")
 expand_mode = 1
@@ -100,7 +101,7 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_wall")
 
 [node name="RightWall" type="StaticBody2D" parent="."]
-position = Vector2(6380, 360)
+position = Vector2(7020, 360)
 collision_layer = 16
 collision_mask = 0
 
@@ -144,7 +145,7 @@ position = Vector2(136, 456)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 6400
+limit_right = 7040
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
@@ -1340,6 +1341,17 @@ texture = ExtResource("8_vent_texture")
 position = Vector2(0, -36)
 shape = SubResource("RectangleShape2D_steam_vent")
 disabled = true
+
+[node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPump" type="Sprite2D" parent="."]
+visible = false
+z_index = 22
+position = Vector2(6680, 374)
+texture = ExtResource("34_overflow_pump_texture")
+
+[node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpCoilRat" parent="." instance=ExtResource("27_coil_rat")]
+visible = false
+z_index = 20
+position = Vector2(6668, 482)
 
 [node name="FactorySteamVentHazard" type="Area2D" parent="."]
 z_index = 18

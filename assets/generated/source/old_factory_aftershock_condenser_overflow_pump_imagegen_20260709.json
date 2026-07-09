@@ -1,0 +1,10 @@
+{
+  "asset_id": "old_factory_aftershock_condenser_overflow_pump",
+  "created_at": "2026-07-09",
+  "generator": "image_gen_builtin",
+  "source_path": "assets/generated/source/old_factory_aftershock_condenser_overflow_pump_imagegen_20260709.png",
+  "alpha_path": "assets/generated/source/old_factory_aftershock_condenser_overflow_pump_alpha_20260709.png",
+  "runtime_path": "assets/environment/old_factory_aftershock_condenser_overflow_pump/env_old_factory_aftershock_condenser_overflow_pump_768.png",
+  "runtime_size": [768, 320],
+  "prompt_summary": "Pixel-art / painted-pixel Old Factory aftershock condenser overflow pump baffle prop for a side-view cat action game, with riveted blue-grey steel, rusted pump cylinder, copper pipes, broken pressure valves, black right pipe mouth, cyan condenser lamps, analog gauges, oil stains, soot, and orange hazard striping on a flat green chroma-key background."
+}
