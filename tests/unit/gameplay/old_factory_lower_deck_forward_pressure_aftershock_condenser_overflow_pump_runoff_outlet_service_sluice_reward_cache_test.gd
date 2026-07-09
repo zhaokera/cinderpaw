@@ -166,7 +166,7 @@ func test_service_sluice_reward_cache_restore_backfills_skirmish_chain(
 	assert_bool(bool(restored_cache.get("service_sluice_skirmish_cleared", false))).is_true()
 	assert_bool(bool(restored_cache.get("claim_available", true))).is_false()
 	assert_str(String(restored_cache.get("route_label_text", ""))).is_equal(
-		"Service Sluice Cache Claimed +20 Gears"
+		"Open Service Sluice Exit"
 	)
 
 	var restored_skirmish: Dictionary = restored.call(

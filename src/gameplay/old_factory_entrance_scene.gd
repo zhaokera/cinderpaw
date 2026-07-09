@@ -107,6 +107,9 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUN
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_REWARD_CACHE_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache"
 )
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_EXIT_HATCH_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch"
+)
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC: float = 0.25
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC: float = 0.35
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC: float = 0.40
@@ -396,6 +399,12 @@ const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNO
 )
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_CACHE_CLAIMED: StringName = (
 	&"forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_cache_claimed"
+)
+const FACTORY_OBJECTIVE_OPEN_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_EXIT_HATCH: StringName = (
+	&"open_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch"
+)
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_EXIT_HATCH_OPENED: StringName = (
+	&"forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened"
 )
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
@@ -760,6 +769,11 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 		"FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceRewardCache"
 	)
 )
+@onready var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch: Node = (
+	get_node_or_null(
+		"FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceExitHatch"
+	)
+)
 @onready var _lower_deck_pressure_valve: Node = get_node_or_null("FactoryLowerDeckPressureValve")
 @onready var _lower_deck_deep_bulkhead: Node = get_node_or_null("FactoryLowerDeckDeepBulkhead")
 @onready var _lower_deck_forward_hatch: Node = get_node_or_null("FactoryLowerDeckForwardHatch")
@@ -1098,6 +1112,7 @@ var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outle
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_spark_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -1175,6 +1190,7 @@ func _ready() -> void:
 	_sync_overflow_pump_runoff_outlet_service_hatch_state()
 	_sync_overflow_pump_runoff_outlet_service_sluice_state()
 	_sync_overflow_pump_runoff_outlet_service_sluice_skirmish_state()
+	_setup_overflow_pump_runoff_outlet_service_sluice_exit_hatch()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -1348,6 +1364,7 @@ func is_factory_route_objective_complete() -> bool:
 				or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SKIRMISH_CLEARED
 				or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_CROSSED
 				or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_SKIRMISH_CLEARED
+				or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_EXIT_HATCH_OPENED
 			)
 
 
@@ -3238,7 +3255,41 @@ func try_claim_factory_lower_deck_forward_pressure_aftershock_condenser_overflow
 			reward_payload,
 			"Service Sluice Cache Claimed"
 		)
-	_refresh_factory_route_objective()
+	_sync_overflow_pump_runoff_outlet_service_sluice_exit_hatch_state()
+	_update_route_label("Service Sluice Cache Claimed +20 Gears")
+	return true
+
+
+## Opens the service-sluice exit hatch after its reward cache is claimed.
+func try_open_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch == null
+		or not _is_overflow_pump_runoff_outlet_service_sluice_exit_hatch_available()
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_overflow_pump_runoff_outlet_service_sluice_exit_hatch_provider_in_range(
+		activation_provider
+	):
+		return false
+	if (
+		not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch.has_method(
+			"try_activate"
+		)
+		or not bool(
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch.call(
+				"try_activate",
+				activation_provider
+			)
+		)
+	):
+		return false
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened = true
+	_sync_overflow_pump_runoff_outlet_service_sluice_exit_hatch_state()
+	_update_route_label("Service Sluice Exit Opened")
 	return true
 
 
@@ -4211,6 +4262,9 @@ func get_local_state() -> Dictionary:
 			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed": (
 				_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed
 			),
+			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened": (
+				_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened
+			),
 			"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -5014,6 +5068,14 @@ func set_local_state(state: Dictionary) -> void:
 			false
 		)
 	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened",
+			false
+		)
+	)
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened:
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed = true
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed:
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_spark_rat_defeated = true
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_spark_rat_defeated:
@@ -5561,6 +5623,9 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_overflow_pump_runoff_outlet_state()
 	_sync_overflow_pump_runoff_outlet_reward_cache_state()
 	_sync_overflow_pump_runoff_outlet_service_hatch_state()
+	_sync_overflow_pump_runoff_outlet_service_sluice_state()
+	_sync_overflow_pump_runoff_outlet_service_sluice_skirmish_state()
+	_sync_overflow_pump_runoff_outlet_service_sluice_exit_hatch_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -9212,6 +9277,76 @@ func get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_
 	}
 
 
+## Returns deterministic service-sluice exit hatch diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_diagnostics(
+) -> Dictionary:
+	var hatch: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch
+	)
+	var interaction_area := (
+		hatch.get_node_or_null("InteractionArea") as Area2D
+		if hatch != null
+		else null
+	)
+	var collision_shape := (
+		_get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_collision_shape()
+	)
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	var unlock_vfx_snapshot: Dictionary = (
+		_get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_unlock_vfx_snapshot()
+	)
+	var right_wall := get_node_or_null("RightWall") as Node2D
+	var camera := get_node_or_null("Player/Camera2D") as Camera2D
+	var background := get_node_or_null("Background") as TextureRect
+	var ground := get_node_or_null("Ground") as Node2D
+	var ground_shape := get_node_or_null("Ground/CollisionShape2D") as CollisionShape2D
+	var ground_rect := (
+		ground_shape.shape as RectangleShape2D
+		if ground_shape != null and ground_shape.shape is RectangleShape2D
+		else null
+	)
+	var ground_right_edge_x: float = (
+		ground.global_position.x + (ground_rect.size.x * 0.5)
+		if ground != null and ground_rect != null
+		else 0.0
+	)
+	return {
+		"present": hatch != null,
+		"service_sluice_cache_claimed": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed
+		),
+		"available": _is_overflow_pump_runoff_outlet_service_sluice_exit_hatch_available(),
+		"visible": hatch.visible if hatch != null else false,
+		"opened": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened
+		),
+		"hatch_id": _get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_id(),
+		"texture_path": (
+			_get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_texture_path()
+		),
+		"prompt_text": (
+			_get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_prompt_text()
+		),
+		"interaction_monitoring": interaction_area.monitoring if interaction_area != null else false,
+		"interaction_monitorable": interaction_area.monitorable if interaction_area != null else false,
+		"collision_disabled": collision_shape.disabled if collision_shape != null else true,
+		"collision_blocking": (
+			_is_overflow_pump_runoff_outlet_service_sluice_exit_hatch_collision_blocking()
+		),
+		"position": _get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_position(),
+		"route_label_text": String(route.get("route_label_text", "")),
+		"unlock_feedback_texture_path": String(unlock_vfx_snapshot.get("texture_path", "")),
+		"unlock_feedback_active": int(unlock_vfx_snapshot.get("active_count", 0)) > 0,
+		"unlock_feedback_played": bool(unlock_vfx_snapshot.get("played", false)),
+		"unlock_feedback_spawn_count": int(unlock_vfx_snapshot.get("spawn_count", 0)),
+		"right_wall_x": right_wall.global_position.x if right_wall != null else 0.0,
+		"camera_limit_right": camera.limit_right if camera != null else 0,
+		"background_width": background.size.x if background != null else 0.0,
+		"ground_width": ground_rect.size.x if ground_rect != null else 0.0,
+		"ground_right_edge_x": ground_right_edge_x,
+	}
+
+
 ## Returns deterministic overflow-pump runoff duct diagnostics for tests/MCP probes.
 func get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_diagnostics(
 ) -> Dictionary:
@@ -11865,6 +12000,28 @@ func _setup_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch() 
 		)
 
 
+func _setup_overflow_pump_runoff_outlet_service_sluice_exit_hatch() -> void:
+	_sync_overflow_pump_runoff_outlet_service_sluice_exit_hatch_state()
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch == null
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch.has_signal(
+			"endpoint_activated"
+		)
+	):
+		return
+	var activated_signal: Signal = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch.get(
+			"endpoint_activated"
+		)
+	)
+	if not activated_signal.is_connected(
+		_on_overflow_pump_runoff_outlet_service_sluice_exit_hatch_activated
+	):
+		activated_signal.connect(
+			_on_overflow_pump_runoff_outlet_service_sluice_exit_hatch_activated
+		)
+
+
 func _setup_factory_respawn_flow() -> void:
 	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
 		var existing_flow := get_node_or_null("FactoryGameFlowController") as GameFlowController
@@ -12566,6 +12723,19 @@ func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_activ
 	_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened = true
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state()
 	_update_route_label("Aftershock Exhaust Exit Opened")
+
+
+func _on_overflow_pump_runoff_outlet_service_sluice_exit_hatch_activated(
+	endpoint_id: StringName
+) -> void:
+	if (
+		endpoint_id
+		!= FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_EXIT_HATCH_ID
+	):
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened = true
+	_sync_overflow_pump_runoff_outlet_service_sluice_exit_hatch_state()
+	_update_route_label("Service Sluice Exit Opened")
 
 
 func _on_factory_return_checkpoint_activated(
@@ -14663,22 +14833,49 @@ func _sync_overflow_pump_runoff_outlet_service_sluice_reward_cache_state() -> vo
 	var cache: Node = (
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache
 	)
-	if cache == null:
-		return
-	cache.visible = (
-		_is_overflow_pump_runoff_outlet_service_sluice_skirmish_cleared()
-		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed
+	if cache != null:
+		cache.visible = (
+			_is_overflow_pump_runoff_outlet_service_sluice_skirmish_cleared()
+			or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed
+		)
+		if cache.has_method("set_available"):
+			cache.call(
+				"set_available",
+				_is_overflow_pump_runoff_outlet_service_sluice_reward_cache_available()
+			)
+		if cache.has_method("set_claimed"):
+			cache.call(
+				"set_claimed",
+				_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed
+			)
+	_sync_overflow_pump_runoff_outlet_service_sluice_exit_hatch_state()
+
+
+func _sync_overflow_pump_runoff_outlet_service_sluice_exit_hatch_state() -> void:
+	var hatch: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch
 	)
-	if cache.has_method("set_available"):
-		cache.call(
+	if hatch == null:
+		return
+	var hatch_visible: bool = (
+		_is_overflow_pump_runoff_outlet_service_sluice_exit_hatch_available()
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened
+	)
+	hatch.visible = hatch_visible
+	if hatch.has_method("set_available"):
+		hatch.call(
 			"set_available",
-			_is_overflow_pump_runoff_outlet_service_sluice_reward_cache_available()
+			_is_overflow_pump_runoff_outlet_service_sluice_exit_hatch_available()
 		)
-	if cache.has_method("set_claimed"):
-		cache.call(
-			"set_claimed",
-			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed
+	if hatch.has_method("set_activated"):
+		hatch.call(
+			"set_activated",
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened
 		)
+	_set_overflow_pump_runoff_outlet_service_sluice_exit_hatch_collision_blocking(
+		hatch_visible
+			and not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened
+	)
 
 
 func _sync_lower_deck_forward_pressure_exit_gate_state() -> void:
@@ -14825,6 +15022,14 @@ func _get_factory_route_objective_id() -> StringName:
 	if _is_overflow_pump_runoff_outlet_service_sluice_skirmish_active():
 		return (
 			FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_SKIRMISH
+		)
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened:
+		return (
+			FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_EXIT_HATCH_OPENED
+		)
+	if _is_overflow_pump_runoff_outlet_service_sluice_exit_hatch_available():
+		return (
+			FACTORY_OBJECTIVE_OPEN_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_EXIT_HATCH
 		)
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed:
 		return (
@@ -15280,6 +15485,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Service Sluice Spark Rat Cleared"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_CACHE_CLAIMED:
 			return "Service Sluice Cache Claimed +20 Gears"
+		FACTORY_OBJECTIVE_OPEN_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_EXIT_HATCH:
+			return "Open Service Sluice Exit"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_EXIT_HATCH_OPENED:
+			return "Service Sluice Exit Opened"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OUTLET_CROSSED:
 			return "Aftershock Condenser Outlet Crossed"
 		_:
@@ -16280,6 +16489,77 @@ func _get_overflow_pump_runoff_outlet_service_sluice_reward_cache_position(
 	)
 
 
+func _get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_id() -> String:
+	var hatch: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch
+	)
+	if hatch != null and hatch.has_method("get_endpoint_id"):
+		return String(hatch.call("get_endpoint_id"))
+	return String(
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_EXIT_HATCH_ID
+	)
+
+
+func _get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_texture_path(
+) -> String:
+	var hatch: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch
+	)
+	if hatch != null and hatch.has_method("get_visual_texture_path"):
+		return String(hatch.call("get_visual_texture_path"))
+	var visual: Sprite2D = (
+		hatch.get_node_or_null("Visual") as Sprite2D
+		if hatch != null
+		else null
+	)
+	if visual == null or visual.texture == null:
+		return ""
+	return visual.texture.resource_path
+
+
+func _get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_prompt_text(
+) -> String:
+	var hatch: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch
+	)
+	var prompt_label: Label = (
+		hatch.get_node_or_null("PromptLabel") as Label
+		if hatch != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_position(
+) -> Vector2:
+	return (
+		(
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch
+			as Node2D
+		).global_position
+		if (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch
+			!= null
+			and _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch
+			is Node2D
+		)
+		else Vector2.ZERO
+	)
+
+
+func _get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_unlock_vfx_snapshot(
+) -> Dictionary:
+	var hatch: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch
+	)
+	if hatch == null or not hatch.has_method("get_unlock_vfx_snapshot"):
+		return {}
+	var snapshot_variant: Variant = hatch.call("get_unlock_vfx_snapshot")
+	if snapshot_variant is Dictionary:
+		return (snapshot_variant as Dictionary).duplicate(true)
+	return {}
+
+
 func _get_overflow_pump_runoff_exit_gate_id() -> String:
 	if (
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_gate != null
@@ -16699,6 +16979,35 @@ func _get_overflow_pump_runoff_outlet_service_hatch_collision_shape() -> Collisi
 			"StaticBody2D/CollisionShape2D"
 		) as CollisionShape2D
 		if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_hatch != null
+		else null
+	)
+
+
+func _is_overflow_pump_runoff_outlet_service_sluice_exit_hatch_collision_blocking(
+) -> bool:
+	var collision_shape := (
+		_get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_collision_shape()
+	)
+	return collision_shape != null and not collision_shape.disabled
+
+
+func _set_overflow_pump_runoff_outlet_service_sluice_exit_hatch_collision_blocking(
+	blocking: bool
+) -> void:
+	var collision_shape := (
+		_get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_collision_shape()
+	)
+	if collision_shape != null:
+		collision_shape.disabled = not blocking
+
+
+func _get_overflow_pump_runoff_outlet_service_sluice_exit_hatch_collision_shape(
+) -> CollisionShape2D:
+	return (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch.get_node_or_null(
+			"StaticBody2D/CollisionShape2D"
+		) as CollisionShape2D
+		if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch != null
 		else null
 	)
 
@@ -20121,6 +20430,26 @@ func _is_overflow_pump_runoff_outlet_service_hatch_provider_in_range(
 	)
 
 
+func _is_overflow_pump_runoff_outlet_service_sluice_exit_hatch_provider_in_range(
+	provider: Node
+) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	var hatch: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch
+	)
+	if hatch == null:
+		return false
+	if hatch.has_method("is_provider_in_activation_range"):
+		return bool(hatch.call("is_provider_in_activation_range", provider))
+	if not hatch is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.distance_to((hatch as Node2D).global_position)
+		<= FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS
+	)
+
+
 func _is_overflow_pump_runoff_outlet_service_sluice_provider_at_activation(
 	provider: Node
 ) -> bool:
@@ -21074,6 +21403,13 @@ func _is_overflow_pump_runoff_outlet_service_sluice_reward_cache_available() -> 
 	)
 
 
+func _is_overflow_pump_runoff_outlet_service_sluice_exit_hatch_available() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed
+		and not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened
+	)
+
+
 func _is_lower_deck_forward_pressure_contact_active() -> bool:
 	return (
 		_lower_deck_forward_pressure_traverse_active
@@ -21256,6 +21592,11 @@ func _get_condenser_outlet_phase() -> StringName:
 	):
 		return &"active"
 	return &"safe"
+
+
+func _get_lower_deck_forward_pressure_aftershock_condenser_outlet_phase(
+) -> StringName:
+	return _get_condenser_outlet_phase()
 
 
 func _get_outlet_drip_vent_phase() -> StringName:
@@ -21621,6 +21962,14 @@ func _auto_complete_condenser_outlet() -> void:
 	if not _is_lower_deck_forward_pressure_aftershock_condenser_outlet_active():
 		return
 	try_complete_factory_lower_deck_forward_pressure_aftershock_condenser_outlet(_player)
+
+
+func _try_auto_activate_forward_pressure_aftershock_condenser_outlet() -> void:
+	_auto_activate_condenser_outlet()
+
+
+func _try_auto_complete_forward_pressure_aftershock_condenser_outlet() -> void:
+	_auto_complete_condenser_outlet()
 
 
 func _auto_activate_outlet_clamp_ambush() -> void:

@@ -132,7 +132,9 @@
 	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Skirmish
 	  、Player Abilities Story115 Old Factory Lower Deck Forward Pressure
 	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Reward
-	  Cache
+	  Cache、Player Abilities Story116 Old Factory Lower Deck Forward Pressure
+	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Exit Hatch
+	  Handoff
 	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
@@ -150,6 +152,30 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 116: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Exit Hatch
+  Handoff -- after Story115 claims the service sluice reward cache, a reused
+  image-generated deep-bulkhead hatch appears at `Vector2(11680, 392)`. The
+  hatch is locked until
+  `factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed=true`,
+  uses endpoint id
+  `old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch`,
+  progresses prompts from `Claim service sluice cache` to `Open Service Exit`
+  to `Service Exit Open`, opens once in range, plays one unlock VFX, clears
+  collision blocking, and advances route feedback to
+  `Service Sluice Exit Opened`. Restoring the opened state backfills the
+  Story106-115 runoff/service-sluice chain so earlier traversal, hatch,
+  skirmish, and reward states do not replay. Verification: RED
+  `reports/report_1339/`; focused GREEN `reports/report_1340/report_2/`
+  (`2/2`); related GREEN `reports/report_1342/report_1/` (`10/10`);
+  headless smoke
+  `reports/old_factory_overflow_pump_runoff_outlet_service_sluice_exit_hatch_smoke.log`
+  exit `0`; Godot MCP 2.9.1 on Godot 4.7 verified disk-reloaded hatch node,
+  script, endpoint id, prompt text, texture/VFX assets, locked/available/opened
+  runtime diagnostics, collision blocking before open and cleared after open,
+  local-state persistence, current game log without errors, no new editor log
+  rows after cursor `9`, and a non-empty game screenshot response.
+
 - Player Abilities Story 115: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Reward Cache
   -- after Story114 clears the service sluice Spark Rat, a reused
@@ -4735,3 +4761,15 @@
 - Notes: `project_run` still surfaced retained historical editor parse rows marked as pre-run; current-run game log, cursor-scoped editor log, focused/related tests, and headless smoke were clean.
 - Blockers: None. New route gate, new savepoint, new enemy family, new generated art, reward economy expansion, SaveSystem schema changes, minimap/fast-travel UI, authored audio, particles/shaders, Boss2, and broader lower-deck biome art replacement remain out of scope.
 - Next: continue another ACT-visible slice beyond the service sluice payoff, preferably a short route handoff, traversal pocket, or combat beat that keeps the Old Factory moving right without over-testing.
+
+## Session Extract -- /dev-story 2026-07-10
+
+- Story: `production/epics/player-abilities/story-116-old-factory-lower-deck-forward-pressure-aftershock-condenser-overflow-pump-runoff-outlet-service-sluice-exit-hatch-handoff.md` -- Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Exit Hatch Handoff
+- Files changed: `src/gameplay/old_factory_entrance_scene.gd`, `scenes/factory_route_transition_shell.tscn`, `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_test.gd`, `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_test.gd`, `tests/smoke/old_factory_service_sluice_exit_hatch_smoke.gd`, `production/epics/player-abilities/story-116-old-factory-lower-deck-forward-pressure-aftershock-condenser-overflow-pump-runoff-outlet-service-sluice-exit-hatch-handoff.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/old-factory-overflow-pump-runoff-outlet-service-sluice-exit-hatch-2026-07-10.md`, `reports/old_factory_overflow_pump_runoff_outlet_service_sluice_exit_hatch_smoke.log`, `production/session-state/active.md`
+- Implementation: Added a Story115-gated service sluice exit hatch. `FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceExitHatch` stays hidden/inactive until the service sluice reward cache is claimed; once available it uses endpoint id `old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch`, shows `Open Service Exit`, blocks collision before opening, opens once in range, plays one unlock spark, clears collision, persists the opened flag, and advances route feedback to `Service Sluice Exit Opened`. The scene now extends right wall x `11900`, camera/background right `11920`, ground collision to x `12000`, and adds two reused floor tiles under the new hatch pocket.
+- Asset pipeline: No new visual or audio assets were generated. Story116 reuses the image-generated old-factory deep bulkhead hatch texture, the generated deep-route unlock spark VFX, the generated service sluice landing context, and generated route floor tile.
+- Test written: `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_test.gd` covers cache-claim gating, node/script/texture/VFX contracts, prompt state, route bounds, collision blocking before open, one-shot open, VFX spawn count, local-state persistence, restored completed state, and Story106-115 runoff-chain backfill. Story115 restore expectations were updated so restored cache claim now points to `Open Service Sluice Exit`, while immediate claim feedback still remains `Service Sluice Cache Claimed +20 Gears`.
+- Verification: RED focused `reports/report_1339/` failed as expected before Story116 diagnostics/API existed. Focused GREEN `reports/report_1340/report_2/` passed Story116 `2/2`; final related GREEN `reports/report_1342/report_1/` passed Story116, Story115, Story114, Story113, and Story112 suites `10/10`. Headless Factory smoke `reports/old_factory_overflow_pump_runoff_outlet_service_sluice_exit_hatch_smoke.log` exited `0` and printed `service_sluice_exit_hatch_smoke=passed`, with only known Godot cleanup-time ObjectDB/resource messages after shutdown. Godot AI MCP `2.9.1` on Godot `4.7-stable` confirmed the disk-reloaded hatch node, script, endpoint id, prompts, texture/VFX assets, runtime available/opened diagnostics, collision blocking before open and cleared after open, VFX spawn count `1`, local-state persistence, current game log without errors, empty editor log after cursor `9`, and a non-empty `960x539` screenshot response.
+- Notes: `project_run` continued to surface retained historical editor parse rows marked as pre-run; compatibility wrappers were added for the old condenser-outlet helper names, and final current-run game log plus cursor-scoped editor log were clean.
+- Blockers: None. New route traversal hazards, new enemy family, new generated art, new reward economy, savepoint, SaveSystem schema changes, minimap/fast-travel UI, authored audio, particles/shaders, Boss2, and broader lower-deck biome art replacement remain out of scope.
+- Next: continue another ACT-visible slice beyond the service sluice exit hatch, preferably a short traversal or combat beat that introduces more authored environment support without bloating verification.
