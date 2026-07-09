@@ -4497,6 +4497,96 @@ func get_factory_room_clear_diagnostics() -> Dictionary:
 	}
 
 
+## Returns deterministic route floor/platform visual diagnostics for tests and MCP probes.
+func get_factory_route_visual_diagnostics() -> Dictionary:
+	var ground_shape := get_node_or_null("Ground/CollisionShape2D") as CollisionShape2D
+	var ground_rect := (
+		ground_shape.shape as RectangleShape2D
+		if ground_shape != null and ground_shape.shape is RectangleShape2D
+		else null
+	)
+	var floor_tiles: Array[Sprite2D] = _get_factory_route_floor_visual_tiles()
+	return {
+		"ground_collision_width": ground_rect.size.x if ground_rect != null else 0.0,
+		"ground_collision_height": ground_rect.size.y if ground_rect != null else 0.0,
+		"floor": _build_factory_route_floor_visual_snapshot(floor_tiles),
+		"entry_platform": _build_factory_route_sprite_visual_snapshot(
+			get_node_or_null("EntryPlatform/FactoryRouteEntryPlatformVisual") as Sprite2D
+		),
+		"cache_platform": _build_factory_route_sprite_visual_snapshot(
+			get_node_or_null(
+				"FactoryCachePlatform/FactoryRouteCachePlatformVisual"
+			) as Sprite2D
+		),
+		"uses_placeholder_color_rect": _has_visible_placeholder_visual(self),
+	}
+
+
+func _get_factory_route_floor_visual_tiles() -> Array[Sprite2D]:
+	var ground := get_node_or_null("Ground")
+	var tiles: Array[Sprite2D] = []
+	if ground == null:
+		return tiles
+	for child: Node in ground.get_children():
+		if child is Sprite2D and String(child.name).begins_with("FactoryRouteFloorVisual"):
+			tiles.append(child as Sprite2D)
+	return tiles
+
+
+func _build_factory_route_floor_visual_snapshot(tiles: Array[Sprite2D]) -> Dictionary:
+	var first_tile := get_node_or_null("Ground/FactoryRouteFloorVisual") as Sprite2D
+	var snapshot: Dictionary = _build_factory_route_sprite_visual_snapshot(first_tile)
+	snapshot["tile_count"] = tiles.size()
+	snapshot["world_width"] = _get_factory_route_floor_visual_width(tiles)
+	snapshot["world_height"] = _get_factory_route_sprite_world_size(first_tile).y
+	return snapshot
+
+
+func _build_factory_route_sprite_visual_snapshot(sprite: Sprite2D) -> Dictionary:
+	var texture_size := Vector2.ZERO
+	var texture_path := ""
+	if sprite != null and sprite.texture != null:
+		texture_size = sprite.texture.get_size()
+		texture_path = sprite.texture.resource_path
+	return {
+		"present": sprite != null,
+		"node_path": String(get_path_to(sprite)) if sprite != null else "",
+		"visible": sprite.visible if sprite != null else false,
+		"is_visible_in_tree": sprite.is_visible_in_tree() if sprite != null else false,
+		"texture_path": texture_path,
+		"texture_size": texture_size,
+		"world_width": _get_factory_route_sprite_world_size(sprite).x,
+		"world_height": _get_factory_route_sprite_world_size(sprite).y,
+		"z_index": sprite.z_index if sprite != null else -999,
+		"z_as_relative": sprite.z_as_relative if sprite != null else true,
+	}
+
+
+func _get_factory_route_floor_visual_width(tiles: Array[Sprite2D]) -> float:
+	var width := 0.0
+	for tile: Sprite2D in tiles:
+		width += _get_factory_route_sprite_world_size(tile).x
+	return width
+
+
+func _get_factory_route_sprite_world_size(sprite: Sprite2D) -> Vector2:
+	if sprite == null or sprite.texture == null:
+		return Vector2.ZERO
+	var texture_size: Vector2 = sprite.texture.get_size()
+	return Vector2(texture_size.x * absf(sprite.scale.x), texture_size.y * absf(sprite.scale.y))
+
+
+func _has_visible_placeholder_visual(root: Node) -> bool:
+	if root is ColorRect and (root as ColorRect).visible:
+		return true
+	if root is Polygon2D and (root as Polygon2D).visible:
+		return true
+	for child: Node in root.get_children():
+		if _has_visible_placeholder_visual(child):
+			return true
+	return false
+
+
 ## Returns deterministic steam vent hazard diagnostics for tests and MCP probes.
 func get_factory_hazard_diagnostics() -> Dictionary:
 	return {

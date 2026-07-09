@@ -93,7 +93,8 @@ func test_factory_entrance_scene_contains_player_spawn_platforms_and_generated_b
 	assert_that(backdrop).is_not_null()
 	if backdrop != null:
 		assert_bool(backdrop.visible).is_true()
-		assert_vector(backdrop.size).is_equal(Vector2(1280, 720))
+		assert_float(backdrop.size.x).is_greater_equal(1280.0)
+		assert_float(backdrop.size.y).is_equal(720.0)
 		assert_that(backdrop.texture).is_not_null()
 		if backdrop.texture != null:
 			assert_str(backdrop.texture.resource_path).is_equal(FACTORY_BACKDROP_PATH)

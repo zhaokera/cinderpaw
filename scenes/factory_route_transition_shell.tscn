@@ -1,4 +1,4 @@
-[gd_scene load_steps=44 format=3]
+[gd_scene load_steps=47 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -34,6 +34,9 @@
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_aftershock_condenser_outlet_clamp/env_old_factory_aftershock_condenser_outlet_clamp_256.png" id="32_condenser_outlet_clamp_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_aftershock_condenser_drain_gantry/env_old_factory_aftershock_condenser_drain_gantry_768.png" id="33_drain_gantry_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_aftershock_condenser_overflow_pump/env_old_factory_aftershock_condenser_overflow_pump_768.png" id="34_overflow_pump_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_route_floor/env_old_factory_route_floor_tile_256x96.png" id="35_route_floor_tile"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_route_platform/env_old_factory_route_entry_platform_320x96.png" id="36_entry_platform_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_route_platform/env_old_factory_route_cache_platform_320x96.png" id="37_cache_platform_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(7040, 40)
@@ -92,6 +95,174 @@ collision_mask = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
 shape = SubResource("RectangleShape2D_ground")
 
+[node name="FactoryRouteFloorVisual" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-3456, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual02" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-3200, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual03" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-2944, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual04" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-2688, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual05" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-2432, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual06" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-2176, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual07" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-1920, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual08" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-1664, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual09" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-1408, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual10" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-1152, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual11" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-896, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual12" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-640, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual13" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-384, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual14" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(-128, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual15" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(128, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual16" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(384, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual17" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(640, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual18" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(896, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual19" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(1152, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual20" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(1408, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual21" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(1664, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual22" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(1920, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual23" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(2176, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual24" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(2432, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual25" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(2688, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual26" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(2944, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual27" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(3200, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual28" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(3456, 40)
+texture = ExtResource("35_route_floor_tile")
+
 [node name="LeftWall" type="StaticBody2D" parent="."]
 position = Vector2(20, 360)
 collision_layer = 16
@@ -117,6 +288,12 @@ collision_mask = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="EntryPlatform"]
 shape = SubResource("RectangleShape2D_platform")
 
+[node name="FactoryRouteEntryPlatformVisual" type="Sprite2D" parent="EntryPlatform"]
+z_index = 11
+z_as_relative = false
+position = Vector2(0, 34)
+texture = ExtResource("36_entry_platform_texture")
+
 [node name="FactoryCachePlatform" type="StaticBody2D" parent="."]
 z_index = 9
 position = Vector2(1040, 330)
@@ -125,6 +302,12 @@ collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryCachePlatform"]
 shape = SubResource("RectangleShape2D_cache_platform")
+
+[node name="FactoryRouteCachePlatformVisual" type="Sprite2D" parent="FactoryCachePlatform"]
+z_index = 11
+z_as_relative = false
+position = Vector2(0, 34)
+texture = ExtResource("37_cache_platform_texture")
 
 [node name="RouteShellVisual" type="Sprite2D" parent="."]
 z_index = 20

@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 100 stories tracked
+> **Stories**: 102 stories tracked
 
 ## Overview
 
@@ -139,6 +139,7 @@ recording the reward in progression state.
 | 099 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Skirmish | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0005/0007/0018/0021 |
 | 100 | Main Scene Dash Gate Authored Visual Replacement | Integration + Visual | Complete | ADR-0005/0007/0018/0021 |
 | 101 | Main Scene Player Hit Damage Number Runtime | Integration + Visual/Feel | Complete | ADR-0002/0004/0005/0018 |
+| 102 | Old Factory Route Floor Platform Visual Pass | Integration + Visual | Complete | ADR-0004/0005/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -158,7 +159,7 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-101 are complete. Continue deeper Old Factory route content after the
-aftershock condenser overflow pump skirmish, minimap gameplay, additional
-player-visible character/enemy frame-animation replacement, more skill-tree
-branches, authored hazard/audio polish, or final Boss2 balancing/cutscene polish.
+Stories001-102 are complete. Continue deeper Old Factory route content after the
+route floor/platform visual pass, minimap gameplay, additional player-visible
+character/enemy frame-animation replacement, more skill-tree branches, authored
+hazard/audio polish, or final Boss2 balancing/cutscene polish.

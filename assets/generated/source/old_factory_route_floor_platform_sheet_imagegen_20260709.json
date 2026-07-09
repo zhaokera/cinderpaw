@@ -1,0 +1,24 @@
+{
+  "asset_id": "old_factory_route_floor_platform_visuals",
+  "created_at": "2026-07-09",
+  "generator": "image_gen_builtin",
+  "source_path": "assets/generated/source/old_factory_route_floor_platform_sheet_imagegen_20260709.png",
+  "alpha_path": "assets/generated/source/old_factory_route_floor_platform_sheet_alpha_20260709.png",
+  "runtime_paths": [
+    "assets/environment/old_factory_route_floor/env_old_factory_route_floor_tile_256x96.png",
+    "assets/environment/old_factory_route_platform/env_old_factory_route_entry_platform_320x96.png",
+    "assets/environment/old_factory_route_platform/env_old_factory_route_cache_platform_320x96.png"
+  ],
+  "runtime_sizes": {
+    "floor_tile": [256, 96],
+    "entry_platform": [320, 96],
+    "cache_platform": [320, 96]
+  },
+  "prompt_summary": "Pixel-art Old Factory side-scroller route floor and platform sheet for a cat action game: riveted gunmetal floor plates, rusted steel beams, amber hazard stripes, soot, worn bolts, cyan factory rim lights, and three distinct horizontal floor/platform strips on a flat magenta chroma-key background.",
+  "post_processing": "Generated on magenta chroma key, alpha-matted with local remove_chroma_key.py, cropped into one repeatable 256x96 floor tile plus two 320x96 transparent platform sprites, then imported through Godot 4.7.",
+  "used_by": [
+    "res://scenes/factory_route_transition_shell.tscn:Ground/FactoryRouteFloorVisual*",
+    "res://scenes/factory_route_transition_shell.tscn:EntryPlatform/FactoryRouteEntryPlatformVisual",
+    "res://scenes/factory_route_transition_shell.tscn:FactoryCachePlatform/FactoryRouteCachePlatformVisual"
+  ]
+}
