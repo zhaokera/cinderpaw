@@ -120,7 +120,9 @@
 	  Runoff Duct Traverse、Player Abilities Story108 Old Factory Lower Deck
 	  Forward Pressure Aftershock Condenser Overflow Pump Runoff Exit Skirmish、
 	  Player Abilities Story109 Old Factory Lower Deck Forward Pressure
-	  Aftershock Condenser Overflow Pump Runoff Exit Reward Cache
+	  Aftershock Condenser Overflow Pump Runoff Exit Reward Cache、Player
+	  Abilities Story110 Old Factory Lower Deck Forward Pressure Aftershock
+	  Condenser Overflow Pump Runoff Outlet Traverse
 	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
@@ -138,6 +140,22 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 110: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Overflow Pump Runoff Outlet Traverse -- after Story109
+  opens the runoff exit gate, the route extends to the right with reused
+  generated floor/duct visuals and a reused steam vent hazard. The pocket
+  activates at x `8480`, cycles through the standard steam timing window,
+  completes at x `9060`, persists the crossed state, and backfills the
+  Story106/107/108/109 runoff chain so prior cache/skirmish/duct states do not
+  replay. Verification: RED `reports/report_1297/`; focused GREEN
+  `reports/report_1298/` (`2/2`); related GREEN `reports/report_1299/`
+  (`9/9`); headless smoke
+  `reports/old_factory_overflow_pump_runoff_outlet_traverse_smoke.log` exit
+  `0`; Godot MCP 2.9.1 on Godot 4.7 verified disk-reloaded scene nodes,
+  runtime duct/steam vent nodes, texture/script/hazard bindings,
+  `current_run_errors=[]`, clean current game/editor logs, and a non-empty
+  `960x539` game screenshot response.
+
 - Player Abilities Story 109: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Overflow Pump Runoff Exit Reward Cache -- after Story108
   clears the runoff exit skirmish, a reused image-generated cache appears,
