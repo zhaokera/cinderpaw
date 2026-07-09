@@ -79,7 +79,23 @@
 	  Story076 Old Factory Lower Deck Forward Pressure Route Handoff Marker、
 	  Player Abilities Story077 Old Factory Lower Deck Forward Pressure Beacon
 	  Ambush、Player Abilities Story078 Old Factory Lower Deck Forward Pressure
-	  Overrun
+	  Overrun、Player Abilities Story079 Old Factory Lower Deck Forward Pressure
+	  Breaker、Player Abilities Story080 Old Factory Lower Deck Forward Pressure
+	  Relief Ambush、Player Abilities Story081 Old Factory Lower Deck Forward
+	  Pressure Coil Rat Breakthrough、Player Abilities Story082 Old Factory
+	  Lower Deck Forward Pressure Coil Pincer、Player Abilities Story083 Old
+	  Factory Lower Deck Forward Pressure Coil Aftershock、Player Abilities
+	  Story084 Old Factory Lower Deck Forward Pressure Aftershock Reward Cache、
+	  Player Abilities Story085 Old Factory Lower Deck Forward Pressure
+	  Aftershock Exit Skirmish、Player Abilities Story086 Old Factory Lower Deck
+	  Forward Pressure Aftershock Exhaust Traverse、Player Abilities Story087
+	  Old Factory Lower Deck Forward Pressure Aftershock Exhaust Pursuer、
+	  Player Abilities Story088 Old Factory Lower Deck Forward Pressure
+	  Aftershock Exhaust Pursuer Reward Cache、Player Abilities Story089 Old
+	  Factory Lower Deck Forward Pressure Aftershock Exhaust Flank Ambush、
+	  Player Abilities Story090 Old Factory Lower Deck Forward Pressure
+	  Aftershock Exhaust Breaker Corridor、Player Abilities Story091 Old Factory
+	  Lower Deck Forward Pressure Aftershock Exhaust Escape Skirmish
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -97,6 +113,33 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 091: Old Factory Lower Deck Forward Pressure
+  Aftershock Exhaust Escape Skirmish -- after Story090 cuts the aftershock
+  exhaust breaker, Cinderpaw can push to x `3112.0` to activate
+  `FactoryLowerDeckForwardPressureAftershockExhaustEscapeSkirmishSparkRat` as
+  entity `2134` and
+  `FactoryLowerDeckForwardPressureAftershockExhaustEscapeSkirmishCoilRat` as
+  entity `2135`. The slice reuses image-generated Factory Spark Rat and
+  Factory Coil Rat `AnimatedSprite2D + SpriteFrames` assets with 3-frame
+  `idle/run/attack_tell/attack/hurt/death` animations, assigns the player as
+  target, enables process/physics for both enemies, staggers opening grace
+  frames `10/22`, persists partial/full defeat through scene-local state, and
+  advances route feedback from `Break Aftershock Exhaust Escape` to
+  `Aftershock Exhaust Escape Secured`. MCP exposed a stale freed-node
+  diagnostics bug after both enemies died and local state was restored; fixed
+  by validating enemy references before diagnostics, pacing, and entity/family
+  lookups. Verification: initial RED `reports/report_1212/`; first focused
+  GREEN `reports/report_1213/` `2/2`; stale-reference RED
+  `reports/report_1215/`; final focused GREEN `reports/report_1216/` `2/2`;
+  related GREEN `reports/report_1217/` `39/39`; headless smoke
+  `reports/old_factory_forward_pressure_aftershock_exhaust_escape_skirmish_smoke.log`
+  exited `0` with no project script/parse/invalid-call/access/missing-resource/
+  resource-load/shadowed-variable errors by keyword scan. Godot AI MCP `2.9.1`
+  on Godot `4.7-stable` confirmed helper live, active entities `2134/2135`,
+  frame counts, route labels, `apply_damage(2134/2135, 999)=true`, persisted
+  and resynced clear flags, service lift `Call lift`, clean final game/editor
+  logs, and a non-empty `960x539` game screenshot.
+
 - Player Abilities Story 089: Old Factory Lower Deck Forward Pressure
   Aftershock Exhaust Flank Ambush -- after Story088 claims the aftershock
   exhaust pursuer reward cache, Cinderpaw can push to x `2768.0` to activate
@@ -4155,3 +4198,14 @@
 - Verification: RED focused `reports/report_1206/` failed as expected before route geometry and Story090 APIs/nodes/state existed. Focused GREEN `reports/report_1208/` passed Story090 `2/2`. Related RED `reports/report_1209/` found a Story089 settled-diagnostics compatibility issue where a defeated Spark Rat still returned stale entity id `2132`; Story089 diagnostics now return `0` after cleared without changing runtime enemy lookup. Final related GREEN `reports/report_1210/` passed `35/35`. Headless Factory smoke `reports/old_factory_forward_pressure_aftershock_exhaust_breaker_corridor_smoke.log` exited `0` and its log scan had no project script/parse/invalid-call/access/missing-resource/resource-load errors. Godot AI MCP `2.9.1` on Godot `4.7-stable` confirmed plugin/server version, helper live, scene nodes, active entity `2133`, Coil Rat SpriteFrames path and 3-frame counts for all required animations, active hazard id/damage/cooldown/texture, `apply_damage(2133, 999)=true`, secured/cut local flags, duplicate cut `false`, route label `Aftershock Exhaust Pressure Cut`, runtime scene tree containing the new breaker and vent nodes, and a non-empty `960x539` game screenshot. The MCP tool schema in this session did not expose `logs_read`; log evidence came from `project_run.recent_errors=[]`, fresh log clear before launch, and the headless smoke log scan.
 - Blockers: None. New generated character art, new enemy family, new AI behavior tree, new reward cache, new reward economy, new savepoint, SaveSystem schema changes, service-lift route changes, minimap/fast-travel UI, authored audio, particles/shaders, Boss2, and broader lower-deck biome art replacement remain out of scope.
 - Next: continue another ACT-visible slice after the aftershock exhaust breaker corridor, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.
+
+## Session Extract -- /dev-story 2026-07-09
+
+- Story: `production/epics/player-abilities/story-091-old-factory-lower-deck-forward-pressure-aftershock-exhaust-escape-skirmish.md` -- Old Factory Lower Deck Forward Pressure Aftershock Exhaust Escape Skirmish
+- Files changed: `src/gameplay/old_factory_entrance_scene.gd`, `scenes/factory_route_transition_shell.tscn`, `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_test.gd`, `design/assets/asset-manifest.md`, `design/assets/entity-inventory.md`, `production/epics/player-abilities/story-091-old-factory-lower-deck-forward-pressure-aftershock-exhaust-escape-skirmish.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/old-factory-forward-pressure-aftershock-exhaust-escape-skirmish-2026-07-09.md`, `reports/report_1212/`, `reports/report_1213/`, `reports/report_1215/`, `reports/report_1216/`, `reports/report_1217/`, `reports/old_factory_forward_pressure_aftershock_exhaust_escape_skirmish_smoke.log`, `production/session-state/active.md`
+- Implementation: Added a Story090-gated aftershock exhaust escape skirmish beyond the pressure-cut breaker. `FactoryLowerDeckForwardPressureAftershockExhaustEscapeSkirmishSparkRat` and `FactoryLowerDeckForwardPressureAftershockExhaustEscapeSkirmishCoilRat` stay hidden/inactive until `factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_cut=true`; crossing activation x `3112.0` activates entity `2134` as the Spark Rat side and entity `2135` as the Coil Rat side, assigns Cinderpaw as target for both, enables process/physics for both, starts staggered opening grace frames `10/22`, and shows route feedback `Break Aftershock Exhaust Escape`. Defeating both enemies disables them, persists activation/spark-defeated/coil-defeated/cleared flags, marks the route objective complete, and advances feedback to `Aftershock Exhaust Escape Secured`.
+- Asset pipeline: No new visual or audio assets were generated. Story091 reuses the image-generated Factory Spark Rat and Factory Coil Rat `AnimatedSprite2D + SpriteFrames` assets, including transparent 96x96 `idle`, `run`, `attack_tell`, `attack`, `hurt`, and `death` frames. Reuse is recorded in the asset manifest, entity inventory, story, and QA evidence.
+- Test written: `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_test.gd` covers Story090-breaker-cut gating, manual activation range, entity ids `2134/2135`, target/process/physics, enemy family ids, SpriteFrames paths and six animation frame counts for both enemies, staggered pacing `10/22`, route feedback, partial vs full defeat persistence, restored completed state, Story090/089/074 continuity, Story068/071 no-replay, `FactoryServiceLift` prompt preservation, and a regression for restoring local state after defeated enemies have been freed.
+- Verification: Initial focused RED `reports/report_1212/` failed as expected before Story091 diagnostics/APIs/local state and scene nodes existed. First focused GREEN `reports/report_1213/` passed Story091 `2/2`. MCP runtime probing exposed a stale freed-reference issue after both enemies died and local state was restored; regression RED `reports/report_1215/` recorded `errors=4`. Final focused GREEN `reports/report_1216/` passed Story091 `2/2` after diagnostics and enemy lookup helpers were hardened with valid-node checks. Final related GREEN `reports/report_1217/` passed Story091 plus adjacent aftershock exhaust chain, Story074/service-lift, no-loss respawn, Story068 no-replay, Story071 audio no-replay, and steam hazard suites `39/39`. Headless Factory smoke `reports/old_factory_forward_pressure_aftershock_exhaust_escape_skirmish_smoke.log` exited `0` with no project script/parse/invalid-call/access/missing-resource/resource-load/shadowed-variable errors by keyword scan. Godot AI MCP `2.9.1` on Godot `4.7-stable` launched the factory scene with helper live, confirmed active skirmish diagnostics, entities `2134/2135`, visible `AnimatedSprite2D` enemies, SpriteFrames paths and 3-frame counts for `idle/run/attack_tell/attack/hurt/death`, opening grace frames `10/22`, route label `Break Aftershock Exhaust Escape`, full defeat and restored completed-state contracts, Story090/089/074 preservation, service lift `Call lift`, game log containing only helper registration, empty editor log, and a non-empty `960x539` MCP game screenshot showing the active escape skirmish.
+- Blockers: None. New generated character art, new enemy family, new AI behavior tree, new hazard, new reward cache, new reward economy, new savepoint, SaveSystem schema changes, service-lift route changes, minimap/fast-travel UI, authored audio, particles/shaders, Boss2, and broader lower-deck biome art replacement remain out of scope.
+- Next: continue another ACT-visible slice after the aftershock exhaust escape skirmish, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.

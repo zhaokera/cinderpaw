@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 90 stories tracked
+> **Stories**: 91 stories tracked
 
 ## Overview
 
@@ -128,6 +128,7 @@ recording the reward in progression state.
 | 088 | Old Factory Lower Deck Forward Pressure Aftershock Exhaust Pursuer Reward Cache | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
 | 089 | Old Factory Lower Deck Forward Pressure Aftershock Exhaust Flank Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 090 | Old Factory Lower Deck Forward Pressure Aftershock Exhaust Breaker Corridor | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
+| 091 | Old Factory Lower Deck Forward Pressure Aftershock Exhaust Escape Skirmish | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -147,8 +148,8 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-090 are complete. Continue with deeper Old Factory route content
-after the forward-pressure aftershock exhaust breaker corridor, savepoint/minimap gameplay,
+Stories001-091 are complete. Continue deeper Old Factory route content after the
+aftershock exhaust escape skirmish, savepoint/minimap gameplay,
 additional player-visible character/enemy frame-animation replacement, more
 skill-tree branches, authored hazard/audio polish, or final Boss2 balancing/
 cutscene polish.
