@@ -1,0 +1,18 @@
+{
+  "asset_id": "old_factory_aftershock_condenser_outlet",
+  "story": "story-096-old-factory-lower-deck-forward-pressure-aftershock-condenser-outlet-traverse",
+  "generated_at": "2026-07-09",
+  "generator": "image2/image generation",
+  "purpose": "Story096 old factory aftershock condenser outlet traverse duct and walkway prop",
+  "source_path": "assets/generated/source/old_factory_aftershock_condenser_outlet_imagegen_20260709.png",
+  "alpha_source_path": "assets/generated/source/old_factory_aftershock_condenser_outlet_alpha_20260709.png",
+  "runtime_path": "assets/environment/old_factory_aftershock_condenser_outlet/env_old_factory_aftershock_condenser_outlet_768.png",
+  "runtime_size_px": [768, 320],
+  "postprocess": [
+    "Generated on a flat chroma-key background",
+    "Removed chroma-key background with remove_chroma_key.py",
+    "Trimmed, centered, and resized to 768x320 transparent PNG for Godot runtime import"
+  ],
+  "prompt": "Create a single Old Factory aftershock condenser outlet duct bridge for a cat action game. It is a long horizontal industrial outlet conduit section that continues after a condenser savepoint: riveted blue-grey steel duct, cracked pressure pipes, bolted plates, soot, rust-orange hazard strips, small cyan condenser lamps, analog gauges, and a readable side-view walkway lip. No characters, no enemies, no UI, no text, no watermark. Full object centered with generous padding on a perfectly flat solid #00ff00 chroma-key background for background removal.",
+  "negative_prompt": "square placeholder, simple colored rectangle, logo, text label, character silhouettes, multiple separate props, photorealistic render, isometric view, red warning light as main focal point, cropped edges"
+}

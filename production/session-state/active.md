@@ -101,7 +101,9 @@
 	  Factory Lower Deck Forward Pressure Aftershock Cooling Duct Traverse、
 	  Player Abilities Story094 Old Factory Lower Deck Forward Pressure
 	  Aftershock Condenser Valve Ambush、Player Abilities Story095 Old Factory
-	  Lower Deck Forward Pressure Aftershock Condenser Savepoint
+	  Lower Deck Forward Pressure Aftershock Condenser Savepoint、Player
+	  Abilities Story096 Old Factory Lower Deck Forward Pressure Aftershock
+	  Condenser Outlet Traverse
 	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
@@ -119,6 +121,34 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 096: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Outlet Traverse -- after Story095 activates the
+  aftershock condenser savepoint, `FactoryLowerDeckForwardPressureAftershockCondenserOutlet`
+  becomes visible as a new image-generated transparent outlet duct/walkway prop
+  at x `4740.0`, and the route extends to x `5120.0`. The outlet stays
+  hidden/unavailable until
+  `factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated=true`;
+  crossing x `4560.0` starts a deterministic steam cycle, active phase enables
+  the reused `FactoryLowerDeckForwardPressureAftershockCondenserOutletVent`
+  hazard id
+  `old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet` for
+  `8` contact damage, and crossing x `5020.0` persists
+  `factory_lower_deck_forward_pressure_aftershock_condenser_outlet_activated=true`
+  plus
+  `factory_lower_deck_forward_pressure_aftershock_condenser_outlet_crossed=true`
+  with route feedback `Aftershock Condenser Outlet Crossed`. Verification:
+  initial RED `reports/report_1235/`; focused GREEN `reports/report_1237/`
+  `2/2`; related GREEN `reports/report_1238/` `16/16`; final focused GREEN
+  `reports/report_1239/` `2/2`; headless smoke
+  `reports/old_factory_aftershock_condenser_outlet_traverse_smoke.log` exited
+  `0` with no project script/parse/invalid-call/access/missing-resource/
+  resource-load errors by keyword scan. Godot AI MCP `2.9.1` on Godot
+  `4.7-stable` confirmed scene reload from disk, helper live, runtime outlet
+  and vent nodes, generated outlet texture path, hazard active-phase hit
+  `100 -> 92`, crossed persistence, current-run clean game/editor log evidence,
+  and a non-empty `960x539` game screenshot showing the generated outlet duct,
+  reused steam vent, and player.
+
 - Player Abilities Story 095: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Savepoint -- after Story094 secures the aftershock
   condenser landing, `FactoryLowerDeckForwardPressureAftershockCondenserSavepoint`
