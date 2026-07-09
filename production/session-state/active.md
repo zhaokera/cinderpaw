@@ -117,7 +117,9 @@
 	  Abilities Story106 Old Factory Lower Deck Forward Pressure Aftershock
 	  Condenser Overflow Pump Reward Cache、Player Abilities Story107 Old
 	  Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump
-	  Runoff Duct Traverse 已完成；
+	  Runoff Duct Traverse、Player Abilities Story108 Old Factory Lower Deck
+	  Forward Pressure Aftershock Condenser Overflow Pump Runoff Exit Skirmish
+	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
   Boss2 balancing/cutscene polish、authored/final audio replacement、
@@ -134,6 +136,23 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 108: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Overflow Pump Runoff Exit Skirmish -- after Story107
+  crosses the overflow pump runoff duct, the route extends to right wall
+  x `8300` / camera limit `8320` and arms a reused multi-frame Factory Coil Rat
+  at x `7800`. The skirmish persists activated/defeated/cleared state, backfills
+  the Story106/107 overflow pump chain on restore, and advances route feedback
+  to `Clear Overflow Pump Runoff Exit` and `Overflow Pump Runoff Exit Cleared`.
+  Verification: RED `reports/report_1289/`; focused GREEN
+  `reports/report_1291/` (`2/2`); related GREEN `reports/report_1292/`
+  (`11/11`); headless smoke
+  `reports/old_factory_overflow_pump_runoff_exit_skirmish_smoke.log` exit `0`;
+  Godot MCP 2.9.1 on Godot 4.7 verified disk-reloaded scene node, runtime
+  target Coil Rat with `AnimatedSprite2D`, SpriteFrames binding, right wall
+  x `8300`, camera limit right `8320`, far-right route floor texture,
+  `current_run_errors=[]`, clean current game/editor logs, and a non-empty
+  `960x539` game screenshot response.
+
 - Player Abilities Story 107: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Overflow Pump Runoff Duct Traverse -- after Story106
   opens the overflow pump runoff hatch, a reused image-generated cooling duct
