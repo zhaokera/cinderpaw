@@ -1,0 +1,16 @@
+{
+  "asset_id": "old_factory_runoff_service_hatch_landing",
+  "generated_at": "2026-07-10",
+  "tool": "built-in image generation",
+  "source_path": "assets/generated/source/old_factory_runoff_service_hatch_landing_imagegen_20260710.png",
+  "alpha_source_path": "assets/generated/source/old_factory_runoff_service_hatch_landing_alpha_20260710.png",
+  "runtime_path": "assets/environment/old_factory_runoff_service_hatch_landing/env_old_factory_runoff_service_hatch_landing_768.png",
+  "runtime_size_px": [768, 320],
+  "runtime_mode": "RGBA",
+  "prompt": "Use case: stylized-concept. Asset type: 2D pixel-art side-scroller environment prop for a Godot action game, transparent runtime foreground/midground prop. Create an Old Factory runoff service hatch landing prop for the first pocket after an opened runoff outlet service hatch: a long horizontal maintenance landing platform with a low service sluice duct, damp steel plates, small copper pipes, blue-gray industrial panels, amber and cyan guide lights, readable hazard striping, wet runoff stains, bolts, gauges, and slight perspective depth. Generate on a perfectly flat solid #00ff00 chroma-key background for local alpha removal; no text, UI, characters, enemies, watermark, ground plane, cast shadow, or square placeholder blocks.",
+  "usage": [
+    "res://scenes/factory_route_transition_shell.tscn",
+    "Player Abilities Story113 runoff outlet service sluice traverse"
+  ],
+  "notes": "Generated source was copied from the built-in image generation output, chroma-keyed to alpha, cropped, resized, and imported through Godot's asset pipeline as a transparent runtime PNG."
+}

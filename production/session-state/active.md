@@ -126,7 +126,8 @@
 	  Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump
 	  Runoff Outlet Skirmish、Player Abilities Story112 Old Factory Lower Deck
 	  Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Reward
-	  Cache
+	  Cache、Player Abilities Story113 Old Factory Lower Deck Forward Pressure
+	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Traverse
 	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
@@ -144,6 +145,28 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 113: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Traverse --
+  after Story112 opens the runoff outlet service hatch, a new image-generated
+  service sluice landing appears at x `10480` with a reused steam vent hazard
+  at x `10540`. The traverse activates at x `10160`, uses hazard id
+  `old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice`,
+  cycles through the standard steam pressure timing, completes at x `10720`,
+  extends route bounds to right wall x `10940` / camera limit `10960`, advances
+  route feedback through `Runoff Outlet Service Hatch Open`,
+  `Cross Runoff Outlet Service Sluice`, and
+  `Runoff Outlet Service Sluice Crossed`, and persists active/crossed state
+  while backfilling the Story106-112 runoff chain on restore. Verification:
+  RED `reports/report_1323/`; focused GREEN `reports/report_1328/` (`2/2`);
+  related GREEN `reports/report_1329/` (`10/10`); scripted headless smoke
+  `reports/old_factory_overflow_pump_runoff_outlet_service_sluice_script_smoke.log`
+  exit `0` with `service_sluice_smoke=passed`; Godot MCP 2.9.1 on Godot 4.7
+  verified disk-reloaded duct/steam-vent nodes, generated texture path, hazard
+  id/damage/cooldown, runtime hatch-open/activation/active-contact/completion
+  diagnostics, `current_run_errors=[]`, current-run game log without errors,
+  no new editor log rows after cursor `9`, and a non-empty game screenshot
+  showing the service hatch, generated service sluice landing, and steam vent.
+
 - Player Abilities Story 112: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Overflow Pump Runoff Outlet Reward Cache -- after
   Story111 clears the runoff outlet Spark Rat, a reused factory cache appears
