@@ -115,7 +115,9 @@
 	  Player Abilities Story104 Main Scene Reward Prompt Proximity、
 	  Player Abilities Story105 Main Scene Gate Prompt Proximity、Player
 	  Abilities Story106 Old Factory Lower Deck Forward Pressure Aftershock
-	  Condenser Overflow Pump Reward Cache 已完成；
+	  Condenser Overflow Pump Reward Cache、Player Abilities Story107 Old
+	  Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump
+	  Runoff Duct Traverse 已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
   Boss2 balancing/cutscene polish、authored/final audio replacement、
@@ -132,6 +134,24 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 107: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Overflow Pump Runoff Duct Traverse -- after Story106
+  opens the overflow pump runoff hatch, a reused image-generated cooling duct
+  becomes visible as the next horizontal traversal pocket and a reused
+  image-generated steam vent cycles through `grace -> warning -> active ->
+  safe`. Active contact applies `8` steam damage with source
+  `old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct`;
+  crossing x `7560` persists activated/crossed flags and advances route feedback
+  to `Overflow Pump Runoff Duct Crossed`. Verification: RED
+  `reports/report_1286/`; focused GREEN `reports/report_1287/` (`2/2`);
+  related GREEN `reports/report_1288/` (`9/9`); headless smoke
+  `reports/old_factory_overflow_pump_runoff_duct_smoke.log` exit `0`; Godot MCP
+  2.9.1 on Godot 4.7 verified disk-reloaded scene nodes, right wall x `7660`,
+  camera limit right `7680`, runtime duct/vent diagnostics, active-window
+  damage, crossed local-state persistence, clean current game log, empty
+  current-run editor logger, and a non-empty `960x539` game screenshot response
+  showing the runoff duct and steam vent.
+
 - Player Abilities Story 106: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Overflow Pump Reward Cache -- after Story099 clears the
   overflow pump skirmish, a reused image-generated lower-deck cache becomes

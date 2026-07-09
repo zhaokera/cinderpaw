@@ -325,6 +325,12 @@ const FACTORY_OBJECTIVE_OPEN_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_EXIT_HATCH_OPENED: StringName = (
 	&"forward_pressure_aftershock_condenser_overflow_pump_exit_hatch_opened"
 )
+const FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT: StringName = (
+	&"cross_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct"
+)
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_CROSSED: StringName = (
+	&"forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -422,6 +428,9 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_ID:
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_EXIT_HATCH_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch"
 )
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_HAZARD_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct"
+)
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_ACTIVATION_X: float = 3920.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_ACTIVATION_X: float = 4560.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_EXIT_X: float = 5020.0
@@ -429,6 +438,8 @@ const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_CLAMP_ACTIVATION_X:
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_DRIP_VENT_ACTIVATION_X: float = 5840.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_DRIP_VENT_EXIT_X: float = 6260.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_ACTIVATION_X: float = 6540.0
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_ACTIVATION_X: float = 7160.0
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_EXIT_X: float = 7560.0
 const FACTORY_LOWER_DECK_FORWARD_HATCH_ID: StringName = &"old_factory_lower_deck_forward_hatch"
 const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: StringName = &"lower_deck_breach_relay"
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT: StringName = (
@@ -683,6 +694,10 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch: Node = (
 	get_node_or_null("FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpExitHatch")
 )
+@onready var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct: Sprite2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffDuct")
+		as Sprite2D
+)
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
 	get_node_or_null("FactoryCheckpointSteamVentHazard") as Area2D
@@ -746,6 +761,10 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 )
 @onready var _lower_deck_forward_pressure_aftershock_condenser_drip_vent: Area2D = (
 	get_node_or_null("FactoryLowerDeckForwardPressureAftershockCondenserOutletDripVentHazard")
+		as Area2D
+)
+@onready var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent: Area2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffSteamVent")
 		as Area2D
 )
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
@@ -902,6 +921,9 @@ var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_activated: b
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_coil_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_reward_cache_claimed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch_opened: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_elapsed_sec: float = 0.0
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -971,6 +993,7 @@ func _ready() -> void:
 	_sync_overflow_pump_state()
 	_sync_overflow_pump_reward_cache_state()
 	_sync_overflow_pump_exit_hatch_state()
+	_sync_overflow_pump_runoff_duct_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -1124,6 +1147,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_CACHE_CLAIMED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_EXIT_HATCH_OPENED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_CROSSED
 	)
 
 
@@ -2649,6 +2673,63 @@ func try_open_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_
 	return true
 
 
+## Starts the overflow pump runoff duct traversal beyond the opened hatch.
+func try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct == null
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent == null
+		or not _is_overflow_pump_runoff_duct_available()
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_overflow_pump_runoff_duct_provider_at_activation(
+		activation_provider
+	):
+		return false
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated = true
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_elapsed_sec = 0.0
+	_sync_overflow_pump_runoff_duct_state()
+	_refresh_factory_route_objective()
+	return true
+
+
+## Advances the overflow pump runoff duct cycle deterministically for tests/MCP.
+func advance_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_time(
+	delta_sec: float
+) -> void:
+	if not _is_overflow_pump_runoff_duct_active():
+		return
+	var safe_delta_sec: float = maxf(0.0, delta_sec)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_elapsed_sec += safe_delta_sec
+	_factory_hazard_elapsed_sec += safe_delta_sec
+	_sync_overflow_pump_runoff_duct_state()
+
+
+## Completes the overflow pump runoff duct after Cinderpaw reaches the far edge.
+func try_complete_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct == null
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent == null
+		or not _is_overflow_pump_runoff_duct_active()
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed
+	):
+		return false
+	var completion_provider: Node = provider if provider != null else _player
+	if not _is_overflow_pump_runoff_duct_provider_at_exit(completion_provider):
+		return false
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated = true
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed = true
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_elapsed_sec = 0.0
+	_sync_overflow_pump_runoff_duct_state()
+	_refresh_factory_route_objective()
+	return true
+
+
 ## Starts the Story093 aftershock cooling duct traversal beyond the opened hatch.
 func try_activate_factory_lower_deck_forward_pressure_aftershock_cooling_duct(
 	provider: Node = null
@@ -3476,6 +3557,12 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch_opened": (
 			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch_opened
 		),
+		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated
+		),
+		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -4112,6 +4199,29 @@ func set_local_state(state: Dictionary) -> void:
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_reward_cache_claimed:
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_coil_rat_defeated = true
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_activated = true
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed",
+			false
+		)
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated",
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed
+		)
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_elapsed_sec = 0.0
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed:
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated = true
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed
+	):
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch_opened = true
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_reward_cache_claimed = true
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_coil_rat_defeated = true
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_activated = true
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -4536,6 +4646,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_overflow_pump_state()
 	_sync_overflow_pump_reward_cache_state()
 	_sync_overflow_pump_exit_hatch_state()
+	_sync_overflow_pump_runoff_duct_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -7646,6 +7757,110 @@ func get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_
 		"prompt_text": _get_overflow_pump_exit_hatch_prompt_text(),
 		"position": _get_overflow_pump_exit_hatch_position(),
 		"collision_blocking": _is_overflow_pump_exit_hatch_collision_blocking(),
+	}
+
+
+## Returns deterministic overflow-pump runoff duct diagnostics for tests/MCP probes.
+func get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_diagnostics(
+) -> Dictionary:
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	var duct_present: bool = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct != null
+	)
+	var hazard_present: bool = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent != null
+	)
+	var ground_shape := get_node_or_null("Ground/CollisionShape2D") as CollisionShape2D
+	var ground_rect := (
+		ground_shape.shape as RectangleShape2D
+		if ground_shape != null and ground_shape.shape is RectangleShape2D
+		else null
+	)
+	var right_wall := get_node_or_null("RightWall") as Node2D
+	var camera := get_node_or_null("Player/Camera2D") as Camera2D
+	return {
+		"present": duct_present and hazard_present,
+		"available": _is_overflow_pump_runoff_duct_available(),
+		"active": _is_overflow_pump_runoff_duct_active(),
+		"crossed": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed
+		),
+		"overflow_pump_exit_hatch_opened": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch_opened
+		),
+		"visible": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct.visible
+			if duct_present
+			else false
+		),
+		"node_name": (
+			String(
+				_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct.name
+			)
+			if duct_present
+			else ""
+		),
+		"hazard_node_name": (
+			String(
+				_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent.name
+			)
+			if hazard_present
+			else ""
+		),
+		"duct_texture_path": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct.texture.resource_path
+			if (
+				duct_present
+				and _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct.texture != null
+			)
+			else ""
+		),
+		"hazard_visible": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent.visible
+			if hazard_present
+			else false
+		),
+		"hazard_contact_active": _is_hazard_contact_active(
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent
+		),
+		"hazard_id": String(_get_hazard_id(
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent
+		)),
+		"hazard_damage": _get_hazard_damage(
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent
+		),
+		"hazard_cooldown_sec": _get_hazard_cooldown_sec(
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent
+		),
+		"hazard_texture_path": (
+			String(
+				_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent.call(
+					"get_visual_texture_path"
+				)
+			)
+			if (
+				hazard_present
+				and _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent.has_method(
+					"get_visual_texture_path"
+				)
+			)
+			else ""
+		),
+		"phase": String(_get_overflow_pump_runoff_duct_phase()),
+		"initial_grace_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC,
+		"warning_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC,
+		"active_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC,
+		"safe_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_SAFE_SEC,
+		"activation_x": (
+			FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_ACTIVATION_X
+		),
+		"exit_x": (
+			FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_EXIT_X
+		),
+		"ground_width": ground_rect.size.x if ground_rect != null else 0.0,
+		"right_wall_x": right_wall.global_position.x if right_wall != null else 0.0,
+		"camera_limit_right": camera.limit_right if camera != null else 0,
+		"route_label_text": String(route.get("route_label_text", "")),
 	}
 
 
@@ -12645,6 +12860,43 @@ func _sync_overflow_pump_exit_hatch_state() -> void:
 		hatch_visible
 			and not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch_opened
 	)
+	_sync_overflow_pump_runoff_duct_state()
+
+
+func _sync_overflow_pump_runoff_duct_state() -> void:
+	var should_show_duct: bool = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch_opened
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed
+	)
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct != null:
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct.visible = (
+			should_show_duct
+		)
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent == null:
+		return
+	var contact_active: bool = _is_overflow_pump_runoff_duct_contact_active()
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent.visible = (
+		should_show_duct
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent.monitoring = (
+		contact_active
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent.monitorable = (
+		contact_active
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent.collision_layer = (
+		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if contact_active else 0
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent.collision_mask = (
+		CollisionComponent.COLLISION_MASK_ENVIRONMENT if contact_active else 0
+	)
+	var collision_shape := (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent.get_node_or_null(
+			"CollisionShape2D"
+		) as CollisionShape2D
+	)
+	if collision_shape != null:
+		collision_shape.disabled = not contact_active
 
 
 func _sync_lower_deck_forward_pressure_exit_gate_state() -> void:
@@ -12776,6 +13028,14 @@ func _get_factory_route_objective_id() -> StringName:
 		return FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_DRIP_VENT
 	if _is_overflow_pump_active():
 		return FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP
+	if _is_overflow_pump_runoff_duct_active():
+		return (
+			FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT
+		)
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed:
+		return (
+			FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_CROSSED
+		)
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch_opened:
 		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_EXIT_HATCH_OPENED
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_reward_cache_claimed:
@@ -13140,6 +13400,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Open Overflow Pump Runoff Hatch"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_EXIT_HATCH_OPENED:
 			return "Overflow Pump Runoff Hatch Open"
+		FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT:
+			return "Cross Overflow Pump Runoff Duct"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_CROSSED:
+			return "Overflow Pump Runoff Duct Crossed"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OUTLET_CROSSED:
 			return "Aftershock Condenser Outlet Crossed"
 		_:
@@ -14607,6 +14871,10 @@ func _get_factory_hazards() -> Array[Area2D]:
 		hazards.append(_lower_deck_forward_pressure_aftershock_condenser_outlet_vent)
 	if _lower_deck_forward_pressure_aftershock_condenser_drip_vent != null:
 		hazards.append(_lower_deck_forward_pressure_aftershock_condenser_drip_vent)
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent != null:
+		hazards.append(
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent
+		)
 	return hazards
 
 
@@ -14655,6 +14923,7 @@ func _is_factory_steam_hazard_id(hazard_id: StringName) -> bool:
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_COOLING_DUCT_HAZARD_ID
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_HAZARD_ID
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_DRIP_VENT_HAZARD_ID
+			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_HAZARD_ID
 	)
 
 
@@ -17332,6 +17601,24 @@ func _is_overflow_pump_provider_in_range(provider: Node) -> bool:
 	)
 
 
+func _is_overflow_pump_runoff_duct_provider_at_activation(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_ACTIVATION_X
+	)
+
+
+func _is_overflow_pump_runoff_duct_provider_at_exit(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_EXIT_X
+	)
+
+
 func _is_lower_deck_forward_pressure_breaker_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -18112,6 +18399,21 @@ func _is_overflow_pump_exit_hatch_available() -> bool:
 	)
 
 
+func _is_overflow_pump_runoff_duct_available() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch_opened
+		and not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed
+	)
+
+
+func _is_overflow_pump_runoff_duct_active() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated
+		and _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch_opened
+		and not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed
+	)
+
+
 func _is_lower_deck_forward_pressure_contact_active() -> bool:
 	return (
 		_lower_deck_forward_pressure_traverse_active
@@ -18148,6 +18450,13 @@ func _is_outlet_drip_vent_contact_active() -> bool:
 	return (
 		_is_outlet_drip_vent_active()
 		and _get_outlet_drip_vent_phase() == &"active"
+	)
+
+
+func _is_overflow_pump_runoff_duct_contact_active() -> bool:
+	return (
+		_is_overflow_pump_runoff_duct_active()
+		and _get_overflow_pump_runoff_duct_phase() == &"active"
 	)
 
 
@@ -18282,6 +18591,38 @@ func _get_outlet_drip_vent_phase() -> StringName:
 		return &"idle"
 	var elapsed_sec: float = (
 		_lower_deck_forward_pressure_aftershock_condenser_drip_vent_elapsed_sec
+	)
+	if elapsed_sec < FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC:
+		return &"grace"
+	var cycle_sec: float = (
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC
+		+ FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC
+		+ FACTORY_LOWER_DECK_FORWARD_PRESSURE_SAFE_SEC
+	)
+	var phase_sec: float = fmod(
+		elapsed_sec - FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC,
+		cycle_sec
+	)
+	if phase_sec < FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC:
+		return &"warning"
+	if (
+		phase_sec
+		< (
+			FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC
+			+ FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC
+		)
+	):
+		return &"active"
+	return &"safe"
+
+
+func _get_overflow_pump_runoff_duct_phase() -> StringName:
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed:
+		return &"crossed"
+	if not _is_overflow_pump_runoff_duct_active():
+		return &"idle"
+	var elapsed_sec: float = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_elapsed_sec
 	)
 	if elapsed_sec < FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC:
 		return &"grace"

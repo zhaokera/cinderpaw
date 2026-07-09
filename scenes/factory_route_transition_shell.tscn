@@ -39,7 +39,7 @@
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_route_platform/env_old_factory_route_cache_platform_320x96.png" id="37_cache_platform_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
-size = Vector2(7040, 40)
+size = Vector2(8960, 40)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
 size = Vector2(40, 720)
@@ -71,7 +71,7 @@ metadata/scene_id = "area_03_factory"
 
 [node name="Background" type="TextureRect" parent="."]
 z_index = -100
-offset_right = 7040.0
+offset_right = 7680.0
 offset_bottom = 720.0
 texture = ExtResource("3_backdrop")
 expand_mode = 1
@@ -80,7 +80,7 @@ stretch_mode = 6
 [node name="PostBulkheadBackground" type="TextureRect" parent="."]
 visible = false
 z_index = -99
-offset_right = 7040.0
+offset_right = 7680.0
 offset_bottom = 720.0
 texture = ExtResource("24_post_bulkhead_backdrop")
 expand_mode = 1
@@ -263,6 +263,30 @@ z_as_relative = false
 position = Vector2(3456, 40)
 texture = ExtResource("35_route_floor_tile")
 
+[node name="FactoryRouteFloorVisual29" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(3712, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual30" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(3968, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual31" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(4224, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual32" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(4480, 40)
+texture = ExtResource("35_route_floor_tile")
+
 [node name="LeftWall" type="StaticBody2D" parent="."]
 position = Vector2(20, 360)
 collision_layer = 16
@@ -272,7 +296,7 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_wall")
 
 [node name="RightWall" type="StaticBody2D" parent="."]
-position = Vector2(7020, 360)
+position = Vector2(7660, 360)
 collision_layer = 16
 collision_mask = 0
 
@@ -328,7 +352,7 @@ position = Vector2(136, 456)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 7040
+limit_right = 7680
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
@@ -1618,6 +1642,37 @@ monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpExitHatch/InteractionArea"]
 shape = SubResource("CircleShape2D_deep_endpoint_interaction")
+
+[node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffDuct" type="Sprite2D" parent="."]
+visible = false
+z_index = 22
+position = Vector2(7280, 380)
+scale = Vector2(0.82, 0.82)
+texture = ExtResource("28_cooling_duct_texture")
+
+[node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffSteamVent" type="Area2D" parent="."]
+visible = false
+z_index = 24
+position = Vector2(7300, 466)
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+script = ExtResource("9_vent_script")
+hazard_id = &"old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct"
+damage = 8
+contact_cooldown_sec = 1.0
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffSteamVent"]
+z_index = 1
+position = Vector2(0, -78)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("8_vent_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffSteamVent"]
+position = Vector2(0, -36)
+shape = SubResource("RectangleShape2D_steam_vent")
+disabled = true
 
 [node name="FactorySteamVentHazard" type="Area2D" parent="."]
 z_index = 18
