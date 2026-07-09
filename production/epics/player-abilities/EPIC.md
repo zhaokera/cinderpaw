@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 93 stories tracked
+> **Stories**: 94 stories tracked
 
 ## Overview
 
@@ -131,6 +131,7 @@ recording the reward in progression state.
 | 091 | Old Factory Lower Deck Forward Pressure Aftershock Exhaust Escape Skirmish | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 092 | Old Factory Lower Deck Forward Pressure Aftershock Exhaust Exit Hatch Handoff | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 093 | Old Factory Lower Deck Forward Pressure Aftershock Cooling Duct Traverse | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
+| 094 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Valve Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -150,8 +151,8 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-093 are complete. Continue deeper Old Factory route content after the
-aftershock cooling duct traverse, savepoint/minimap gameplay,
+Stories001-094 are complete. Continue deeper Old Factory route content after the
+aftershock condenser valve landing, savepoint/minimap gameplay,
 additional player-visible character/enemy frame-animation replacement, more
 skill-tree branches, authored hazard/audio polish, or final Boss2 balancing/
 cutscene polish.

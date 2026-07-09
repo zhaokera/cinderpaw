@@ -1,0 +1,15 @@
+{
+  "asset_id": "old_factory_aftershock_condenser_valve",
+  "story": "story-094-old-factory-lower-deck-forward-pressure-aftershock-condenser-valve-ambush",
+  "generated_at": "2026-07-09",
+  "generator": "image2/image generation",
+  "purpose": "Story094 old factory aftershock condenser valve ambush environment prop",
+  "source_path": "assets/generated/source/old_factory_aftershock_condenser_valve_imagegen_20260709.png",
+  "runtime_path": "assets/environment/old_factory_aftershock_condenser_valve/env_old_factory_aftershock_condenser_valve_768.png",
+  "runtime_size_px": [768, 350],
+  "postprocess": [
+    "Removed flat chroma-key background with remove_chroma_key.py",
+    "Resized to 768px width for Godot runtime import"
+  ],
+  "prompt": "Transparent background game environment prop for a 2D side-scrolling action game, old abandoned factory after an aftershock, condenser valve landing anchor with an overflow cooling fan, cracked pressure pipes, dented brass valve wheel, riveted steel duct housing, soot, ember orange warning lights, blue grey metal, painterly hand drawn production art, side view, readable silhouette, no characters, no text, no UI, no watermark, flat #00ff00 chroma key background, isolated prop centered horizontally."
+}

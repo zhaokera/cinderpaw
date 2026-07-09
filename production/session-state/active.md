@@ -98,7 +98,9 @@
 	  Lower Deck Forward Pressure Aftershock Exhaust Escape Skirmish、
 	  Player Abilities Story092 Old Factory Lower Deck Forward Pressure
 	  Aftershock Exhaust Exit Hatch Handoff、Player Abilities Story093 Old
-	  Factory Lower Deck Forward Pressure Aftershock Cooling Duct Traverse
+	  Factory Lower Deck Forward Pressure Aftershock Cooling Duct Traverse、
+	  Player Abilities Story094 Old Factory Lower Deck Forward Pressure
+	  Aftershock Condenser Valve Ambush
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -116,6 +118,29 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 094: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Valve Ambush -- after Story093 crosses the aftershock
+  cooling duct, `FactoryLowerDeckForwardPressureAftershockCondenserValve`
+  becomes visible as a new image-generated transparent condenser valve/fan prop
+  and the route extends to x `4560.0`. The landing activates near x `3920.0`,
+  starts a Spark Rat entity `2136` plus Coil Rat entity `2137` ambush using the
+  existing image-generated `AnimatedSprite2D + SpriteFrames` character assets,
+  assigns the player as target, enables process/physics for both enemies,
+  persists
+  `factory_lower_deck_forward_pressure_aftershock_condenser_valve_activated=true`,
+  `..._spark_rat_defeated=true`, `..._coil_rat_defeated=true`, and
+  `..._cleared=true`, and advances route feedback to
+  `Aftershock Condenser Landing Secured`. Verification: initial RED
+  `reports/report_1229/`; focused GREEN `reports/report_1230/` `2/2`;
+  related GREEN `reports/report_1231/` `6/6`; headless smoke
+  `reports/old_factory_aftershock_condenser_valve_ambush_smoke.log` exited `0`
+  with no project script/parse/invalid-call/access/missing-resource/
+  resource-load errors by keyword scan. Godot AI MCP `2.9.1` on Godot
+  `4.7-stable` confirmed scene reload from disk, helper live, runtime valve,
+  Spark Rat, and Coil Rat nodes, active enemies visible and targeted, clear/
+  restore persistence, clean final game/editor logs, and a non-empty `960x539`
+  game screenshot showing the generated valve with animated enemies.
+
 - Player Abilities Story 093: Old Factory Lower Deck Forward Pressure
   Aftershock Cooling Duct Traverse -- after Story092 opens the aftershock
   exhaust exit hatch, `FactoryLowerDeckForwardPressureAftershockCoolingDuct`
