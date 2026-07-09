@@ -128,6 +128,8 @@
 	  Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Reward
 	  Cache、Player Abilities Story113 Old Factory Lower Deck Forward Pressure
 	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Traverse
+	  、Player Abilities Story114 Old Factory Lower Deck Forward Pressure
+	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Skirmish
 	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
@@ -145,6 +147,29 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 114: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Skirmish --
+  after Story113 crosses the runoff outlet service sluice, a reused
+  image-generated Factory Spark Rat appears at `Vector2(11120, 482)`.
+  The skirmish is locked until
+  `factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_crossed=true`,
+  activates at x `10920`, enables entity `2142`, assigns Cinderpaw as target,
+  starts opening grace `12`, and advances route feedback to
+  `Clear Service Sluice Spark Rat`. Defeating entity `2142` hides/disables the
+  enemy, persists activated/defeated/cleared local state, advances feedback to
+  `Service Sluice Spark Rat Cleared`, and backfills the Story106-113 runoff
+  chain on restore. Verification: RED `reports/report_1330/`; final focused
+  GREEN `reports/report_1334/` (`2/2`); final related GREEN
+  `reports/report_1335/` (`12/12`); headless smoke
+  `reports/old_factory_overflow_pump_runoff_outlet_service_sluice_skirmish_smoke.log`
+  exit `0`; Godot MCP 2.9.1 on Godot 4.7 verified disk-reloaded Spark Rat node,
+  right wall x `11500`, camera/background `11520`, ground right edge x `11700`,
+  entity `2142`, SpriteFrames path and `3` frames for
+  `idle/run/attack_tell/attack/hurt/death`, runtime activation/defeat/restore
+  contracts, current game log without errors, no new editor log rows after
+  cursor `9`, and a non-empty game screenshot showing Cinderpaw with the active
+  Spark Rat in the service sluice combat pocket.
+
 - Player Abilities Story 113: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Traverse --
   after Story112 opens the runoff outlet service hatch, a new image-generated
@@ -4661,3 +4686,15 @@
 - Notes: One initial MCP eval probe used unsupported eval syntax and was cleared by stopping/relaunching the project before final evidence. MCP editor log still retained old Factory parse rows from earlier cache state; final Story103 acceptance uses clean current-run status, game log, focused/related tests, headless smoke, and runtime MCP node/screenshot checks.
 - Blockers: None for Story103. Full MainScene tileset replacement, right-edge camera framing, Boss2 scale/framing, prompt label layout, HUD redesign, new gameplay routes, authored audio, and save schema changes remain out of scope.
 - Next: continue another ACT-visible slice such as broader MainScene art/prompt cleanup, minimap/savepoint gameplay, authored/final hazard audio, additional player-visible frame-animation replacement, or Boss2 polish.
+
+## Session Extract -- /dev-story 2026-07-10
+
+- Story: `production/epics/player-abilities/story-114-old-factory-lower-deck-forward-pressure-aftershock-condenser-overflow-pump-runoff-outlet-service-sluice-skirmish.md` -- Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Skirmish
+- Files changed: `src/gameplay/old_factory_entrance_scene.gd`, `scenes/factory_route_transition_shell.tscn`, `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_test.gd`, `production/epics/player-abilities/story-114-old-factory-lower-deck-forward-pressure-aftershock-condenser-overflow-pump-runoff-outlet-service-sluice-skirmish.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/old-factory-overflow-pump-runoff-outlet-service-sluice-skirmish-2026-07-10.md`, `reports/old_factory_overflow_pump_runoff_outlet_service_sluice_skirmish_smoke.log`, `production/session-state/active.md`
+- Implementation: Added a Story113-gated service sluice Spark Rat skirmish after the runoff outlet service sluice traverse. `FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceSparkRat` stays hidden/inactive until the service sluice has been crossed; crossing activation x `10920.0` activates entity `2142`, assigns Cinderpaw as target, enables process/physics, starts opening grace `12`, and shows route feedback `Clear Service Sluice Spark Rat`. Defeating the enemy disables it, persists activated/defeated/cleared local state, marks the route objective complete, and advances feedback to `Service Sluice Spark Rat Cleared`.
+- Asset pipeline: No new visual or audio assets were generated. Story114 reuses the image-generated Factory Spark Rat `AnimatedSprite2D + SpriteFrames` asset with transparent frames under `assets/characters/factory_spark_rat/<animation>/` and SpriteFrames resource `assets/characters/factory_spark_rat/factory_spark_rat_sprite_frames.tres`.
+- Test written: `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_test.gd` covers service-sluice-crossed gating, manual activation range, entity `2142`, target/process/physics, Spark Rat family id, SpriteFrames path and six animation frame counts, opening grace `12`, route feedback, ground coverage through x `11520`, defeat persistence, restored completed state, and Story106-113 runoff-chain backfill.
+- Verification: RED focused `reports/report_1330/` failed as expected before Story114 diagnostics/API/scene node existed. Focused GREEN `reports/report_1334/` passed Story114 `2/2`; related GREEN `reports/report_1335/` passed Story114 plus adjacent runoff outlet/service sluice suites `12/12`. Headless Factory smoke `reports/old_factory_overflow_pump_runoff_outlet_service_sluice_skirmish_smoke.log` exited `0` with only known Godot cleanup-time ObjectDB/resource messages after shutdown. Godot AI MCP `2.9.1` on Godot `4.7-stable` confirmed the disk-reloaded Spark Rat node, right wall x `11500`, camera/background `11520`, ground right edge x `11700`, activation/defeat/restore contracts, entity `2142`, SpriteFrames path and 3-frame counts for `idle/run/attack_tell/attack/hurt/death`, current game log without errors, empty editor log after cursor `9`, and a non-empty `960x539` game screenshot showing Cinderpaw and the active Spark Rat.
+- Notes: MCP runtime probing found the previous ground collision ended before the new far-right combat pocket, so the route collision was extended and the focused test now asserts `ground_right_edge_x >= 11520.0`.
+- Blockers: None. New generated enemy art, new enemy family, reward economy changes, savepoint, SaveSystem schema changes, service-lift route changes, minimap/fast-travel UI, authored audio, particles/shaders, Boss2, and broader lower-deck biome art replacement remain out of scope.
+- Next: continue another ACT-visible slice beyond the service sluice skirmish, preferably a short route handoff or combat/reward beat that keeps replacing placeholder-feeling gameplay with frame-animated enemies and visible authored environment support.
