@@ -1835,6 +1835,11 @@ position = Vector2(0, -36)
 shape = SubResource("RectangleShape2D_steam_vent")
 disabled = true
 
+[node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletSparkRat" parent="." instance=ExtResource("13_spark_rat")]
+visible = false
+z_index = 20
+position = Vector2(9340, 482)
+
 [node name="FactorySteamVentHazard" type="Area2D" parent="."]
 z_index = 18
 position = Vector2(642, 466)

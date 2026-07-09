@@ -50,6 +50,7 @@ const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_COIL_ENTITY_ID: int = 2137
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_CLAMP_SPARK_ENTITY_ID: int = 2138
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_COIL_ENTITY_ID: int = 2139
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_RUNOFF_EXIT_COIL_ENTITY_ID: int = 2140
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_RUNOFF_OUTLET_SPARK_ENTITY_ID: int = 2141
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
@@ -118,6 +119,7 @@ const FACTORY_AFTERSHOCK_EXHAUST_ESCAPE_SPARK_OPENING_GRACE_FRAMES: int = 10
 const FACTORY_AFTERSHOCK_EXHAUST_ESCAPE_COIL_OPENING_GRACE_FRAMES: int = 22
 const FACTORY_AFTERSHOCK_CONDENSER_OVERFLOW_COIL_OPENING_GRACE_FRAMES: int = 10
 const FACTORY_AFTERSHOCK_CONDENSER_OVERFLOW_RUNOFF_EXIT_COIL_OPENING_GRACE_FRAMES: int = 10
+const FACTORY_AFTERSHOCK_CONDENSER_OVERFLOW_RUNOFF_OUTLET_SPARK_OPENING_GRACE_FRAMES: int = 12
 const FACTORY_RESPAWN_HAZARD_GRACE_FRAMES: int = 18
 const FACTORY_RETURN_CHECKPOINT_SPAWN_SNAP_FRAMES: int = 18
 const FACTORY_RAT_MINION_COLLISION_LAYER: int = 2
@@ -357,6 +359,12 @@ const FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUM
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_CROSSED: StringName = (
 	&"forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed"
 )
+const FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SKIRMISH: StringName = (
+	&"clear_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish"
+)
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SKIRMISH_CLEARED: StringName = (
+	&"forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_cleared"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -478,6 +486,7 @@ const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_EXIT_ACTIVATION_X: float = 7800.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_ACTIVATION_X: float = 8480.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_EXIT_X: float = 9060.0
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SKIRMISH_ACTIVATION_X: float = 9280.0
 const FACTORY_LOWER_DECK_FORWARD_HATCH_ID: StringName = &"old_factory_lower_deck_forward_hatch"
 const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: StringName = &"lower_deck_breach_relay"
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT: StringName = (
@@ -639,6 +648,11 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_coil_rat: Node2D = (
 	get_node_or_null(
 		"FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffExitCoilRat"
+	) as Node2D
+)
+@onready var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat: Node2D = (
+	get_node_or_null(
+		"FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletSparkRat"
 	) as Node2D
 )
 @onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
@@ -995,6 +1009,8 @@ var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_elapsed_sec: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -1067,6 +1083,7 @@ func _ready() -> void:
 	_sync_overflow_pump_runoff_duct_state()
 	_sync_overflow_pump_runoff_exit_skirmish_state()
 	_sync_overflow_pump_runoff_outlet_state()
+	_sync_overflow_pump_runoff_outlet_skirmish_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -1115,6 +1132,7 @@ func _process(_delta: float) -> void:
 		_delta
 	)
 	_auto_complete_overflow_pump_runoff_outlet()
+	_auto_activate_overflow_pump_runoff_outlet_skirmish()
 	_sync_factory_player_control_lock()
 
 
@@ -1225,12 +1243,13 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_DRIP_VENT_CROSSED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_CACHE_CLAIMED
-			or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_EXIT_HATCH_OPENED
-			or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_CROSSED
-			or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_EXIT_CLEARED
-			or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_EXIT_GATE_OPENED
-			or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_CROSSED
-		)
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_EXIT_HATCH_OPENED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_CROSSED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_EXIT_CLEARED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_EXIT_GATE_OPENED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_CROSSED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SKIRMISH_CLEARED
+	)
 
 
 ## Returns whether the post-route service lift handoff has been activated.
@@ -2888,6 +2907,31 @@ func try_complete_factory_lower_deck_forward_pressure_aftershock_condenser_overf
 	return true
 
 
+## Starts the runoff outlet Spark Rat skirmish after the outlet traverse is crossed.
+func try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat == null
+		or not _is_overflow_pump_runoff_outlet_skirmish_available()
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_overflow_pump_runoff_outlet_skirmish_provider_in_range(
+		activation_provider
+	):
+		return false
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated = true
+	_sync_overflow_pump_runoff_outlet_skirmish_state()
+	_set_overflow_pump_runoff_outlet_spark_rat_attack_target(activation_provider)
+	_begin_overflow_pump_runoff_outlet_skirmish_pacing(
+		FACTORY_AFTERSHOCK_CONDENSER_OVERFLOW_RUNOFF_OUTLET_SPARK_OPENING_GRACE_FRAMES
+	)
+	_refresh_factory_route_objective()
+	return true
+
+
 ## Starts the overflow pump runoff duct traversal beyond the opened hatch.
 func try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct(
 	provider: Node = null
@@ -3824,6 +3868,15 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed": (
 			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed
 		),
+		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated
+		),
+		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated
+		),
+		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_cleared": (
+			_is_overflow_pump_runoff_outlet_skirmish_cleared()
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -4546,6 +4599,31 @@ func set_local_state(state: Dictionary) -> void:
 	)
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed:
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_activated = true
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated",
+			false
+		)
+	)
+	if bool(state.get(
+		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_cleared",
+		false
+	)):
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated = true
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated",
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated
+		)
+	)
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated:
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated = true
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated
+	):
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_activated = true
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed = true
 	if (
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_activated
 		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed
@@ -5110,6 +5188,10 @@ func set_local_state(state: Dictionary) -> void:
 	if _is_overflow_pump_active():
 		_begin_overflow_pump_pacing(
 			FACTORY_AFTERSHOCK_CONDENSER_OVERFLOW_COIL_OPENING_GRACE_FRAMES
+		)
+	if _is_overflow_pump_runoff_outlet_skirmish_active():
+		_begin_overflow_pump_runoff_outlet_skirmish_pacing(
+			FACTORY_AFTERSHOCK_CONDENSER_OVERFLOW_RUNOFF_OUTLET_SPARK_OPENING_GRACE_FRAMES
 		)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
@@ -8307,6 +8389,64 @@ func get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_
 	}
 
 
+## Returns deterministic runoff outlet Spark Rat skirmish diagnostics.
+func get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_diagnostics(
+) -> Dictionary:
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	var spark_rat: Node2D = _get_valid_node2d(
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat
+	)
+	var spark_sprite: AnimatedSprite2D = (
+		spark_rat.get_node_or_null("Sprite") as AnimatedSprite2D
+		if spark_rat != null
+		else null
+	)
+	var ground_shape := get_node_or_null("Ground/CollisionShape2D") as CollisionShape2D
+	var ground_rect := (
+		ground_shape.shape as RectangleShape2D
+		if ground_shape != null and ground_shape.shape is RectangleShape2D
+		else null
+	)
+	var right_wall := get_node_or_null("RightWall") as Node2D
+	var camera := get_node_or_null("Player/Camera2D") as Camera2D
+	return {
+		"present": spark_rat != null,
+		"available": _is_overflow_pump_runoff_outlet_skirmish_available(),
+		"active": _is_overflow_pump_runoff_outlet_skirmish_active(),
+		"cleared": _is_overflow_pump_runoff_outlet_skirmish_cleared(),
+		"runoff_outlet_crossed": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed
+		),
+		"activation_x": (
+			FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SKIRMISH_ACTIVATION_X
+		),
+		"ground_width": ground_rect.size.x if ground_rect != null else 0.0,
+		"right_wall_x": right_wall.global_position.x if right_wall != null else 0.0,
+		"camera_limit_right": camera.limit_right if camera != null else 0,
+		"spark_node_name": String(spark_rat.name) if spark_rat != null else "",
+		"spark_visible": spark_rat.visible if spark_rat != null else false,
+		"spark_has_target": _does_overflow_pump_runoff_outlet_spark_rat_have_target(),
+		"spark_process_enabled": spark_rat.is_processing() if spark_rat != null else false,
+		"spark_physics_enabled": (
+			spark_rat.is_physics_processing() if spark_rat != null else false
+		),
+		"spark_defeated": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated
+		),
+		"spark_entity_id": _get_enemy_entity_id(spark_rat),
+		"spark_family_id": _get_enemy_family_id(spark_rat),
+		"spark_sprite_frames_path": (
+			spark_sprite.sprite_frames.resource_path
+			if spark_sprite != null and spark_sprite.sprite_frames != null
+			else ""
+		),
+		"spark_animation_frame_counts": _get_sprite_animation_frame_counts(spark_sprite),
+		"pacing": _get_overflow_pump_runoff_outlet_skirmish_pacing_diagnostics(),
+		"position": spark_rat.global_position if spark_rat != null else Vector2.ZERO,
+		"route_label_text": String(route.get("route_label_text", "")),
+	}
+
+
 ## Returns deterministic overflow-pump runoff duct diagnostics for tests/MCP probes.
 func get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_diagnostics(
 ) -> Dictionary:
@@ -10597,6 +10737,13 @@ func _bind_enemy_to_player() -> void:
 		&"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_coil_rat",
 		_on_overflow_pump_runoff_exit_coil_rat_defeated
 	)
+	_bind_factory_guard(
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat,
+		FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_HAZARD_ID,
+		FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_RUNOFF_OUTLET_SPARK_ENTITY_ID,
+		&"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat",
+		_on_overflow_pump_runoff_outlet_spark_rat_defeated
+	)
 
 
 func _setup_factory_cache() -> void:
@@ -11420,6 +11567,13 @@ func _on_overflow_pump_runoff_exit_coil_rat_defeated() -> void:
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_activated = true
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_coil_rat_defeated = true
 	_sync_overflow_pump_runoff_exit_skirmish_state()
+	_refresh_factory_route_objective()
+
+
+func _on_overflow_pump_runoff_outlet_spark_rat_defeated() -> void:
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated = true
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated = true
+	_sync_overflow_pump_runoff_outlet_skirmish_state()
 	_refresh_factory_route_objective()
 
 
@@ -13582,10 +13736,11 @@ func _sync_overflow_pump_runoff_outlet_state() -> void:
 	if (
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_duct
 		!= null
-	):
-		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_duct.visible = (
-			should_show_outlet
-		)
+		):
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_duct.visible = (
+				should_show_outlet
+			)
+	_sync_overflow_pump_runoff_outlet_skirmish_state()
 	if (
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_vent
 		== null
@@ -13614,6 +13769,15 @@ func _sync_overflow_pump_runoff_outlet_state() -> void:
 	)
 	if collision_shape != null:
 		collision_shape.disabled = not contact_active
+
+
+func _sync_overflow_pump_runoff_outlet_skirmish_state() -> void:
+	var skirmish_active: bool = _is_overflow_pump_runoff_outlet_skirmish_active()
+	_sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat,
+		skirmish_active
+			and not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated
+	)
 
 
 func _sync_lower_deck_forward_pressure_exit_gate_state() -> void:
@@ -13756,6 +13920,14 @@ func _get_factory_route_objective_id() -> StringName:
 	if _is_overflow_pump_runoff_outlet_active():
 		return (
 			FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET
+		)
+	if _is_overflow_pump_runoff_outlet_skirmish_active():
+		return (
+			FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SKIRMISH
+		)
+	if _is_overflow_pump_runoff_outlet_skirmish_cleared():
+		return (
+			FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SKIRMISH_CLEARED
 		)
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed:
 		return (
@@ -14159,6 +14331,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Cross Overflow Pump Runoff Outlet"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_CROSSED:
 			return "Overflow Pump Runoff Outlet Crossed"
+		FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SKIRMISH:
+			return "Clear Runoff Outlet Spark Rat"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SKIRMISH_CLEARED:
+			return "Runoff Outlet Spark Rat Cleared"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OUTLET_CROSSED:
 			return "Aftershock Condenser Outlet Crossed"
 		_:
@@ -16365,6 +16541,19 @@ func _set_overflow_pump_runoff_exit_attack_target(attack_target: Node) -> void:
 		)
 
 
+func _set_overflow_pump_runoff_outlet_spark_rat_attack_target(attack_target: Node) -> void:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat != null
+		and _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat.has_method(
+			"set_attack_target"
+		)
+	):
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat.call(
+			"set_attack_target",
+			attack_target
+		)
+
+
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
 		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
@@ -16808,6 +16997,20 @@ func _begin_overflow_pump_runoff_exit_pacing(opening_grace_frames: int) -> void:
 		and not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_coil_rat_defeated
 	):
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_coil_rat.call(
+			"begin_pacing",
+			maxi(0, opening_grace_frames)
+		)
+
+
+func _begin_overflow_pump_runoff_outlet_skirmish_pacing(opening_grace_frames: int) -> void:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat != null
+		and _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat.has_method(
+			"begin_pacing"
+		)
+		and not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated
+	):
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat.call(
 			"begin_pacing",
 			maxi(0, opening_grace_frames)
 		)
@@ -17364,6 +17567,17 @@ func _get_overflow_pump_runoff_exit_pacing_diagnostics() -> Dictionary:
 	return pacing
 
 
+func _get_overflow_pump_runoff_outlet_skirmish_pacing_diagnostics() -> Dictionary:
+	var pacing: Dictionary = (
+		_get_lower_deck_forward_pressure_coil_pincer_enemy_pacing_diagnostics(
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat,
+			FACTORY_AFTERSHOCK_CONDENSER_OVERFLOW_RUNOFF_OUTLET_SPARK_OPENING_GRACE_FRAMES
+		)
+	)
+	pacing["active"] = _is_overflow_pump_runoff_outlet_skirmish_active()
+	return pacing
+
+
 func _get_lower_deck_forward_pressure_aftershock_exit_skirmish_pacing_diagnostics(
 ) -> Dictionary:
 	return {
@@ -17877,6 +18091,17 @@ func _does_overflow_pump_runoff_exit_coil_rat_have_target() -> bool:
 	return _is_overflow_pump_runoff_exit_skirmish_active()
 
 
+func _does_overflow_pump_runoff_outlet_spark_rat_have_target() -> bool:
+	var spark_rat: Node2D = _get_valid_node2d(
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat
+	)
+	if spark_rat == null:
+		return false
+	if spark_rat.has_method("has_attack_target"):
+		return bool(spark_rat.call("has_attack_target"))
+	return _is_overflow_pump_runoff_outlet_skirmish_active()
+
+
 func _does_lower_deck_breach_front_have_target() -> bool:
 	if _lower_deck_breach_front_spark_rat == null:
 		return false
@@ -18038,6 +18263,11 @@ func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> 
 				not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_coil_rat_defeated
 			):
 				_on_overflow_pump_runoff_exit_coil_rat_defeated()
+		FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_RUNOFF_OUTLET_SPARK_ENTITY_ID:
+			if (
+				not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated
+			):
+				_on_overflow_pump_runoff_outlet_spark_rat_defeated()
 
 
 func _is_factory_damage_target_defeated(damage_target: Node) -> bool:
@@ -18601,6 +18831,15 @@ func _is_overflow_pump_runoff_outlet_provider_at_exit(provider: Node) -> bool:
 	)
 
 
+func _is_overflow_pump_runoff_outlet_skirmish_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SKIRMISH_ACTIVATION_X
+	)
+
+
 func _is_overflow_pump_runoff_exit_skirmish_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -18707,10 +18946,11 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 				_lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat,
 					_lower_deck_forward_pressure_aftershock_condenser_spark_rat,
 					_lower_deck_forward_pressure_aftershock_condenser_coil_rat,
-					_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_spark_rat,
-					_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_coil_rat,
-					_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_coil_rat,
-				]:
+						_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_spark_rat,
+						_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_coil_rat,
+						_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_coil_rat,
+						_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat,
+					]:
 		if (
 			guard == null
 			or not is_instance_valid(guard)
@@ -19476,6 +19716,28 @@ func _is_overflow_pump_runoff_outlet_active() -> bool:
 	)
 
 
+func _is_overflow_pump_runoff_outlet_skirmish_available() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed
+		and not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated
+		and not _is_overflow_pump_runoff_outlet_skirmish_cleared()
+	)
+
+
+func _is_overflow_pump_runoff_outlet_skirmish_active() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated
+		and _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed
+		and not _is_overflow_pump_runoff_outlet_skirmish_cleared()
+	)
+
+
+func _is_overflow_pump_runoff_outlet_skirmish_cleared() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated
+	)
+
+
 func _is_lower_deck_forward_pressure_contact_active() -> bool:
 	return (
 		_lower_deck_forward_pressure_traverse_active
@@ -20063,6 +20325,19 @@ func _auto_complete_overflow_pump_runoff_outlet() -> void:
 	if not _is_overflow_pump_runoff_outlet_active():
 		return
 	try_complete_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet(
+		_player
+	)
+
+
+func _auto_activate_overflow_pump_runoff_outlet_skirmish() -> void:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated
+		or _is_overflow_pump_runoff_outlet_skirmish_cleared()
+	):
+		return
+	if not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed:
+		return
+	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish(
 		_player
 	)
 

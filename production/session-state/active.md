@@ -122,7 +122,9 @@
 	  Player Abilities Story109 Old Factory Lower Deck Forward Pressure
 	  Aftershock Condenser Overflow Pump Runoff Exit Reward Cache、Player
 	  Abilities Story110 Old Factory Lower Deck Forward Pressure Aftershock
-	  Condenser Overflow Pump Runoff Outlet Traverse
+	  Condenser Overflow Pump Runoff Outlet Traverse、Player Abilities Story111
+	  Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump
+	  Runoff Outlet Skirmish
 	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
@@ -140,6 +142,23 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 111: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Overflow Pump Runoff Outlet Skirmish -- after Story110
+  crosses the runoff outlet, a reused multi-frame Factory Spark Rat activates
+  at x `9280` and forces a short skirmish in the newly extended right-side
+  pocket. The encounter uses entity id `2141`, binds the existing
+  `AnimatedSprite2D + SpriteFrames` Spark Rat animation resource, keeps
+  `idle/run/attack_tell/attack/hurt/death` at `3` frames each, persists
+  activated/defeated/cleared state, and backfills the Story106/107/108/109/110
+  runoff chain on restore. Verification: RED `reports/report_1300/`; focused
+  GREEN `reports/report_1309/` (`2/2`); related GREEN
+  `reports/report_1310/` (`8/8`); headless smoke
+  `reports/old_factory_overflow_pump_runoff_outlet_skirmish_smoke.log` exit
+  `0`; Godot MCP 2.9.1 on Godot 4.7 verified disk-reloaded scene node,
+  runtime activation diagnostics, SpriteFrames path/frame counts,
+  `current_run_errors=[]`, helper live, and a non-empty `960x539` game
+  screenshot showing the Spark Rat.
+
 - Player Abilities Story 110: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Overflow Pump Runoff Outlet Traverse -- after Story109
   opens the runoff exit gate, the route extends to the right with reused
