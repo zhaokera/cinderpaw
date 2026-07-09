@@ -283,6 +283,9 @@ const FACTORY_OBJECTIVE_SECURE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER: StringName
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SECURED: StringName = (
 	&"forward_pressure_aftershock_condenser_secured"
 )
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SECURED: StringName = (
+	&"forward_pressure_aftershock_condenser_savepoint_secured"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -362,11 +365,17 @@ const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_COOLING_DUCT_EXIT_X: float = 3740.0
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_VALVE_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_aftershock_condenser_valve"
 )
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint"
+)
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_ACTIVATION_X: float = 3920.0
 const FACTORY_LOWER_DECK_FORWARD_HATCH_ID: StringName = &"old_factory_lower_deck_forward_hatch"
 const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: StringName = &"lower_deck_breach_relay"
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT: StringName = (
 	&"lower_deck_forward_pressure_exit_relay"
+)
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SPAWN_POINT: StringName = (
+	&"lower_deck_forward_pressure_aftershock_condenser_savepoint"
 )
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
 const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
@@ -379,6 +388,9 @@ const FACTORY_RETURN_CHECKPOINT_RESPAWN_LABEL: String = "Returned to Factory Sav
 const FACTORY_LOWER_DECK_BREACH_RELAY_RESPAWN_LABEL: String = "Returned to Lower Deck Relay"
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_RESPAWN_LABEL: String = (
 	"Returned to Forward Pressure Exit Relay"
+)
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_RESPAWN_LABEL: String = (
+	"Returned to Aftershock Condenser Savepoint"
 )
 const GAME_FLOW_SCRIPT: Script = preload("res://src/gameplay/game_flow_controller.gd")
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
@@ -573,6 +585,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_forward_pressure_aftershock_condenser_valve: Sprite2D = (
 	get_node_or_null("FactoryLowerDeckForwardPressureAftershockCondenserValve")
 		as Sprite2D
+)
+@onready var _lower_deck_forward_pressure_aftershock_condenser_savepoint: Node = (
+	get_node_or_null("FactoryLowerDeckForwardPressureAftershockCondenserSavepoint")
 )
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
@@ -770,6 +785,7 @@ var _lower_deck_forward_pressure_aftershock_cooling_duct_elapsed_sec: float = 0.
 var _lower_deck_forward_pressure_aftershock_condenser_valve_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_valve_spark_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_valve_coil_rat_defeated: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -832,6 +848,7 @@ func _ready() -> void:
 	_setup_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch()
 	_sync_lower_deck_forward_pressure_aftershock_cooling_duct_state()
 	_sync_lower_deck_forward_pressure_aftershock_condenser_valve_state()
+	_setup_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -969,6 +986,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_BREAKER_CUT
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_ESCAPE_SECURED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_OPENED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SECURED
 		)
 
 
@@ -1201,6 +1219,7 @@ func get_last_discovered_savepoint() -> Dictionary:
 			_return_checkpoint_activated
 			or _lower_deck_breach_relay_activated
 			or _lower_deck_forward_pressure_exit_relay_activated
+			or _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated
 		)
 		else {}
 	)
@@ -1210,10 +1229,12 @@ func clear_last_discovered_savepoint() -> bool:
 	_return_checkpoint_activated = false
 	_lower_deck_breach_relay_activated = false
 	_lower_deck_forward_pressure_exit_relay_activated = false
+	_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated = false
 	_last_return_checkpoint.clear()
 	_sync_return_checkpoint_state()
 	_sync_lower_deck_breach_relay_state()
 	_sync_lower_deck_forward_pressure_exit_relay_state()
+	_sync_lower_deck_forward_pressure_aftershock_condenser_savepoint_state()
 	return true
 
 
@@ -2503,6 +2524,37 @@ func try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_valve
 	return true
 
 
+## Activates the aftershock condenser savepoint after the landing is secured.
+func try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint == null
+		or not _is_lower_deck_forward_pressure_aftershock_condenser_savepoint_available()
+		or _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_pressure_aftershock_condenser_savepoint_provider_in_range(
+		activation_provider
+	):
+		return false
+	if (
+		not _lower_deck_forward_pressure_aftershock_condenser_savepoint.has_method(
+			"try_activate"
+		)
+		or not bool(_lower_deck_forward_pressure_aftershock_condenser_savepoint.call(
+			"try_activate",
+			activation_provider
+		))
+	):
+		return false
+	_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated = true
+	_sync_lower_deck_forward_pressure_aftershock_condenser_savepoint_state()
+	_update_route_label("Aftershock Condenser Savepoint Secured")
+	return true
+
+
 ## Attempts to activate the relay-forward combat trial after the breach relay is repaired.
 func try_activate_factory_lower_deck_post_relay_trial(provider: Node = null) -> bool:
 	if (
@@ -3013,6 +3065,9 @@ func get_local_state() -> Dictionary:
 		),
 		"factory_lower_deck_forward_pressure_aftershock_condenser_valve_cleared": (
 			_is_lower_deck_forward_pressure_aftershock_condenser_valve_cleared()
+		),
+		"factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated": (
+			_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated
 		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
@@ -3542,6 +3597,12 @@ func set_local_state(state: Dictionary) -> void:
 		_lower_deck_forward_pressure_aftershock_condenser_valve_activated = true
 		_lower_deck_forward_pressure_aftershock_condenser_valve_spark_rat_defeated = true
 		_lower_deck_forward_pressure_aftershock_condenser_valve_coil_rat_defeated = true
+	_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated",
+			false
+		)
+	)
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -3830,6 +3891,11 @@ func set_local_state(state: Dictionary) -> void:
 			== String(FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_ID)
 		):
 			_lower_deck_forward_pressure_exit_relay_activated = true
+		if (
+			String(_last_return_checkpoint.get("id", ""))
+			== String(FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_ID)
+		):
+			_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated = true
 	if (
 		_lower_deck_forward_pressure_exit_relay_activated
 		and (
@@ -3839,6 +3905,18 @@ func set_local_state(state: Dictionary) -> void:
 		)
 	):
 		_last_return_checkpoint = _build_forward_pressure_exit_relay_checkpoint_snapshot()
+		_return_checkpoint_activated = true
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated
+		and (
+			_last_return_checkpoint.is_empty()
+			or String(_last_return_checkpoint.get("id", ""))
+			!= String(FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_ID)
+		)
+	):
+		_last_return_checkpoint = (
+			_build_aftershock_condenser_savepoint_checkpoint_snapshot()
+		)
 		_return_checkpoint_activated = true
 	var hazard_variant: Variant = state.get("last_hazard_damage", {})
 	_last_hazard_damage = (
@@ -3920,6 +3998,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state()
 	_sync_lower_deck_forward_pressure_aftershock_cooling_duct_state()
 	_sync_lower_deck_forward_pressure_aftershock_condenser_valve_state()
+	_sync_lower_deck_forward_pressure_aftershock_condenser_savepoint_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -6469,6 +6548,70 @@ func get_factory_lower_deck_forward_pressure_exit_gate_diagnostics() -> Dictiona
 	}
 
 
+## Returns deterministic aftershock condenser savepoint diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_diagnostics(
+) -> Dictionary:
+	var interaction_area := (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint.get_node_or_null(
+			"InteractionArea"
+		) as Area2D
+		if _lower_deck_forward_pressure_aftershock_condenser_savepoint != null
+		else null
+	)
+	var collision_shape := (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint.get_node_or_null(
+			"InteractionArea/CollisionShape2D"
+		) as CollisionShape2D
+		if _lower_deck_forward_pressure_aftershock_condenser_savepoint != null
+		else null
+	)
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	return {
+		"present": _lower_deck_forward_pressure_aftershock_condenser_savepoint != null,
+		"available": _is_lower_deck_forward_pressure_aftershock_condenser_savepoint_available(),
+		"visible": (
+			_lower_deck_forward_pressure_aftershock_condenser_savepoint.visible
+			if _lower_deck_forward_pressure_aftershock_condenser_savepoint != null
+			else false
+		),
+		"activated": _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated,
+		"condenser_landing_secured": (
+			_is_lower_deck_forward_pressure_aftershock_condenser_valve_cleared()
+		),
+		"savepoint_id": (
+			_get_lower_deck_forward_pressure_aftershock_condenser_savepoint_id()
+		),
+		"scene_id": (
+			_get_lower_deck_forward_pressure_aftershock_condenser_savepoint_scene_id()
+		),
+		"spawn_point": (
+			_get_lower_deck_forward_pressure_aftershock_condenser_savepoint_spawn_point()
+		),
+		"display_name": (
+			_get_lower_deck_forward_pressure_aftershock_condenser_savepoint_display_name()
+		),
+		"prompt_text": (
+			_get_lower_deck_forward_pressure_aftershock_condenser_savepoint_prompt_text()
+		),
+		"texture_path": (
+			_get_lower_deck_forward_pressure_aftershock_condenser_savepoint_texture_path()
+		),
+		"interaction_monitoring": interaction_area.monitoring if interaction_area != null else false,
+		"interaction_monitorable": interaction_area.monitorable if interaction_area != null else false,
+		"collision_disabled": collision_shape.disabled if collision_shape != null else true,
+		"position": (
+			(_lower_deck_forward_pressure_aftershock_condenser_savepoint as Node2D).global_position
+			if (
+				_lower_deck_forward_pressure_aftershock_condenser_savepoint != null
+				and _lower_deck_forward_pressure_aftershock_condenser_savepoint is Node2D
+			)
+			else Vector2.ZERO
+		),
+		"last_savepoint": _last_return_checkpoint.duplicate(true),
+		"route_label_text": String(route.get("route_label_text", "")),
+	}
+
+
 ## Returns deterministic forward-pressure route handoff marker diagnostics for tests and MCP probes.
 func get_factory_lower_deck_forward_pressure_route_handoff_marker_diagnostics() -> Dictionary:
 	var interaction_area := (
@@ -8208,6 +8351,9 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 		spawn_point == FACTORY_RETURN_CHECKPOINT_SPAWN_POINT
 		or spawn_point == FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT
 		or spawn_point == FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT
+		or spawn_point == (
+			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SPAWN_POINT
+		)
 	):
 		_grant_factory_hazard_respawn_grace()
 	if not _move_player_to_spawn_point(spawn_point):
@@ -8224,6 +8370,15 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 		_factory_return_checkpoint_spawn_snap_frames = 0
 		_set_player_physics_pinned_for_return_checkpoint(false)
 		_update_route_label(FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_RESPAWN_LABEL)
+	elif (
+		spawn_point
+		== FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SPAWN_POINT
+	):
+		_factory_return_checkpoint_spawn_snap_frames = 0
+		_set_player_physics_pinned_for_return_checkpoint(false)
+		_update_route_label(
+			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_RESPAWN_LABEL
+		)
 	else:
 		_factory_return_checkpoint_spawn_snap_frames = 0
 		_set_player_physics_pinned_for_return_checkpoint(false)
@@ -8242,6 +8397,11 @@ func _move_player_to_spawn_point(spawn_point: StringName) -> bool:
 		spawn_node = _lower_deck_breach_relay as Node2D
 	elif spawn_point == FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT:
 		spawn_node = _lower_deck_forward_pressure_exit_relay as Node2D
+	elif (
+		spawn_point
+		== FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SPAWN_POINT
+	):
+		spawn_node = _lower_deck_forward_pressure_aftershock_condenser_savepoint as Node2D
 	if spawn_node == null:
 		return false
 	_player.global_position = spawn_node.global_position
@@ -8781,6 +8941,28 @@ func _setup_factory_lower_deck_forward_pressure_exit_relay() -> void:
 	):
 		activated_signal.connect(
 			_on_factory_lower_deck_forward_pressure_exit_relay_activated
+		)
+
+
+func _setup_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint() -> void:
+	_sync_lower_deck_forward_pressure_aftershock_condenser_savepoint_state()
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint == null
+		or not _lower_deck_forward_pressure_aftershock_condenser_savepoint.has_signal(
+			"savepoint_activated"
+		)
+	):
+		return
+	var activated_signal: Signal = (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint.get(
+			"savepoint_activated"
+		)
+	)
+	if not activated_signal.is_connected(
+		_on_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated
+	):
+		activated_signal.connect(
+			_on_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated
 		)
 
 
@@ -9623,6 +9805,30 @@ func _on_factory_lower_deck_forward_pressure_exit_relay_activated(
 	_update_route_label("Forward Pressure Exit Relay Secured")
 
 
+func _on_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated(
+	savepoint_id: StringName,
+	scene_id: StringName,
+	spawn_point: StringName,
+	world_position: Vector2,
+	context: Dictionary
+) -> void:
+	if savepoint_id != FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_ID:
+		return
+	if _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated = true
+	_last_return_checkpoint = _build_return_checkpoint_snapshot(
+		savepoint_id,
+		scene_id,
+		spawn_point,
+		world_position,
+		context
+	)
+	_return_checkpoint_activated = true
+	_sync_lower_deck_forward_pressure_aftershock_condenser_savepoint_state(true)
+	_update_route_label("Aftershock Condenser Savepoint Secured")
+
+
 func _on_factory_player_died(_death_metadata: Dictionary) -> void:
 	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
 		return
@@ -9647,6 +9853,12 @@ func _on_factory_respawn_requested(respawn_position: Vector2, revive_hp_percenta
 		FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT
 	):
 		_update_route_label(FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_RESPAWN_LABEL)
+	elif String(selected_respawn_point.get("spawn_point", "")) == String(
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SPAWN_POINT
+	):
+		_update_route_label(
+			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_RESPAWN_LABEL
+		)
 	_apply_current_scene_manager_spawn_point()
 
 
@@ -11040,6 +11252,7 @@ func _sync_lower_deck_forward_pressure_aftershock_condenser_valve_state() -> voi
 		ambush_active
 			and not _lower_deck_forward_pressure_aftershock_condenser_valve_coil_rat_defeated
 	)
+	_sync_lower_deck_forward_pressure_aftershock_condenser_savepoint_state()
 
 
 func _sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
@@ -11179,6 +11392,47 @@ func _sync_lower_deck_forward_pressure_exit_relay_state(
 				collision_shape.disabled = should_disable
 
 
+func _sync_lower_deck_forward_pressure_aftershock_condenser_savepoint_state(
+	defer_interaction_changes: bool = false
+) -> void:
+	if _lower_deck_forward_pressure_aftershock_condenser_savepoint == null:
+		return
+	var available: bool = (
+		_is_lower_deck_forward_pressure_aftershock_condenser_savepoint_available()
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_savepoint.visible = (
+		available or _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated
+	)
+	var interaction_area := (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint.get_node_or_null(
+			"InteractionArea"
+		) as Area2D
+	)
+	if interaction_area != null:
+		if interaction_area.monitoring != available:
+			if defer_interaction_changes:
+				interaction_area.set_deferred("monitoring", available)
+			else:
+				interaction_area.monitoring = available
+		if interaction_area.monitorable != available:
+			if defer_interaction_changes:
+				interaction_area.set_deferred("monitorable", available)
+			else:
+				interaction_area.monitorable = available
+	var collision_shape := (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint.get_node_or_null(
+			"InteractionArea/CollisionShape2D"
+		) as CollisionShape2D
+	)
+	if collision_shape != null:
+		var should_disable: bool = not available
+		if collision_shape.disabled != should_disable:
+			if defer_interaction_changes:
+				collision_shape.set_deferred("disabled", should_disable)
+			else:
+				collision_shape.disabled = should_disable
+
+
 func _sync_lower_deck_forward_pressure_exit_gate_state() -> void:
 	if _lower_deck_forward_pressure_exit_gate == null:
 		return
@@ -11300,6 +11554,8 @@ func _get_factory_route_objective_id() -> StringName:
 		return FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_COOLING_DUCT
 	if _is_lower_deck_forward_pressure_aftershock_condenser_valve_active():
 		return FACTORY_OBJECTIVE_SECURE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER
+	if _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated:
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SECURED
 	if _is_lower_deck_forward_pressure_aftershock_condenser_valve_cleared():
 		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SECURED
 	if _lower_deck_forward_pressure_aftershock_cooling_duct_crossed:
@@ -11628,6 +11884,8 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Secure Aftershock Condenser Landing"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SECURED:
 			return "Aftershock Condenser Landing Secured"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SECURED:
+			return "Aftershock Condenser Savepoint Secured"
 		_:
 			return "Clear Factory Entrance"
 
@@ -12765,6 +13023,107 @@ func _build_forward_pressure_exit_relay_checkpoint_snapshot() -> Dictionary:
 		world_position,
 		{
 			"display_name": _get_lower_deck_forward_pressure_exit_relay_display_name(),
+		}
+	)
+
+
+func _get_lower_deck_forward_pressure_aftershock_condenser_savepoint_id() -> String:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint != null
+		and _lower_deck_forward_pressure_aftershock_condenser_savepoint.has_method(
+			"get_savepoint_id"
+		)
+	):
+		return String(_lower_deck_forward_pressure_aftershock_condenser_savepoint.call(
+			"get_savepoint_id"
+		))
+	return String(FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_ID)
+
+
+func _get_lower_deck_forward_pressure_aftershock_condenser_savepoint_scene_id() -> String:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint != null
+		and _lower_deck_forward_pressure_aftershock_condenser_savepoint.has_method(
+			"get_scene_id"
+		)
+	):
+		return String(_lower_deck_forward_pressure_aftershock_condenser_savepoint.call(
+			"get_scene_id"
+		))
+	return String(FACTORY_SCENE_ID)
+
+
+func _get_lower_deck_forward_pressure_aftershock_condenser_savepoint_spawn_point(
+) -> String:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint != null
+		and _lower_deck_forward_pressure_aftershock_condenser_savepoint.has_method(
+			"get_spawn_point"
+		)
+	):
+		return String(_lower_deck_forward_pressure_aftershock_condenser_savepoint.call(
+			"get_spawn_point"
+		))
+	return String(
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SPAWN_POINT
+	)
+
+
+func _get_lower_deck_forward_pressure_aftershock_condenser_savepoint_display_name(
+) -> String:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint != null
+		and _lower_deck_forward_pressure_aftershock_condenser_savepoint.has_method(
+			"get_display_name"
+		)
+	):
+		return String(_lower_deck_forward_pressure_aftershock_condenser_savepoint.call(
+			"get_display_name"
+		))
+	return "Aftershock Condenser Savepoint"
+
+
+func _get_lower_deck_forward_pressure_aftershock_condenser_savepoint_texture_path(
+) -> String:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint != null
+		and _lower_deck_forward_pressure_aftershock_condenser_savepoint.has_method(
+			"get_visual_texture_path"
+		)
+	):
+		return String(_lower_deck_forward_pressure_aftershock_condenser_savepoint.call(
+			"get_visual_texture_path"
+		))
+	return ""
+
+
+func _get_lower_deck_forward_pressure_aftershock_condenser_savepoint_prompt_text(
+) -> String:
+	var prompt_label := (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint.get_node_or_null(
+			"PromptLabel"
+		) as Label
+		if _lower_deck_forward_pressure_aftershock_condenser_savepoint != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _build_aftershock_condenser_savepoint_checkpoint_snapshot() -> Dictionary:
+	var world_position := Vector2.ZERO
+	if _lower_deck_forward_pressure_aftershock_condenser_savepoint is Node2D:
+		world_position = (
+			_lower_deck_forward_pressure_aftershock_condenser_savepoint as Node2D
+		).global_position
+	return _build_return_checkpoint_snapshot(
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_ID,
+		FACTORY_SCENE_ID,
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SPAWN_POINT,
+		world_position,
+		{
+			"display_name": (
+				_get_lower_deck_forward_pressure_aftershock_condenser_savepoint_display_name()
+			),
 		}
 	)
 
@@ -15073,6 +15432,27 @@ func _is_lower_deck_forward_pressure_exit_relay_provider_in_range(provider: Node
 	)
 
 
+func _is_lower_deck_forward_pressure_aftershock_condenser_savepoint_provider_in_range(
+	provider: Node
+) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint == null
+		or not _lower_deck_forward_pressure_aftershock_condenser_savepoint is Node2D
+	):
+		return false
+	return (
+		(provider as Node2D).global_position.distance_to(
+			(
+				_lower_deck_forward_pressure_aftershock_condenser_savepoint
+				as Node2D
+			).global_position
+		)
+		<= FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS
+	)
+
+
 func _is_lower_deck_forward_pressure_exit_gate_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -16047,6 +16427,13 @@ func _is_lower_deck_forward_pressure_aftershock_condenser_valve_cleared() -> boo
 	return (
 		_lower_deck_forward_pressure_aftershock_condenser_valve_spark_rat_defeated
 		and _lower_deck_forward_pressure_aftershock_condenser_valve_coil_rat_defeated
+	)
+
+
+func _is_lower_deck_forward_pressure_aftershock_condenser_savepoint_available() -> bool:
+	return (
+		_is_lower_deck_forward_pressure_aftershock_condenser_valve_cleared()
+		and not _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated
 	)
 
 

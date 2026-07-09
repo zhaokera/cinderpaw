@@ -1,0 +1,18 @@
+{
+  "asset_id": "old_factory_aftershock_condenser_savepoint",
+  "story": "story-095-old-factory-lower-deck-forward-pressure-aftershock-condenser-savepoint",
+  "generated_at": "2026-07-09",
+  "generator": "image2/image generation",
+  "purpose": "Story095 old factory aftershock condenser landing savepoint and respawn anchor prop",
+  "source_path": "assets/generated/source/old_factory_aftershock_condenser_savepoint_imagegen_20260709.png",
+  "alpha_source_path": "assets/generated/source/old_factory_aftershock_condenser_savepoint_alpha_20260709.png",
+  "runtime_path": "assets/environment/old_factory_aftershock_condenser_savepoint/env_old_factory_aftershock_condenser_savepoint_256.png",
+  "runtime_size_px": [256, 256],
+  "postprocess": [
+    "Generated on a flat chroma-key background",
+    "Removed chroma-key background with remove_chroma_key.py",
+    "Trimmed, centered, and resized to 256x256 transparent PNG for Godot runtime import"
+  ],
+  "prompt": "Create a single old-factory aftershock condenser savepoint relay, a compact waist-high repair station/anchor for a cat action game. It should look like a brass-and-steel condenser relay pedestal with small copper coils, pressure gauge, ceramic insulators, faint cyan ember lights, worn bolts, soot, and a paw-scale activation plate. No characters. Centered full object on a perfectly flat solid #00ff00 chroma-key background, no shadow, no text, no UI, no watermark.",
+  "negative_prompt": "square placeholders, simple colored rectangles, text labels, logos, multiple objects, character silhouettes, smoke, particles, glass transparency, neon green details"
+}

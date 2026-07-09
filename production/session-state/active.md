@@ -100,10 +100,11 @@
 	  Aftershock Exhaust Exit Hatch Handoff、Player Abilities Story093 Old
 	  Factory Lower Deck Forward Pressure Aftershock Cooling Duct Traverse、
 	  Player Abilities Story094 Old Factory Lower Deck Forward Pressure
-	  Aftershock Condenser Valve Ambush
+	  Aftershock Condenser Valve Ambush、Player Abilities Story095 Old Factory
+	  Lower Deck Forward Pressure Aftershock Condenser Savepoint
 	  已完成；
-  下一步推进更深 Old Factory route/combat content、savepoint/minimap
-  gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
+  下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
+  ExplorationGate 能力门、more skill-tree branches、final
   Boss2 balancing/cutscene polish、authored/final audio replacement、
   DEATH/CUTSCENE audio states，以及玩家可见角色/敌人帧动画持续审计。
   继续执行 TDD + Godot MCP 运行态验证，
@@ -118,6 +119,31 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 095: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Savepoint -- after Story094 secures the aftershock
+  condenser landing, `FactoryLowerDeckForwardPressureAftershockCondenserSavepoint`
+  becomes visible as a new image-generated transparent repair relay prop at
+  x `4380.0`. The relay stays hidden/non-interactive until
+  `factory_lower_deck_forward_pressure_aftershock_condenser_valve_cleared=true`,
+  activates through `SavepointRuntime`, records last savepoint id
+  `old_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint`,
+  persists
+  `factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated=true`,
+  reconstructs its checkpoint snapshot on local-state restore when needed, and
+  respawns SceneManager handoff point
+  `lower_deck_forward_pressure_aftershock_condenser_savepoint` with route
+  feedback `Returned to Aftershock Condenser Savepoint`. Verification: initial
+  RED `reports/report_1232/`; focused GREEN `reports/report_1233/` `2/2`;
+  related GREEN `reports/report_1234/` `19/19`; headless smoke
+  `reports/old_factory_aftershock_condenser_savepoint_smoke.log` exited `0`
+  with no project script/parse/invalid-call/access/missing-resource/
+  resource-load errors by keyword scan. Godot AI MCP `2.9.1` on Godot
+  `4.7-stable` confirmed scene reload from disk, helper live, runtime
+  savepoint node and generated texture, Story094-clear gating, successful
+  activation, persisted last savepoint snapshot, clean final game/editor logs,
+  and a non-empty `960x539` game screenshot showing the generated savepoint
+  relay and prompt `Repair Condenser Relay`.
+
 - Player Abilities Story 094: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Valve Ambush -- after Story093 crosses the aftershock
   cooling duct, `FactoryLowerDeckForwardPressureAftershockCondenserValve`

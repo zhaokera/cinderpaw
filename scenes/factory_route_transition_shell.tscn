@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3]
+[gd_scene load_steps=40 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -29,6 +29,7 @@
 [ext_resource type="PackedScene" path="res://src/gameplay/factory_coil_rat.tscn" id="27_coil_rat"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_aftershock_cooling_duct/env_old_factory_aftershock_cooling_duct_768.png" id="28_cooling_duct_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_aftershock_condenser_valve/env_old_factory_aftershock_condenser_valve_768.png" id="29_condenser_valve_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_aftershock_condenser_savepoint/env_old_factory_aftershock_condenser_savepoint_256.png" id="30_condenser_savepoint_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(4560, 40)
@@ -1226,6 +1227,43 @@ z_index = 23
 position = Vector2(4210, 376)
 scale = Vector2(0.78, 0.78)
 texture = ExtResource("29_condenser_valve_texture")
+
+[node name="FactoryLowerDeckForwardPressureAftershockCondenserSavepoint" type="Node2D" parent="."]
+visible = false
+z_index = 24
+position = Vector2(4380, 382)
+script = ExtResource("17_savepoint_script")
+savepoint_id = &"old_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint"
+scene_id = &"area_03_factory"
+spawn_point = &"lower_deck_forward_pressure_aftershock_condenser_savepoint"
+display_name = "Aftershock Condenser Savepoint"
+prompt_text = "Repair Condenser Relay"
+activation_vfx_texture = ExtResource("12_unlock_vfx")
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserSavepoint"]
+scale = Vector2(0.62, 0.62)
+texture = ExtResource("30_condenser_savepoint_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryLowerDeckForwardPressureAftershockCondenserSavepoint"]
+z_index = 4
+offset_left = -110.0
+offset_top = -126.0
+offset_right = 110.0
+offset_bottom = -100.0
+theme_override_colors/font_color = Color(0.58, 0.94, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 15
+text = "Repair Condenser Relay"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserSavepoint"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserSavepoint/InteractionArea"]
+shape = SubResource("CircleShape2D_return_checkpoint_interaction")
 
 [node name="FactorySteamVentHazard" type="Area2D" parent="."]
 z_index = 18
