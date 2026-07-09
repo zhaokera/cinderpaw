@@ -33,6 +33,7 @@ func test_player_light_attack_damages_enemy_through_core_chain_once() -> void:
 	var combat_presentation = scene.get_node("CombatPresentation")
 	var enemy_start_hp: int = enemy.get_current_hp()
 
+	assert_int(combat_presentation.get_active_damage_number_count()).is_equal(0)
 	assert_bool(player.request_attack()).is_true()
 	assert_bool(player_collision.is_hitbox_active(&"cat_claw_light")).is_true()
 	assert_int(combat_presentation.get_active_trail_count()).is_equal(3)
@@ -49,6 +50,21 @@ func test_player_light_attack_damages_enemy_through_core_chain_once() -> void:
 	assert_str(String(metadata.get("attack_type", &""))).is_equal("light")
 	assert_bool(int(metadata.get("final_damage", 0)) > 0).is_true()
 	assert_int(player.get_combat_component().get_battle_stats()["hits_landed"]).is_equal(1)
+	assert_int(combat_presentation.get_active_damage_number_count()).is_equal(1)
+	assert_str(combat_presentation.get_last_damage_number_text()).is_equal(
+		str(int(metadata.get("final_damage", 0)))
+	)
+	var damage_number_snapshot: Dictionary = combat_presentation.get_last_damage_number_snapshot()
+	assert_str(String(damage_number_snapshot.get("text", ""))).is_equal(
+		str(int(metadata.get("final_damage", 0)))
+	)
+	assert_bool(bool(damage_number_snapshot.get("visible", false))).is_true()
+	assert_str(Color(damage_number_snapshot.get("shadow_color", Color.TRANSPARENT)).to_html(false)).is_equal("000000")
+	var shadow_offset: Vector2i = damage_number_snapshot.get("shadow_offset", Vector2i.ZERO)
+	assert_int(shadow_offset.x).is_equal(1)
+	assert_int(shadow_offset.y).is_equal(1)
+	assert_bool(float(damage_number_snapshot.get("float_distance_px", 0.0)) >= 30.0).is_true()
+	assert_float(float(damage_number_snapshot.get("lifetime_sec", 0.0))).is_equal_approx(1.5, 0.001)
 
 	player_collision.process_detection_frame({
 		&"cat_claw_light": [enemy_collision.get_hurtbox()],
@@ -56,6 +72,10 @@ func test_player_light_attack_damages_enemy_through_core_chain_once() -> void:
 
 	assert_int(enemy.get_current_hp()).is_equal(enemy_hp_after_hit)
 	assert_int(player.get_combat_component().get_battle_stats()["hits_landed"]).is_equal(1)
+	assert_int(combat_presentation.get_active_damage_number_count()).is_equal(1)
+
+	combat_presentation.advance_time(1.6)
+	assert_int(combat_presentation.get_active_damage_number_count()).is_equal(0)
 
 
 func test_main_scene_dispatches_long_tail_attack_started_to_blade_arc_vfx() -> void:
@@ -139,6 +159,9 @@ func _assert_runtime_attack_contract() -> bool:
 		and enemy.has_method("get_collision_component")
 		and enemy.has_method("get_status_effect_component")
 		and scene.get_node("CombatPresentation").has_method("get_active_trail_count")
+		and scene.get_node("CombatPresentation").has_method("get_active_damage_number_count")
+		and scene.get_node("CombatPresentation").has_method("get_last_damage_number_text")
+		and scene.get_node("CombatPresentation").has_method("get_last_damage_number_snapshot")
 		and scene.get_node("CombatPresentation").has_method("get_weapon_vfx_snapshot")
 		and scene.has_method("get_last_player_hit_metadata")
 	)

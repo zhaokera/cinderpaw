@@ -49,6 +49,8 @@ const HEAVY_DAMAGE_COLOR: Color = Color("#F59E0B")
 const CRIT_DAMAGE_COLOR: Color = Color("#ECC94B")
 const LEGENDARY_DAMAGE_OUTLINE_COLOR: Color = Color.WHITE
 const LEGENDARY_DAMAGE_OUTLINE_SIZE: int = 2
+const DAMAGE_NUMBER_SHADOW_COLOR: Color = Color(0.0, 0.0, 0.0, 0.82)
+const DAMAGE_NUMBER_SHADOW_OFFSET: Vector2i = Vector2i(1, 1)
 const DAMAGE_NUMBER_FLOAT_DISTANCE_PX: float = 30.0
 const SPARK_COLOR: Color = Color(1.0, 0.94, 0.76, 1.0)
 const DEBRIS_COLOR: Color = Color(0.78, 0.18, 0.16, 1.0)
@@ -413,6 +415,35 @@ func get_last_damage_number_lifetime_sec() -> float:
 	return _last_damage_number_lifetime_sec
 
 
+func get_last_damage_number_snapshot() -> Dictionary:
+	var label := _latest_active_damage_number_label()
+	return {
+		"text": _last_damage_number_text,
+		"color": _last_damage_number_color,
+		"font_size": _last_damage_number_font_size,
+		"outline_size": _last_damage_number_outline_size,
+		"shadow_color": (
+			label.get_theme_color("font_shadow_color")
+			if label != null
+			else DAMAGE_NUMBER_SHADOW_COLOR
+		),
+		"shadow_offset": (
+			Vector2i(
+				label.get_theme_constant("shadow_offset_x"),
+				label.get_theme_constant("shadow_offset_y")
+			)
+			if label != null
+			else DAMAGE_NUMBER_SHADOW_OFFSET
+		),
+		"float_distance_px": _last_damage_number_float_distance,
+		"lifetime_sec": _last_damage_number_lifetime_sec,
+		"active_count": get_active_damage_number_count(),
+		"visible": label != null and label.visible and label.modulate.a > 0.0,
+		"position": label.position if label != null else Vector2.ZERO,
+		"z_index": label.z_index if label != null else 0,
+	}
+
+
 func get_last_flash_alpha() -> float:
 	return _last_flash_alpha
 
@@ -502,6 +533,9 @@ func _spawn_damage_number(world_position: Vector2, damage: int, color: Color) ->
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_font_size_override("font_size", _last_damage_number_font_size)
 	label.add_theme_constant_override("outline_size", _last_damage_number_outline_size)
+	label.add_theme_color_override("font_shadow_color", DAMAGE_NUMBER_SHADOW_COLOR)
+	label.add_theme_constant_override("shadow_offset_x", DAMAGE_NUMBER_SHADOW_OFFSET.x)
+	label.add_theme_constant_override("shadow_offset_y", DAMAGE_NUMBER_SHADOW_OFFSET.y)
 	if _last_damage_number_outline_size > 0:
 		label.add_theme_color_override("font_outline_color", LEGENDARY_DAMAGE_OUTLINE_COLOR)
 	label.z_index = 90
@@ -864,6 +898,17 @@ func _create_vfx_sprite(texture: Texture2D, color: Color, sprite_scale: Vector2)
 	sprite.scale = sprite_scale
 	sprite.modulate = color
 	return sprite
+
+
+func _latest_active_damage_number_label() -> Label:
+	var index: int = _damage_numbers.size() - 1
+	while index >= 0:
+		var effect: Dictionary = _damage_numbers[index]
+		var node: Node = effect.get("node", null)
+		if node != null and is_instance_valid(node) and node is Label:
+			return node as Label
+		index -= 1
+	return null
 
 
 func _remember_weapon_vfx(
