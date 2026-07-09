@@ -1,0 +1,12 @@
+{
+  "asset_id": "old_factory_aftershock_condenser_drain_gantry",
+  "story": "098-old-factory-lower-deck-forward-pressure-aftershock-condenser-outlet-drip-vent-traverse",
+  "mode": "built-in image generation with local chroma-key alpha removal",
+  "source": "assets/generated/source/old_factory_aftershock_condenser_drain_gantry_imagegen_20260709.png",
+  "alpha_source": "assets/generated/source/old_factory_aftershock_condenser_drain_gantry_alpha_20260709.png",
+  "runtime": "assets/environment/old_factory_aftershock_condenser_drain_gantry/env_old_factory_aftershock_condenser_drain_gantry_768.png",
+  "runtime_size": "768x320",
+  "key_color": "#04fa03",
+  "prompt": "Pixel-art 2D side-scroller environment prop, single centered asset on flat green chroma key background for alpha removal. Old Factory lower deck aftershock condenser drain gantry, long horizontal grated maintenance walkway beneath cracked pressure pipes, bolted blue-grey steel plates, copper drain tubes, cracked ceramic insulators, black pipe-mouth opening on the right suggesting a deeper route, sagging cables, soot, damp stains, rust-orange hazard striping, small cyan condenser work lights, readable silhouette, orthographic side view, crisp pixel edges, no characters, no UI, no text.",
+  "negative_prompt": "solid color rectangle, placeholder block, flat platform only, full background scene, characters, cats, rats, enemies, reward chest, savepoint, UI icon, letters, numbers, signage text, large red glow, green healing glow, gold treasure core, photorealistic, 3D render, painterly blur, soft anti-aliased edges, drop shadow, cropped object, multiple unrelated props, opaque non-green background, watermark."
+}

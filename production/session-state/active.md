@@ -104,7 +104,9 @@
 	  Lower Deck Forward Pressure Aftershock Condenser Savepoint、Player
 	  Abilities Story096 Old Factory Lower Deck Forward Pressure Aftershock
 	  Condenser Outlet Traverse、Player Abilities Story097 Old Factory Lower
-	  Deck Forward Pressure Aftershock Condenser Outlet Clamp Ambush
+	  Deck Forward Pressure Aftershock Condenser Outlet Clamp Ambush、Player
+	  Abilities Story098 Old Factory Lower Deck Forward Pressure Aftershock
+	  Condenser Outlet Drip Vent Traverse
 	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
@@ -122,6 +124,36 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 098: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Outlet Drip Vent Traverse -- after Story097 clears the
+  aftershock condenser outlet clamp ambush, a newly image-generated transparent
+  drain gantry becomes visible as
+  `FactoryLowerDeckForwardPressureAftershockCondenserDrainGantry`, the route
+  extends to x `6400.0`, and a reused image-generated Old Factory steam vent
+  becomes
+  `FactoryLowerDeckForwardPressureAftershockCondenserOutletDripVentHazard` with
+  hazard id
+  `old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent`.
+  The traverse stays locked until
+  `factory_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush_cleared=true`,
+  activates at x `5840.0`, cycles deterministic `grace -> warning -> active ->
+  safe` phases, applies `8` player contact damage only during the active phase,
+  persists activated/crossed local-state flags at x `6260.0`, and advances route
+  feedback to `Outlet Drip Vent Crossed`. MCP runtime validation also exposed a
+  current-run collision-state mutation during player death; `PlayerController`
+  and `CollisionComponent` now defer hitbox/hurtbox state changes when inside a
+  physics frame. Verification: RED `reports/report_1244/`; focused GREEN
+  `reports/report_1245/` (`2/2`); initial related GREEN `reports/report_1246/`
+  (`20/20`); shared collision-state focused GREEN `reports/report_1247/`
+  (`14/14`); final related GREEN `reports/report_1248/` (`32/32`);
+  commit-prep focused GREEN `reports/report_1249/report_1/` (`2/2`); headless
+  smoke
+  `reports/old_factory_aftershock_condenser_outlet_drip_vent_traverse_smoke.log`
+  exit `0`; Godot MCP 2.9.1 on Godot 4.7 verified scene reload, generated prop,
+  active-only hazard damage, crossed-state persistence, death/respawn path
+  without new physics-query state-change errors, clean current-run logs, and a
+  non-empty runtime screenshot.
+
 - Player Abilities Story 097: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Outlet Clamp Ambush -- after Story096 crosses the
   aftershock condenser outlet, a newly image-generated transparent clamp prop

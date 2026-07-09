@@ -299,6 +299,12 @@ const FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_CLAMP_AMBUSH: S
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_CLAMP_AMBUSH_CLEARED: StringName = (
 	&"forward_pressure_aftershock_outlet_clamp_ambush_cleared"
 )
+const FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_DRIP_VENT: StringName = (
+	&"cross_forward_pressure_aftershock_outlet_drip_vent"
+)
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_DRIP_VENT_CROSSED: StringName = (
+	&"forward_pressure_aftershock_outlet_drip_vent_crossed"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -387,10 +393,15 @@ const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_HAZARD_ID: StringNa
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OUTLET_CLAMP_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush"
 )
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_DRIP_VENT_HAZARD_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent"
+)
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_ACTIVATION_X: float = 3920.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_ACTIVATION_X: float = 4560.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_EXIT_X: float = 5020.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_CLAMP_ACTIVATION_X: float = 5220.0
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_DRIP_VENT_ACTIVATION_X: float = 5840.0
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_DRIP_VENT_EXIT_X: float = 6260.0
 const FACTORY_LOWER_DECK_FORWARD_HATCH_ID: StringName = &"old_factory_lower_deck_forward_hatch"
 const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: StringName = &"lower_deck_breach_relay"
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT: StringName = (
@@ -624,6 +635,10 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 	get_node_or_null("FactoryLowerDeckForwardPressureAftershockCondenserOutletClamp")
 		as Sprite2D
 )
+@onready var _lower_deck_forward_pressure_aftershock_condenser_drain_gantry: Sprite2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureAftershockCondenserDrainGantry")
+		as Sprite2D
+)
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
 	get_node_or_null("FactoryCheckpointSteamVentHazard") as Area2D
@@ -683,6 +698,10 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 )
 @onready var _lower_deck_forward_pressure_aftershock_condenser_outlet_vent: Area2D = (
 	get_node_or_null("FactoryLowerDeckForwardPressureAftershockCondenserOutletVent")
+		as Area2D
+)
+@onready var _lower_deck_forward_pressure_aftershock_condenser_drip_vent: Area2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureAftershockCondenserOutletDripVentHazard")
 		as Area2D
 )
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
@@ -830,6 +849,9 @@ var _lower_deck_forward_pressure_aftershock_condenser_outlet_crossed: bool = fal
 var _lower_deck_forward_pressure_aftershock_condenser_outlet_elapsed_sec: float = 0.0
 var _lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_spark_rat_defeated: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_drip_vent_elapsed_sec: float = 0.0
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -895,6 +917,7 @@ func _ready() -> void:
 	_setup_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint()
 	_sync_lower_deck_forward_pressure_aftershock_condenser_outlet_state()
 	_sync_outlet_clamp_ambush_state()
+	_sync_outlet_drip_vent_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -931,6 +954,11 @@ func _process(_delta: float) -> void:
 	_auto_activate_condenser_outlet()
 	_auto_complete_condenser_outlet()
 	_auto_activate_outlet_clamp_ambush()
+	_auto_activate_outlet_drip_vent()
+	advance_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent_time(
+		_delta
+	)
+	_auto_complete_outlet_drip_vent()
 	_sync_factory_player_control_lock()
 
 
@@ -1037,6 +1065,8 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_OPENED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SECURED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OUTLET_CROSSED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_CLAMP_AMBUSH_CLEARED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_DRIP_VENT_CROSSED
 		)
 
 
@@ -2686,6 +2716,61 @@ func try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_outle
 	return true
 
 
+## Starts the Story098 outlet drip vent traversal beyond the clamp ambush.
+func try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_drain_gantry == null
+		or _lower_deck_forward_pressure_aftershock_condenser_drip_vent == null
+		or not _is_outlet_drip_vent_available()
+		or _lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_outlet_drip_vent_provider_at_activation(activation_provider):
+		return false
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated = true
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_elapsed_sec = 0.0
+	_sync_outlet_drip_vent_state()
+	_refresh_factory_route_objective()
+	return true
+
+
+## Advances the outlet drip vent cycle deterministically for tests/MCP.
+func advance_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent_time(
+	delta_sec: float
+) -> void:
+	if not _is_outlet_drip_vent_active():
+		return
+	var safe_delta_sec: float = maxf(0.0, delta_sec)
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_elapsed_sec += safe_delta_sec
+	_factory_hazard_elapsed_sec += safe_delta_sec
+	_sync_outlet_drip_vent_state()
+
+
+## Completes the Story098 outlet drip vent traversal after Cinderpaw reaches the far edge.
+func try_complete_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_drain_gantry == null
+		or _lower_deck_forward_pressure_aftershock_condenser_drip_vent == null
+		or not _is_outlet_drip_vent_active()
+		or _lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed
+	):
+		return false
+	var completion_provider: Node = provider if provider != null else _player
+	if not _is_outlet_drip_vent_provider_at_exit(completion_provider):
+		return false
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated = true
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed = true
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_elapsed_sec = 0.0
+	_sync_outlet_drip_vent_state()
+	_refresh_factory_route_objective()
+	return true
+
+
 ## Attempts to activate the relay-forward combat trial after the breach relay is repaired.
 func try_activate_factory_lower_deck_post_relay_trial(provider: Node = null) -> bool:
 	if (
@@ -3214,6 +3299,12 @@ func get_local_state() -> Dictionary:
 		),
 		"factory_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush_cleared": (
 			_is_outlet_clamp_ambush_cleared()
+		),
+		"factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent_activated": (
+			_lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated
+		),
+		"factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent_crossed": (
+			_lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed
 		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
@@ -3779,6 +3870,19 @@ func set_local_state(state: Dictionary) -> void:
 			_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_spark_rat_defeated
 		)
 	)
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent_crossed",
+			false
+		)
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent_activated",
+			_lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed
+		)
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_elapsed_sec = 0.0
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -6956,6 +7060,98 @@ func get_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_a
 			else ""
 		),
 		"spark_animation_frame_counts": _get_sprite_animation_frame_counts(spark_sprite),
+		"route_label_text": String(route.get("route_label_text", "")),
+	}
+
+
+## Returns deterministic outlet drip vent traverse diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent_diagnostics(
+) -> Dictionary:
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	var gantry_present: bool = (
+		_lower_deck_forward_pressure_aftershock_condenser_drain_gantry != null
+	)
+	var hazard_present: bool = (
+		_lower_deck_forward_pressure_aftershock_condenser_drip_vent != null
+	)
+	var ground_shape := get_node_or_null("Ground/CollisionShape2D") as CollisionShape2D
+	var ground_rect := (
+		ground_shape.shape as RectangleShape2D
+		if ground_shape != null and ground_shape.shape is RectangleShape2D
+		else null
+	)
+	var right_wall := get_node_or_null("RightWall") as Node2D
+	var camera := get_node_or_null("Player/Camera2D") as Camera2D
+	return {
+		"present": gantry_present and hazard_present,
+		"available": _is_outlet_drip_vent_available(),
+		"active": _is_outlet_drip_vent_active(),
+		"crossed": _lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed,
+		"outlet_clamp_cleared": _is_outlet_clamp_ambush_cleared(),
+		"visible": (
+			_lower_deck_forward_pressure_aftershock_condenser_drain_gantry.visible
+			if gantry_present
+			else false
+		),
+		"node_name": (
+			String(_lower_deck_forward_pressure_aftershock_condenser_drain_gantry.name)
+			if gantry_present
+			else ""
+		),
+		"hazard_node_name": (
+			String(_lower_deck_forward_pressure_aftershock_condenser_drip_vent.name)
+			if hazard_present
+			else ""
+		),
+		"drain_gantry_texture_path": (
+			_lower_deck_forward_pressure_aftershock_condenser_drain_gantry.texture.resource_path
+			if (
+				gantry_present
+				and _lower_deck_forward_pressure_aftershock_condenser_drain_gantry.texture != null
+			)
+			else ""
+		),
+		"hazard_visible": (
+			_lower_deck_forward_pressure_aftershock_condenser_drip_vent.visible
+			if hazard_present
+			else false
+		),
+		"hazard_contact_active": _is_hazard_contact_active(
+			_lower_deck_forward_pressure_aftershock_condenser_drip_vent
+		),
+		"hazard_id": String(_get_hazard_id(
+			_lower_deck_forward_pressure_aftershock_condenser_drip_vent
+		)),
+		"hazard_damage": _get_hazard_damage(
+			_lower_deck_forward_pressure_aftershock_condenser_drip_vent
+		),
+		"hazard_cooldown_sec": _get_hazard_cooldown_sec(
+			_lower_deck_forward_pressure_aftershock_condenser_drip_vent
+		),
+		"hazard_texture_path": (
+			String(_lower_deck_forward_pressure_aftershock_condenser_drip_vent.call(
+				"get_visual_texture_path"
+			))
+			if (
+				hazard_present
+				and _lower_deck_forward_pressure_aftershock_condenser_drip_vent.has_method(
+					"get_visual_texture_path"
+				)
+			)
+			else ""
+		),
+		"phase": String(_get_outlet_drip_vent_phase()),
+		"initial_grace_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC,
+		"warning_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC,
+		"active_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC,
+		"safe_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_SAFE_SEC,
+		"activation_x": (
+			FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_DRIP_VENT_ACTIVATION_X
+		),
+		"exit_x": FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_DRIP_VENT_EXIT_X,
+		"ground_width": ground_rect.size.x if ground_rect != null else 0.0,
+		"right_wall_x": right_wall.global_position.x if right_wall != null else 0.0,
+		"camera_limit_right": camera.limit_right if camera != null else 0,
 		"route_label_text": String(route.get("route_label_text", "")),
 	}
 
@@ -11842,6 +12038,43 @@ func _sync_outlet_clamp_ambush_state() -> void:
 		ambush_active
 			and not _lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_spark_rat_defeated
 	)
+	_sync_outlet_drip_vent_state()
+
+
+func _sync_outlet_drip_vent_state() -> void:
+	var should_show_drip_vent: bool = (
+		_is_outlet_clamp_ambush_cleared()
+		or _lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed
+	)
+	if _lower_deck_forward_pressure_aftershock_condenser_drain_gantry != null:
+		_lower_deck_forward_pressure_aftershock_condenser_drain_gantry.visible = (
+			should_show_drip_vent
+		)
+	if _lower_deck_forward_pressure_aftershock_condenser_drip_vent == null:
+		return
+	var contact_active: bool = _is_outlet_drip_vent_contact_active()
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent.visible = (
+		should_show_drip_vent
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent.monitoring = (
+		contact_active
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent.monitorable = (
+		contact_active
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent.collision_layer = (
+		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if contact_active else 0
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent.collision_mask = (
+		CollisionComponent.COLLISION_MASK_ENVIRONMENT if contact_active else 0
+	)
+	var collision_shape := (
+		_lower_deck_forward_pressure_aftershock_condenser_drip_vent.get_node_or_null(
+			"CollisionShape2D"
+		) as CollisionShape2D
+	)
+	if collision_shape != null:
+		collision_shape.disabled = not contact_active
 
 
 func _sync_lower_deck_forward_pressure_exit_gate_state() -> void:
@@ -11969,6 +12202,10 @@ func _get_factory_route_objective_id() -> StringName:
 		return FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OUTLET
 	if _is_outlet_clamp_ambush_active():
 		return FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_CLAMP_AMBUSH
+	if _is_outlet_drip_vent_active():
+		return FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_DRIP_VENT
+	if _lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed:
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_DRIP_VENT_CROSSED
 	if _is_outlet_clamp_ambush_cleared():
 		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_CLAMP_AMBUSH_CLEARED
 	if _lower_deck_forward_pressure_aftershock_condenser_outlet_crossed:
@@ -12311,6 +12548,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Clear Outlet Clamp Ambush"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_CLAMP_AMBUSH_CLEARED:
 			return "Outlet Clamp Ambush Cleared"
+		FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_DRIP_VENT:
+			return "Cross Outlet Drip Vent"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_OUTLET_DRIP_VENT_CROSSED:
+			return "Outlet Drip Vent Crossed"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OUTLET_CROSSED:
 			return "Aftershock Condenser Outlet Crossed"
 		_:
@@ -13629,6 +13870,8 @@ func _get_factory_hazards() -> Array[Area2D]:
 		hazards.append(_lower_deck_forward_pressure_aftershock_cooling_duct_vent)
 	if _lower_deck_forward_pressure_aftershock_condenser_outlet_vent != null:
 		hazards.append(_lower_deck_forward_pressure_aftershock_condenser_outlet_vent)
+	if _lower_deck_forward_pressure_aftershock_condenser_drip_vent != null:
+		hazards.append(_lower_deck_forward_pressure_aftershock_condenser_drip_vent)
 	return hazards
 
 
@@ -13676,6 +13919,7 @@ func _is_factory_steam_hazard_id(hazard_id: StringName) -> bool:
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_BREAKER_HAZARD_ID
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_COOLING_DUCT_HAZARD_ID
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_HAZARD_ID
+			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_DRIP_VENT_HAZARD_ID
 	)
 
 
@@ -16254,6 +16498,24 @@ func _is_outlet_clamp_ambush_provider_in_range(provider: Node) -> bool:
 	)
 
 
+func _is_outlet_drip_vent_provider_at_activation(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_DRIP_VENT_ACTIVATION_X
+	)
+
+
+func _is_outlet_drip_vent_provider_at_exit(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_DRIP_VENT_EXIT_X
+	)
+
+
 func _is_lower_deck_forward_pressure_breaker_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -16979,6 +17241,22 @@ func _is_outlet_clamp_ambush_cleared() -> bool:
 	)
 
 
+func _is_outlet_drip_vent_available() -> bool:
+	return (
+		_is_outlet_clamp_ambush_cleared()
+		and not _lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated
+		and not _lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed
+	)
+
+
+func _is_outlet_drip_vent_active() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated
+		and _is_outlet_clamp_ambush_cleared()
+		and not _lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed
+	)
+
+
 func _is_lower_deck_forward_pressure_contact_active() -> bool:
 	return (
 		_lower_deck_forward_pressure_traverse_active
@@ -17008,6 +17286,13 @@ func _is_lower_deck_forward_pressure_aftershock_condenser_outlet_contact_active(
 	return (
 		_is_lower_deck_forward_pressure_aftershock_condenser_outlet_active()
 		and _get_condenser_outlet_phase() == &"active"
+	)
+
+
+func _is_outlet_drip_vent_contact_active() -> bool:
+	return (
+		_is_outlet_drip_vent_active()
+		and _get_outlet_drip_vent_phase() == &"active"
 	)
 
 
@@ -17110,6 +17395,38 @@ func _get_condenser_outlet_phase() -> StringName:
 		return &"idle"
 	var elapsed_sec: float = (
 		_lower_deck_forward_pressure_aftershock_condenser_outlet_elapsed_sec
+	)
+	if elapsed_sec < FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC:
+		return &"grace"
+	var cycle_sec: float = (
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC
+		+ FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC
+		+ FACTORY_LOWER_DECK_FORWARD_PRESSURE_SAFE_SEC
+	)
+	var phase_sec: float = fmod(
+		elapsed_sec - FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC,
+		cycle_sec
+	)
+	if phase_sec < FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC:
+		return &"warning"
+	if (
+		phase_sec
+		< (
+			FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC
+			+ FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC
+		)
+	):
+		return &"active"
+	return &"safe"
+
+
+func _get_outlet_drip_vent_phase() -> StringName:
+	if _lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed:
+		return &"crossed"
+	if not _is_outlet_drip_vent_active():
+		return &"idle"
+	var elapsed_sec: float = (
+		_lower_deck_forward_pressure_aftershock_condenser_drip_vent_elapsed_sec
 	)
 	if elapsed_sec < FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC:
 		return &"grace"
@@ -17381,6 +17698,27 @@ func _auto_activate_outlet_clamp_ambush() -> void:
 	if not _lower_deck_forward_pressure_aftershock_condenser_outlet_crossed:
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush(
+		_player
+	)
+
+
+func _auto_activate_outlet_drip_vent() -> void:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated
+		or _lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed
+	):
+		return
+	if not _is_outlet_clamp_ambush_cleared():
+		return
+	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent(
+		_player
+	)
+
+
+func _auto_complete_outlet_drip_vent() -> void:
+	if not _is_outlet_drip_vent_active():
+		return
+	try_complete_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent(
 		_player
 	)
 

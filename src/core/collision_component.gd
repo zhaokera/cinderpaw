@@ -289,15 +289,26 @@ func _apply_hitbox_collision(hitbox: Area2D) -> void:
 func _apply_hurtbox_state() -> void:
 	match _hurtbox_state:
 		HURTBOX_STATE_SHRUNK:
-			_hurtbox.monitorable = true
+			_set_hurtbox_monitorable(true)
 			_set_hurtbox_rectangle_size(_normal_hurtbox_size * 0.5)
 		HURTBOX_STATE_GONE:
-			_hurtbox.monitorable = false
+			_set_hurtbox_monitorable(false)
 			_set_hurtbox_rectangle_size(_normal_hurtbox_size)
 		_:
-			_hurtbox.monitorable = true
+			_set_hurtbox_monitorable(true)
 			_hurtbox_state = HURTBOX_STATE_NORMAL
 			_set_hurtbox_rectangle_size(_normal_hurtbox_size)
+
+
+func _set_hurtbox_monitorable(monitorable: bool) -> void:
+	if _hurtbox == null:
+		return
+	if _hurtbox.monitorable == monitorable:
+		return
+	if _hurtbox.is_inside_tree() and Engine.is_in_physics_frame():
+		_hurtbox.set_deferred("monitorable", monitorable)
+	else:
+		_hurtbox.monitorable = monitorable
 
 
 func _set_hurtbox_rectangle_size(size: Vector2) -> void:

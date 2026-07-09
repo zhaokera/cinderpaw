@@ -599,7 +599,7 @@ func set_control_locked(locked: bool) -> void:
 	_control_locked = locked
 	if locked:
 		velocity = Vector2.ZERO
-		_hitbox_shape.disabled = true
+		_set_hitbox_shape_disabled(true)
 		_parry_timer = 0
 
 
@@ -616,7 +616,7 @@ func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
 	reset_air_abilities()
 	_jump_buffer_timer = 0
 	_coyote_timer = 0
-	_hitbox_shape.disabled = true
+	_set_hitbox_shape_disabled(true)
 	_sprite.modulate = NORMAL_MODULATE
 	_health.revive(revive_hp_percentage)
 	_health.grant_iframes(RESPAWN_INVINCIBILITY_FRAMES)
@@ -627,6 +627,17 @@ func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
 ## Returns true while the respawn invincibility visual feedback is active.
 func is_respawn_visual_active() -> bool:
 	return _respawn_visual_remaining_frames > 0
+
+
+func _set_hitbox_shape_disabled(disabled: bool) -> void:
+	if _hitbox_shape == null:
+		return
+	if _hitbox_shape.disabled == disabled:
+		return
+	if _hitbox_shape.is_inside_tree() and Engine.is_in_physics_frame():
+		_hitbox_shape.set_deferred("disabled", disabled)
+	else:
+		_hitbox_shape.disabled = disabled
 
 
 ## Returns remaining respawn feedback frames for flow-alignment tests.
