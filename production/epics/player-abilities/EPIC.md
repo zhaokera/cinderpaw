@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 103 stories tracked
+> **Stories**: 112 stories tracked
 
 ## Overview
 
@@ -143,6 +143,13 @@ recording the reward in progression state.
 | 103 | Main Scene Boundary Wall Visual Pass | Integration + Visual | Complete | ADR-0004/0005/0007/0018 |
 | 104 | Main Scene Reward Prompt Proximity | Integration + UI/Visual Feel | Complete | ADR-0004/0005/0007/0018 |
 | 105 | Main Scene Gate Prompt Proximity | Integration + UI/Visual Feel | Complete | ADR-0004/0005/0007/0018 |
+| 106 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Reward Cache | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
+| 107 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Duct Traverse | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
+| 108 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Exit Skirmish | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0005/0007/0018/0021 |
+| 109 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Exit Reward Cache | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
+| 110 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Traverse | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
+| 111 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Skirmish | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0004/0005/0007/0018/0021 |
+| 112 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Reward Cache | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -162,8 +169,8 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-105 are complete. Continue deeper Old Factory route content after the
-route floor/platform visual pass, broader MainScene art cleanup, minimap
-gameplay, additional player-visible character/enemy frame-animation replacement,
-more skill-tree branches, authored hazard/audio polish, or final Boss2
+Stories001-112 are complete. Continue deeper Old Factory route content after the
+runoff outlet service hatch, broader MainScene art cleanup, minimap gameplay,
+additional player-visible character/enemy frame-animation replacement, more
+skill-tree branches, authored hazard/audio polish, or final Boss2
 balancing/cutscene polish.

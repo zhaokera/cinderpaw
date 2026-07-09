@@ -71,7 +71,7 @@ metadata/scene_id = "area_03_factory"
 
 [node name="Background" type="TextureRect" parent="."]
 z_index = -100
-offset_right = 9600.0
+offset_right = 10240.0
 offset_bottom = 720.0
 texture = ExtResource("3_backdrop")
 expand_mode = 1
@@ -80,7 +80,7 @@ stretch_mode = 6
 [node name="PostBulkheadBackground" type="TextureRect" parent="."]
 visible = false
 z_index = -99
-offset_right = 9600.0
+offset_right = 10240.0
 offset_bottom = 720.0
 texture = ExtResource("24_post_bulkhead_backdrop")
 expand_mode = 1
@@ -329,6 +329,24 @@ z_as_relative = false
 position = Vector2(6272, 40)
 texture = ExtResource("35_route_floor_tile")
 
+[node name="FactoryRouteFloorVisual40" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(6528, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual41" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(6784, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual42" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(7040, 40)
+texture = ExtResource("35_route_floor_tile")
+
 [node name="LeftWall" type="StaticBody2D" parent="."]
 position = Vector2(20, 360)
 collision_layer = 16
@@ -338,7 +356,7 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_wall")
 
 [node name="RightWall" type="StaticBody2D" parent="."]
-position = Vector2(9580, 360)
+position = Vector2(10220, 360)
 collision_layer = 16
 collision_mask = 0
 
@@ -394,7 +412,7 @@ position = Vector2(136, 456)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 9600
+limit_right = 10240
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
@@ -1839,6 +1857,89 @@ disabled = true
 visible = false
 z_index = 20
 position = Vector2(9340, 482)
+
+[node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletRewardCache" type="Node2D" parent="."]
+visible = false
+z_index = 22
+position = Vector2(9520, 410)
+script = ExtResource("7_cache_script")
+cache_id = &"old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_reward_cache"
+reward_source = &"old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_reward_cache"
+reward_gears = 20
+claim_radius_px = 96.0
+locked_prompt_text = "Clear runoff outlet"
+available_prompt_text = "+20 Gears"
+claimed_prompt_text = "Claimed"
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletRewardCache"]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("20_lower_deck_cache_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletRewardCache"]
+z_index = 4
+offset_left = -92.0
+offset_top = -84.0
+offset_right = 92.0
+offset_bottom = -58.0
+theme_override_colors/font_color = Color(1, 0.86, 0.24, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "Clear runoff outlet"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletRewardCache"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletRewardCache/InteractionArea"]
+shape = SubResource("CircleShape2D_cache_interaction")
+
+[node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceHatch" type="Node2D" parent="."]
+visible = false
+z_index = 27
+position = Vector2(9880, 392)
+script = ExtResource("11_endpoint_script")
+endpoint_id = &"old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_hatch"
+activation_radius_px = 96.0
+locked_prompt_text = "Claim runoff outlet cache"
+available_prompt_text = "Open Runoff Outlet Service Hatch"
+activated_prompt_text = "Runoff Outlet Service Hatch Open"
+unlock_vfx_texture = ExtResource("12_unlock_vfx")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceHatch"]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceHatch/StaticBody2D"]
+shape = SubResource("RectangleShape2D_lower_deck_parry_gate")
+disabled = true
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceHatch"]
+scale = Vector2(0.58, 0.58)
+texture = ExtResource("23_deep_bulkhead_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceHatch"]
+z_index = 4
+offset_left = -132.0
+offset_top = -130.0
+offset_right = 132.0
+offset_bottom = -104.0
+theme_override_colors/font_color = Color(1, 0.86, 0.24, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 15
+text = "Claim runoff outlet cache"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceHatch"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceHatch/InteractionArea"]
+shape = SubResource("CircleShape2D_deep_endpoint_interaction")
 
 [node name="FactorySteamVentHazard" type="Area2D" parent="."]
 z_index = 18

@@ -124,7 +124,9 @@
 	  Abilities Story110 Old Factory Lower Deck Forward Pressure Aftershock
 	  Condenser Overflow Pump Runoff Outlet Traverse、Player Abilities Story111
 	  Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump
-	  Runoff Outlet Skirmish
+	  Runoff Outlet Skirmish、Player Abilities Story112 Old Factory Lower Deck
+	  Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Reward
+	  Cache
 	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
@@ -142,6 +144,28 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 112: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Overflow Pump Runoff Outlet Reward Cache -- after
+  Story111 clears the runoff outlet Spark Rat, a reused factory cache appears
+  at x `9520`, pays `20` gears once, and reveals a reused service hatch at
+  x `9880`. Opening the hatch disables blocking collision, advances route
+  feedback to `Runoff Outlet Service Hatch Open`, extends the right-side route
+  bounds to right wall x `10220` / camera limit `10240`, and persists
+  cache-claimed/service-hatch-opened state while backfilling the
+  Story106/107/108/109/110/111 runoff chain on restore. Verification: RED
+  `reports/report_1311/`; focused GREEN `reports/report_1319/` (`2/2`);
+  related GREEN `reports/report_1320/` (`8/8`); final post-format focused
+  rerun `reports/report_1321/` (`2/2`) and related rerun
+  `reports/report_1322/` (`8/8`); headless smoke
+  `reports/old_factory_overflow_pump_runoff_outlet_reward_cache_smoke.log`
+  exit `0`; Godot MCP 2.9.1 on Godot 4.7 verified disk-reloaded cache/hatch
+  nodes, scripts, prompts, ids, right wall and camera limits, runtime cache
+  claim + hatch open diagnostics, `current_run_errors=[]`, current-run game log
+  without errors, no new editor log rows after cursor `9`, and a non-empty
+  `960x539` game screenshot showing the claimed cache and opened hatch. No new
+  visual asset was generated; Story112 reuses imported image-generated factory
+  cache, service hatch, unlock spark, and floor visuals.
+
 - Player Abilities Story 111: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Overflow Pump Runoff Outlet Skirmish -- after Story110
   crosses the runoff outlet, a reused multi-frame Factory Spark Rat activates
