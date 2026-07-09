@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://main001"]
+[gd_scene load_steps=32 format=3 uid="uid://main001"]
 
 [ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://4j2ise5khuss" path="res://assets/generated/wasteland_alley_bg.png" id="3_bg"]
@@ -23,6 +23,7 @@
 [ext_resource type="Texture2D" path="res://assets/environment/parry_laser_gate/parry_laser_gate_marker.png" id="21_parry_laser_gate"]
 [ext_resource type="Texture2D" path="res://assets/environment/boss2_arena/boss2_echo_guardian_arena_frame.png" id="22_boss2_arena_frame"]
 [ext_resource type="Texture2D" path="res://assets/environment/boss2_arena/boss2_echo_guardian_room_seal.png" id="23_boss2_room_seal"]
+[ext_resource type="Texture2D" path="res://assets/environment/main_scene_boundary_wall/main_scene_boundary_wall_96x720.png" id="24_boundary_wall"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -86,13 +87,10 @@ collision_mask = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall" unique_id=1464125668]
 shape = SubResource("RectangleShape2D_wall")
 
-[node name="WallVisual" type="ColorRect" parent="LeftWall" unique_id=1866328118]
-visible = false
-offset_left = -20.0
-offset_top = -360.0
-offset_right = 20.0
-offset_bottom = 360.0
-color = Color(0.35, 0.45, 0.53, 1)
+[node name="BoundaryWallVisual" type="Sprite2D" parent="LeftWall"]
+z_index = 8
+z_as_relative = false
+texture = ExtResource("24_boundary_wall")
 
 [node name="RightWall" type="StaticBody2D" parent="." unique_id=1922875540]
 position = Vector2(1260, 360)
@@ -102,13 +100,11 @@ collision_mask = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall" unique_id=1790238631]
 shape = SubResource("RectangleShape2D_wall")
 
-[node name="WallVisual" type="ColorRect" parent="RightWall" unique_id=2073790586]
-visible = false
-offset_left = -20.0
-offset_top = -360.0
-offset_right = 20.0
-offset_bottom = 360.0
-color = Color(0.35, 0.45, 0.53, 1)
+[node name="BoundaryWallVisual" type="Sprite2D" parent="RightWall"]
+z_index = 8
+z_as_relative = false
+texture = ExtResource("24_boundary_wall")
+flip_h = true
 
 [node name="RaisedPlatform" type="StaticBody2D" parent="." unique_id=207683078]
 z_index = 10
