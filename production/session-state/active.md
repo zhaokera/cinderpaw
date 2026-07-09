@@ -97,7 +97,8 @@
 	  Aftershock Exhaust Breaker Corridor、Player Abilities Story091 Old Factory
 	  Lower Deck Forward Pressure Aftershock Exhaust Escape Skirmish、
 	  Player Abilities Story092 Old Factory Lower Deck Forward Pressure
-	  Aftershock Exhaust Exit Hatch Handoff
+	  Aftershock Exhaust Exit Hatch Handoff、Player Abilities Story093 Old
+	  Factory Lower Deck Forward Pressure Aftershock Cooling Duct Traverse
 	  已完成；
   下一步推进更深 Old Factory route/combat content、savepoint/minimap
   gameplay、其他 ExplorationGate 能力门、more skill-tree branches、final
@@ -115,6 +116,33 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 093: Old Factory Lower Deck Forward Pressure
+  Aftershock Cooling Duct Traverse -- after Story092 opens the aftershock
+  exhaust exit hatch, `FactoryLowerDeckForwardPressureAftershockCoolingDuct`
+  becomes visible as a new image-generated transparent duct prop at x `3500.0`
+  and the route extends to x `3840.0`. The traverse activates near x `3240.0`,
+  runs a timed steam hazard using hazard id
+  `old_factory_lower_deck_forward_pressure_aftershock_cooling_duct`, enables
+  `8` contact damage only during the active phase, completes beyond x `3740.0`,
+  persists
+  `factory_lower_deck_forward_pressure_aftershock_cooling_duct_activated=true`
+  and
+  `factory_lower_deck_forward_pressure_aftershock_cooling_duct_crossed=true`,
+  and advances route feedback to `Aftershock Cooling Duct Crossed`.
+  Verification: initial RED `reports/report_1223/`; import RED
+  `reports/report_1224/`; focused GREEN `reports/report_1225/` `2/2`;
+  related GREEN `reports/report_1226/` `4/4`; post-warning-fix GREEN
+  `reports/report_1227/` `4/4`; final auto-complete GREEN
+  `reports/report_1228/` `4/4`; headless smoke
+  `reports/old_factory_aftershock_cooling_duct_traverse_smoke.log` exited `0`
+  with no project script/parse/invalid-call/access/missing-resource/
+  resource-load/shadowed-variable errors by keyword scan. Godot AI MCP `2.9.1`
+  on Godot `4.7-stable` confirmed scene reload from disk, helper live, runtime
+  duct and vent nodes, generated duct texture path, route extension, locked/
+  ready/active/crossed diagnostics, `_process` activation and automatic exit
+  completion, persisted crossed state, clean final game/editor logs, and a
+  non-empty `960x539` game screenshot showing the generated duct and steam vent.
+
 - Player Abilities Story 092: Old Factory Lower Deck Forward Pressure
   Aftershock Exhaust Exit Hatch Handoff -- after Story091 clears the aftershock
   exhaust escape skirmish, `FactoryLowerDeckForwardPressureAftershockExhaustExitHatch`

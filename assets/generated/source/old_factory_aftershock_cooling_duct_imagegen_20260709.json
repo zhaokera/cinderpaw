@@ -1,0 +1,15 @@
+{
+  "asset_id": "old_factory_aftershock_cooling_duct",
+  "generated_at": "2026-07-09",
+  "tool": "built-in image generation",
+  "source_path": "assets/generated/source/old_factory_aftershock_cooling_duct_imagegen_20260709.png",
+  "runtime_path": "assets/environment/old_factory_aftershock_cooling_duct/env_old_factory_aftershock_cooling_duct_768.png",
+  "runtime_size_px": [768, 301],
+  "runtime_mode": "RGBA",
+  "prompt": "Use case: stylized-concept. Asset type: 2D pixel-art / painterly side-scroller environment prop for a Godot action game, Old Factory aftershock cooling exhaust duct frame. Create one long horizontal cooling duct segment made of rusted bolted steel, black internal slats, orange-black hazard striping, cyan vent lights, small gauges, pipe couplers, and readable industrial depth. The prop is isolated on a perfectly flat #00ff00 chroma-key background for local alpha removal, with no text, characters, UI, watermark, ground plane, cast shadow, or extra props.",
+  "usage": [
+    "res://scenes/factory_route_transition_shell.tscn",
+    "Player Abilities Story093 aftershock cooling duct traverse"
+  ],
+  "notes": "Generated source was copied from the built-in image generation output, chroma-keyed to alpha, cropped, resized, and imported through Godot's asset pipeline as a transparent runtime PNG."
+}

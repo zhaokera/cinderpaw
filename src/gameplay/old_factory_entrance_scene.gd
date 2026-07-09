@@ -269,6 +269,12 @@ const FACTORY_OBJECTIVE_OPEN_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_HATCH: Str
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_OPENED: StringName = (
 	&"forward_pressure_aftershock_exhaust_exit_opened"
 )
+const FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_COOLING_DUCT: StringName = (
+	&"cross_forward_pressure_aftershock_cooling_duct"
+)
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_COOLING_DUCT_CROSSED: StringName = (
+	&"forward_pressure_aftershock_cooling_duct_crossed"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -340,6 +346,11 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_HATCH_ID: Stri
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_BREAKER_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker"
 )
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_COOLING_DUCT_HAZARD_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_aftershock_cooling_duct"
+)
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_COOLING_DUCT_ACTIVATION_X: float = 3240.0
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_COOLING_DUCT_EXIT_X: float = 3740.0
 const FACTORY_LOWER_DECK_FORWARD_HATCH_ID: StringName = &"old_factory_lower_deck_forward_hatch"
 const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: StringName = &"lower_deck_breach_relay"
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT: StringName = (
@@ -533,6 +544,10 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch: Node = (
 	get_node_or_null("FactoryLowerDeckForwardPressureAftershockExhaustExitHatch")
 )
+@onready var _lower_deck_forward_pressure_aftershock_cooling_duct: Sprite2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureAftershockCoolingDuct")
+		as Sprite2D
+)
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
 	get_node_or_null("FactoryCheckpointSteamVentHazard") as Area2D
@@ -585,6 +600,10 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 	get_node_or_null(
 		"FactoryLowerDeckForwardPressureAftershockExhaustBreakerVent"
 	) as Area2D
+)
+@onready var _lower_deck_forward_pressure_aftershock_cooling_duct_vent: Area2D = (
+	get_node_or_null("FactoryLowerDeckForwardPressureAftershockCoolingDuctVent")
+		as Area2D
 )
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
@@ -719,6 +738,9 @@ var _lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_activated: b
 var _lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened: bool = false
+var _lower_deck_forward_pressure_aftershock_cooling_duct_activated: bool = false
+var _lower_deck_forward_pressure_aftershock_cooling_duct_crossed: bool = false
+var _lower_deck_forward_pressure_aftershock_cooling_duct_elapsed_sec: float = 0.0
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -779,6 +801,7 @@ func _ready() -> void:
 	_setup_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_state()
 	_setup_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch()
+	_sync_lower_deck_forward_pressure_aftershock_cooling_duct_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -809,6 +832,8 @@ func _process(_delta: float) -> void:
 	_try_auto_activate_forward_pressure_aftershock_exhaust_flank()
 	_try_auto_activate_forward_pressure_aftershock_exhaust_breaker()
 	_try_auto_activate_forward_pressure_aftershock_exhaust_escape_skirmish()
+	_try_auto_activate_forward_pressure_aftershock_cooling_duct()
+	_try_auto_complete_forward_pressure_aftershock_cooling_duct()
 	_sync_factory_player_control_lock()
 
 
@@ -2355,7 +2380,67 @@ func try_open_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch(
 		return false
 	_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened = true
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state()
+	_sync_lower_deck_forward_pressure_aftershock_cooling_duct_state()
 	_update_route_label("Aftershock Exhaust Exit Opened")
+	return true
+
+
+## Starts the Story093 aftershock cooling duct traversal beyond the opened hatch.
+func try_activate_factory_lower_deck_forward_pressure_aftershock_cooling_duct(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_cooling_duct == null
+		or _lower_deck_forward_pressure_aftershock_cooling_duct_vent == null
+		or not _is_lower_deck_forward_pressure_aftershock_cooling_duct_available()
+		or _lower_deck_forward_pressure_aftershock_cooling_duct_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_pressure_aftershock_cooling_duct_provider_at_activation(
+		activation_provider
+	):
+		return false
+	_lower_deck_forward_pressure_aftershock_cooling_duct_activated = true
+	_lower_deck_forward_pressure_aftershock_cooling_duct_elapsed_sec = 0.0
+	_sync_lower_deck_forward_pressure_aftershock_cooling_duct_state()
+	_refresh_factory_route_objective()
+	return true
+
+
+## Advances the aftershock cooling duct cycle deterministically for tests/MCP.
+func advance_factory_lower_deck_forward_pressure_aftershock_cooling_duct_time(
+	delta_sec: float
+) -> void:
+	if not _is_lower_deck_forward_pressure_aftershock_cooling_duct_active():
+		return
+	var safe_delta_sec: float = maxf(0.0, delta_sec)
+	_lower_deck_forward_pressure_aftershock_cooling_duct_elapsed_sec += safe_delta_sec
+	_factory_hazard_elapsed_sec += safe_delta_sec
+	_sync_lower_deck_forward_pressure_aftershock_cooling_duct_state()
+
+
+## Completes the Story093 cooling duct traversal after Cinderpaw reaches the far edge.
+func try_complete_factory_lower_deck_forward_pressure_aftershock_cooling_duct(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_cooling_duct == null
+		or _lower_deck_forward_pressure_aftershock_cooling_duct_vent == null
+		or not _is_lower_deck_forward_pressure_aftershock_cooling_duct_active()
+		or _lower_deck_forward_pressure_aftershock_cooling_duct_crossed
+	):
+		return false
+	var completion_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_pressure_aftershock_cooling_duct_provider_at_exit(
+		completion_provider
+	):
+		return false
+	_lower_deck_forward_pressure_aftershock_cooling_duct_activated = true
+	_lower_deck_forward_pressure_aftershock_cooling_duct_crossed = true
+	_lower_deck_forward_pressure_aftershock_cooling_duct_elapsed_sec = 0.0
+	_sync_lower_deck_forward_pressure_aftershock_cooling_duct_state()
+	_refresh_factory_route_objective()
 	return true
 
 
@@ -2852,6 +2937,12 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened": (
 			_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened
 		),
+		"factory_lower_deck_forward_pressure_aftershock_cooling_duct_activated": (
+			_lower_deck_forward_pressure_aftershock_cooling_duct_activated
+		),
+		"factory_lower_deck_forward_pressure_aftershock_cooling_duct_crossed": (
+			_lower_deck_forward_pressure_aftershock_cooling_duct_crossed
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -3342,6 +3433,19 @@ func set_local_state(state: Dictionary) -> void:
 			false
 		)
 	)
+	_lower_deck_forward_pressure_aftershock_cooling_duct_crossed = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_cooling_duct_crossed",
+			false
+		)
+	)
+	_lower_deck_forward_pressure_aftershock_cooling_duct_activated = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_cooling_duct_activated",
+			_lower_deck_forward_pressure_aftershock_cooling_duct_crossed
+		)
+	)
+	_lower_deck_forward_pressure_aftershock_cooling_duct_elapsed_sec = 0.0
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -3718,6 +3822,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_breaker_endpoint_state()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_state()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state()
+	_sync_lower_deck_forward_pressure_aftershock_cooling_duct_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -5421,6 +5526,96 @@ func get_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_diagn
 		"unlock_feedback_active": int(unlock_vfx_snapshot.get("active_count", 0)) > 0,
 		"unlock_feedback_played": bool(unlock_vfx_snapshot.get("played", false)),
 		"unlock_feedback_spawn_count": int(unlock_vfx_snapshot.get("spawn_count", 0)),
+	}
+
+
+## Returns deterministic aftershock cooling duct diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_aftershock_cooling_duct_diagnostics(
+) -> Dictionary:
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	var duct_present: bool = _lower_deck_forward_pressure_aftershock_cooling_duct != null
+	var hazard_present: bool = (
+		_lower_deck_forward_pressure_aftershock_cooling_duct_vent != null
+	)
+	var ground_shape := (
+		get_node_or_null("Ground/CollisionShape2D") as CollisionShape2D
+	)
+	var ground_rect := (
+		ground_shape.shape as RectangleShape2D
+		if ground_shape != null and ground_shape.shape is RectangleShape2D
+		else null
+	)
+	var right_wall := get_node_or_null("RightWall") as Node2D
+	var camera := get_node_or_null("Player/Camera2D") as Camera2D
+	return {
+		"present": duct_present and hazard_present,
+		"available": _is_lower_deck_forward_pressure_aftershock_cooling_duct_available(),
+		"active": _is_lower_deck_forward_pressure_aftershock_cooling_duct_active(),
+		"crossed": _lower_deck_forward_pressure_aftershock_cooling_duct_crossed,
+		"visible": (
+			_lower_deck_forward_pressure_aftershock_cooling_duct.visible
+			if duct_present
+			else false
+		),
+		"exit_hatch_opened": _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened,
+		"node_name": (
+			String(_lower_deck_forward_pressure_aftershock_cooling_duct.name)
+			if duct_present
+			else ""
+		),
+		"hazard_node_name": (
+			String(_lower_deck_forward_pressure_aftershock_cooling_duct_vent.name)
+			if hazard_present
+			else ""
+		),
+		"duct_texture_path": (
+			_lower_deck_forward_pressure_aftershock_cooling_duct.texture.resource_path
+			if (
+				duct_present
+				and _lower_deck_forward_pressure_aftershock_cooling_duct.texture != null
+			)
+			else ""
+		),
+		"hazard_visible": (
+			_lower_deck_forward_pressure_aftershock_cooling_duct_vent.visible
+			if hazard_present
+			else false
+		),
+		"hazard_contact_active": _is_hazard_contact_active(
+			_lower_deck_forward_pressure_aftershock_cooling_duct_vent
+		),
+		"hazard_id": String(_get_hazard_id(
+			_lower_deck_forward_pressure_aftershock_cooling_duct_vent
+		)),
+		"hazard_damage": _get_hazard_damage(
+			_lower_deck_forward_pressure_aftershock_cooling_duct_vent
+		),
+		"hazard_cooldown_sec": _get_hazard_cooldown_sec(
+			_lower_deck_forward_pressure_aftershock_cooling_duct_vent
+		),
+		"hazard_texture_path": (
+			String(_lower_deck_forward_pressure_aftershock_cooling_duct_vent.call(
+				"get_visual_texture_path"
+			))
+			if (
+				hazard_present
+				and _lower_deck_forward_pressure_aftershock_cooling_duct_vent.has_method(
+					"get_visual_texture_path"
+				)
+			)
+			else ""
+		),
+		"phase": String(_get_lower_deck_forward_pressure_aftershock_cooling_duct_phase()),
+		"initial_grace_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC,
+		"warning_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC,
+		"active_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC,
+		"safe_sec": FACTORY_LOWER_DECK_FORWARD_PRESSURE_SAFE_SEC,
+		"activation_x": FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_COOLING_DUCT_ACTIVATION_X,
+		"exit_x": FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_COOLING_DUCT_EXIT_X,
+		"ground_width": ground_rect.size.x if ground_rect != null else 0.0,
+		"right_wall_x": right_wall.global_position.x if right_wall != null else 0.0,
+		"camera_limit_right": camera.limit_right if camera != null else 0,
+		"route_label_text": String(route.get("route_label_text", "")),
 	}
 
 
@@ -10576,6 +10771,36 @@ func _sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state() -> 
 		hatch_visible
 			and not _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened
 	)
+	_sync_lower_deck_forward_pressure_aftershock_cooling_duct_state()
+
+
+func _sync_lower_deck_forward_pressure_aftershock_cooling_duct_state() -> void:
+	var should_show_duct: bool = (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened
+	)
+	if _lower_deck_forward_pressure_aftershock_cooling_duct != null:
+		_lower_deck_forward_pressure_aftershock_cooling_duct.visible = should_show_duct
+	if _lower_deck_forward_pressure_aftershock_cooling_duct_vent == null:
+		return
+	var contact_active: bool = (
+		_is_lower_deck_forward_pressure_aftershock_cooling_duct_contact_active()
+	)
+	_lower_deck_forward_pressure_aftershock_cooling_duct_vent.visible = should_show_duct
+	_lower_deck_forward_pressure_aftershock_cooling_duct_vent.monitoring = contact_active
+	_lower_deck_forward_pressure_aftershock_cooling_duct_vent.monitorable = contact_active
+	_lower_deck_forward_pressure_aftershock_cooling_duct_vent.collision_layer = (
+		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if contact_active else 0
+	)
+	_lower_deck_forward_pressure_aftershock_cooling_duct_vent.collision_mask = (
+		CollisionComponent.COLLISION_MASK_ENVIRONMENT if contact_active else 0
+	)
+	var collision_shape := (
+		_lower_deck_forward_pressure_aftershock_cooling_duct_vent.get_node_or_null(
+			"CollisionShape2D"
+		) as CollisionShape2D
+	)
+	if collision_shape != null:
+		collision_shape.disabled = not contact_active
 
 
 func _sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
@@ -10832,6 +11057,10 @@ func _get_factory_route_objective_id() -> StringName:
 		return FACTORY_OBJECTIVE_SECURE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_BREAKER
 	if _is_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_active():
 		return FACTORY_OBJECTIVE_BREAK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_ESCAPE
+	if _is_lower_deck_forward_pressure_aftershock_cooling_duct_active():
+		return FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_COOLING_DUCT
+	if _lower_deck_forward_pressure_aftershock_cooling_duct_crossed:
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_COOLING_DUCT_CROSSED
 	if _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened:
 		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_OPENED
 	if _is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_available():
@@ -11148,6 +11377,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Open Aftershock Exhaust Hatch"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_OPENED:
 			return "Aftershock Exhaust Exit Opened"
+		FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_COOLING_DUCT:
+			return "Cross Aftershock Cooling Duct"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_COOLING_DUCT_CROSSED:
+			return "Aftershock Cooling Duct Crossed"
 		_:
 			return "Clear Factory Entrance"
 
@@ -12359,6 +12592,8 @@ func _get_factory_hazards() -> Array[Area2D]:
 		hazards.append(_lower_deck_forward_pressure_aftershock_exhaust_flank_vent)
 	if _lower_deck_forward_pressure_aftershock_exhaust_breaker_vent != null:
 		hazards.append(_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent)
+	if _lower_deck_forward_pressure_aftershock_cooling_duct_vent != null:
+		hazards.append(_lower_deck_forward_pressure_aftershock_cooling_duct_vent)
 	return hazards
 
 
@@ -12404,7 +12639,8 @@ func _is_factory_steam_hazard_id(hazard_id: StringName) -> bool:
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_HAZARD_ID
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_FLANK_HAZARD_ID
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_BREAKER_HAZARD_ID
-		)
+			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_COOLING_DUCT_HAZARD_ID
+	)
 
 
 func _get_hazard_damage(hazard: Area2D) -> int:
@@ -14770,6 +15006,28 @@ func _is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_provider_in_r
 	)
 
 
+func _is_lower_deck_forward_pressure_aftershock_cooling_duct_provider_at_activation(
+	provider: Node
+) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_COOLING_DUCT_ACTIVATION_X
+	)
+
+
+func _is_lower_deck_forward_pressure_aftershock_cooling_duct_provider_at_exit(
+	provider: Node
+) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_COOLING_DUCT_EXIT_X
+	)
+
+
 func _is_lower_deck_forward_pressure_breaker_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -15410,6 +15668,21 @@ func _is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_available(
 	)
 
 
+func _is_lower_deck_forward_pressure_aftershock_cooling_duct_available() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened
+		and not _lower_deck_forward_pressure_aftershock_cooling_duct_crossed
+	)
+
+
+func _is_lower_deck_forward_pressure_aftershock_cooling_duct_active() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_cooling_duct_activated
+		and _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened
+		and not _lower_deck_forward_pressure_aftershock_cooling_duct_crossed
+	)
+
+
 func _is_lower_deck_forward_pressure_contact_active() -> bool:
 	return (
 		_lower_deck_forward_pressure_traverse_active
@@ -15426,6 +15699,13 @@ func _is_lower_deck_forward_pressure_aftershock_exhaust_contact_active() -> bool
 
 func _is_lower_deck_forward_pressure_aftershock_exhaust_flank_contact_active() -> bool:
 	return _is_lower_deck_forward_pressure_aftershock_exhaust_flank_active()
+
+
+func _is_lower_deck_forward_pressure_aftershock_cooling_duct_contact_active() -> bool:
+	return (
+		_is_lower_deck_forward_pressure_aftershock_cooling_duct_active()
+		and _get_lower_deck_forward_pressure_aftershock_cooling_duct_phase() == &"active"
+	)
 
 
 func _get_lower_deck_forward_pressure_phase() -> StringName:
@@ -15464,6 +15744,38 @@ func _get_lower_deck_forward_pressure_aftershock_exhaust_phase() -> StringName:
 	if not _is_lower_deck_forward_pressure_aftershock_exhaust_active():
 		return &"idle"
 	var elapsed_sec: float = _lower_deck_forward_pressure_aftershock_exhaust_elapsed_sec
+	if elapsed_sec < FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC:
+		return &"grace"
+	var cycle_sec: float = (
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC
+		+ FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC
+		+ FACTORY_LOWER_DECK_FORWARD_PRESSURE_SAFE_SEC
+	)
+	var phase_sec: float = fmod(
+		elapsed_sec - FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC,
+		cycle_sec
+	)
+	if phase_sec < FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC:
+		return &"warning"
+	if (
+		phase_sec
+		< (
+			FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC
+			+ FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC
+		)
+	):
+		return &"active"
+	return &"safe"
+
+
+func _get_lower_deck_forward_pressure_aftershock_cooling_duct_phase() -> StringName:
+	if _lower_deck_forward_pressure_aftershock_cooling_duct_crossed:
+		return &"crossed"
+	if not _is_lower_deck_forward_pressure_aftershock_cooling_duct_active():
+		return &"idle"
+	var elapsed_sec: float = (
+		_lower_deck_forward_pressure_aftershock_cooling_duct_elapsed_sec
+	)
 	if elapsed_sec < FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC:
 		return &"grace"
 	var cycle_sec: float = (
@@ -15676,6 +15988,23 @@ func _try_auto_activate_forward_pressure_aftershock_exhaust_escape_skirmish() ->
 	try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish(
 		_player
 	)
+
+
+func _try_auto_activate_forward_pressure_aftershock_cooling_duct() -> void:
+	if (
+		_lower_deck_forward_pressure_aftershock_cooling_duct_activated
+		or _lower_deck_forward_pressure_aftershock_cooling_duct_crossed
+	):
+		return
+	if not _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened:
+		return
+	try_activate_factory_lower_deck_forward_pressure_aftershock_cooling_duct(_player)
+
+
+func _try_auto_complete_forward_pressure_aftershock_cooling_duct() -> void:
+	if not _is_lower_deck_forward_pressure_aftershock_cooling_duct_active():
+		return
+	try_complete_factory_lower_deck_forward_pressure_aftershock_cooling_duct(_player)
 
 
 func _is_service_lift_return_contract_in_state(state: Dictionary) -> bool:
