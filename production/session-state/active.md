@@ -130,6 +130,9 @@
 	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Traverse
 	  、Player Abilities Story114 Old Factory Lower Deck Forward Pressure
 	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Skirmish
+	  、Player Abilities Story115 Old Factory Lower Deck Forward Pressure
+	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Reward
+	  Cache
 	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
@@ -147,6 +150,28 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 115: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Reward Cache
+  -- after Story114 clears the service sluice Spark Rat, a reused
+  image-generated lower-deck cache appears at `Vector2(11360, 410)`. The cache
+  is locked until
+  `factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_cleared=true`,
+  uses cache id/source
+  `old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache`,
+  grants `20` gears once, rejects duplicate claims, and advances feedback from
+  `Service Sluice Spark Rat Cleared` to
+  `Service Sluice Cache Claimed +20 Gears`. Restoring the claimed state
+  backfills the Story106-114 runoff/service-sluice chain so earlier traversal,
+  hatch, sluice, and Spark Rat states do not replay. Verification: RED
+  `reports/report_1336/`; focused GREEN `reports/report_1337/` (`2/2`);
+  related GREEN `reports/report_1338/` (`8/8`); headless smoke
+  `reports/old_factory_overflow_pump_runoff_outlet_service_sluice_reward_cache_smoke.log`
+  exit `0`; Godot MCP 2.9.1 on Godot 4.7 verified disk-reloaded cache node,
+  script, texture, id/source, reward `20`, locked/available/claimed runtime
+  diagnostics, duplicate claim rejection, route label update, current game log
+  without errors, no new editor log rows after cursor `9`, and a non-empty
+  game screenshot showing Cinderpaw and the service sluice reward cache.
+
 - Player Abilities Story 114: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Skirmish --
   after Story113 crosses the runoff outlet service sluice, a reused
@@ -4698,3 +4723,15 @@
 - Notes: MCP runtime probing found the previous ground collision ended before the new far-right combat pocket, so the route collision was extended and the focused test now asserts `ground_right_edge_x >= 11520.0`.
 - Blockers: None. New generated enemy art, new enemy family, reward economy changes, savepoint, SaveSystem schema changes, service-lift route changes, minimap/fast-travel UI, authored audio, particles/shaders, Boss2, and broader lower-deck biome art replacement remain out of scope.
 - Next: continue another ACT-visible slice beyond the service sluice skirmish, preferably a short route handoff or combat/reward beat that keeps replacing placeholder-feeling gameplay with frame-animated enemies and visible authored environment support.
+
+## Session Extract -- /dev-story 2026-07-10
+
+- Story: `production/epics/player-abilities/story-115-old-factory-lower-deck-forward-pressure-aftershock-condenser-overflow-pump-runoff-outlet-service-sluice-reward-cache.md` -- Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Reward Cache
+- Files changed: `src/gameplay/old_factory_entrance_scene.gd`, `scenes/factory_route_transition_shell.tscn`, `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_test.gd`, `production/epics/player-abilities/story-115-old-factory-lower-deck-forward-pressure-aftershock-condenser-overflow-pump-runoff-outlet-service-sluice-reward-cache.md`, `production/epics/player-abilities/EPIC.md`, `production/epics/index.md`, `production/qa/evidence/old-factory-overflow-pump-runoff-outlet-service-sluice-reward-cache-2026-07-10.md`, `reports/old_factory_overflow_pump_runoff_outlet_service_sluice_reward_cache_smoke.log`, `production/session-state/active.md`
+- Implementation: Added a Story114-gated service sluice reward cache. `FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceRewardCache` stays hidden/inactive until the service sluice Spark Rat is cleared; once available it shows `+20 Gears`, uses cache id/source `old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache`, grants `20` gears on the first claim, rejects duplicate claims, persists the claimed flag, and advances route feedback to `Service Sluice Cache Claimed +20 Gears`.
+- Asset pipeline: No new visual or audio assets were generated. Story115 reuses the existing image-generated lower-deck reward cache texture, the generated service sluice landing context, and the generated route floor visuals.
+- Test written: `tests/unit/gameplay/old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_test.gd` covers Story114 clear gating, hidden/unavailable locked state, cache id/source, texture path, prompt, reward payload, once-only claim, route label update, local-state persistence, restored completed state, and Story106-114 runoff-chain backfill.
+- Verification: RED focused `reports/report_1336/` failed as expected before Story115 diagnostics/API existed. Focused GREEN `reports/report_1337/` passed Story115 `2/2`; related GREEN `reports/report_1338/` passed Story115, Story114, Story113, and Story112 suites `8/8`. Headless Factory smoke `reports/old_factory_overflow_pump_runoff_outlet_service_sluice_reward_cache_smoke.log` exited `0` with only known Godot cleanup-time ObjectDB/resource messages after shutdown. Godot AI MCP `2.9.1` on Godot `4.7-stable` confirmed the disk-reloaded cache node, script, texture, cache id/source, reward `20`, locked/available/claimed diagnostics, duplicate claim rejection, route label update, local-state persistence, current game log without errors, empty editor log after cursor `9`, and a non-empty `960x539` screenshot showing Cinderpaw and the service sluice reward cache.
+- Notes: `project_run` still surfaced retained historical editor parse rows marked as pre-run; current-run game log, cursor-scoped editor log, focused/related tests, and headless smoke were clean.
+- Blockers: None. New route gate, new savepoint, new enemy family, new generated art, reward economy expansion, SaveSystem schema changes, minimap/fast-travel UI, authored audio, particles/shaders, Boss2, and broader lower-deck biome art replacement remain out of scope.
+- Next: continue another ACT-visible slice beyond the service sluice payoff, preferably a short route handoff, traversal pocket, or combat beat that keeps the Old Factory moving right without over-testing.

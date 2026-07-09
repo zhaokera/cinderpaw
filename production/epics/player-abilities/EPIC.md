@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 114 stories tracked
+> **Stories**: 115 stories tracked
 
 ## Overview
 
@@ -152,6 +152,7 @@ recording the reward in progression state.
 | 112 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Reward Cache | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
 | 113 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Traverse | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 114 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Skirmish | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0004/0005/0007/0018/0021 |
+| 115 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Reward Cache | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -171,8 +172,8 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-114 are complete. Continue deeper Old Factory route content after the
-runoff outlet service sluice skirmish, broader MainScene art cleanup, minimap
-gameplay, additional player-visible character/enemy frame-animation replacement,
-more skill-tree branches, authored hazard/audio polish, or final Boss2
-balancing/cutscene polish.
+Stories001-115 are complete. Continue deeper Old Factory route content after the
+runoff outlet service sluice reward payoff, broader MainScene art cleanup,
+minimap gameplay, additional player-visible character/enemy frame-animation
+replacement, more skill-tree branches, authored hazard/audio polish, or final
+Boss2 balancing/cutscene polish.
