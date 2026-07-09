@@ -111,6 +111,7 @@ func test_boss2_victory_reward_handoff_opens_factory_route_transition() -> void:
 	assert_bool(bool(initial.get("boss_defeated", true))).is_false()
 	assert_bool(bool(initial.get("reward_claim_available", true))).is_false()
 	assert_str(String(initial.get("reward_prompt_text", ""))).is_equal("Defeat Echo Guardian")
+	assert_bool(bool(initial.get("reward_prompt_visible", true))).is_false()
 	assert_bool(bool(initial.get("factory_route_available", true))).is_false()
 
 	assert_bool(_scene.call("apply_damage", BOSS2_ENTITY_ID, int(boss.call("get_current_hp")), {
@@ -123,9 +124,17 @@ func test_boss2_victory_reward_handoff_opens_factory_route_transition() -> void:
 	assert_bool(bool(defeated.get("room_seals_enabled", true))).is_false()
 	assert_bool(bool(defeated.get("reward_claim_available", false))).is_true()
 	assert_str(String(defeated.get("reward_prompt_text", ""))).is_equal("Claim Double Jump")
+	assert_bool(bool(defeated.get("reward_prompt_visible", true))).is_false()
 	assert_bool(String(defeated.get("hud_notification_text", "")).contains("Claim Double Jump")).is_true()
 
+	player.global_position = reward.global_position + Vector2(-160, 0)
+	await get_tree().process_frame
+	var approached_reward: Dictionary = _scene.call("get_boss2_victory_route_handoff_diagnostics")
+	assert_bool(bool(approached_reward.get("reward_prompt_visible", false))).is_true()
+	assert_bool(bool(reward.call("is_provider_in_reward_range", player))).is_false()
+
 	player.global_position = reward.global_position
+	assert_bool(bool(reward.call("is_provider_in_reward_range", player))).is_true()
 	assert_bool(bool(_scene.call("claim_boss2_double_jump_reward_source", player))).is_true()
 	assert_bool(player.has_ability(DOUBLE_JUMP_ABILITY)).is_true()
 

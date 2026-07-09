@@ -126,6 +126,21 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 104: Main Scene Reward Prompt Proximity -- reward
+  prompts now use a finite provider proximity radius separate from claim radius.
+  `AbilityRewardSource` exposes `prompt_radius_px` and
+  `set_prompt_provider(provider)`, and MainScene passes the player into hidden
+  and Boss2 Double Jump reward sources during sync/process. Far-away
+  `Claim Double Jump` prompts are hidden while reward availability, once-only
+  claim, save-state, Boss2 room seal, Double Jump gate, and factory route
+  handoff behavior remain intact. Verification: RED `reports/report_1275/`;
+  focused GREEN `reports/report_1277/` (`3/3`); related GREEN
+  `reports/report_1278/` (`9/9`); Godot MCP 2.9.1 on Godot 4.7 verified
+  MainScene live with `current_run_errors=[]`, clean current game log, runtime
+  prompt diagnostics, and a non-empty screenshot at
+  `reports/visual/cinderpaw-mcp-main-scene-reward-prompt-proximity-20260710.png`
+  showing no far-away `Claim Double Jump` prompt over the Boss2 arena.
+
 - Player Abilities Story 100: Main Scene Dash Gate Authored Visual Replacement
   -- `DashExplorationGate/Visual` in `scenes/main.tscn` now uses the dedicated
   image-generated transparent runtime texture

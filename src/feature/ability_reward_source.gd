@@ -7,6 +7,7 @@ extends Node2D
 @export var world_flag_id: StringName = &""
 @export var starts_available: bool = true
 @export var claim_radius_px: float = 96.0
+@export var prompt_radius_px: float = 192.0
 @export var locked_prompt_text: String = "Locked"
 @export var available_prompt_text: String = "Claim ability"
 @export var claimed_prompt_text: String = "Echo claimed"
@@ -17,6 +18,7 @@ extends Node2D
 
 var _claimed: bool = false
 var _available: bool = true
+var _prompt_provider: Node = null
 
 
 func _ready() -> void:
@@ -80,6 +82,11 @@ func set_claimed(claimed: bool) -> void:
 	_sync_claimed_state()
 
 
+func set_prompt_provider(provider: Node) -> void:
+	_prompt_provider = provider
+	_sync_claimed_state()
+
+
 func is_provider_in_reward_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -106,10 +113,18 @@ func _sync_claimed_state() -> void:
 			_visual.modulate = Color(0.56, 0.62, 0.72, 0.48)
 	if _prompt_label != null:
 		_prompt_label.text = _prompt_text()
-		_prompt_label.visible = not _claimed
+		_prompt_label.visible = is_claim_available() and _is_prompt_provider_in_range()
 	if _interaction_area != null:
 		_interaction_area.monitoring = is_claim_available()
 		_interaction_area.monitorable = is_claim_available()
+
+
+func _is_prompt_provider_in_range() -> bool:
+	if not is_instance_valid(_prompt_provider) or not _prompt_provider is Node2D:
+		return false
+	var provider_node := _prompt_provider as Node2D
+	var safe_prompt_radius_px: float = maxf(prompt_radius_px, claim_radius_px)
+	return global_position.distance_to(provider_node.global_position) <= safe_prompt_radius_px
 
 
 func _prompt_text() -> String:

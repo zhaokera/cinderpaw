@@ -2195,10 +2195,16 @@ func _get_hidden_double_jump_reward_source() -> Node:
 	return source
 
 
+func _sync_reward_source_prompt_provider(source: Node) -> void:
+	if source != null and source.has_method("set_prompt_provider"):
+		source.call("set_prompt_provider", _player)
+
+
 func _sync_hidden_double_jump_reward_source() -> void:
 	var source: Node = _get_hidden_double_jump_reward_source()
 	if source == null:
 		return
+	_sync_reward_source_prompt_provider(source)
 	source.call("set_claimed", bool(_world_progress_flags.get(
 		String(HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG),
 		false
@@ -2207,7 +2213,10 @@ func _sync_hidden_double_jump_reward_source() -> void:
 
 func _process_hidden_double_jump_reward_source_contact() -> void:
 	var source: Node = _get_hidden_double_jump_reward_source()
-	if source == null or not bool(source.call("is_claim_available")):
+	if source == null:
+		return
+	_sync_reward_source_prompt_provider(source)
+	if not bool(source.call("is_claim_available")):
 		return
 	if bool(source.call("is_provider_in_reward_range", _player)):
 		claim_hidden_double_jump_reward_source(_player)
@@ -2463,6 +2472,7 @@ func _sync_boss2_double_jump_payoff_state() -> void:
 	var source: Node = _get_boss2_double_jump_reward_source()
 	if source == null:
 		return
+	_sync_reward_source_prompt_provider(source)
 	if source.has_method("set_available"):
 		source.call("set_available", boss_defeated and not reward_claimed)
 	source.call("set_claimed", reward_claimed)
@@ -2471,7 +2481,10 @@ func _sync_boss2_double_jump_payoff_state() -> void:
 
 func _process_boss2_double_jump_reward_source_contact() -> void:
 	var source: Node = _get_boss2_double_jump_reward_source()
-	if source == null or not bool(source.call("is_claim_available")):
+	if source == null:
+		return
+	_sync_reward_source_prompt_provider(source)
+	if not bool(source.call("is_claim_available")):
 		return
 	if bool(source.call("is_provider_in_reward_range", _player)):
 		claim_boss2_double_jump_reward_source(_player)

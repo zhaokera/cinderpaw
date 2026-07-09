@@ -37,6 +37,7 @@ func test_hidden_double_jump_reward_source_unlocks_double_jump_once_and_syncs_ru
 	assert_bool(FileAccess.file_exists(REWARD_TEXTURE_PATH)).is_true()
 	assert_bool(bool(source.call("is_claimed"))).is_false()
 	assert_bool(bool(source.call("is_claim_available"))).is_true()
+	assert_bool(bool(source.call("is_prompt_visible"))).is_false()
 
 	var player := scene.get_node("Player") as PlayerController
 	var gate: Node = scene.get_node("DoubleJumpExplorationGate")
@@ -44,6 +45,11 @@ func test_hidden_double_jump_reward_source_unlocks_double_jump_once_and_syncs_ru
 	assert_bool(player.has_ability(DOUBLE_JUMP_ABILITY)).is_false()
 	assert_str(String(gate.call("get_gate_state"))).is_equal(String(STATE_LOCKED))
 	assert_bool(bool(gate.call("is_collision_blocking"))).is_true()
+
+	player.global_position = (source as Node2D).global_position + Vector2(150, 0)
+	await get_tree().process_frame
+	assert_bool(bool(source.call("is_provider_in_reward_range", player))).is_false()
+	assert_bool(bool(source.call("is_prompt_visible"))).is_true()
 
 	player.global_position = (source as Node2D).global_position
 	assert_bool(bool(source.call("is_provider_in_reward_range", player))).is_true()
@@ -90,6 +96,7 @@ func test_hidden_double_jump_reward_source_restore_keeps_reward_claimed_and_play
 	if restored_source != null:
 		assert_bool(bool(restored_source.call("is_claimed"))).is_true()
 		assert_bool(bool(restored_source.call("is_claim_available"))).is_false()
+		assert_bool(bool(restored_source.call("is_prompt_visible"))).is_false()
 	assert_bool(restored_player.has_ability(DOUBLE_JUMP_ABILITY)).is_true()
 	assert_str(String(restored_gate.call("get_gate_state"))).is_equal(String(STATE_UNLOCKABLE))
 
