@@ -51,8 +51,9 @@ grace frames, and persist partial/full defeat through scene-local state.
   `factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_spark_rat_defeated=true`,
   `factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_coil_rat_defeated=true`,
   and `factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_cleared=true`,
-  disables both enemies, marks the route objective complete, and updates route
-  feedback to `Aftershock Exhaust Escape Secured`.
+  disables both enemies, and originally updated route feedback to
+  `Aftershock Exhaust Escape Secured`; Story092 now advances the live route
+  objective to `Open Aftershock Exhaust Hatch` after this clear state.
 - [x] Restoring completed state keeps Story091 inactive/cleared, keeps Story090
   cut and Story089 cleared, keeps Story074 exit relay contract stable, does not
   replay Story068 clear burst or Story071 reward-cache audio, and preserves
@@ -142,3 +143,6 @@ Reuse is recorded in `design/assets/asset-manifest.md`,
 - Final related GREEN `reports/report_1217/` passed `39/39`.
 - Headless smoke and Godot MCP runtime evidence passed under Godot 4.7 / Godot
   AI MCP 2.9.1.
+- Story092 later extended the route chain after Story091, so current regression
+  tests now expect Story091 clear state to unlock the aftershock exhaust exit
+  hatch instead of ending the route objective chain.

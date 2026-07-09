@@ -1132,6 +1132,51 @@ monitorable = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureAftershockExhaustBreaker/InteractionArea"]
 shape = SubResource("CircleShape2D_deep_endpoint_interaction")
 
+[node name="FactoryLowerDeckForwardPressureAftershockExhaustExitHatch" type="Node2D" parent="."]
+visible = false
+z_index = 27
+position = Vector2(3160, 392)
+script = ExtResource("11_endpoint_script")
+endpoint_id = &"old_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch"
+activation_radius_px = 96.0
+locked_prompt_text = "Secure exhaust escape"
+available_prompt_text = "Open Exhaust Hatch"
+activated_prompt_text = "Exhaust Hatch Open"
+unlock_vfx_texture = ExtResource("12_unlock_vfx")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="FactoryLowerDeckForwardPressureAftershockExhaustExitHatch"]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureAftershockExhaustExitHatch/StaticBody2D"]
+shape = SubResource("RectangleShape2D_lower_deck_parry_gate")
+disabled = true
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckForwardPressureAftershockExhaustExitHatch"]
+scale = Vector2(0.58, 0.58)
+texture = ExtResource("23_deep_bulkhead_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryLowerDeckForwardPressureAftershockExhaustExitHatch"]
+z_index = 4
+offset_left = -112.0
+offset_top = -130.0
+offset_right = 112.0
+offset_bottom = -104.0
+theme_override_colors/font_color = Color(1, 0.86, 0.24, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 15
+text = "Secure exhaust escape"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="FactoryLowerDeckForwardPressureAftershockExhaustExitHatch"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureAftershockExhaustExitHatch/InteractionArea"]
+shape = SubResource("CircleShape2D_deep_endpoint_interaction")
+
 [node name="FactorySteamVentHazard" type="Area2D" parent="."]
 z_index = 18
 position = Vector2(642, 466)

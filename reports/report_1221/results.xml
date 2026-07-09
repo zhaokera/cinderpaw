@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-07-09" name="report_1221" tests="17" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_test" package="tests/unit/gameplay" timestamp="2026-07-09T03:05:22" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.359">
+		<testcase name="test_exit_hatch_requires_escape_skirmish_clear_and_opens_once" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_test" time="0.287">
+		</testcase>
+		<testcase name="test_exit_hatch_restore_preserves_previous_chain_without_replay" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_test" time="0.064">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="old_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_test" package="tests/unit/gameplay" timestamp="2026-07-09T03:05:23" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.390">
+		<testcase name="test_escape_skirmish_requires_breaker_cut_and_activates_dual_contract" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_test" time="0.067">
+		</testcase>
+		<testcase name="test_escape_skirmish_defeat_persists_without_replaying_breaker_chain" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_test" time="0.314">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="old_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_corridor_test" package="tests/unit/gameplay" timestamp="2026-07-09T03:05:23" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.145">
+		<testcase name="test_breaker_corridor_requires_flank_clear_and_extends_playable_route" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_corridor_test" time="0.068">
+		</testcase>
+		<testcase name="test_breaker_cut_persists_without_replaying_aftershock_route" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_corridor_test" time="0.069">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="old_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_test" package="tests/unit/gameplay" timestamp="2026-07-09T03:05:23" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.417">
+		<testcase name="test_flank_ambush_requires_exhaust_pursuer_cache_claim_and_activates_contract" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_test" time="0.069">
+		</testcase>
+		<testcase name="test_flank_ambush_hazard_damage_and_defeat_persist_without_route_replay" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_test" time="0.275">
+		</testcase>
+		<testcase name="test_flank_ambush_unlocks_on_live_story088_cache_claim" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_test" time="0.064">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_test" package="tests/unit/gameplay" timestamp="2026-07-09T03:05:24" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.211">
+		<testcase name="test_exhaust_pursuer_reward_cache_requires_pursuer_clear_and_keeps_lift_optional" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_test" time="0.066">
+		</testcase>
+		<testcase name="test_exhaust_pursuer_reward_cache_claim_persists_without_replaying_forward_chain" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_test" time="0.070">
+		</testcase>
+		<testcase name="test_exhaust_pursuer_reward_cache_unlocks_on_live_pursuer_defeat" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_test" time="0.063">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_test" package="tests/unit/gameplay" timestamp="2026-07-09T03:05:24" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.144">
+		<testcase name="test_aftershock_exhaust_pursuer_requires_exhaust_crossed_and_activates" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_test" time="0.067">
+		</testcase>
+		<testcase name="test_aftershock_exhaust_pursuer_defeat_persists_without_replaying_chain" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_test" time="0.069">
+		</testcase>
+	</testsuite>
+	<testsuite id="6" name="old_factory_lower_deck_forward_pressure_aftershock_exhaust_traverse_test" package="tests/unit/gameplay" timestamp="2026-07-09T03:05:24" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.217">
+		<testcase name="test_aftershock_exhaust_requires_exit_skirmish_clear_and_starts_on_boundary" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_traverse_test" time="0.068">
+		</testcase>
+		<testcase name="test_aftershock_exhaust_active_window_damage_and_crossed_state_persist" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_traverse_test" time="0.069">
+		</testcase>
+		<testcase name="test_aftershock_exhaust_unlocks_on_live_exit_skirmish_clear" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_traverse_test" time="0.066">
+		</testcase>
+	</testsuite>
+</testsuites>

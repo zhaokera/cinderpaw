@@ -263,6 +263,12 @@ const FACTORY_OBJECTIVE_BREAK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_ESCAPE: String
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_ESCAPE_SECURED: StringName = (
 	&"forward_pressure_aftershock_exhaust_escape_secured"
 )
+const FACTORY_OBJECTIVE_OPEN_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_HATCH: StringName = (
+	&"open_forward_pressure_aftershock_exhaust_exit_hatch"
+)
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_OPENED: StringName = (
+	&"forward_pressure_aftershock_exhaust_exit_opened"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -327,6 +333,9 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_BREAKER_ID: StringN
 )
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_ESCAPE_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish"
+)
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_HATCH_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch"
 )
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_BREAKER_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker"
@@ -521,6 +530,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _lower_deck_forward_pressure_aftershock_exhaust_breaker: Node = (
 	get_node_or_null("FactoryLowerDeckForwardPressureAftershockExhaustBreaker")
 )
+@onready var _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch: Node = (
+	get_node_or_null("FactoryLowerDeckForwardPressureAftershockExhaustExitHatch")
+)
 @onready var _steam_vent: Area2D = get_node_or_null("FactorySteamVentHazard") as Area2D
 @onready var _checkpoint_steam_vent: Area2D = (
 	get_node_or_null("FactoryCheckpointSteamVentHazard") as Area2D
@@ -706,6 +718,7 @@ var _lower_deck_forward_pressure_aftershock_exhaust_breaker_cut: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat_defeated: bool = false
+var _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -765,6 +778,7 @@ func _ready() -> void:
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_flank_state()
 	_setup_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_state()
+	_setup_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -898,6 +912,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_FLANK_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_BREAKER_CUT
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_ESCAPE_SECURED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_OPENED
 		)
 
 
@@ -2313,6 +2328,37 @@ func try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_
 	return true
 
 
+## Opens the aftershock exhaust exit hatch after the escape skirmish is secured.
+func try_open_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch == null
+		or not _is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_available()
+		or _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_provider_in_range(
+		activation_provider
+	):
+		return false
+	if (
+		not _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.has_method(
+			"try_activate"
+		)
+		or not bool(_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.call(
+			"try_activate",
+			activation_provider
+		))
+	):
+		return false
+	_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened = true
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state()
+	_update_route_label("Aftershock Exhaust Exit Opened")
+	return true
+
+
 ## Attempts to activate the relay-forward combat trial after the breach relay is repaired.
 func try_activate_factory_lower_deck_post_relay_trial(provider: Node = null) -> bool:
 	if (
@@ -2803,6 +2849,9 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_cleared": (
 			_is_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_cleared()
 		),
+		"factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened": (
+			_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -3287,6 +3336,12 @@ func set_local_state(state: Dictionary) -> void:
 	)):
 		_lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat_defeated = true
 		_lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat_defeated = true
+	_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened",
+			false
+		)
+	)
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -3662,6 +3717,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_breaker_state()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_breaker_endpoint_state()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_state()
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -5312,6 +5368,59 @@ func get_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_
 			else Vector2.ZERO
 		),
 		"route_label_text": String(route.get("route_label_text", "")),
+	}
+
+
+## Returns deterministic aftershock exhaust exit hatch diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_diagnostics(
+) -> Dictionary:
+	var interaction_area := (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.get_node_or_null(
+			"InteractionArea"
+		) as Area2D
+		if _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch != null
+		else null
+	)
+	var collision_shape := (
+		_get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_collision_shape()
+	)
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	var unlock_vfx_snapshot: Dictionary = (
+		_get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_unlock_vfx_snapshot()
+	)
+	return {
+		"present": _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch != null,
+		"available": (
+			_is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_available()
+		),
+		"visible": (
+			_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.visible
+			if _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch != null
+			else false
+		),
+		"opened": _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened,
+		"escape_skirmish_cleared": (
+			_is_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_cleared()
+		),
+		"hatch_id": _get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_id(),
+		"prompt_text": (
+			_get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_prompt_text()
+		),
+		"texture_path": (
+			_get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_texture_path()
+		),
+		"interaction_monitoring": interaction_area.monitoring if interaction_area != null else false,
+		"interaction_monitorable": interaction_area.monitorable if interaction_area != null else false,
+		"collision_disabled": collision_shape.disabled if collision_shape != null else true,
+		"collision_blocking": (
+			_is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_collision_blocking()
+		),
+		"position": _get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_position(),
+		"route_label_text": String(route.get("route_label_text", "")),
+		"unlock_feedback_texture_path": String(unlock_vfx_snapshot.get("texture_path", "")),
+		"unlock_feedback_active": int(unlock_vfx_snapshot.get("active_count", 0)) > 0,
+		"unlock_feedback_played": bool(unlock_vfx_snapshot.get("played", false)),
+		"unlock_feedback_spawn_count": int(unlock_vfx_snapshot.get("spawn_count", 0)),
 	}
 
 
@@ -8356,6 +8465,28 @@ func _setup_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker() -> 
 		)
 
 
+func _setup_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch() -> void:
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state()
+	if (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch == null
+		or not _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.has_signal(
+			"endpoint_activated"
+		)
+	):
+		return
+	var activated_signal: Signal = (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.get(
+			"endpoint_activated"
+		)
+	)
+	if not activated_signal.is_connected(
+		_on_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_activated
+	):
+		activated_signal.connect(
+			_on_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_activated
+		)
+
+
 func _setup_factory_respawn_flow() -> void:
 	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
 		var existing_flow := get_node_or_null("FactoryGameFlowController") as GameFlowController
@@ -8783,6 +8914,7 @@ func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat
 	_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_activated = true
 	_lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat_defeated = true
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_state()
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state()
 	_refresh_factory_route_objective()
 
 
@@ -8791,6 +8923,7 @@ func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat_
 	_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_activated = true
 	_lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat_defeated = true
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_state()
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state()
 	_refresh_factory_route_objective()
 
 
@@ -8994,6 +9127,16 @@ func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_activate
 	_lower_deck_forward_pressure_aftershock_exhaust_breaker_cut = true
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_breaker_endpoint_state()
 	_update_route_label("Aftershock Exhaust Pressure Cut")
+
+
+func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_activated(
+	endpoint_id: StringName
+) -> void:
+	if endpoint_id != FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_HATCH_ID:
+		return
+	_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened = true
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state()
+	_update_route_label("Aftershock Exhaust Exit Opened")
 
 
 func _on_factory_return_checkpoint_activated(
@@ -10407,6 +10550,34 @@ func _sync_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_state(
 	)
 
 
+func _sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state() -> void:
+	if _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch == null:
+		return
+	var hatch_visible: bool = (
+		_is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_available()
+		or _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened
+	)
+	_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.visible = hatch_visible
+	if _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.has_method(
+		"set_available"
+	):
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.call(
+			"set_available",
+			_is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_available()
+		)
+	if _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.has_method(
+		"set_activated"
+	):
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.call(
+			"set_activated",
+			_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened
+		)
+	_set_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_collision_blocking(
+		hatch_visible
+			and not _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened
+	)
+
+
 func _sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
 		enemy: Variant,
 		enemy_active: bool
@@ -10661,6 +10832,10 @@ func _get_factory_route_objective_id() -> StringName:
 		return FACTORY_OBJECTIVE_SECURE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_BREAKER
 	if _is_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_active():
 		return FACTORY_OBJECTIVE_BREAK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_ESCAPE
+	if _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened:
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_OPENED
+	if _is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_available():
+		return FACTORY_OBJECTIVE_OPEN_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_HATCH
 	if _is_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_cleared():
 		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_ESCAPE_SECURED
 	if _lower_deck_forward_pressure_aftershock_exhaust_breaker_cut:
@@ -10969,6 +11144,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Break Aftershock Exhaust Escape"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_ESCAPE_SECURED:
 			return "Aftershock Exhaust Escape Secured"
+		FACTORY_OBJECTIVE_OPEN_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_HATCH:
+			return "Open Aftershock Exhaust Hatch"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_OPENED:
+			return "Aftershock Exhaust Exit Opened"
 		_:
 			return "Clear Factory Entrance"
 
@@ -11563,6 +11742,85 @@ func _get_lower_deck_forward_pressure_exit_gate_position() -> Vector2:
 	)
 
 
+func _get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_id() -> String:
+	if (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch != null
+		and _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.has_method(
+			"get_endpoint_id"
+		)
+	):
+		return String(_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.call(
+			"get_endpoint_id"
+		))
+	return String(FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_EXIT_HATCH_ID)
+
+
+func _get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_texture_path(
+) -> String:
+	if (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch != null
+		and _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.has_method(
+			"get_visual_texture_path"
+		)
+	):
+		return String(_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.call(
+			"get_visual_texture_path"
+		))
+	var visual := (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.get_node_or_null(
+			"Visual"
+		) as Sprite2D
+		if _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch != null
+		else null
+	)
+	if visual == null or visual.texture == null:
+		return ""
+	return visual.texture.resource_path
+
+
+func _get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_prompt_text(
+) -> String:
+	var prompt_label := (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.get_node_or_null(
+			"PromptLabel"
+		) as Label
+		if _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_position(
+) -> Vector2:
+	return (
+		(_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch as Node2D).global_position
+		if (
+			_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch != null
+			and _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch is Node2D
+		)
+		else Vector2.ZERO
+	)
+
+
+func _get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_unlock_vfx_snapshot(
+) -> Dictionary:
+	if (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch == null
+		or not _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.has_method(
+			"get_unlock_vfx_snapshot"
+		)
+	):
+		return {}
+	var snapshot_variant: Variant = (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.call(
+			"get_unlock_vfx_snapshot"
+		)
+	)
+	if snapshot_variant is Dictionary:
+		return (snapshot_variant as Dictionary).duplicate(true)
+	return {}
+
+
 func _get_lower_deck_forward_pressure_route_handoff_marker_id() -> String:
 	if (
 		_lower_deck_forward_pressure_route_handoff_marker != null
@@ -11766,6 +12024,35 @@ func _get_lower_deck_forward_pressure_exit_gate_collision_shape() -> CollisionSh
 			"StaticBody2D/CollisionShape2D"
 		) as CollisionShape2D
 		if _lower_deck_forward_pressure_exit_gate != null
+		else null
+	)
+
+
+func _is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_collision_blocking(
+) -> bool:
+	var collision_shape := (
+		_get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_collision_shape()
+	)
+	return collision_shape != null and not collision_shape.disabled
+
+
+func _set_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_collision_blocking(
+	blocking: bool
+) -> void:
+	var collision_shape := (
+		_get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_collision_shape()
+	)
+	if collision_shape != null:
+		collision_shape.disabled = not blocking
+
+
+func _get_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_collision_shape(
+) -> CollisionShape2D:
+	return (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.get_node_or_null(
+			"StaticBody2D/CollisionShape2D"
+		) as CollisionShape2D
+		if _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch != null
 		else null
 	)
 
@@ -14459,6 +14746,30 @@ func _is_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_provider
 	)
 
 
+func _is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_provider_in_range(
+	provider: Node
+) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	if _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch == null:
+		return false
+	if _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.has_method(
+		"is_provider_in_activation_range"
+	):
+		return bool(_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch.call(
+			"is_provider_in_activation_range",
+			provider
+		))
+	if not _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.distance_to(
+			(_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch as Node2D).global_position
+		)
+		<= FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS
+	)
+
+
 func _is_lower_deck_forward_pressure_breaker_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -15088,6 +15399,14 @@ func _is_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_cleared(
 	return (
 		_lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat_defeated
 		and _lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat_defeated
+	)
+
+
+func _is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_available(
+) -> bool:
+	return (
+		_is_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_cleared()
+		and not _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened
 	)
 
 

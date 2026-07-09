@@ -222,9 +222,13 @@ func test_escape_skirmish_defeat_persists_without_replaying_breaker_chain() -> v
 	assert_bool(bool(cleared.get("spark_physics_enabled", true))).is_false()
 	assert_bool(bool(cleared.get("coil_physics_enabled", true))).is_false()
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
-		"Aftershock Exhaust Escape Secured"
+		"Open Aftershock Exhaust Hatch"
 	)
-	assert_bool(bool(destination.call("is_factory_route_objective_complete"))).is_true()
+	assert_bool(bool(destination.call("is_factory_route_objective_complete"))).is_false()
+	var hatch_unlocked: Dictionary = destination.call(
+		"get_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_diagnostics"
+	)
+	assert_bool(bool(hatch_unlocked.get("available", false))).is_true()
 
 	var local_state: Dictionary = destination.call("get_local_state")
 	assert_bool(bool(local_state.get(
@@ -272,7 +276,7 @@ func test_escape_skirmish_defeat_persists_without_replaying_breaker_chain() -> v
 	assert_bool(bool(restored_escape.get("spark_visible", true))).is_false()
 	assert_bool(bool(restored_escape.get("coil_visible", true))).is_false()
 	assert_str(String(restored_escape.get("route_label_text", ""))).is_equal(
-		"Aftershock Exhaust Escape Secured"
+		"Open Aftershock Exhaust Hatch"
 	)
 	var restored_breaker: Dictionary = restored.call(
 		"get_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_diagnostics"
