@@ -108,8 +108,14 @@
 	  Abilities Story098 Old Factory Lower Deck Forward Pressure Aftershock
 	  Condenser Outlet Drip Vent Traverse、Player Abilities Story099 Old Factory
 	  Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Skirmish、
-	  Player Abilities Story100 Main Scene Dash Gate Authored Visual Replacement
-	  已完成；
+	  Player Abilities Story100 Main Scene Dash Gate Authored Visual Replacement、
+	  Player Abilities Story101 Main Scene Player Hit Damage Number Runtime、
+	  Player Abilities Story102 Old Factory Route Floor Platform Visual Pass、
+	  Player Abilities Story103 Main Scene Boundary Wall Visual Pass、
+	  Player Abilities Story104 Main Scene Reward Prompt Proximity、
+	  Player Abilities Story105 Main Scene Gate Prompt Proximity、Player
+	  Abilities Story106 Old Factory Lower Deck Forward Pressure Aftershock
+	  Condenser Overflow Pump Reward Cache 已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
   Boss2 balancing/cutscene polish、authored/final audio replacement、
@@ -126,6 +132,21 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 106: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Overflow Pump Reward Cache -- after Story099 clears the
+  overflow pump skirmish, a reused image-generated lower-deck cache becomes
+  visible, pays `20` gears once, and unlocks a reused image-generated runoff
+  hatch. Opening the hatch persists the new state, removes blocking collision,
+  and advances route feedback to `Overflow Pump Runoff Hatch Open`.
+  Verification: RED `reports/report_1282/`; focused GREEN
+  `reports/report_1284/` (`2/2`); related GREEN `reports/report_1285/`
+  (`15/15`); headless smoke
+  `reports/old_factory_overflow_pump_reward_cache_smoke.log` exit `0`;
+  Godot MCP 2.9.1 on Godot 4.7 verified disk-reloaded scene nodes, runtime
+  cache/hatch diagnostics, claim/open calls, clean current game log, local-state
+  persistence, and a non-empty `960x539` game screenshot response showing
+  `Runoff Hatch Open`.
+
 - Player Abilities Story 105: Main Scene Gate Prompt Proximity -- ability gate
   prompts now use a finite provider proximity radius separate from unlock
   radius. `ExplorationGate` exposes `prompt_radius_px`,
