@@ -1,0 +1,13 @@
+{
+  "asset_id": "dash_gate_marker",
+  "created_at": "2026-07-09",
+  "source": "image generation",
+  "source_image": "res://assets/generated/source/dash_gate_marker_imagegen_20260709.png",
+  "alpha_image": "res://assets/generated/source/dash_gate_marker_alpha_20260709.png",
+  "runtime_image": "res://assets/environment/dash_gate/dash_gate_marker.png",
+  "prompt_summary": "Pixel-art side-scroller Dash ability gate marker with scrap-metal pylons, amber-white dash streak, cat-claw speed slashes, cyan capacitors, warning stripes, and flat chroma-key background removed to alpha.",
+  "post_processing": "Generated on flat #00ff00 chroma key, local alpha matte, cropped, centered, and normalized to 256x256 transparent PNG.",
+  "used_by": [
+    "res://scenes/main.tscn:DashExplorationGate/Visual"
+  ]
+}

@@ -10,7 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://cxrtq1c5nol33" path="res://src/gameplay/rat_king_boss.tscn" id="9_85g3d"]
 [ext_resource type="Script" uid="uid://dg1hownpawbt" path="res://src/gameplay/game_flow_controller.gd" id="9_game_flow"]
 [ext_resource type="Script" path="res://src/feature/exploration_gate.gd" id="10_gate"]
-[ext_resource type="Texture2D" uid="uid://c78sfjwu3jnts" path="res://assets/environment/rat_king_arena/electric_leak.png" id="11_gate_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/dash_gate/dash_gate_marker.png" id="11_gate_texture"]
 [ext_resource type="Texture2D" uid="uid://cge7sath6efgs" path="res://assets/environment/high_platform_gate/high_platform_gate_marker.png" id="12_high_platform_gate"]
 [ext_resource type="Script" path="res://src/feature/ability_reward_source.gd" id="13_reward_source"]
 [ext_resource type="Texture2D" path="res://assets/environment/double_jump_reward/hidden_double_jump_reward_source.png" id="14_double_jump_reward"]
@@ -304,8 +304,7 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_dash_gate")
 
 [node name="Visual" type="Sprite2D" parent="DashExplorationGate" unique_id=1029982546]
-rotation = 1.5708
-scale = Vector2(0.48, 0.64)
+scale = Vector2(0.52, 0.52)
 texture = ExtResource("11_gate_texture")
 
 [node name="PromptLabel" type="Label" parent="DashExplorationGate" unique_id=1770494571]

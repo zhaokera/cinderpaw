@@ -107,7 +107,8 @@
 	  Deck Forward Pressure Aftershock Condenser Outlet Clamp Ambush、Player
 	  Abilities Story098 Old Factory Lower Deck Forward Pressure Aftershock
 	  Condenser Outlet Drip Vent Traverse、Player Abilities Story099 Old Factory
-	  Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Skirmish
+	  Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Skirmish、
+	  Player Abilities Story100 Main Scene Dash Gate Authored Visual Replacement
 	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
@@ -125,6 +126,22 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 100: Main Scene Dash Gate Authored Visual Replacement
+  -- `DashExplorationGate/Visual` in `scenes/main.tscn` now uses the dedicated
+  image-generated transparent runtime texture
+  `res://assets/environment/dash_gate/dash_gate_marker.png` instead of the
+  reused Rat King arena electric leak. The generated source/alpha/runtime assets
+  are recorded under `assets/generated/source/` and `assets/environment/dash_gate/`,
+  imported through Godot, and documented in asset manifest plus QA evidence. The
+  visual no longer needs the old `1.5708` rotation or non-uniform scaling, while
+  Story002 Dash gate unlock/save behavior remains intact. Verification: RED
+  `reports/report_1254/`; focused GREEN `reports/report_1255/` (`2/2`);
+  related GREEN `reports/report_1256/` (`8/8`); headless smoke
+  `reports/dash_gate_authored_visual_main_scene_smoke.log` exit `0`; Godot MCP
+  2.9.1 on Godot 4.7 verified disk-reloaded MainScene, editor/runtime Dash gate
+  texture, `current_run_errors=[]`, Cinderpaw `AnimatedSprite2D`, and a non-empty
+  runtime screenshot showing the authored Dash gate.
+
 - Player Abilities Story 099: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Overflow Pump Skirmish -- after Story098 crosses the
   aftershock condenser outlet drip vent, a newly image-generated transparent
