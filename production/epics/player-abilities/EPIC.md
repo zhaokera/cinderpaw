@@ -134,6 +134,7 @@ recording the reward in progression state.
 | 094 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Valve Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 095 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Savepoint | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 096 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Outlet Traverse | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
+| 097 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Outlet Clamp Ambush | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -153,8 +154,8 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-096 are complete. Continue deeper Old Factory route content after the
-aftershock condenser outlet, minimap gameplay,
+Stories001-097 are complete. Continue deeper Old Factory route content after the
+aftershock condenser outlet clamp ambush, minimap gameplay,
 additional player-visible character/enemy frame-animation replacement, more
 skill-tree branches, authored hazard/audio polish, or final Boss2 balancing/
 cutscene polish.

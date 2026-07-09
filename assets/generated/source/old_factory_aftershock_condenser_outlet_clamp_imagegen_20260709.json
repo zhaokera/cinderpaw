@@ -1,0 +1,16 @@
+{
+  "asset_id": "old_factory_aftershock_condenser_outlet_clamp",
+  "story": "story-097-old-factory-lower-deck-forward-pressure-aftershock-condenser-outlet-clamp-ambush",
+  "mode": "built-in image generation plus chroma-key alpha removal",
+  "source": "res://assets/generated/source/old_factory_aftershock_condenser_outlet_clamp_imagegen_20260709.png",
+  "alpha": "res://assets/generated/source/old_factory_aftershock_condenser_outlet_clamp_alpha_20260709.png",
+  "runtime": "res://assets/environment/old_factory_aftershock_condenser_outlet_clamp/env_old_factory_aftershock_condenser_outlet_clamp_256.png",
+  "prompt": "Create a single Old Factory aftershock condenser outlet clamp junction prop for a 2D side-scrolling pixel-art / hand-painted action platformer. The subject is a heavy industrial outlet clamp assembly with dark gunmetal pressure pipe collar, copper locking bands, bolts, scorched heat marks, small cyan pressure gauge lights, cracked ceramic insulators, and a broken clamp mouth that reads clearly as an obstacle/ambush anchor. Center the full side-view prop with generous padding on a perfectly flat solid #00ff00 chroma-key background. No characters, enemies, UI, text, watermark, shadows, smoke, or particles.",
+  "negative_prompt": "long horizontal duct bridge, full walkway, giant fan, savepoint pedestal, steam vent plume, multiple separate props, character silhouettes, rats, UI, text label, logo, watermark, photorealistic render, isometric view, neon green details, glass transparency, heavy cast shadow, cropped edges, square placeholder, simple colored rectangle",
+  "processing": {
+    "chroma_key": "#05f908",
+    "transparent_pixels": 1095073,
+    "partially_transparent_pixels": 11347,
+    "runtime_size": "256x256"
+  }
+}

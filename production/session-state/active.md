@@ -103,7 +103,8 @@
 	  Aftershock Condenser Valve Ambush、Player Abilities Story095 Old Factory
 	  Lower Deck Forward Pressure Aftershock Condenser Savepoint、Player
 	  Abilities Story096 Old Factory Lower Deck Forward Pressure Aftershock
-	  Condenser Outlet Traverse
+	  Condenser Outlet Traverse、Player Abilities Story097 Old Factory Lower
+	  Deck Forward Pressure Aftershock Condenser Outlet Clamp Ambush
 	  已完成；
   下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
   ExplorationGate 能力门、more skill-tree branches、final
@@ -121,6 +122,26 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 097: Old Factory Lower Deck Forward Pressure
+  Aftershock Condenser Outlet Clamp Ambush -- after Story096 crosses the
+  aftershock condenser outlet, a newly image-generated transparent clamp prop
+  becomes visible as
+  `FactoryLowerDeckForwardPressureAftershockCondenserOutletClamp`, the route
+  extends to x `5760.0`, and a reused image-generated Factory Spark Rat
+  `AnimatedSprite2D + SpriteFrames` scene activates as entity id `2138` at the
+  outlet clamp pocket. The ambush stays locked until
+  `factory_lower_deck_forward_pressure_aftershock_condenser_outlet_crossed=true`,
+  starts at x `5220.0`, assigns the player target, advances feedback to
+  `Clear Outlet Clamp Ambush`, then persists activated/defeated/cleared flags
+  and advances route feedback to `Outlet Clamp Ambush Cleared` after defeating
+  entity `2138`. Verification: RED `reports/report_1240/` and
+  `reports/report_1241/`; focused GREEN `reports/report_1242/` (`2/2`);
+  related GREEN `reports/report_1243/` (`18/18`); headless smoke
+  `reports/old_factory_aftershock_condenser_outlet_clamp_ambush_smoke.log`
+  exit `0`; Godot MCP 2.9.1 on Godot 4.7 verified scene reload, generated prop,
+  active frame-animated Spark Rat, entity damage/clear persistence, clean
+  current-run logs, and a non-empty runtime screenshot.
+
 - Player Abilities Story 096: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Outlet Traverse -- after Story095 activates the
   aftershock condenser savepoint, `FactoryLowerDeckForwardPressureAftershockCondenserOutlet`
