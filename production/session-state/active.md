@@ -97,6 +97,34 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 089: Old Factory Lower Deck Forward Pressure
+  Aftershock Exhaust Flank Ambush -- after Story088 claims the aftershock
+  exhaust pursuer reward cache, Cinderpaw can push to x `2768.0` to activate
+  `FactoryLowerDeckForwardPressureAftershockExhaustFlankAmbushSparkRat` as
+  entity `2132` plus
+  `FactoryLowerDeckForwardPressureAftershockExhaustFlankAmbushVent` using
+  hazard id
+  `old_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush`.
+  The slice reuses image-generated Factory Spark Rat
+  `AnimatedSprite2D + SpriteFrames` art and the Old Factory steam vent prop,
+  starts `14` opening-grace frames, applies `8` steam damage on player contact,
+  persists activated/defeated/cleared flags, advances route feedback to
+  `Forward Pressure Exhaust Flank Cleared`, and preserves the Story074 relay,
+  optional `FactoryServiceLift`, Story068 no-replay, and Story071 audio
+  no-replay contracts. MCP exposed a stale freed-node diagnostics bug after the
+  Spark Rat death tween; fixed by validating enemy references before diagnostics
+  and lookup. Verification: initial RED `reports/report_1198/`; pre-MCP GREEN
+  `reports/report_1200/` `3/3`; stale-reference RED `reports/report_1202/`;
+  final focused GREEN `reports/report_1205/` `3/3`; related GREEN
+  `reports/report_1204/` `33/33`; headless smoke
+  `reports/old_factory_forward_pressure_aftershock_exhaust_flank_ambush_smoke.log`
+  exited `0` with no project script/parse/invalid-call/access/missing-resource/
+  resource-load/shadowed-variable errors by keyword scan. Godot AI MCP `2.9.1`
+  on Godot `4.7-stable` confirmed helper live, live Story088 claim-to-flank
+  activation, SpriteFrames frame counts, hazard damage `100 -> 92`, settled
+  clear diagnostics without stale-reference runtime error, clean final
+  game/editor logs, and non-empty `960x539` game screenshot metadata.
+
 - Player Abilities Story 088: Old Factory Lower Deck Forward Pressure
   Aftershock Exhaust Pursuer Reward Cache -- after Story087 clears the
   aftershock exhaust pursuer, `FactoryLowerDeckForwardPressureAftershockExhaustPursuerRewardCache`

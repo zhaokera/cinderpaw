@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-07-09" name="report_1205" tests="3" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_test" package="tests/unit/gameplay" timestamp="2026-07-09T01:00:07" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.690">
+		<testcase name="test_flank_ambush_requires_exhaust_pursuer_cache_claim_and_activates_contract" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_test" time="0.330">
+		</testcase>
+		<testcase name="test_flank_ambush_hazard_damage_and_defeat_persist_without_route_replay" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_test" time="0.282">
+		</testcase>
+		<testcase name="test_flank_ambush_unlocks_on_live_story088_cache_claim" classname="old_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_test" time="0.068">
+		</testcase>
+	</testsuite>
+</testsuites>

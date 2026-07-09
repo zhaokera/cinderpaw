@@ -41,6 +41,7 @@ const FACTORY_LOWER_DECK_FORWARD_COIL_AFTERSHOCK_COIL_RAT_ENTITY_ID: int = 2128
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_SPARK_RAT_ENTITY_ID: int = 2129
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_COIL_RAT_ENTITY_ID: int = 2130
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_PURSUER_ENTITY_ID: int = 2131
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_FLANK_ENTITY_ID: int = 2132
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
@@ -72,6 +73,7 @@ const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_SKIRMISH_ACTIVATION_X: float = 
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_ACTIVATION_X: float = 2416.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_EXIT_X: float = 2480.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_PURSUER_ACTIVATION_X: float = 2552.0
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_FLANK_ACTIVATION_X: float = 2768.0
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_REWARD_CACHE_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_reward_cache"
 )
@@ -94,6 +96,7 @@ const FACTORY_COIL_AFTERSHOCK_COIL_RAT_OPENING_GRACE_FRAMES: int = 8
 const FACTORY_AFTERSHOCK_EXIT_SPARK_RAT_OPENING_GRACE_FRAMES: int = 12
 const FACTORY_AFTERSHOCK_EXIT_COIL_RAT_OPENING_GRACE_FRAMES: int = 24
 const FACTORY_AFTERSHOCK_EXHAUST_PURSUER_OPENING_GRACE_FRAMES: int = 10
+const FACTORY_AFTERSHOCK_EXHAUST_FLANK_OPENING_GRACE_FRAMES: int = 14
 const FACTORY_RESPAWN_HAZARD_GRACE_FRAMES: int = 18
 const FACTORY_RETURN_CHECKPOINT_SPAWN_SNAP_FRAMES: int = 18
 const FACTORY_RAT_MINION_COLLISION_LAYER: int = 2
@@ -231,6 +234,12 @@ const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CLEARED: Str
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CACHE_CLAIMED: StringName = (
 	&"forward_pressure_aftershock_exhaust_pursuer_cache_claimed"
 )
+const FACTORY_OBJECTIVE_BREAK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_FLANK: StringName = (
+	&"break_forward_pressure_aftershock_exhaust_flank"
+)
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_FLANK_CLEARED: StringName = (
+	&"forward_pressure_aftershock_exhaust_flank_cleared"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -283,6 +292,12 @@ const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_HAZARD_ID: StringName = (
 )
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer"
+)
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_FLANK_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush"
+)
+const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_FLANK_HAZARD_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush"
 )
 const FACTORY_LOWER_DECK_FORWARD_HATCH_ID: StringName = &"old_factory_lower_deck_forward_hatch"
 const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: StringName = &"lower_deck_breach_relay"
@@ -396,6 +411,11 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 		"FactoryLowerDeckForwardPressureAftershockExhaustPursuerCoilRat"
 	) as Node2D
 )
+@onready var _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat: Node2D = (
+	get_node_or_null(
+		"FactoryLowerDeckForwardPressureAftershockExhaustFlankAmbushSparkRat"
+	) as Node2D
+)
 @onready var _checkpoint_overdrive_left_defeat_burst: Sprite2D = (
 	get_node_or_null("FactoryCheckpointOverdriveLeftDefeatBurst") as Sprite2D
 )
@@ -493,6 +513,11 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 )
 @onready var _lower_deck_forward_pressure_aftershock_exhaust_vent: Area2D = (
 	get_node_or_null("FactoryLowerDeckForwardPressureAftershockExhaustVent") as Area2D
+)
+@onready var _lower_deck_forward_pressure_aftershock_exhaust_flank_vent: Area2D = (
+	get_node_or_null(
+		"FactoryLowerDeckForwardPressureAftershockExhaustFlankAmbushVent"
+	) as Area2D
 )
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
@@ -617,6 +642,8 @@ var _lower_deck_forward_pressure_aftershock_exhaust_elapsed_sec: float = 0.0
 var _lower_deck_forward_pressure_aftershock_exhaust_pursuer_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed: bool = false
+var _lower_deck_forward_pressure_aftershock_exhaust_flank_activated: bool = false
+var _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -673,6 +700,7 @@ func _ready() -> void:
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_state()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_state()
 	_setup_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache()
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_flank_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -700,6 +728,7 @@ func _process(_delta: float) -> void:
 	_try_auto_activate_forward_pressure_aftershock_exit_skirmish()
 	_try_auto_activate_forward_pressure_aftershock_exhaust()
 	_try_auto_activate_forward_pressure_aftershock_exhaust_pursuer()
+	_try_auto_activate_forward_pressure_aftershock_exhaust_flank()
 	_sync_factory_player_control_lock()
 
 
@@ -800,6 +829,7 @@ func is_factory_route_objective_complete() -> bool:
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_CROSSED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CLEARED
 		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CACHE_CLAIMED
+		or objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_FLANK_CLEARED
 		)
 
 
@@ -1478,6 +1508,7 @@ func try_claim_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_re
 			reward_payload
 		)
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_state()
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_flank_state()
 	if (
 		_last_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claim_feedback
 		.is_empty()
@@ -2098,6 +2129,34 @@ func try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer
 	return true
 
 
+## Activates the Story089 Spark Rat flank after the exhaust pursuer cache payoff.
+func try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat == null
+		or _lower_deck_forward_pressure_aftershock_exhaust_flank_vent == null
+		or not _is_lower_deck_forward_pressure_aftershock_exhaust_flank_available()
+		or _lower_deck_forward_pressure_aftershock_exhaust_flank_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_lower_deck_forward_pressure_aftershock_exhaust_flank_provider_in_range(
+		activation_provider
+	):
+		return false
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_activated = true
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_flank_state()
+	_set_lower_deck_forward_pressure_aftershock_exhaust_flank_attack_target(
+		activation_provider
+	)
+	_begin_lower_deck_forward_pressure_aftershock_exhaust_flank_pacing(
+		FACTORY_AFTERSHOCK_EXHAUST_FLANK_OPENING_GRACE_FRAMES
+	)
+	_refresh_factory_route_objective()
+	return true
+
+
 ## Attempts to activate the relay-forward combat trial after the breach relay is repaired.
 func try_activate_factory_lower_deck_post_relay_trial(provider: Node = null) -> bool:
 	if (
@@ -2555,6 +2614,15 @@ func get_local_state() -> Dictionary:
 		"factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed": (
 			_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed
 		),
+		"factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_activated": (
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_activated
+		),
+		"factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_spark_rat_defeated": (
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated
+		),
+		"factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_cleared": (
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated
+		),
 		"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -2970,6 +3038,23 @@ func set_local_state(state: Dictionary) -> void:
 			false
 		)
 	)
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_activated = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_activated",
+			false
+		)
+	)
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_spark_rat_defeated",
+			false
+		)
+	)
+	if bool(state.get(
+		"factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_cleared",
+		false
+	)):
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated = true
 	_reset_lower_deck_forward_conduit_clear_feedback()
 	_return_checkpoint_activated = bool(state.get("factory_return_checkpoint_activated", false))
 	_service_lift_activated = bool(state.get("factory_service_lift_activated", false))
@@ -3341,6 +3426,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_state()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_state()
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_state()
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_flank_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -3417,6 +3503,10 @@ func set_local_state(state: Dictionary) -> void:
 	if _is_lower_deck_forward_pressure_aftershock_exhaust_pursuer_active():
 		_begin_lower_deck_forward_pressure_aftershock_exhaust_pursuer_pacing(
 			FACTORY_AFTERSHOCK_EXHAUST_PURSUER_OPENING_GRACE_FRAMES
+		)
+	if _is_lower_deck_forward_pressure_aftershock_exhaust_flank_active():
+		_begin_lower_deck_forward_pressure_aftershock_exhaust_flank_pacing(
+			FACTORY_AFTERSHOCK_EXHAUST_FLANK_OPENING_GRACE_FRAMES
 		)
 	_refresh_factory_route_objective()
 	if _service_lift_activated:
@@ -6387,6 +6477,123 @@ func get_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_diagnost
 	}
 
 
+## Returns deterministic Story089 aftershock exhaust flank ambush diagnostics.
+func get_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_diagnostics(
+) -> Dictionary:
+	var spark_rat: Node2D = (
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat
+		if is_instance_valid(
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat
+		)
+		else null
+	)
+	var spark_sprite: AnimatedSprite2D = (
+		spark_rat.get_node_or_null(
+			"Sprite"
+		) as AnimatedSprite2D
+		if spark_rat != null
+		else null
+	)
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	return {
+		"present": (
+			spark_rat != null
+			and _lower_deck_forward_pressure_aftershock_exhaust_flank_vent != null
+		),
+		"available": (
+			_is_lower_deck_forward_pressure_aftershock_exhaust_flank_available()
+		),
+		"active": _is_lower_deck_forward_pressure_aftershock_exhaust_flank_active(),
+		"cleared": _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated,
+		"exhaust_pursuer_reward_cache_claimed": (
+			_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed
+		),
+		"encounter_id": String(
+			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_FLANK_ID
+		),
+		"activation_x": (
+			FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_FLANK_ACTIVATION_X
+		),
+		"spark_visible": (
+			spark_rat.visible
+			if spark_rat != null
+			else false
+		),
+		"spark_has_target": (
+			_does_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_have_target()
+		),
+		"spark_physics_enabled": (
+			spark_rat.is_physics_processing()
+			if spark_rat != null
+			else false
+		),
+		"spark_process_enabled": (
+			spark_rat.is_processing()
+			if spark_rat != null
+			else false
+		),
+		"spark_defeated": (
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated
+		),
+		"spark_entity_id": _get_enemy_entity_id(spark_rat),
+		"spark_family_id": _get_enemy_family_id(spark_rat),
+		"spark_sprite_frames_path": (
+			spark_sprite.sprite_frames.resource_path
+			if spark_sprite != null and spark_sprite.sprite_frames != null
+			else ""
+		),
+		"spark_animation_frame_counts": _get_sprite_animation_frame_counts(
+			spark_sprite
+		),
+		"pacing": (
+			_get_lower_deck_forward_pressure_aftershock_exhaust_flank_pacing_diagnostics()
+		),
+		"spark_position": (
+			spark_rat.global_position
+			if spark_rat != null
+			else Vector2.ZERO
+		),
+		"hazard_present": (
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_vent != null
+		),
+		"hazard_visible": (
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_vent.visible
+			if _lower_deck_forward_pressure_aftershock_exhaust_flank_vent != null
+			else false
+		),
+		"hazard_contact_active": (
+			_is_lower_deck_forward_pressure_aftershock_exhaust_flank_contact_active()
+		),
+		"hazard_id": String(_get_hazard_id(
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_vent
+		)),
+		"hazard_damage": _get_hazard_damage(
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_vent
+		),
+		"hazard_cooldown_sec": _get_hazard_cooldown_sec(
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_vent
+		),
+		"hazard_texture_path": (
+			String(_lower_deck_forward_pressure_aftershock_exhaust_flank_vent.call(
+				"get_visual_texture_path"
+			))
+			if (
+				_lower_deck_forward_pressure_aftershock_exhaust_flank_vent != null
+				and _lower_deck_forward_pressure_aftershock_exhaust_flank_vent.has_method(
+					"get_visual_texture_path"
+				)
+			)
+			else ""
+		),
+		"hazard_position": (
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_vent.global_position
+			if _lower_deck_forward_pressure_aftershock_exhaust_flank_vent != null
+			else Vector2.ZERO
+		),
+		"route_label_text": String(route.get("route_label_text", "")),
+	}
+
+
 ## Returns visual defeat burst diagnostics for tests and MCP probes.
 func get_factory_checkpoint_overdrive_defeat_burst_diagnostics() -> Dictionary:
 	return {
@@ -7303,6 +7510,13 @@ func _bind_enemy_to_player() -> void:
 		&"factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_coil_rat",
 		_on_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated
 	)
+	_bind_factory_guard(
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat,
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_FLANK_ID,
+		FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_FLANK_ENTITY_ID,
+		&"factory_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat",
+		_on_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_defeated
+	)
 
 
 func _setup_factory_cache() -> void:
@@ -7989,6 +8203,14 @@ func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated
 	_refresh_factory_route_objective()
 
 
+func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_defeated(
+) -> void:
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_activated = true
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated = true
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_flank_state()
+	_refresh_factory_route_objective()
+
+
 func _on_factory_lower_deck_parry_gate_state_changed(
 	gate_id: StringName,
 	gate_state: StringName
@@ -8138,6 +8360,7 @@ func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_c
 		"Forward Pressure Exhaust Pursuer Cache Claimed"
 	)
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_state()
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_flank_state()
 	_refresh_factory_route_objective()
 
 
@@ -9456,6 +9679,53 @@ func _sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_state() -> voi
 	)
 
 
+func _sync_lower_deck_forward_pressure_aftershock_exhaust_flank_state() -> void:
+	var flank_active: bool = (
+		_is_lower_deck_forward_pressure_aftershock_exhaust_flank_active()
+	)
+	if not is_instance_valid(
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat
+	):
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat = null
+	if _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat != null:
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat.visible = (
+			flank_active
+		)
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat.set_physics_process(
+			flank_active
+		)
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat.set_process(
+			flank_active
+		)
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat.collision_layer = (
+			FACTORY_RAT_MINION_COLLISION_LAYER if flank_active else 0
+		)
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat.collision_mask = (
+			FACTORY_RAT_MINION_COLLISION_MASK if flank_active else 0
+		)
+		_set_lower_deck_forward_pressure_aftershock_exhaust_flank_attack_target(
+			_player if flank_active else null
+		)
+	if _lower_deck_forward_pressure_aftershock_exhaust_flank_vent == null:
+		return
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_vent.visible = flank_active
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_vent.monitoring = flank_active
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_vent.monitorable = flank_active
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_vent.collision_layer = (
+		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if flank_active else 0
+	)
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_vent.collision_mask = (
+		CollisionComponent.COLLISION_MASK_ENVIRONMENT if flank_active else 0
+	)
+	var collision_shape := (
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_vent.get_node_or_null(
+			"CollisionShape2D"
+		) as CollisionShape2D
+	)
+	if collision_shape != null:
+		collision_shape.disabled = not flank_active
+
+
 func _sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
 		enemy: Node2D,
 		enemy_active: bool
@@ -9703,6 +9973,10 @@ func _get_factory_route_objective_id() -> StringName:
 		return FACTORY_OBJECTIVE_CROSS_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST
 	if _is_lower_deck_forward_pressure_aftershock_exhaust_pursuer_active():
 		return FACTORY_OBJECTIVE_PURGE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER
+	if _is_lower_deck_forward_pressure_aftershock_exhaust_flank_active():
+		return FACTORY_OBJECTIVE_BREAK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_FLANK
+	if _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated:
+		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_FLANK_CLEARED
 	if _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed:
 		return FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CACHE_CLAIMED
 	if _lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated:
@@ -9989,6 +10263,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Forward Pressure Exhaust Pursuer Cleared"
 		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_PURSUER_CACHE_CLAIMED:
 			return "Forward Pressure Exhaust Pursuer Cache Claimed +20 Gears"
+		FACTORY_OBJECTIVE_BREAK_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_FLANK:
+			return "Break Aftershock Exhaust Flank"
+		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_EXHAUST_FLANK_CLEARED:
+			return "Forward Pressure Exhaust Flank Cleared"
 		_:
 			return "Clear Factory Entrance"
 
@@ -11088,6 +11366,8 @@ func _get_factory_hazards() -> Array[Area2D]:
 		hazards.append(_lower_deck_forward_relief_ambush_pressure_vent)
 	if _lower_deck_forward_pressure_aftershock_exhaust_vent != null:
 		hazards.append(_lower_deck_forward_pressure_aftershock_exhaust_vent)
+	if _lower_deck_forward_pressure_aftershock_exhaust_flank_vent != null:
+		hazards.append(_lower_deck_forward_pressure_aftershock_exhaust_flank_vent)
 	return hazards
 
 
@@ -11131,6 +11411,7 @@ func _is_factory_steam_hazard_id(hazard_id: StringName) -> bool:
 			or hazard_id == &"old_factory_lower_deck_forward_pressure_traverse"
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_HAZARD_ID
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_HAZARD_ID
+			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_FLANK_HAZARD_ID
 		)
 
 
@@ -11543,6 +11824,21 @@ func _set_lower_deck_forward_pressure_aftershock_exhaust_pursuer_attack_target(
 		)
 
 
+func _set_lower_deck_forward_pressure_aftershock_exhaust_flank_attack_target(
+	attack_target: Node
+) -> void:
+	if (
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat != null
+		and _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat.has_method(
+			"set_attack_target"
+		)
+	):
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat.call(
+			"set_attack_target",
+			attack_target
+		)
+
+
 func _begin_spark_rat_pacing(opening_grace_frames: int) -> void:
 	if _spark_rat != null and _spark_rat.has_method("begin_pacing"):
 		_spark_rat.call("begin_pacing", maxi(0, opening_grace_frames))
@@ -11859,6 +12155,22 @@ func _begin_lower_deck_forward_pressure_aftershock_exhaust_pursuer_pacing(
 		and not _lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated
 	):
 		_lower_deck_forward_pressure_aftershock_exhaust_pursuer_coil_rat.call(
+			"begin_pacing",
+			maxi(0, opening_grace_frames)
+		)
+
+
+func _begin_lower_deck_forward_pressure_aftershock_exhaust_flank_pacing(
+	opening_grace_frames: int
+) -> void:
+	if (
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat != null
+		and _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat.has_method(
+			"begin_pacing"
+		)
+		and not _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated
+	):
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat.call(
 			"begin_pacing",
 			maxi(0, opening_grace_frames)
 		)
@@ -12436,6 +12748,43 @@ func _get_lower_deck_forward_pressure_aftershock_exhaust_pursuer_pacing_diagnost
 	return pacing
 
 
+func _get_lower_deck_forward_pressure_aftershock_exhaust_flank_pacing_diagnostics(
+) -> Dictionary:
+	var pacing: Dictionary = {
+		"pacing_state": "inactive",
+		"opening_grace_frames": 0,
+		"opening_grace_total_frames": (
+			FACTORY_AFTERSHOCK_EXHAUST_FLANK_OPENING_GRACE_FRAMES
+		),
+	}
+	var spark_rat: Node2D = (
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat
+		if is_instance_valid(
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat
+		)
+		else null
+	)
+	if (
+		spark_rat != null
+		and spark_rat.has_method("get_pacing_diagnostics")
+	):
+		var pacing_variant: Variant = (
+			spark_rat.call("get_pacing_diagnostics")
+		)
+		if pacing_variant is Dictionary:
+			pacing = (pacing_variant as Dictionary).duplicate(true)
+	pacing["active"] = _is_lower_deck_forward_pressure_aftershock_exhaust_flank_active()
+	pacing["remaining_opening_grace_frames"] = int(pacing.get(
+		"opening_grace_frames",
+		0
+	))
+	pacing["opening_grace_frames"] = int(pacing.get(
+		"opening_grace_total_frames",
+		FACTORY_AFTERSHOCK_EXHAUST_FLANK_OPENING_GRACE_FRAMES
+	))
+	return pacing
+
+
 func _get_lower_deck_forward_exit_guard_opening_grace_frames() -> int:
 	var pacing: Dictionary = _get_lower_deck_forward_exit_guard_pacing_diagnostics()
 	return int(pacing.get("opening_grace_frames", 0))
@@ -12705,6 +13054,22 @@ func _does_lower_deck_forward_pressure_aftershock_exhaust_pursuer_coil_rat_have_
 	return _is_lower_deck_forward_pressure_aftershock_exhaust_pursuer_active()
 
 
+func _does_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_have_target(
+) -> bool:
+	var spark_rat: Node2D = (
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat
+		if is_instance_valid(
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat
+		)
+		else null
+	)
+	if spark_rat == null:
+		return false
+	if spark_rat.has_method("has_attack_target"):
+		return bool(spark_rat.call("has_attack_target"))
+	return _is_lower_deck_forward_pressure_aftershock_exhaust_flank_active()
+
+
 func _does_lower_deck_breach_front_have_target() -> bool:
 	if _lower_deck_breach_front_spark_rat == null:
 		return false
@@ -12821,6 +13186,11 @@ func _sync_factory_damage_target_defeat(target_id: int, damage_target: Node) -> 
 		FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_PURSUER_ENTITY_ID:
 			if not _lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated:
 				_on_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated()
+		FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_FLANK_ENTITY_ID:
+			if (
+				not _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated
+			):
+				_on_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_defeated()
 
 
 func _is_factory_damage_target_defeated(damage_target: Node) -> bool:
@@ -13161,6 +13531,17 @@ func _is_lower_deck_forward_pressure_aftershock_exhaust_pursuer_provider_in_rang
 	)
 
 
+func _is_lower_deck_forward_pressure_aftershock_exhaust_flank_provider_in_range(
+	provider: Node
+) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.x
+		>= FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_FLANK_ACTIVATION_X
+	)
+
+
 func _is_lower_deck_forward_pressure_breaker_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -13234,23 +13615,32 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 				_lower_deck_forward_pressure_aftershock_exit_spark_rat,
 				_lower_deck_forward_pressure_aftershock_exit_coil_rat,
 				_lower_deck_forward_pressure_aftershock_exhaust_pursuer_coil_rat,
+				_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat,
 			]:
-		if guard == null or not guard.has_method("get_entity_id"):
+		if (
+			guard == null
+			or not is_instance_valid(guard)
+			or not guard.has_method("get_entity_id")
+		):
 			continue
 		if int(guard.call("get_entity_id")) == target_id:
 			return guard
 	return null
 
 
-func _get_enemy_entity_id(enemy: Node) -> int:
-	if enemy != null and enemy.has_method("get_entity_id"):
-		return int(enemy.call("get_entity_id"))
+func _get_enemy_entity_id(enemy: Variant) -> int:
+	if enemy is Node and is_instance_valid(enemy):
+		var enemy_node: Node = enemy as Node
+		if enemy_node.has_method("get_entity_id"):
+			return int(enemy_node.call("get_entity_id"))
 	return 0
 
 
-func _get_enemy_family_id(enemy: Node) -> String:
-	if enemy != null and enemy.has_method("get_enemy_family_id"):
-		return String(enemy.call("get_enemy_family_id"))
+func _get_enemy_family_id(enemy: Variant) -> String:
+	if enemy is Node and is_instance_valid(enemy):
+		var enemy_node: Node = enemy as Node
+		if enemy_node.has_method("get_enemy_family_id"):
+			return String(enemy_node.call("get_enemy_family_id"))
 	return ""
 
 
@@ -13709,6 +14099,21 @@ func _is_lower_deck_forward_pressure_aftershock_exhaust_pursuer_active() -> bool
 	)
 
 
+func _is_lower_deck_forward_pressure_aftershock_exhaust_flank_available() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed
+		and not _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated
+	)
+
+
+func _is_lower_deck_forward_pressure_aftershock_exhaust_flank_active() -> bool:
+	return (
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_activated
+		and _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed
+		and not _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated
+	)
+
+
 func _is_lower_deck_forward_pressure_contact_active() -> bool:
 	return (
 		_lower_deck_forward_pressure_traverse_active
@@ -13721,6 +14126,10 @@ func _is_lower_deck_forward_pressure_aftershock_exhaust_contact_active() -> bool
 		_is_lower_deck_forward_pressure_aftershock_exhaust_active()
 		and _get_lower_deck_forward_pressure_aftershock_exhaust_phase() == &"active"
 	)
+
+
+func _is_lower_deck_forward_pressure_aftershock_exhaust_flank_contact_active() -> bool:
+	return _is_lower_deck_forward_pressure_aftershock_exhaust_flank_active()
 
 
 func _get_lower_deck_forward_pressure_phase() -> StringName:
@@ -13931,6 +14340,19 @@ func _try_auto_activate_forward_pressure_aftershock_exhaust_pursuer() -> void:
 	if not _lower_deck_forward_pressure_aftershock_exhaust_crossed:
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer(_player)
+
+
+func _try_auto_activate_forward_pressure_aftershock_exhaust_flank() -> void:
+	if (
+		_lower_deck_forward_pressure_aftershock_exhaust_flank_activated
+		or _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated
+	):
+		return
+	if not _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed:
+		return
+	try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush(
+		_player
+	)
 
 
 func _is_service_lift_return_contract_in_state(state: Dictionary) -> bool:
