@@ -1,4 +1,4 @@
-[gd_scene load_steps=49 format=3]
+[gd_scene load_steps=50 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -39,9 +39,10 @@
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_route_platform/env_old_factory_route_cache_platform_320x96.png" id="37_cache_platform_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_runoff_service_hatch_landing/env_old_factory_runoff_service_hatch_landing_768.png" id="38_service_sluice_landing_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_tailrace_exit_spillway/env_old_factory_tailrace_exit_spillway_768.png" id="39_tailrace_exit_spillway_texture"]
+[ext_resource type="PackedScene" path="res://src/gameplay/factory_sluice_leech.tscn" id="40_sluice_leech"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
-size = Vector2(28400, 40)
+size = Vector2(30080, 40)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
 size = Vector2(40, 720)
@@ -73,7 +74,7 @@ metadata/scene_id = "area_03_factory"
 
 [node name="Background" type="TextureRect" parent="."]
 z_index = -100
-offset_right = 17300.0
+offset_right = 18140.0
 offset_bottom = 720.0
 texture = ExtResource("3_backdrop")
 expand_mode = 1
@@ -511,6 +512,30 @@ z_as_relative = false
 position = Vector2(13952, 40)
 texture = ExtResource("35_route_floor_tile")
 
+[node name="FactoryRouteFloorVisual70" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(14208, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual71" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(14464, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual72" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(14720, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual73" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(14976, 40)
+texture = ExtResource("35_route_floor_tile")
+
 [node name="LeftWall" type="StaticBody2D" parent="."]
 position = Vector2(20, 360)
 collision_layer = 16
@@ -520,7 +545,7 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_wall")
 
 [node name="RightWall" type="StaticBody2D" parent="."]
-position = Vector2(17280, 360)
+position = Vector2(18120, 360)
 collision_layer = 16
 collision_mask = 0
 
@@ -576,7 +601,7 @@ position = Vector2(136, 456)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 17300
+limit_right = 18140
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
@@ -2452,6 +2477,11 @@ texture = ExtResource("8_vent_texture")
 position = Vector2(0, -36)
 shape = SubResource("RectangleShape2D_steam_vent")
 disabled = true
+
+[node name="FactoryTailraceExitSluiceLeech" parent="." instance=ExtResource("40_sluice_leech")]
+visible = false
+z_index = 20
+position = Vector2(17760, 482)
 
 [node name="FactorySteamVentHazard" type="Area2D" parent="."]
 z_index = 18

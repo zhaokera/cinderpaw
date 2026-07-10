@@ -15,9 +15,9 @@ const PINCER_EXIT_SPILLWAY_HAZARD_ID: String = (
 )
 const PINCER_EXIT_SPILLWAY_ACTIVATION_X: float = 16560.0
 const PINCER_EXIT_SPILLWAY_EXIT_X: float = 17040.0
-const SERVICE_SLUICE_LANDING_TEXTURE: String = (
-	"res://assets/environment/old_factory_runoff_service_hatch_landing/"
-	+ "env_old_factory_runoff_service_hatch_landing_768.png"
+const TAILRACE_EXIT_SPILLWAY_TEXTURE: String = (
+	"res://assets/environment/old_factory_tailrace_exit_spillway/"
+	+ "env_old_factory_tailrace_exit_spillway_768.png"
 )
 const STEAM_VENT_TEXTURE: String = (
 	"res://assets/environment/old_factory_steam_vent/factory_steam_vent_hazard.png"
@@ -38,7 +38,7 @@ func after_test() -> void:
 
 
 func test_pincer_exit_spillway_requires_hatch_and_uses_active_only_contact() -> void:
-	assert_bool(FileAccess.file_exists(SERVICE_SLUICE_LANDING_TEXTURE)).is_true()
+	assert_bool(FileAccess.file_exists(TAILRACE_EXIT_SPILLWAY_TEXTURE)).is_true()
 	assert_bool(FileAccess.file_exists(STEAM_VENT_TEXTURE)).is_true()
 
 	var locked_scene: Node = _factory_scene_with_pincer_exit_spillway_state(false, false)
@@ -105,7 +105,7 @@ func test_pincer_exit_spillway_requires_hatch_and_uses_active_only_contact() -> 
 	assert_int(int(ready.get("hazard_damage", 0))).is_equal(8)
 	assert_float(float(ready.get("hazard_cooldown_sec", 0.0))).is_equal(1.0)
 	assert_str(String(ready.get("duct_texture_path", ""))).is_equal(
-		SERVICE_SLUICE_LANDING_TEXTURE
+		TAILRACE_EXIT_SPILLWAY_TEXTURE
 	)
 	assert_str(String(ready.get("hazard_texture_path", ""))).is_equal(
 		STEAM_VENT_TEXTURE

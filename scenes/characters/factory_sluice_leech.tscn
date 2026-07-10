@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/characters/factory_sluice_leech.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://assets/characters/factory_sluice_leech/factory_sluice_leech_sprite_frames.tres" id="2_frames"]
+
+[node name="FactorySluiceLeech" type="AnimatedSprite2D"]
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+autoplay = "idle"
+script = ExtResource("1_script")

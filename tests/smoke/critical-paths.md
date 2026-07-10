@@ -41,13 +41,17 @@
     activates after the exit hatch opens, uses active-only steam contact,
     crosses the short spillway pocket, and persists crossed state
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_smoke.gd`)
+14. Old Factory tailrace exit Sluice Leech appears only after the spillway is
+    crossed, telegraphs for 18 frames, lunges through the shared hitbox path,
+    and persists its cleared state
+    (`tests/smoke/old_factory_tailrace_exit_spillway_sluice_leech_skirmish_smoke.gd`)
 
 ## Data Integrity
 
-14. Save game completes without error (once save system is implemented)
-15. Load game restores correct state (once load system is implemented)
+15. Save game completes without error (once save system is implemented)
+16. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-16. No visible frame rate drops on target hardware (60fps target)
-17. No memory growth over 5 minutes of play (once core loop is implemented)
+17. No visible frame rate drops on target hardware (60fps target)
+18. No memory growth over 5 minutes of play (once core loop is implemented)
