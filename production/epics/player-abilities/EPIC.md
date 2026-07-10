@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 116 stories tracked
+> **Stories**: 119 stories tracked
 
 ## Overview
 
@@ -156,6 +156,7 @@ recording the reward in progression state.
 | 116 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Exit Hatch Handoff | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
 | 117 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Tailrace Traverse | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 118 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Tailrace Ambush | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0004/0005/0007/0018/0021 |
+| 119 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Tailrace Relay | Integration + Save/Respawn Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -175,8 +176,8 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-118 are complete. Continue deeper Old Factory route content after the
-service-sluice tailrace ambush, broader MainScene art cleanup, minimap gameplay,
+Stories001-119 are complete. Continue deeper Old Factory route content after the
+service-sluice tailrace relay, broader MainScene art cleanup, minimap gameplay,
 additional player-visible character/enemy frame-animation replacement, more
 skill-tree branches, authored hazard/audio polish, or final Boss2
 balancing/cutscene polish.

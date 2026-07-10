@@ -186,9 +186,15 @@ func test_tailrace_ambush_defeat_persists_and_backfills_service_sluice_chain(
 	assert_bool(bool(cleared.get("coil_visible", true))).is_false()
 	assert_bool(bool(cleared.get("coil_physics_enabled", true))).is_false()
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
-		"Tailrace Coil Rat Cleared"
+		"Repair Tailrace Relay"
 	)
-	assert_bool(bool(destination.call("is_factory_route_objective_complete"))).is_true()
+	assert_bool(bool(destination.call("is_factory_route_objective_complete"))).is_false()
+	var relay: Dictionary = destination.call(
+		"get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_diagnostics"
+	)
+	assert_bool(bool(relay.get("available", false))).is_true()
+	assert_bool(bool(relay.get("visible", false))).is_true()
+	assert_bool(bool(relay.get("activated", true))).is_false()
 
 	var local_state: Dictionary = destination.call("get_local_state")
 	assert_bool(bool(local_state.get(
@@ -216,8 +222,13 @@ func test_tailrace_ambush_defeat_persists_and_backfills_service_sluice_chain(
 	assert_bool(bool(restored_ambush.get("coil_visible", true))).is_false()
 	assert_bool(bool(restored_ambush.get("tailrace_crossed", false))).is_true()
 	assert_str(String(restored_ambush.get("route_label_text", ""))).is_equal(
-		"Tailrace Coil Rat Cleared"
+		"Repair Tailrace Relay"
 	)
+	var restored_relay: Dictionary = restored.call(
+		"get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_diagnostics"
+	)
+	assert_bool(bool(restored_relay.get("available", false))).is_true()
+	assert_bool(bool(restored_relay.get("activated", true))).is_false()
 	var restored_tailrace: Dictionary = restored.call(
 		"get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_diagnostics"
 	)

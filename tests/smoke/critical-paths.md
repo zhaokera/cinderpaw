@@ -18,13 +18,16 @@
 6. [Player can dodge with i-frames — update when dodge is implemented]
 7. Old Factory service sluice exit hatch opens after the service sluice cache
    claim and persists opened state (`tests/smoke/old_factory_service_sluice_exit_hatch_smoke.gd`)
+8. Old Factory service sluice tailrace relay activates after the tailrace
+   ambush, records the savepoint, and respawns at the relay
+   (`tests/smoke/old_factory_service_sluice_tailrace_relay_smoke.gd`)
 
 ## Data Integrity
 
-8. Save game completes without error (once save system is implemented)
-9. Load game restores correct state (once load system is implemented)
+9. Save game completes without error (once save system is implemented)
+10. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-10. No visible frame rate drops on target hardware (60fps target)
-11. No memory growth over 5 minutes of play (once core loop is implemented)
+11. No visible frame rate drops on target hardware (60fps target)
+12. No memory growth over 5 minutes of play (once core loop is implemented)

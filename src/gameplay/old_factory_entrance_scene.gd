@@ -114,6 +114,9 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUN
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace"
 )
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_ID: StringName = (
+	&"old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay"
+)
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_INITIAL_GRACE_SEC: float = 0.25
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_WARNING_SEC: float = 0.35
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_ACTIVE_SEC: float = 0.40
@@ -423,6 +426,12 @@ const FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUM
 const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_AMBUSH_CLEARED: StringName = (
 	&"forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_cleared"
 )
+const FACTORY_OBJECTIVE_REPAIR_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY: StringName = (
+	&"repair_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay"
+)
+const FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_SECURED: StringName = (
+	&"forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_secured"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -571,6 +580,9 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_SPAWN_POINT: StringName = (
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SPAWN_POINT: StringName = (
 	&"lower_deck_forward_pressure_aftershock_condenser_savepoint"
 )
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_SPAWN_POINT: StringName = (
+	&"lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay"
+)
 const FACTORY_SERVICE_LIFT_ENDPOINT_ID: StringName = &"old_factory_service_lift"
 const FACTORY_SERVICE_LIFT_EXIT_SCENE_ID: StringName = &"main"
 const FACTORY_SERVICE_LIFT_EXIT_SPAWN_POINT: StringName = &"scrap_roost"
@@ -585,6 +597,9 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_EXIT_RELAY_RESPAWN_LABEL: String = (
 )
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_RESPAWN_LABEL: String = (
 	"Returned to Aftershock Condenser Savepoint"
+)
+const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_RESPAWN_LABEL: String = (
+	"Returned to Tailrace Relay"
 )
 const GAME_FLOW_SCRIPT: Script = preload("res://src/gameplay/game_flow_controller.gd")
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
@@ -887,6 +902,11 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 		"FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceCoilRat"
 	) as Node2D
 )
+@onready var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay: Node = (
+	get_node_or_null(
+		"FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelaySavepoint"
+	)
+)
 @onready var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_duct: Sprite2D = (
 	get_node_or_null(
 		"FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletDuct"
@@ -1157,6 +1177,7 @@ var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outle
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_elapsed_sec: float = 0.0
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_coil_rat_defeated: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated: bool = false
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -1237,6 +1258,7 @@ func _ready() -> void:
 	_setup_overflow_pump_runoff_outlet_service_sluice_exit_hatch()
 	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_state()
 	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_state()
+	_setup_overflow_pump_runoff_outlet_service_sluice_tailrace_relay()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -1652,6 +1674,7 @@ func get_last_discovered_savepoint() -> Dictionary:
 			or _lower_deck_breach_relay_activated
 			or _lower_deck_forward_pressure_exit_relay_activated
 			or _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated
+			or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated
 		)
 		else {}
 	)
@@ -1662,11 +1685,13 @@ func clear_last_discovered_savepoint() -> bool:
 	_lower_deck_breach_relay_activated = false
 	_lower_deck_forward_pressure_exit_relay_activated = false
 	_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated = false
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated = false
 	_last_return_checkpoint.clear()
 	_sync_return_checkpoint_state()
 	_sync_lower_deck_breach_relay_state()
 	_sync_lower_deck_forward_pressure_exit_relay_state()
 	_sync_lower_deck_forward_pressure_aftershock_condenser_savepoint_state()
+	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_state()
 	return true
 
 
@@ -3634,6 +3659,37 @@ func try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_savep
 	return true
 
 
+## Activates the service-sluice tailrace relay after the Coil Rat ambush is cleared.
+func try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay(
+	provider: Node = null
+) -> bool:
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay == null
+		or not _is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_available()
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated
+	):
+		return false
+	var activation_provider: Node = provider if provider != null else _player
+	if not _is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_provider_in_range(
+		activation_provider
+	):
+		return false
+	if (
+		not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay.has_method(
+			"try_activate"
+		)
+		or not bool(_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay.call(
+			"try_activate",
+			activation_provider
+		))
+	):
+		return false
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated = true
+	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_state(true)
+	_update_route_label("Tailrace Relay Secured")
+	return true
+
+
 ## Starts the Story096 condenser outlet traversal beyond the condenser savepoint.
 func try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_outlet(
 	provider: Node = null
@@ -4420,6 +4476,9 @@ func get_local_state() -> Dictionary:
 			),
 			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_cleared": (
 				_is_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_cleared()
+			),
+			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated": (
+				_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated
 			),
 			"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
@@ -5260,6 +5319,16 @@ func set_local_state(state: Dictionary) -> void:
 			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_coil_rat_defeated
 		)
 	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated = bool(
+		state.get(
+			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated",
+			false
+		)
+	)
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated:
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_activated = true
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_coil_rat_defeated = true
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_crossed = true
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_coil_rat_defeated:
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_activated = true
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_crossed = true
@@ -5701,6 +5770,13 @@ func set_local_state(state: Dictionary) -> void:
 			== String(FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_ID)
 		):
 			_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated = true
+		if (
+			String(_last_return_checkpoint.get("id", ""))
+			== String(
+				FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_ID
+			)
+		):
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated = true
 	if (
 		_lower_deck_forward_pressure_exit_relay_activated
 		and (
@@ -5721,6 +5797,20 @@ func set_local_state(state: Dictionary) -> void:
 	):
 		_last_return_checkpoint = (
 			_build_aftershock_condenser_savepoint_checkpoint_snapshot()
+		)
+		_return_checkpoint_activated = true
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated
+		and (
+			_last_return_checkpoint.is_empty()
+			or String(_last_return_checkpoint.get("id", ""))
+			!= String(
+				FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_ID
+			)
+		)
+	):
+		_last_return_checkpoint = (
+			_build_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_checkpoint_snapshot()
 		)
 		_return_checkpoint_activated = true
 	var hazard_variant: Variant = state.get("last_hazard_damage", {})
@@ -5820,6 +5910,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_overflow_pump_runoff_outlet_service_sluice_exit_hatch_state()
 	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_state()
 	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_state()
+	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -5990,6 +6081,40 @@ func _get_factory_route_floor_visual_tiles() -> Array[Sprite2D]:
 		if child is Sprite2D and String(child.name).begins_with("FactoryRouteFloorVisual"):
 			tiles.append(child as Sprite2D)
 	return tiles
+
+
+func _get_factory_route_right_wall_x() -> float:
+	var right_wall := get_node_or_null("RightWall") as Node2D
+	return right_wall.global_position.x if right_wall != null else 0.0
+
+
+func _get_factory_route_camera_limit_right() -> int:
+	var camera := get_node_or_null("Player/Camera2D") as Camera2D
+	return camera.limit_right if camera != null else 0
+
+
+func _get_factory_route_background_width() -> float:
+	var background := get_node_or_null("Background") as TextureRect
+	return background.size.x if background != null else 0.0
+
+
+func _get_factory_route_ground_right_edge_x() -> float:
+	var ground := get_node_or_null("Ground") as Node2D
+	var ground_shape := get_node_or_null("Ground/CollisionShape2D") as CollisionShape2D
+	var ground_rect := (
+		ground_shape.shape as RectangleShape2D
+		if ground_shape != null and ground_shape.shape is RectangleShape2D
+		else null
+	)
+	return (
+		ground.global_position.x + (ground_rect.size.x * 0.5)
+		if ground != null and ground_rect != null
+		else 0.0
+	)
+
+
+func _get_factory_route_floor_tile_count() -> int:
+	return _get_factory_route_floor_visual_tiles().size()
 
 
 func _build_factory_route_floor_visual_snapshot(tiles: Array[Sprite2D]) -> Dictionary:
@@ -8536,6 +8661,77 @@ func get_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_diag
 			)
 			else Vector2.ZERO
 		),
+		"last_savepoint": _last_return_checkpoint.duplicate(true),
+		"route_label_text": String(route.get("route_label_text", "")),
+	}
+
+
+## Returns deterministic service-sluice tailrace relay diagnostics for tests and MCP probes.
+func get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_diagnostics(
+) -> Dictionary:
+	var relay: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+	)
+	var interaction_area := (
+		relay.get_node_or_null("InteractionArea") as Area2D
+		if relay != null
+		else null
+	)
+	var collision_shape := (
+		relay.get_node_or_null("InteractionArea/CollisionShape2D") as CollisionShape2D
+		if relay != null
+		else null
+	)
+	var route: Dictionary = get_factory_route_objective_diagnostics()
+	var activation_vfx_snapshot: Dictionary = (
+		_get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activation_vfx_snapshot()
+	)
+	return {
+		"present": relay != null,
+		"available": _is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_available(),
+		"visible": relay.visible if relay != null else false,
+		"activated": (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated
+		),
+		"tailrace_ambush_cleared": (
+			_is_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_cleared()
+		),
+		"savepoint_id": (
+			_get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_savepoint_id()
+		),
+		"scene_id": (
+			_get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_scene_id()
+		),
+		"spawn_point": (
+			_get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_spawn_point()
+		),
+		"display_name": (
+			_get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_display_name()
+		),
+		"prompt_text": (
+			_get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_prompt_text()
+		),
+		"texture_path": (
+			_get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_texture_path()
+		),
+		"activation_vfx_texture_path": String(activation_vfx_snapshot.get(
+			"texture_path",
+			""
+		)),
+		"activation_vfx_spawn_count": int(activation_vfx_snapshot.get("spawn_count", 0)),
+		"interaction_monitoring": interaction_area.monitoring if interaction_area != null else false,
+		"interaction_monitorable": interaction_area.monitorable if interaction_area != null else false,
+		"collision_disabled": collision_shape.disabled if collision_shape != null else true,
+		"position": (
+			(relay as Node2D).global_position
+			if relay != null and relay is Node2D
+			else Vector2.ZERO
+		),
+		"right_wall_x": _get_factory_route_right_wall_x(),
+		"camera_limit_right": _get_factory_route_camera_limit_right(),
+		"background_width": _get_factory_route_background_width(),
+		"ground_right_edge_x": _get_factory_route_ground_right_edge_x(),
+		"floor_tile_count": _get_factory_route_floor_tile_count(),
 		"last_savepoint": _last_return_checkpoint.duplicate(true),
 		"route_label_text": String(route.get("route_label_text", "")),
 	}
@@ -11588,6 +11784,9 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 		or spawn_point == (
 			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SPAWN_POINT
 		)
+		or spawn_point == (
+			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_SPAWN_POINT
+		)
 	):
 		_grant_factory_hazard_respawn_grace()
 	if not _move_player_to_spawn_point(spawn_point):
@@ -11613,6 +11812,15 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 		_update_route_label(
 			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_RESPAWN_LABEL
 		)
+	elif (
+		spawn_point
+		== FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_SPAWN_POINT
+	):
+		_factory_return_checkpoint_spawn_snap_frames = 0
+		_set_player_physics_pinned_for_return_checkpoint(false)
+		_update_route_label(
+			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_RESPAWN_LABEL
+		)
 	else:
 		_factory_return_checkpoint_spawn_snap_frames = 0
 		_set_player_physics_pinned_for_return_checkpoint(false)
@@ -11636,6 +11844,14 @@ func _move_player_to_spawn_point(spawn_point: StringName) -> bool:
 		== FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_SPAWN_POINT
 	):
 		spawn_node = _lower_deck_forward_pressure_aftershock_condenser_savepoint as Node2D
+	elif (
+		spawn_point
+		== FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_SPAWN_POINT
+	):
+		spawn_node = (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+			as Node2D
+		)
 	if spawn_node == null:
 		return false
 	_player.global_position = spawn_node.global_position
@@ -12366,6 +12582,28 @@ func _setup_overflow_pump_runoff_outlet_service_sluice_exit_hatch() -> void:
 		)
 
 
+func _setup_overflow_pump_runoff_outlet_service_sluice_tailrace_relay() -> void:
+	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_state()
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay == null
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay.has_signal(
+			"savepoint_activated"
+		)
+	):
+		return
+	var activated_signal: Signal = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay.get(
+			"savepoint_activated"
+		)
+	)
+	if not activated_signal.is_connected(
+		_on_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated
+	):
+		activated_signal.connect(
+			_on_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated
+		)
+
+
 func _setup_factory_respawn_flow() -> void:
 	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
 		var existing_flow := get_node_or_null("FactoryGameFlowController") as GameFlowController
@@ -12861,6 +13099,7 @@ func _on_overflow_pump_runoff_outlet_service_sluice_tailrace_coil_rat_defeated()
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_activated = true
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_coil_rat_defeated = true
 	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_state()
+	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_state()
 	_refresh_factory_route_objective()
 
 
@@ -13182,6 +13421,33 @@ func _on_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_acti
 	_update_route_label("Aftershock Condenser Savepoint Secured")
 
 
+func _on_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated(
+	savepoint_id: StringName,
+	scene_id: StringName,
+	spawn_point: StringName,
+	world_position: Vector2,
+	context: Dictionary
+) -> void:
+	if (
+		savepoint_id
+		!= FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_ID
+	):
+		return
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated = true
+	_last_return_checkpoint = _build_return_checkpoint_snapshot(
+		savepoint_id,
+		scene_id,
+		spawn_point,
+		world_position,
+		context
+	)
+	_return_checkpoint_activated = true
+	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_state(true)
+	_update_route_label("Tailrace Relay Secured")
+
+
 func _on_factory_player_died(_death_metadata: Dictionary) -> void:
 	if _factory_game_flow == null or not is_instance_valid(_factory_game_flow):
 		return
@@ -13211,6 +13477,12 @@ func _on_factory_respawn_requested(respawn_position: Vector2, revive_hp_percenta
 	):
 		_update_route_label(
 			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_RESPAWN_LABEL
+		)
+	elif String(selected_respawn_point.get("spawn_point", "")) == String(
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_SPAWN_POINT
+	):
+		_update_route_label(
+			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_RESPAWN_LABEL
 		)
 	_apply_current_scene_manager_spawn_point()
 
@@ -15275,6 +15547,46 @@ func _sync_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_state() ->
 	)
 
 
+func _sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_state(
+	defer_interaction_changes: bool = false
+) -> void:
+	var relay: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+	)
+	if relay == null:
+		return
+	var available: bool = (
+		_is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_available()
+	)
+	var relay_visible: bool = (
+		available
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated
+	)
+	relay.visible = relay_visible
+	var interaction_area := relay.get_node_or_null("InteractionArea") as Area2D
+	if interaction_area != null:
+		if interaction_area.monitoring != available:
+			if defer_interaction_changes:
+				interaction_area.set_deferred("monitoring", available)
+			else:
+				interaction_area.monitoring = available
+		if interaction_area.monitorable != available:
+			if defer_interaction_changes:
+				interaction_area.set_deferred("monitorable", available)
+			else:
+				interaction_area.monitorable = available
+	var collision_shape := (
+		relay.get_node_or_null("InteractionArea/CollisionShape2D") as CollisionShape2D
+	)
+	if collision_shape != null:
+		var should_disable: bool = not available
+		if collision_shape.disabled != should_disable:
+			if defer_interaction_changes:
+				collision_shape.set_deferred("disabled", should_disable)
+			else:
+				collision_shape.disabled = should_disable
+
+
 func _sync_lower_deck_forward_pressure_exit_gate_state() -> void:
 	if _lower_deck_forward_pressure_exit_gate == null:
 		return
@@ -15427,6 +15739,14 @@ func _get_factory_route_objective_id() -> StringName:
 	if _is_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_active():
 		return (
 			FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_AMBUSH
+		)
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated:
+		return (
+			FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_SECURED
+		)
+	if _is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_available():
+		return (
+			FACTORY_OBJECTIVE_REPAIR_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY
 		)
 	if _is_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_cleared():
 		return (
@@ -15665,6 +15985,23 @@ func _get_factory_route_objective_id() -> StringName:
 
 
 func _get_factory_route_objective_text(objective_id: StringName) -> String:
+	if (
+		objective_id
+		== FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_AMBUSH_CLEARED
+	):
+		return "Tailrace Coil Rat Cleared"
+	if (
+		objective_id
+		== FACTORY_OBJECTIVE_REPAIR_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY
+	):
+		return "Repair Tailrace Relay"
+	if (
+		objective_id
+		== FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_SECURED
+	):
+		return "Tailrace Relay Secured"
+	if objective_id == FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OUTLET_CROSSED:
+		return "Aftershock Condenser Outlet Crossed"
 	match objective_id:
 		FACTORY_OBJECTIVE_CLEAR_ENTRANCE:
 			return "Clear Factory Entrance"
@@ -15908,10 +16245,6 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Service Sluice Tailrace Crossed"
 		FACTORY_OBJECTIVE_CLEAR_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_AMBUSH:
 			return "Clear Tailrace Coil Rat"
-		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_AMBUSH_CLEARED:
-			return "Tailrace Coil Rat Cleared"
-		FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OUTLET_CROSSED:
-			return "Aftershock Condenser Outlet Crossed"
 		_:
 			return "Clear Factory Entrance"
 
@@ -17745,6 +18078,109 @@ func _get_lower_deck_forward_pressure_aftershock_condenser_savepoint_prompt_text
 		else null
 	)
 	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_savepoint_id(
+) -> String:
+	var relay: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+	)
+	if relay != null and relay.has_method("get_savepoint_id"):
+		return String(relay.call("get_savepoint_id"))
+	return String(
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_ID
+	)
+
+
+func _get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_scene_id(
+) -> String:
+	var relay: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+	)
+	if relay != null and relay.has_method("get_scene_id"):
+		return String(relay.call("get_scene_id"))
+	return String(FACTORY_SCENE_ID)
+
+
+func _get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_spawn_point(
+) -> String:
+	var relay: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+	)
+	if relay != null and relay.has_method("get_spawn_point"):
+		return String(relay.call("get_spawn_point"))
+	return String(
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_SPAWN_POINT
+	)
+
+
+func _get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_display_name(
+) -> String:
+	var relay: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+	)
+	if relay != null and relay.has_method("get_display_name"):
+		return String(relay.call("get_display_name"))
+	return "Tailrace Relay"
+
+
+func _get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_texture_path(
+) -> String:
+	var relay: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+	)
+	if relay != null and relay.has_method("get_visual_texture_path"):
+		return String(relay.call("get_visual_texture_path"))
+	return ""
+
+
+func _get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_prompt_text(
+) -> String:
+	var relay: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+	)
+	var prompt_label := (
+		relay.get_node_or_null("PromptLabel") as Label
+		if relay != null
+		else null
+	)
+	return prompt_label.text if prompt_label != null else ""
+
+
+func _get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activation_vfx_snapshot(
+) -> Dictionary:
+	var relay: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+	)
+	if relay != null and relay.has_method("get_activation_vfx_snapshot"):
+		var snapshot_variant: Variant = relay.call("get_activation_vfx_snapshot")
+		if snapshot_variant is Dictionary:
+			return (snapshot_variant as Dictionary).duplicate(true)
+	return {}
+
+
+func _build_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_checkpoint_snapshot(
+) -> Dictionary:
+	var world_position := Vector2.ZERO
+	if (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+		is Node2D
+	):
+		world_position = (
+			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+			as Node2D
+		).global_position
+	return _build_return_checkpoint_snapshot(
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_ID,
+		FACTORY_SCENE_ID,
+		FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_SPAWN_POINT,
+		world_position,
+		{
+			"display_name": (
+				_get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_display_name()
+			),
+		}
+	)
 
 
 func _build_aftershock_condenser_savepoint_checkpoint_snapshot() -> Dictionary:
@@ -20450,6 +20886,22 @@ func _is_lower_deck_forward_pressure_aftershock_condenser_savepoint_provider_in_
 	)
 
 
+func _is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_provider_in_range(
+	provider: Node
+) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	var relay: Node = (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
+	)
+	if relay == null or not relay is Node2D:
+		return false
+	return (
+		(provider as Node2D).global_position.distance_to((relay as Node2D).global_position)
+		<= FACTORY_RETURN_CHECKPOINT_ACTIVATION_RADIUS
+	)
+
+
 func _is_lower_deck_forward_pressure_exit_gate_provider_in_range(provider: Node) -> bool:
 	if provider == null or not provider is Node2D:
 		return false
@@ -21978,6 +22430,14 @@ func _is_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_cleared(
 	return (
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_activated
 		and _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_coil_rat_defeated
+	)
+
+
+func _is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_available(
+) -> bool:
+	return (
+		_is_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_cleared()
+		and not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated
 	)
 
 
