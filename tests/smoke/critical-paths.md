@@ -37,13 +37,17 @@
     after the pincer reward cache is claimed, opens once, clears collision, and
     persists opened state
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_smoke.gd`)
+13. Old Factory service sluice tailrace relay runoff pincer exit spillway
+    activates after the exit hatch opens, uses active-only steam contact,
+    crosses the short spillway pocket, and persists crossed state
+    (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_smoke.gd`)
 
 ## Data Integrity
 
-13. Save game completes without error (once save system is implemented)
-14. Load game restores correct state (once load system is implemented)
+14. Save game completes without error (once save system is implemented)
+15. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-15. No visible frame rate drops on target hardware (60fps target)
-16. No memory growth over 5 minutes of play (once core loop is implemented)
+16. No visible frame rate drops on target hardware (60fps target)
+17. No memory growth over 5 minutes of play (once core loop is implemented)

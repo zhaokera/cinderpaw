@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 123 stories tracked
+> **Stories**: 124 stories tracked
 
 ## Overview
 
@@ -161,6 +161,7 @@ recording the reward in progression state.
 | 121 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Tailrace Relay Runoff Pincer | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0004/0005/0007/0018/0021 |
 | 122 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Tailrace Relay Runoff Pincer Reward Cache | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
 | 123 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Tailrace Relay Runoff Pincer Exit Hatch Handoff | Integration + Gameplay Runtime + UI/Visual | Complete | ADR-0004/0007/0018/0021 |
+| 124 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Tailrace Relay Runoff Pincer Exit Spillway Traverse | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -180,8 +181,8 @@ This epic is complete when:
 
 ## Next Step
 
-Stories001-122 are complete. Continue deeper Old Factory route content after the
-service-sluice tailrace relay runoff pincer reward cache, broader MainScene art cleanup,
+Stories001-124 are complete. Continue deeper Old Factory route content after the
+service-sluice tailrace relay runoff pincer exit spillway, broader MainScene art cleanup,
 minimap gameplay, additional player-visible character/enemy frame-animation
 replacement, more skill-tree branches, authored hazard/audio polish, or final
 Boss2 balancing/cutscene polish.
