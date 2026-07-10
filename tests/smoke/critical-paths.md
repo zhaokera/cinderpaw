@@ -25,13 +25,17 @@
    uses active-only steam contact, crosses the post-relay pocket, and persists
    crossed state
    (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_smoke.gd`)
+10. Old Factory service sluice tailrace relay runoff pincer activates after
+    Story120, reveals frame-animated Spark/Coil Rats, requires both defeats,
+    and persists cleared state
+    (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_smoke.gd`)
 
 ## Data Integrity
 
-10. Save game completes without error (once save system is implemented)
-11. Load game restores correct state (once load system is implemented)
+11. Save game completes without error (once save system is implemented)
+12. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-12. No visible frame rate drops on target hardware (60fps target)
-13. No memory growth over 5 minutes of play (once core loop is implemented)
+13. No visible frame rate drops on target hardware (60fps target)
+14. No memory growth over 5 minutes of play (once core loop is implemented)

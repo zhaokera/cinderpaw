@@ -40,7 +40,7 @@
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_runoff_service_hatch_landing/env_old_factory_runoff_service_hatch_landing_768.png" id="38_service_sluice_landing_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
-size = Vector2(22800, 40)
+size = Vector2(25000, 40)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
 size = Vector2(40, 720)
@@ -72,7 +72,7 @@ metadata/scene_id = "area_03_factory"
 
 [node name="Background" type="TextureRect" parent="."]
 z_index = -100
-offset_right = 14520.0
+offset_right = 15600.0
 offset_bottom = 720.0
 texture = ExtResource("3_backdrop")
 expand_mode = 1
@@ -462,6 +462,18 @@ z_as_relative = false
 position = Vector2(11904, 40)
 texture = ExtResource("35_route_floor_tile")
 
+[node name="FactoryRouteFloorVisual62" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(12160, 40)
+texture = ExtResource("35_route_floor_tile")
+
+[node name="FactoryRouteFloorVisual63" type="Sprite2D" parent="Ground"]
+z_index = 11
+z_as_relative = false
+position = Vector2(12416, 40)
+texture = ExtResource("35_route_floor_tile")
+
 [node name="LeftWall" type="StaticBody2D" parent="."]
 position = Vector2(20, 360)
 collision_layer = 16
@@ -471,7 +483,7 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_wall")
 
 [node name="RightWall" type="StaticBody2D" parent="."]
-position = Vector2(14500, 360)
+position = Vector2(15580, 360)
 collision_layer = 16
 collision_mask = 0
 
@@ -527,7 +539,7 @@ position = Vector2(136, 456)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 14520
+limit_right = 15600
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
@@ -2278,6 +2290,16 @@ texture = ExtResource("8_vent_texture")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffVent"]
 position = Vector2(0, -36)
 shape = SubResource("RectangleShape2D_steam_vent")
+
+[node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerSparkRat" parent="." instance=ExtResource("13_spark_rat")]
+visible = false
+z_index = 20
+position = Vector2(14760, 482)
+
+[node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerCoilRat" parent="." instance=ExtResource("27_coil_rat")]
+visible = false
+z_index = 20
+position = Vector2(15280, 482)
 
 [node name="FactorySteamVentHazard" type="Area2D" parent="."]
 z_index = 18
