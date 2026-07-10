@@ -1,0 +1,23 @@
+{
+  "asset_id": "old_factory_tailrace_exit_spillway",
+  "source": "image generation",
+  "date": "2026-07-10",
+  "use_case": "stylized-concept",
+  "source_path": "res://assets/generated/source/old_factory_tailrace_exit_spillway_imagegen_20260710.png",
+  "alpha_source_path": "res://assets/generated/source/old_factory_tailrace_exit_spillway_alpha_20260710.png",
+  "runtime_path": "res://assets/environment/old_factory_tailrace_exit_spillway/env_old_factory_tailrace_exit_spillway_768.png",
+  "runtime_size": {
+    "width": 768,
+    "height": 320
+  },
+  "prompt_summary": "Pixel-art Old Factory tailrace exit spillway duct bridge with damp runoff mouth, riveted blue-grey steel, copper pipes, cyan guide lamps, rust-orange hazard stripes, wet rust stains, soot, bolts, and readable side-view platformer silhouette on a flat chroma-key background.",
+  "processing": [
+    "Generated on flat #00ff00 chroma-key background.",
+    "Removed chroma-key background with remove_chroma_key.py using border auto-key, soft matte, and despill.",
+    "Cropped to alpha bounds, centered, and resized into a 768x320 transparent runtime PNG."
+  ],
+  "used_by": [
+    "res://scenes/factory_route_transition_shell.tscn",
+    "Player Abilities Story125"
+  ]
+}

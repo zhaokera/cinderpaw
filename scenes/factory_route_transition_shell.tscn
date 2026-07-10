@@ -1,4 +1,4 @@
-[gd_scene load_steps=48 format=3]
+[gd_scene load_steps=49 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -38,6 +38,7 @@
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_route_platform/env_old_factory_route_entry_platform_320x96.png" id="36_entry_platform_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_route_platform/env_old_factory_route_cache_platform_320x96.png" id="37_cache_platform_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_runoff_service_hatch_landing/env_old_factory_runoff_service_hatch_landing_768.png" id="38_service_sluice_landing_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_tailrace_exit_spillway/env_old_factory_tailrace_exit_spillway_768.png" id="39_tailrace_exit_spillway_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(28400, 40)
@@ -2426,7 +2427,7 @@ z_index = 12
 z_as_relative = false
 position = Vector2(16720, 392)
 scale = Vector2(0.78, 0.78)
-texture = ExtResource("38_service_sluice_landing_texture")
+texture = ExtResource("39_tailrace_exit_spillway_texture")
 
 [node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerExitSpillwayVent" type="Area2D" parent="."]
 visible = false
