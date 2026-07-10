@@ -191,7 +191,7 @@ func test_tailrace_relay_runoff_pincer_reward_cache_restore_backfills_pincer_cha
 	assert_bool(bool(restored_cache.get("pincer_cleared", false))).is_true()
 	assert_bool(bool(restored_cache.get("claim_available", true))).is_false()
 	assert_str(String(restored_cache.get("route_label_text", ""))).is_equal(
-		"Tailrace Runoff Pincer Cache Claimed +20 Gears"
+		"Open Tailrace Runoff Exit"
 	)
 
 	var pincer: Dictionary = restored.call(

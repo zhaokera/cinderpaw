@@ -33,13 +33,17 @@
     only after the pincer is cleared, claims once for `+20 Gears`, and persists
     claimed state
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_reward_cache_smoke.gd`)
+12. Old Factory service sluice tailrace relay runoff pincer exit hatch appears
+    after the pincer reward cache is claimed, opens once, clears collision, and
+    persists opened state
+    (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_smoke.gd`)
 
 ## Data Integrity
 
-12. Save game completes without error (once save system is implemented)
-13. Load game restores correct state (once load system is implemented)
+13. Save game completes without error (once save system is implemented)
+14. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-14. No visible frame rate drops on target hardware (60fps target)
-15. No memory growth over 5 minutes of play (once core loop is implemented)
+15. No visible frame rate drops on target hardware (60fps target)
+16. No memory growth over 5 minutes of play (once core loop is implemented)
