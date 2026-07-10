@@ -29,13 +29,17 @@
     Story120, reveals frame-animated Spark/Coil Rats, requires both defeats,
     and persists cleared state
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_smoke.gd`)
+11. Old Factory service sluice tailrace relay runoff pincer reward cache appears
+    only after the pincer is cleared, claims once for `+20 Gears`, and persists
+    claimed state
+    (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_reward_cache_smoke.gd`)
 
 ## Data Integrity
 
-11. Save game completes without error (once save system is implemented)
-12. Load game restores correct state (once load system is implemented)
+12. Save game completes without error (once save system is implemented)
+13. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-13. No visible frame rate drops on target hardware (60fps target)
-14. No memory growth over 5 minutes of play (once core loop is implemented)
+14. No visible frame rate drops on target hardware (60fps target)
+15. No memory growth over 5 minutes of play (once core loop is implemented)

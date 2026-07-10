@@ -2301,6 +2301,44 @@ visible = false
 z_index = 20
 position = Vector2(15280, 482)
 
+[node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerRewardCache" type="Node2D" parent="."]
+visible = false
+z_index = 22
+position = Vector2(15460, 410)
+script = ExtResource("7_cache_script")
+cache_id = &"old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_reward_cache"
+reward_source = &"old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_reward_cache"
+reward_gears = 20
+claim_radius_px = 96.0
+locked_prompt_text = "Clear tailrace runoff pincer"
+available_prompt_text = "+20 Gears"
+claimed_prompt_text = "Claimed"
+
+[node name="Visual" type="Sprite2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerRewardCache"]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("20_lower_deck_cache_texture")
+
+[node name="PromptLabel" type="Label" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerRewardCache"]
+z_index = 4
+offset_left = -102.0
+offset_top = -84.0
+offset_right = 102.0
+offset_bottom = -58.0
+theme_override_colors/font_color = Color(1, 0.86, 0.24, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.72)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "Clear tailrace runoff pincer"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerRewardCache"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerRewardCache/InteractionArea"]
+shape = SubResource("CircleShape2D_cache_interaction")
+
 [node name="FactorySteamVentHazard" type="Area2D" parent="."]
 z_index = 18
 position = Vector2(642, 466)
