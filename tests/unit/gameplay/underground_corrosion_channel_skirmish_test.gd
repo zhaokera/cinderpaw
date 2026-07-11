@@ -22,7 +22,7 @@ const LEECH_SPRITE_FRAMES_PATH: String = (
 	"res://assets/characters/factory_sluice_leech/"
 	+ "factory_sluice_leech_sprite_frames.tres"
 )
-const ROUTE_WIDTH_PX: int = 2560
+const MIN_CORROSION_ROUTE_WIDTH_PX: int = 2560
 const ENCOUNTER_ACTIVATION_X: float = 1450.0
 const LEFT_ENTITY_ID: int = 2401
 const RIGHT_ENTITY_ID: int = 2402
@@ -81,7 +81,7 @@ func test_authored_corrosion_channel_combat_slice_contract() -> void:
 	assert_that(camera).is_not_null()
 	if camera != null:
 		assert_int(camera.limit_left).is_equal(0)
-		assert_int(camera.limit_right).is_equal(ROUTE_WIDTH_PX)
+		assert_int(camera.limit_right).is_greater_equal(MIN_CORROSION_ROUTE_WIDTH_PX)
 
 	var frames: SpriteFrames = load(LEECH_SPRITE_FRAMES_PATH) as SpriteFrames
 	assert_that(frames).is_not_null()
@@ -93,7 +93,10 @@ func test_authored_corrosion_channel_combat_slice_contract() -> void:
 	if not scene.has_method("get_underground_combat_diagnostics"):
 		return
 	var diagnostics: Dictionary = scene.call("get_underground_combat_diagnostics")
-	assert_int(int(diagnostics.get("route_width_px", 0))).is_equal(ROUTE_WIDTH_PX)
+	assert_int(int(diagnostics.get(
+		"route_width_px",
+		0
+	))).is_greater_equal(MIN_CORROSION_ROUTE_WIDTH_PX)
 	assert_int(int(diagnostics.get("stepping_platform_count", 0))).is_equal(3)
 	assert_int(int(diagnostics.get("enemy_count", 0))).is_equal(2)
 	assert_array(Array(diagnostics.get("enemy_entity_ids", []))).contains_exactly([

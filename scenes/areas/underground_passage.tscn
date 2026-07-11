@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=32 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/underground_passage_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/underground_passage/env_underground_passage_entry_1280x720.png" id="2_background"]
@@ -13,6 +13,12 @@
 [ext_resource type="PackedScene" path="res://src/gameplay/factory_sluice_leech.tscn" id="11_leech"]
 [ext_resource type="Script" path="res://src/feature/underground_salvage_cache.gd" id="12_cache"]
 [ext_resource type="Texture2D" path="res://assets/environment/underground_passage/prop_underground_salvage_cache_256x256.png" id="13_cache_texture"]
+[ext_resource type="Script" path="res://src/gameplay/underground_recovery_cistern_controller.gd" id="14_recovery_controller"]
+[ext_resource type="Texture2D" path="res://assets/environment/underground_passage/env_underground_recovery_cistern_1280x720.png" id="15_recovery_background"]
+[ext_resource type="Script" path="res://src/feature/savepoint_runtime.gd" id="16_savepoint"]
+[ext_resource type="Texture2D" path="res://assets/environment/underground_passage/prop_underground_recovery_relay_256x256.png" id="17_relay_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/underground_passage/prop_underground_deep_route_endpoint_256x384.png" id="18_endpoint_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_deep_route/vfx/factory_deep_route_unlock_spark.png" id="19_relay_vfx"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(2560, 48)
@@ -35,6 +41,21 @@ size = Vector2(72, 352)
 [sub_resource type="CircleShape2D" id="CircleShape2D_cache"]
 radius = 96.0
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_recovery_approach"]
+size = Vector2(300, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_recovery_exit"]
+size = Vector2(500, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_recovery_fall"]
+size = Vector2(480, 96)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_recovery_relay"]
+radius = 104.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_recovery_endpoint"]
+radius = 112.0
+
 [node name="UndergroundPassageScene" type="Node2D"]
 script = ExtResource("1_scene")
 metadata/scene_id = "area_04_underground_passage"
@@ -50,6 +71,12 @@ z_index = -100
 position = Vector2(1920, 360)
 texture_filter = 1
 texture = ExtResource("7_channel_background")
+
+[node name="RecoveryCisternBackground" type="Sprite2D" parent="."]
+z_index = -100
+position = Vector2(3200, 360)
+texture_filter = 1
+texture = ExtResource("15_recovery_background")
 
 [node name="Ground" type="StaticBody2D" parent="."]
 position = Vector2(1280, 624)
@@ -68,7 +95,7 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_wall")
 
 [node name="RightWall" type="StaticBody2D" parent="."]
-position = Vector2(2540, 360)
+position = Vector2(3820, 360)
 collision_layer = 16
 collision_mask = 0
 
@@ -130,7 +157,7 @@ position = Vector2(300, 576)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 2560
+limit_right = 3840
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
@@ -263,6 +290,151 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 18
 text = "Clear Corrosion Channel"
 horizontal_alignment = 1
+
+[node name="RecoveryCisternController" type="Node2D" parent="."]
+script = ExtResource("14_recovery_controller")
+
+[node name="ApproachGround" type="StaticBody2D" parent="RecoveryCisternController"]
+position = Vector2(2710, 624)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RecoveryCisternController/ApproachGround"]
+shape = SubResource("RectangleShape2D_recovery_approach")
+
+[node name="ExitGround" type="StaticBody2D" parent="RecoveryCisternController"]
+position = Vector2(3590, 624)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RecoveryCisternController/ExitGround"]
+shape = SubResource("RectangleShape2D_recovery_exit")
+
+[node name="CisternStepA" type="StaticBody2D" parent="RecoveryCisternController"]
+z_index = 10
+position = Vector2(2940, 520)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="RecoveryCisternController/CisternStepA"]
+position = Vector2(0, 8)
+texture_filter = 1
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("5_breach")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RecoveryCisternController/CisternStepA"]
+shape = SubResource("RectangleShape2D_step")
+
+[node name="CisternStepB" type="StaticBody2D" parent="RecoveryCisternController"]
+z_index = 10
+position = Vector2(3100, 442)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="RecoveryCisternController/CisternStepB"]
+position = Vector2(0, 8)
+texture_filter = 1
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("5_breach")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RecoveryCisternController/CisternStepB"]
+shape = SubResource("RectangleShape2D_step")
+
+[node name="CisternStepC" type="StaticBody2D" parent="RecoveryCisternController"]
+z_index = 10
+position = Vector2(3260, 520)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="RecoveryCisternController/CisternStepC"]
+position = Vector2(0, 8)
+texture_filter = 1
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("5_breach")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RecoveryCisternController/CisternStepC"]
+shape = SubResource("RectangleShape2D_step")
+
+[node name="FallZone" type="Area2D" parent="RecoveryCisternController"]
+position = Vector2(3100, 672)
+collision_layer = 8
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RecoveryCisternController/FallZone"]
+shape = SubResource("RectangleShape2D_recovery_fall")
+
+[node name="RecoveryRelay" type="Node2D" parent="RecoveryCisternController"]
+z_index = 24
+visible = false
+position = Vector2(2720, 576)
+script = ExtResource("16_savepoint")
+savepoint_id = &"underground_recovery_cistern_relay"
+scene_id = &"area_04_underground_passage"
+spawn_point = &"recovery_cistern_relay"
+display_name = "Recovery Cistern Relay"
+prompt_text = "Repair Recovery Relay"
+activation_vfx_texture = ExtResource("19_relay_vfx")
+
+[node name="Visual" type="Sprite2D" parent="RecoveryCisternController/RecoveryRelay"]
+position = Vector2(0, -68)
+texture_filter = 1
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("17_relay_texture")
+
+[node name="PromptLabel" type="Label" parent="RecoveryCisternController/RecoveryRelay"]
+offset_left = -116.0
+offset_top = -184.0
+offset_right = 116.0
+offset_bottom = -150.0
+theme_override_colors/font_color = Color(1, 0.78, 0.32, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "Repair Recovery Relay"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="RecoveryCisternController/RecoveryRelay"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RecoveryCisternController/RecoveryRelay/InteractionArea"]
+shape = SubResource("CircleShape2D_recovery_relay")
+disabled = true
+
+[node name="RecoveryRelaySpawn" type="Marker2D" parent="RecoveryCisternController"]
+position = Vector2(2720, 576)
+
+[node name="DeepRouteEndpoint" type="Node2D" parent="RecoveryCisternController"]
+z_index = 24
+visible = false
+position = Vector2(3680, 568)
+
+[node name="Visual" type="Sprite2D" parent="RecoveryCisternController/DeepRouteEndpoint"]
+position = Vector2(0, -136)
+texture_filter = 1
+texture = ExtResource("18_endpoint_texture")
+
+[node name="PromptLabel" type="Label" parent="RecoveryCisternController/DeepRouteEndpoint"]
+offset_left = -116.0
+offset_top = -270.0
+offset_right = 116.0
+offset_bottom = -236.0
+theme_override_colors/font_color = Color(0.44, 0.9, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "Activate Recovery Relay"
+horizontal_alignment = 1
+
+[node name="InteractionArea" type="Area2D" parent="RecoveryCisternController/DeepRouteEndpoint"]
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RecoveryCisternController/DeepRouteEndpoint/InteractionArea"]
+shape = SubResource("CircleShape2D_recovery_endpoint")
+disabled = true
 
 [node name="UndergroundObjectiveLabel" type="Label" parent="."]
 z_index = 50

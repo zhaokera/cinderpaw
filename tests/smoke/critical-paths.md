@@ -67,13 +67,18 @@
     real Core attack, opens on dual defeat, claims one salvage reward, and
     restores the claimed state after Factory return and Underground re-entry
     (`tests/smoke/underground_corrosion_channel_skirmish_smoke.gd`)
+20. The Underground recovery cistern activates a generated savepoint, restores
+    full HP and autosaves once, revives a lethal fall at 50% HP, secures the
+    far-side endpoint, and preserves relay/route state through Factory return
+    and Underground re-entry
+    (`tests/smoke/underground_recovery_cistern_savepoint_traverse_smoke.gd`)
 
 ## Data Integrity
 
-20. Save game completes without error (once save system is implemented)
-21. Load game restores correct state (once load system is implemented)
+21. Save game completes without error (once save system is implemented)
+22. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-22. No visible frame rate drops on target hardware (60fps target)
-23. No memory growth over 5 minutes of play (once core loop is implemented)
+23. No visible frame rate drops on target hardware (60fps target)
+24. No memory growth over 5 minutes of play (once core loop is implemented)

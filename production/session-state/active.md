@@ -4953,3 +4953,23 @@
 - Notes: Design/art/QA sidecars failed before task execution because the backend forced unsupported `reasoning.effort=max` even when `high` was requested; integration and all three reviews continued locally.
 - Blockers: None for Story131. The broader game goal remains active.
 - Next: implement Story132 as a deeper Underground route/savepoint or a distinct second encounter from the secured corrosion channel.
+
+## Session Extract -- /create-stories 2026-07-11
+
+- Delivery checkpoint: Story131 was committed as `4fc21ff4` (`feat: implement Underground corrosion skirmish`) and pushed to `origin/master`; local and remote hashes matched before Story132 planning.
+- Story: `production/epics/player-abilities/story-132-underground-recovery-cistern-savepoint-traverse.md` -- Underground Recovery Cistern Savepoint Traverse.
+- Design: Extend `area_04_underground_passage` to a third `1280x720` viewport with a recovery relay before a platform gap, a lethal fall zone, a far-side endpoint, real savepoint autosave/full recovery, and the existing GameFlow 1.5s death plus 50% HP/2.0s revive contract. Keep the behavior in a dedicated child controller instead of expanding the 1107-line parent controller.
+- Alternatives rejected: a second immediate dual-enemy encounter repeats Story131; a new registered area scene widens this slice into registry/schema/transition work.
+- Parallel review: level, technical-art, and QA sidecars were attempted twice, but the backend forced unsupported `reasoning.effort=max` before task execution. Their scopes continue locally without blocking implementation.
+- Next: write focused RED acceptance tests, generate the three recovery-cistern visuals, implement the dedicated controller and thin parent integration, then run focused/related, smoke, and Godot MCP runtime verification.
+
+## Session Extract -- /dev-story 2026-07-11
+
+- Story: `production/epics/player-abilities/story-132-underground-recovery-cistern-savepoint-traverse.md` -- Underground Recovery Cistern Savepoint Traverse.
+- Implementation: Expanded Underground Passage to `3840x720` with a dedicated `UndergroundRecoveryCisternController`, generated third background, generated one-shot recovery relay, three stepping platforms, lethal fall zone, generated endpoint, Camera2D/right-wall bounds, JSON-safe local state, and SceneManager relay spawn alignment. Relay activation restores full HP, dispatches shared audio/VFX plus one slot-0 autosave, and becomes the GameFlow savepoint for a 1.5s death beat, 50% HP revive, and 2.0s lock/invincibility window.
+- Runtime fixes: MCP found the Underground HUD was not bound to player health; the parent scene now updates `HUDManager` from `player_health_changed`. A physics-frame endpoint test then exposed synchronous Area2D monitoring changes inside `body_entered`; relay, endpoint, and fall-zone monitoring now use deferred updates and no longer emit Godot runtime errors.
+- Asset pipeline: Built-in image generation produced an opaque `1672x941` cistern source, a `1254x1254` keyed relay, and an `887x1774` keyed endpoint. Local processing retained both RGBA alpha sources and normalized exact opaque `1280x720`, transparent `256x256`, and transparent `256x384` runtime assets. Godot 4.7 imported all source/alpha/runtime files; three generation records, one asset spec, manifest rows, and inventory rows document the pipeline.
+- Verification: Initial RED `report_1433`; HUD RED `report_1442`; physics-monitoring diagnostic `report_1444`; final focused GREEN `report_1445` passed `3/3`; bounded related GREEN `report_1446` passed `20/20`; targeted SceneManager smoke exited `0` with `underground_recovery_cistern_savepoint_traverse_smoke=passed`. Godot AI MCP `2.9.1` on Godot `4.7-stable` force-reloaded the scene, verified authored/runtime nodes and texture paths, used real input for the Story131 clear, relay, fall, 50% HUD revive, and ability-complete platform traversal, produced a non-empty `1278x718` relay/gap/endpoint screenshot, and returned helper-only game logs plus no new editor rows after cursor `3`.
+- Parallel review: Two rounds of level/art/QA sidecars failed before execution because the backend forced unsupported `reasoning.effort=max`; integration, review, and verification were completed by the integrating agent.
+- Blockers: None for Story132. ADR-0018/0019/0021 remain project-level Proposed records already used as governing guidance by Stories129-132; this Story does not alter their status. The broader game goal remains active.
+- Next: plan Story133 as a compact deep-Underground encounter or scene handoff from the secured endpoint, using frame animation for any new visible character and keeping verification focused plus MCP runtime evidence.

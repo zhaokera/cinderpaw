@@ -631,6 +631,12 @@ func get_max_hp() -> int:
 	return _health.get_max_hp()
 
 
+## Restores full health and shield through the shared savepoint health contract.
+func restore_at_savepoint() -> void:
+	_health.restore_at_savepoint()
+	_sprite.modulate = NORMAL_MODULATE
+
+
 ## Returns the runtime CombatComponent used by the playable attack chain.
 func get_combat_component() -> CombatComponent:
 	return _combat

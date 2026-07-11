@@ -169,6 +169,7 @@ recording the reward in progression state.
 | 129 | Sluice Matriarch Aerial Attack Reward Payoff | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0007/0018/0021 |
 | 130 | Factory Aerial Breach Underground Passage Handoff | Integration + Ability Gate + Scene Handoff + Visual | Complete | ADR-0002/0004/0007/0018/0021 |
 | 131 | Underground Corrosion Channel Skirmish | Integration + Gameplay Runtime + Environmental Hazard + Visual | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 132 | Underground Recovery Cistern Savepoint Traverse | Integration + Gameplay Runtime + Traversal + Save/Respawn + Visual | Complete | ADR-0002/0004/0007/0018/0019/0021 |
 
 ## Definition of Done
 
@@ -188,7 +189,6 @@ This epic is complete when:
 
 ## Next Step
 
-Story131 is complete: the Underground Passage now contains a generated corrosion
-channel traversal, contact hazard, sealed two-enemy skirmish, persistent opening,
-and one-shot salvage payoff. Story132 should continue deeper from the secured
-channel with a bounded route/savepoint or a distinct second encounter.
+Story132 is complete. Plan Story133 as a bounded deep-Underground payoff after
+the secured recovery-cistern endpoint, preferring a compact frame-animated ACT
+encounter or deliberate scene handoff over another documentation-only slice.

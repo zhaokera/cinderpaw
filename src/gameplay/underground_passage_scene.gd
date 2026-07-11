@@ -5,7 +5,7 @@ const SCENE_ID: StringName = &"area_04_underground_passage"
 const ENTRY_SPAWN_POINT: StringName = &"factory_drop_entry"
 const FACTORY_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_RETURN_SPAWN_POINT: StringName = &"tailrace_underground_return"
-const ROUTE_WIDTH_PX: int = 2560
+const ROUTE_WIDTH_PX: int = 3840
 const ENCOUNTER_ACTIVATION_X: float = 1450.0
 const CORROSION_LEFT_ENTITY_ID: int = 2401
 const CORROSION_RIGHT_ENTITY_ID: int = 2402
@@ -74,6 +74,10 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _objective_label: Label = (
 	get_node_or_null("UndergroundObjectiveLabel") as Label
 )
+@onready var _recovery_cistern: Node = (
+	get_node_or_null("RecoveryCisternController")
+)
+@onready var _hud: HUDManager = get_node_or_null("HUD") as HUDManager
 
 var _scene_manager: Object = null
 var _weapon_component: WeaponComponent = null
@@ -99,9 +103,11 @@ func _ready() -> void:
 	_align_player_to_entry_spawn()
 	_setup_weapon_component()
 	_bind_player_combat_to_room()
+	_setup_player_hud()
 	_setup_corrosive_runoff()
 	_setup_corrosion_enemies()
 	_setup_corrosion_salvage_cache()
+	_setup_recovery_cistern()
 	_sync_corrosion_slice_state()
 	_sync_return_route()
 	_request_underground_audio()
@@ -127,6 +133,79 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 		return false
 	_apply_current_scene_manager_spawn_point()
 	return true
+
+
+## Configures Story132 autosave through a SaveSystem-like runtime adapter.
+func configure_underground_save_system_runtime(save_system: Object) -> bool:
+	if (
+		_recovery_cistern == null
+		or not _recovery_cistern.has_method("configure_save_system_runtime")
+	):
+		return false
+	return bool(_recovery_cistern.call(
+		"configure_save_system_runtime",
+		save_system
+	))
+
+
+## Attempts the one-shot Story132 recovery relay activation.
+func try_activate_recovery_cistern_savepoint(provider: Node = null) -> bool:
+	if _recovery_cistern == null or not _recovery_cistern.has_method("try_activate_relay"):
+		return false
+	return bool(_recovery_cistern.call("try_activate_relay", provider))
+
+
+## Routes Story132's lethal fall through the dedicated controller.
+func apply_recovery_cistern_fall(target: Node = null) -> bool:
+	if _recovery_cistern == null or not _recovery_cistern.has_method("apply_fall"):
+		return false
+	return bool(_recovery_cistern.call("apply_fall", target))
+
+
+## Advances Story132's deterministic death and revive timers.
+func advance_underground_recovery_respawn_flow(delta_sec: float) -> void:
+	if _recovery_cistern != null and _recovery_cistern.has_method(
+		"advance_respawn_flow"
+	):
+		_recovery_cistern.call("advance_respawn_flow", delta_sec)
+
+
+## Attempts the one-shot Story132 deep-route endpoint activation.
+func try_activate_recovery_cistern_endpoint(provider: Node = null) -> bool:
+	if (
+		_recovery_cistern == null
+		or not _recovery_cistern.has_method("try_activate_endpoint")
+	):
+		return false
+	return bool(_recovery_cistern.call("try_activate_endpoint", provider))
+
+
+## Captures the JSON-safe Underground snapshot used by savepoint autosave.
+func capture_save_snapshot() -> Dictionary:
+	var last_savepoint: Dictionary = {}
+	if _recovery_cistern != null and _recovery_cistern.has_method(
+		"get_last_discovered_savepoint"
+	):
+		last_savepoint = Dictionary(_recovery_cistern.call(
+			"get_last_discovered_savepoint"
+		)).duplicate(true)
+	return {
+		"player_state": {
+			"current_hp": _get_target_current_hp(_player),
+			"max_hp": int(_player.call("get_max_hp")) if (
+				_player != null and _player.has_method("get_max_hp")
+			) else 0,
+			"unlocked_abilities": _get_player_unlocked_ability_strings(),
+		},
+		"world_state": {
+			"scene_id": String(SCENE_ID),
+			"scene_states": {
+				String(SCENE_ID): get_local_state(),
+			},
+			"last_savepoint": last_savepoint,
+		},
+		"settings": {},
+	}
 
 
 ## Starts the corrosion-channel encounter once the provider crosses its threshold.
@@ -310,7 +389,7 @@ func try_request_factory_return(provider: Node = null) -> bool:
 
 ## Captures durable discovery, encounter, reward, and ability state.
 func get_local_state() -> Dictionary:
-	return {
+	var state: Dictionary = {
 		"underground_passage_discovered": true,
 		"underground_corrosion_channel_activated": _corrosion_channel_activated,
 		"underground_corrosion_left_defeated": _corrosion_left_defeated,
@@ -319,6 +398,12 @@ func get_local_state() -> Dictionary:
 		"underground_corrosion_salvage_claimed": _corrosion_salvage_claimed,
 		"unlocked_abilities": _get_player_unlocked_ability_strings(),
 	}
+	if _recovery_cistern != null and _recovery_cistern.has_method("get_local_state"):
+		state.merge(
+			Dictionary(_recovery_cistern.call("get_local_state")),
+			true
+		)
+	return state
 
 
 ## Restores durable progress while clearing transient request and cooldown latches.
@@ -363,6 +448,8 @@ func set_local_state(state: Dictionary) -> void:
 			or _corrosion_right_defeated
 	))
 	_restore_player_unlocked_abilities(state)
+	if _recovery_cistern != null and _recovery_cistern.has_method("set_local_state"):
+		_recovery_cistern.call("set_local_state", state)
 	_sync_corrosion_slice_state()
 	_sync_return_route()
 	_align_player_to_entry_spawn()
@@ -457,6 +544,26 @@ func get_underground_combat_diagnostics() -> Dictionary:
 	}
 
 
+## Returns the dedicated Story132 recovery-cistern diagnostics surface.
+func get_underground_recovery_cistern_diagnostics() -> Dictionary:
+	if _recovery_cistern != null and _recovery_cistern.has_method("get_diagnostics"):
+		return Dictionary(_recovery_cistern.call("get_diagnostics")).duplicate(true)
+	return {
+		"route_width_px": ROUTE_WIDTH_PX,
+		"controller_present": false,
+	}
+
+
+## Captures durable Underground state across the no-loss death loop.
+func capture_no_loss_state() -> Dictionary:
+	return get_local_state()
+
+
+## Restores durable Underground state across the no-loss death loop.
+func restore_no_loss_state(snapshot: Dictionary) -> void:
+	set_local_state(snapshot)
+
+
 func _setup_weapon_component() -> void:
 	_weapon_component = get_node_or_null("WeaponComponent") as WeaponComponent
 	if _weapon_component == null:
@@ -486,6 +593,20 @@ func _bind_player_combat_to_room() -> void:
 		var attack_signal: Signal = _player.get("attack_landed")
 		if not attack_signal.is_connected(_on_player_attack_landed):
 			attack_signal.connect(_on_player_attack_landed)
+
+
+func _setup_player_hud() -> void:
+	if _player == null or _hud == null:
+		return
+	if _player.has_signal("player_health_changed"):
+		var health_signal: Signal = _player.get("player_health_changed")
+		if not health_signal.is_connected(_on_player_health_changed):
+			health_signal.connect(_on_player_health_changed)
+	if _player.has_method("get_current_hp") and _player.has_method("get_max_hp"):
+		_hud.update_hp(
+			int(_player.call("get_current_hp")),
+			int(_player.call("get_max_hp"))
+		)
 
 
 func _setup_corrosive_runoff() -> void:
@@ -525,6 +646,33 @@ func _setup_corrosion_salvage_cache() -> void:
 	var claimed_signal: Signal = _corrosion_salvage_cache.get("cache_claimed")
 	if not claimed_signal.is_connected(_on_corrosion_salvage_claimed):
 		claimed_signal.connect(_on_corrosion_salvage_claimed)
+
+
+func _setup_recovery_cistern() -> void:
+	if _recovery_cistern == null:
+		return
+	if _recovery_cistern.has_signal("objective_changed"):
+		var objective_signal: Signal = _recovery_cistern.get("objective_changed")
+		if not objective_signal.is_connected(
+			_on_recovery_cistern_objective_changed
+		):
+			objective_signal.connect(_on_recovery_cistern_objective_changed)
+	if _recovery_cistern.has_method("configure_runtime"):
+		_recovery_cistern.call(
+			"configure_runtime",
+			_player,
+			self,
+			get_node_or_null("/root/SaveSystem")
+		)
+	if _recovery_cistern.has_method("set_route_unlocked"):
+		_recovery_cistern.call(
+			"set_route_unlocked",
+			_is_corrosion_channel_cleared()
+		)
+
+
+func _on_recovery_cistern_objective_changed(_objective_text: String) -> void:
+	_refresh_objective_text()
 
 
 func _configure_corrosion_enemy(
@@ -575,6 +723,7 @@ func _sync_corrosion_slice_state() -> void:
 				_corrosion_salvage_claimed
 			)
 	_sync_corrosion_cache_prompt_visibility()
+	_setup_recovery_cistern()
 	_refresh_objective_text()
 
 
@@ -670,6 +819,11 @@ func _on_player_attack_landed(metadata: Dictionary) -> void:
 	_last_player_hit_metadata = metadata.duplicate(true)
 
 
+func _on_player_health_changed(current_hp: int, max_hp: int) -> void:
+	if _hud != null:
+		_hud.update_hp(current_hp, max_hp)
+
+
 func _on_corrosion_left_defeated() -> void:
 	_corrosion_channel_activated = true
 	_corrosion_left_defeated = true
@@ -724,7 +878,14 @@ func _sync_corrosion_damage_target_defeat(
 func _refresh_objective_text() -> void:
 	if _objective_label == null:
 		return
-	if _corrosion_salvage_claimed:
+	if (
+		_recovery_cistern != null
+		and _recovery_cistern.has_method("should_own_objective")
+		and bool(_recovery_cistern.call("should_own_objective", _player))
+		and _recovery_cistern.has_method("get_objective_text")
+	):
+		_objective_label.text = String(_recovery_cistern.call("get_objective_text"))
+	elif _corrosion_salvage_claimed:
 		_objective_label.text = "Corrosion Channel Secured"
 	elif _is_corrosion_channel_cleared():
 		_objective_label.text = "Claim Underground Salvage"
@@ -770,6 +931,12 @@ func _apply_current_scene_manager_spawn_point() -> void:
 		spawn_point = StringName(_scene_manager.call("get_current_spawn_point"))
 	if spawn_point == ENTRY_SPAWN_POINT or spawn_point == &"default":
 		_align_player_to_entry_spawn()
+	elif (
+		spawn_point == &"recovery_cistern_relay"
+		and _recovery_cistern != null
+		and _recovery_cistern.has_method("align_player_to_relay")
+	):
+		_recovery_cistern.call("align_player_to_relay")
 
 
 func _get_player_unlocked_ability_strings() -> Array[String]:
