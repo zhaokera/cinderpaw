@@ -41,6 +41,32 @@
 				}
 			]
 		},
+		"neon_signal_rat": {
+			"max_hp": 36,
+			"patrol_speed": 72,
+			"attack_patterns": [
+				{
+					"pattern_id": "signal_lunge",
+					"startup_frames": 18,
+					"active_frames": 5,
+					"recovery_frames": 18,
+					"damage": 11,
+					"damage_type": "electric",
+					"lunge_speed": 192,
+					"attack_range_px": 116,
+					"hitbox_config": {
+						"hitbox_id": "neon_signal_rat_lunge",
+						"offset": {"x": 38, "y": -22},
+						"size": {"x": 54, "y": 26}
+					},
+					"vulnerability_window": {
+						"start_frame": 10,
+						"size_frames": 8
+					},
+					"base_weight": 1.0
+				}
+			]
+		},
 		"boss_01_rat_king": {
 			"max_hp": 300,
 			"patrol_speed": 0,

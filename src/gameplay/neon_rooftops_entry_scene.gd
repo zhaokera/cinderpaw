@@ -11,6 +11,10 @@ const PROOF_RADIUS_PX: float = 150.0
 const ROOFTOP_MUSIC_ID: StringName = &"mus_rooftop"
 const ROOFTOP_AMBIENT_ID: StringName = &"amb_rooftop"
 const ROOFTOP_AUDIO_FADE_SEC: float = 1.2
+const ROOFTOP_PLAYER_LIGHT_DAMAGE: int = 12
+const WEAPON_COMPONENT_SCRIPT: Script = preload(
+	"res://src/core/weapon_component.gd"
+)
 const BACKGROUND_TEXTURE_PATH: String = (
 	"res://assets/environment/neon_rooftops/"
 	+ "env_neon_rooftops_entry_1280x720.png"
@@ -56,8 +60,13 @@ const CONTACT_GLOW_TEXTURE_PATH: String = (
 	get_node_or_null("ObjectiveLabel") as Label
 )
 @onready var _hud: HUDManager = get_node_or_null("HUD") as HUDManager
+@onready var _signal_roof_encounter: NeonSignalRoofEncounterController = (
+	get_node_or_null("SignalRoofEncounter")
+	as NeonSignalRoofEncounterController
+)
 
 var _scene_manager: Object = null
+var _weapon_component: WeaponComponent = null
 var _entry_arrived: bool = false
 var _entry_traversed: bool = false
 var _entry_feedback_count: int = 0
@@ -67,13 +76,17 @@ var _return_transition_requested: bool = false
 var _last_return_rejected_reason: StringName = &""
 var _last_return_request: Dictionary = {}
 var _audio_request_count: int = 0
+var _last_signal_roof_player_hit: Dictionary = {}
 
 
 func _ready() -> void:
 	_entry_arrived = true
 	_align_player_to_arrival()
+	_setup_weapon_component()
+	_bind_player_combat_to_room()
 	_setup_player_hud()
 	_setup_wall_climb_runtime()
+	_setup_signal_roof_encounter()
 	_sync_return_route()
 	_refresh_objective_text()
 	_sync_objective_position()
@@ -87,13 +100,15 @@ func _process(_delta: float) -> void:
 	if not _entry_traversed and _is_provider_near_proof(_player):
 		try_prove_neon_rooftop_entry(_player)
 	_sync_prompt_visibility()
+	_refresh_objective_text()
 	_sync_objective_position()
-	if (
-		not _return_transition_requested
-		and Input.is_action_just_pressed(&"interact")
-		and _is_provider_near_return(_player)
+	if not _return_transition_requested and Input.is_action_just_pressed(
+		&"interact"
 	):
-		try_request_factory_return(_player)
+		if _is_provider_near_return(_player):
+			try_request_factory_return(_player)
+		else:
+			try_claim_signal_cache(_player)
 
 
 func configure_scene_manager_runtime(scene_manager: Object) -> bool:
@@ -117,10 +132,101 @@ func try_prove_neon_rooftop_entry(provider: Node = null) -> bool:
 		return false
 	_entry_traversed = true
 	_entry_feedback_count += 1
+	if _signal_roof_encounter != null:
+		_signal_roof_encounter.set_route_unlocked(true)
 	_refresh_objective_text()
 	if _is_valid_scene_manager(_scene_manager):
 		_persist_progress()
 	return true
+
+
+## Attempts the Story137 Signal Roof ambush activation.
+func try_activate_signal_roof_encounter(provider: Node = null) -> bool:
+	if _signal_roof_encounter == null:
+		return false
+	return _signal_roof_encounter.try_activate(provider)
+
+
+## Requests the Signal Rat attack for deterministic smoke and MCP probes.
+func request_signal_rat_attack() -> bool:
+	if _signal_roof_encounter == null:
+		return false
+	return _signal_roof_encounter.request_signal_rat_attack()
+
+
+## Attempts the once-only post-combat rooftop cache claim.
+func try_claim_signal_cache(provider: Node = null) -> bool:
+	if _signal_roof_encounter == null:
+		return false
+	return _signal_roof_encounter.try_claim_cache(provider)
+
+
+## Routes player hit-confirm damage to the Story137 enemy adapter.
+func apply_damage(
+	target_id: int,
+	final_damage: int,
+	metadata: Dictionary = {}
+) -> bool:
+	if (
+		_signal_roof_encounter == null
+		or not _signal_roof_encounter.handles_target_id(target_id)
+	):
+		return false
+	return _signal_roof_encounter.apply_damage(
+		target_id,
+		final_damage,
+		metadata
+	)
+
+
+## Supplies deterministic player light damage through the shared combat chain.
+func calculate_damage(
+	_attack_type: StringName,
+	_weapon_id: StringName,
+	_hit_frame: int,
+	combo_index: int,
+	_parry_timing: int,
+	_attack_power: int,
+	_enemy_defense: int,
+	_skill_modifiers: Dictionary = {},
+	_injected_damage_params: Dictionary = {},
+	_data_manager: Object = null
+) -> Dictionary:
+	return {
+		"final_damage": ROOFTOP_PLAYER_LIGHT_DAMAGE,
+		"base_damage": ROOFTOP_PLAYER_LIGHT_DAMAGE,
+		"attack_damage": float(ROOFTOP_PLAYER_LIGHT_DAMAGE),
+		"reduction_factor": 1.0,
+		"damage_multiplier": 1.0,
+		"is_crit": false,
+		"crit_type": &"none",
+		"parry_type": &"none",
+		"combo_stage": combo_index,
+		"damage_category": &"scratch",
+	}
+
+
+## Returns the most recent Signal Roof player hit-confirm payload.
+func get_last_signal_roof_player_hit() -> Dictionary:
+	return _last_signal_roof_player_hit.duplicate(true)
+
+
+## Persists the latest Story137 state when a SceneManager is available.
+func persist_signal_roof_progress() -> bool:
+	_refresh_objective_text()
+	if not _is_valid_scene_manager(_scene_manager):
+		return true
+	return _persist_progress()
+
+
+## Returns the dedicated Story137 diagnostics surface.
+func get_signal_roof_diagnostics() -> Dictionary:
+	if _signal_roof_encounter == null:
+		return {
+			"route_width_px": 2560,
+			"controller_present": false,
+		}
+	return _signal_roof_encounter.get_diagnostics()
 
 
 ## Returns to the permanent high-perch spawn in Factory Upper Altar.
@@ -164,11 +270,14 @@ func try_request_factory_return(provider: Node = null) -> bool:
 
 
 func get_local_state() -> Dictionary:
-	return {
+	var state: Dictionary = {
 		"neon_rooftops_entry_arrived": _entry_arrived,
 		"neon_rooftops_entry_traversed": _entry_traversed,
 		"unlocked_abilities": _get_player_unlocked_ability_strings(),
 	}
+	if _signal_roof_encounter != null:
+		state.merge(_signal_roof_encounter.get_local_state(), true)
+	return state
 
 
 func set_local_state(state: Dictionary) -> void:
@@ -181,11 +290,15 @@ func set_local_state(state: Dictionary) -> void:
 		false
 	))
 	_restore_player_unlocked_abilities(state)
+	if _signal_roof_encounter != null:
+		_signal_roof_encounter.set_route_unlocked(_entry_traversed)
+		_signal_roof_encounter.set_local_state(state)
 	_entry_feedback_count = 0
 	_wall_contact_feedback_count = 0
 	_return_transition_requested = false
 	_last_return_rejected_reason = &""
 	_last_return_request.clear()
+	_last_signal_roof_player_hit.clear()
 	_sync_return_route()
 	_refresh_objective_text()
 	_apply_current_scene_manager_spawn_point()
@@ -237,6 +350,62 @@ func get_neon_rooftops_entry_diagnostics() -> Dictionary:
 		"audio_request_count": _audio_request_count,
 		"unlocked_abilities": _get_player_unlocked_ability_strings(),
 	}
+
+
+func _setup_weapon_component() -> void:
+	_weapon_component = get_node_or_null("WeaponComponent") as WeaponComponent
+	if _weapon_component == null:
+		_weapon_component = WEAPON_COMPONENT_SCRIPT.new() as WeaponComponent
+		_weapon_component.name = "WeaponComponent"
+		add_child(_weapon_component)
+	var data_manager: Node = get_node_or_null("/root/DataManager")
+	if data_manager != null:
+		_weapon_component.set_data_manager(data_manager)
+
+
+func _bind_player_combat_to_room() -> void:
+	if _player == null:
+		return
+	if _player.has_method("set_target_health_adapter"):
+		_player.call("set_target_health_adapter", self)
+	if _player.has_method("set_damage_calculator_adapter"):
+		_player.call("set_damage_calculator_adapter", self)
+	if _player.has_method("set_weapon_component"):
+		_player.call("set_weapon_component", _weapon_component)
+	if _weapon_component != null:
+		if _player.has_method("get_combat_component"):
+			_weapon_component.set_combat_adapter(
+				_player.call("get_combat_component")
+			)
+		if _player.has_method("get_collision_component"):
+			_weapon_component.set_collision_adapter(
+				_player.call("get_collision_component")
+			)
+	if _player.has_signal("attack_landed"):
+		var attack_signal: Signal = _player.get("attack_landed")
+		if not attack_signal.is_connected(_on_player_attack_landed):
+			attack_signal.connect(_on_player_attack_landed)
+
+
+func _on_player_attack_landed(metadata: Dictionary) -> void:
+	_last_signal_roof_player_hit = metadata.duplicate(true)
+
+
+func _setup_signal_roof_encounter() -> void:
+	if _signal_roof_encounter == null:
+		return
+	if not _signal_roof_encounter.objective_changed.is_connected(
+		_on_signal_roof_objective_changed
+	):
+		_signal_roof_encounter.objective_changed.connect(
+			_on_signal_roof_objective_changed
+		)
+	_signal_roof_encounter.configure_runtime(_player, self)
+	_signal_roof_encounter.set_route_unlocked(_entry_traversed)
+
+
+func _on_signal_roof_objective_changed(_objective_text: String) -> void:
+	_refresh_objective_text()
 
 
 func _setup_player_hud() -> void:
@@ -336,8 +505,13 @@ func _refresh_objective_text() -> void:
 		return
 	if _return_transition_requested:
 		_objective_label.text = "Returning to Factory Altar"
+	elif (
+		_signal_roof_encounter != null
+		and _signal_roof_encounter.should_own_objective(_player)
+	):
+		_objective_label.text = _signal_roof_encounter.get_objective_text()
 	elif _entry_traversed:
-		_objective_label.text = "Neon Rooftops Reached"
+		_objective_label.text = "Reach Signal Roof"
 	else:
 		_objective_label.text = "Climb the Neon Magnetic Tower"
 
@@ -429,7 +603,10 @@ func _is_return_route_available() -> bool:
 
 
 func _persist_progress() -> bool:
-	if not _scene_manager.has_method("set_scene_state"):
+	if (
+		not _is_valid_scene_manager(_scene_manager)
+		or not _scene_manager.has_method("set_scene_state")
+	):
 		return false
 	var persisted: bool = bool(_scene_manager.call(
 		"set_scene_state",

@@ -72,13 +72,18 @@
     far-side endpoint, and preserves relay/route state through Factory return
     and Underground re-entry
     (`tests/smoke/underground_recovery_cistern_savepoint_traverse_smoke.gd`)
+21. The Neon Signal Roof unlocks from Story136 traversal, closes both generated
+    seals around a frame-animated Signal Rat, accepts real shared attack damage,
+    opens on defeat, grants one `+20 Gears` signal cache, and restores clear and
+    claimed state without replaying feedback
+    (`tests/smoke/neon_rooftops_signal_rat_ambush_smoke.gd`)
 
 ## Data Integrity
 
-21. Save game completes without error (once save system is implemented)
-22. Load game restores correct state (once load system is implemented)
+22. Save game completes without error (once save system is implemented)
+23. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-23. No visible frame rate drops on target hardware (60fps target)
-24. No memory growth over 5 minutes of play (once core loop is implemented)
+24. No visible frame rate drops on target hardware (60fps target)
+25. No memory growth over 5 minutes of play (once core loop is implemented)

@@ -320,7 +320,7 @@ func test_rooftop_proof_requires_wall_climb_persists_and_returns_to_factory() ->
 	)
 	assert_bool(bool(proven.get("entry_traversed", false))).is_true()
 	assert_str(String(proven.get("objective_text", ""))).is_equal(
-		"Neon Rooftops Reached"
+		"Reach Signal Roof"
 	)
 	var persisted: Dictionary = manager.get_scene_state(ROOFTOPS_SCENE_ID)
 	assert_bool(bool(persisted.get(

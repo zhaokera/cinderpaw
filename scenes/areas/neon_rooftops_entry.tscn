@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/neon_rooftops_entry_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/env_neon_rooftops_entry_1280x720.png" id="2_background"]
@@ -8,12 +8,18 @@
 [ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_magnetic_tower_256x512.png" id="6_tower"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_upper_altar/vfx_wall_climb_contact_glow_192x192.png" id="7_contact_glow"]
 [ext_resource type="Script" path="res://src/presentation/hud_manager.gd" id="8_hud"]
+[ext_resource type="Script" path="res://src/gameplay/neon_signal_roof_encounter_controller.gd" id="9_encounter"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/env_neon_signal_roof_1280x720.png" id="10_signal_background"]
+[ext_resource type="PackedScene" path="res://src/gameplay/neon_signal_rat.tscn" id="11_signal_rat"]
+[ext_resource type="Script" path="res://src/feature/factory_combat_cache.gd" id="12_cache"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_signal_seal_256x384.png" id="13_seal"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_signal_cache_256x256.png" id="14_cache"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lower_roof"]
 size = Vector2(858, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_full_width"]
-size = Vector2(1280, 48)
+size = Vector2(2560, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_boundary"]
 size = Vector2(40, 720)
@@ -30,6 +36,18 @@ size = Vector2(300, 88)
 [sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
 radius = 104.0
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_descent"]
+size = Vector2(220, 24)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_arena_ground"]
+size = Vector2(1160, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_signal_seal"]
+size = Vector2(40, 340)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cache"]
+radius = 96.0
+
 [node name="NeonRooftopsEntryScene" type="Node2D"]
 script = ExtResource("1_scene")
 metadata/scene_id = "area_05_neon_rooftops"
@@ -39,6 +57,12 @@ z_index = -100
 position = Vector2(640, 360)
 texture_filter = 1
 texture = ExtResource("2_background")
+
+[node name="SignalRoofBackground" type="Sprite2D" parent="."]
+z_index = -100
+position = Vector2(1920, 360)
+texture_filter = 1
+texture = ExtResource("10_signal_background")
 
 [node name="LowerRoof" type="StaticBody2D" parent="."]
 position = Vector2(429, 580)
@@ -58,8 +82,36 @@ shape = SubResource("RectangleShape2D_upper_roof")
 one_way_collision = true
 one_way_collision_margin = 4.0
 
+[node name="SignalRoofDescentUpper" type="StaticBody2D" parent="."]
+position = Vector2(1388, 288)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SignalRoofDescentUpper"]
+shape = SubResource("RectangleShape2D_descent")
+one_way_collision = true
+one_way_collision_margin = 4.0
+
+[node name="SignalRoofDescentLower" type="StaticBody2D" parent="."]
+position = Vector2(1498, 420)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SignalRoofDescentLower"]
+shape = SubResource("RectangleShape2D_descent")
+one_way_collision = true
+one_way_collision_margin = 4.0
+
+[node name="SignalRoofArenaGround" type="StaticBody2D" parent="."]
+position = Vector2(1960, 580)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SignalRoofArenaGround"]
+shape = SubResource("RectangleShape2D_arena_ground")
+
 [node name="TopBoundary" type="StaticBody2D" parent="."]
-position = Vector2(640, -24)
+position = Vector2(1280, -24)
 collision_layer = 16
 collision_mask = 0
 
@@ -75,7 +127,7 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_boundary")
 
 [node name="RightBoundary" type="StaticBody2D" parent="."]
-position = Vector2(1260, 360)
+position = Vector2(2540, 360)
 collision_layer = 16
 collision_mask = 0
 
@@ -115,6 +167,79 @@ shape = SubResource("RectangleShape2D_proof")
 [node name="FactoryRooftopArrival" type="Marker2D" parent="."]
 position = Vector2(180, 520)
 
+[node name="SignalRoofEncounter" type="Node2D" parent="."]
+script = ExtResource("9_encounter")
+
+[node name="BackSeal" type="StaticBody2D" parent="SignalRoofEncounter"]
+z_index = 16
+position = Vector2(1540, 410)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="SignalRoofEncounter/BackSeal"]
+texture_filter = 1
+scale = Vector2(0.52, 0.88)
+texture = ExtResource("13_seal")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SignalRoofEncounter/BackSeal"]
+shape = SubResource("RectangleShape2D_signal_seal")
+
+[node name="ForwardSeal" type="StaticBody2D" parent="SignalRoofEncounter"]
+z_index = 16
+position = Vector2(2440, 410)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="SignalRoofEncounter/ForwardSeal"]
+texture_filter = 1
+scale = Vector2(0.52, 0.88)
+texture = ExtResource("13_seal")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SignalRoofEncounter/ForwardSeal"]
+shape = SubResource("RectangleShape2D_signal_seal")
+
+[node name="NeonSignalRat" parent="SignalRoofEncounter" instance=ExtResource("11_signal_rat")]
+z_index = 20
+position = Vector2(2050, 556)
+
+[node name="SignalCache" type="Node2D" parent="SignalRoofEncounter"]
+visible = false
+z_index = 18
+position = Vector2(2320, 520)
+script = ExtResource("12_cache")
+cache_id = &"neon_signal_roof_cache"
+reward_source = &"neon_signal_roof"
+reward_gears = 20
+claim_radius_px = 96.0
+locked_prompt_text = "Break Signal Rat"
+available_prompt_text = "+20 Gears"
+
+[node name="Visual" type="Sprite2D" parent="SignalRoofEncounter/SignalCache"]
+texture_filter = 1
+scale = Vector2(0.32, 0.32)
+texture = ExtResource("14_cache")
+
+[node name="InteractionArea" type="Area2D" parent="SignalRoofEncounter/SignalCache"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SignalRoofEncounter/SignalCache/InteractionArea"]
+shape = SubResource("CircleShape2D_cache")
+
+[node name="PromptLabel" type="Label" parent="SignalRoofEncounter/SignalCache"]
+visible = false
+offset_left = -104.0
+offset_top = -112.0
+offset_right = 104.0
+offset_bottom = -80.0
+theme_override_colors/font_color = Color(0.44, 0.94, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 20
+text = "+20 Gears"
+horizontal_alignment = 1
+
 [node name="Player" parent="." instance=ExtResource("3_player")]
 z_index = 20
 position = Vector2(180, 520)
@@ -122,7 +247,7 @@ position = Vector2(180, 520)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 1280
+limit_right = 2560
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
