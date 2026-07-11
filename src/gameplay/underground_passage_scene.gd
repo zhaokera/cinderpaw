@@ -5,6 +5,11 @@ const SCENE_ID: StringName = &"area_04_underground_passage"
 const ENTRY_SPAWN_POINT: StringName = &"factory_drop_entry"
 const FACTORY_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_RETURN_SPAWN_POINT: StringName = &"tailrace_underground_return"
+const FACTORY_UPPER_ALTAR_SCENE_ID: StringName = &"area_03_factory_upper_altar"
+const FACTORY_UPPER_ALTAR_SPAWN_POINT: StringName = &"cistern_ascender_arrival"
+const DEEP_CISTERN_ASCENDER_RETURN_SPAWN: StringName = (
+	&"deep_cistern_ascender_return"
+)
 const ROUTE_WIDTH_PX: int = 5120
 const ENCOUNTER_ACTIVATION_X: float = 1450.0
 const CORROSION_LEFT_ENTITY_ID: int = 2401
@@ -80,6 +85,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _deep_cistern_ambush: Node = (
 	get_node_or_null("DeepCisternAmbushController")
 )
+@onready var _deep_cistern_ascender: Node = (
+	get_node_or_null("DeepCisternAscenderRouteController")
+)
 @onready var _hud: HUDManager = get_node_or_null("HUD") as HUDManager
 
 var _scene_manager: Object = null
@@ -112,6 +120,7 @@ func _ready() -> void:
 	_setup_corrosion_salvage_cache()
 	_setup_recovery_cistern()
 	_setup_deep_cistern_ambush()
+	_setup_deep_cistern_ascender()
 	_sync_corrosion_slice_state()
 	_sync_return_route()
 	_request_underground_audio()
@@ -127,6 +136,7 @@ func _process(delta: float) -> void:
 	_process_corrosion_salvage_contact()
 	_process_factory_return_contact()
 	_sync_corrosion_cache_prompt_visibility()
+	_refresh_objective_text()
 	_sync_objective_position()
 
 
@@ -135,6 +145,16 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 	_scene_manager = scene_manager
 	if not _is_valid_scene_manager(_scene_manager):
 		return false
+	if (
+		_deep_cistern_ascender != null
+		and _deep_cistern_ascender.has_method(
+			"configure_scene_manager_runtime"
+		)
+	):
+		_deep_cistern_ascender.call(
+			"configure_scene_manager_runtime",
+			_scene_manager
+		)
 	_apply_current_scene_manager_spawn_point()
 	return true
 
@@ -202,6 +222,19 @@ func request_deep_cistern_stalker_attack() -> bool:
 	):
 		return false
 	return bool(_deep_cistern_ambush.call("request_stalker_attack"))
+
+
+## Requests the Story134 ascender handoff after the Stalker is defeated.
+func try_request_deep_cistern_ascender(provider: Node = null) -> bool:
+	if (
+		_deep_cistern_ascender == null
+		or not _deep_cistern_ascender.has_method("try_request_transition")
+	):
+		return false
+	return bool(_deep_cistern_ascender.call(
+		"try_request_transition",
+		provider
+	))
 
 
 ## Captures the JSON-safe Underground snapshot used by savepoint autosave.
@@ -447,6 +480,14 @@ func get_local_state() -> Dictionary:
 			Dictionary(_deep_cistern_ambush.call("get_local_state")),
 			true
 		)
+	if (
+		_deep_cistern_ascender != null
+		and _deep_cistern_ascender.has_method("get_local_state")
+	):
+		state.merge(
+			Dictionary(_deep_cistern_ascender.call("get_local_state")),
+			true
+		)
 	return state
 
 
@@ -499,8 +540,14 @@ func set_local_state(state: Dictionary) -> void:
 		and _deep_cistern_ambush.has_method("set_local_state")
 	):
 		_deep_cistern_ambush.call("set_local_state", state)
+	if (
+		_deep_cistern_ascender != null
+		and _deep_cistern_ascender.has_method("set_local_state")
+	):
+		_deep_cistern_ascender.call("set_local_state", state)
 	_sync_corrosion_slice_state()
 	_setup_deep_cistern_ambush()
+	_setup_deep_cistern_ascender()
 	_sync_return_route()
 	_align_player_to_entry_spawn()
 
@@ -616,6 +663,22 @@ func get_underground_deep_cistern_diagnostics() -> Dictionary:
 	return {
 		"route_width_px": ROUTE_WIDTH_PX,
 		"controller_present": false,
+	}
+
+
+## Returns the dedicated Story134 deep-cistern ascender diagnostics surface.
+func get_deep_cistern_ascender_diagnostics() -> Dictionary:
+	if (
+		_deep_cistern_ascender != null
+		and _deep_cistern_ascender.has_method("get_diagnostics")
+	):
+		return Dictionary(_deep_cistern_ascender.call(
+			"get_diagnostics"
+		)).duplicate(true)
+	return {
+		"controller_present": false,
+		"target_scene_id": String(FACTORY_UPPER_ALTAR_SCENE_ID),
+		"target_spawn_point": String(FACTORY_UPPER_ALTAR_SPAWN_POINT),
 	}
 
 
@@ -754,6 +817,34 @@ func _setup_deep_cistern_ambush() -> void:
 			"set_route_unlocked",
 			_is_recovery_cistern_traversed()
 		)
+	_setup_deep_cistern_ascender()
+
+
+func _setup_deep_cistern_ascender() -> void:
+	if _deep_cistern_ascender == null:
+		return
+	if _deep_cistern_ascender.has_signal("objective_changed"):
+		var objective_signal: Signal = _deep_cistern_ascender.get(
+			"objective_changed"
+		)
+		if not objective_signal.is_connected(
+			_on_deep_cistern_ascender_objective_changed
+		):
+			objective_signal.connect(
+				_on_deep_cistern_ascender_objective_changed
+			)
+	if _deep_cistern_ascender.has_method("configure_runtime"):
+		_deep_cistern_ascender.call(
+			"configure_runtime",
+			_player,
+			self,
+			_scene_manager
+		)
+	if _deep_cistern_ascender.has_method("set_stalker_defeated"):
+		_deep_cistern_ascender.call(
+			"set_stalker_defeated",
+			_is_deep_cistern_stalker_defeated()
+		)
 
 
 func _on_recovery_cistern_objective_changed(_objective_text: String) -> void:
@@ -762,6 +853,13 @@ func _on_recovery_cistern_objective_changed(_objective_text: String) -> void:
 
 
 func _on_deep_cistern_objective_changed(_objective_text: String) -> void:
+	_setup_deep_cistern_ascender()
+	_refresh_objective_text()
+
+
+func _on_deep_cistern_ascender_objective_changed(
+	_objective_text: String
+) -> void:
 	_refresh_objective_text()
 
 
@@ -970,6 +1068,18 @@ func _refresh_objective_text() -> void:
 	if _objective_label == null:
 		return
 	if (
+		_deep_cistern_ascender != null
+		and _deep_cistern_ascender.has_method("should_own_objective")
+		and bool(_deep_cistern_ascender.call(
+			"should_own_objective",
+			_player
+		))
+		and _deep_cistern_ascender.has_method("get_objective_text")
+	):
+		_objective_label.text = String(_deep_cistern_ascender.call(
+			"get_objective_text"
+		))
+	elif (
 		_deep_cistern_ambush != null
 		and _deep_cistern_ambush.has_method("should_own_objective")
 		and bool(_deep_cistern_ambush.call(
@@ -1040,6 +1150,14 @@ func _apply_current_scene_manager_spawn_point() -> void:
 		and _recovery_cistern.has_method("align_player_to_relay")
 	):
 		_recovery_cistern.call("align_player_to_relay")
+	elif (
+		spawn_point == DEEP_CISTERN_ASCENDER_RETURN_SPAWN
+		and _deep_cistern_ascender != null
+		and _deep_cistern_ascender.has_method(
+			"align_player_to_return_spawn"
+		)
+	):
+		_deep_cistern_ascender.call("align_player_to_return_spawn")
 
 
 func _get_player_unlocked_ability_strings() -> Array[String]:
@@ -1186,6 +1304,21 @@ func _is_recovery_cistern_traversed() -> bool:
 	))
 	return bool(recovery_state.get(
 		"underground_recovery_cistern_traversed",
+		false
+	))
+
+
+func _is_deep_cistern_stalker_defeated() -> bool:
+	if (
+		_deep_cistern_ambush == null
+		or not _deep_cistern_ambush.has_method("get_local_state")
+	):
+		return false
+	var deep_state: Dictionary = Dictionary(_deep_cistern_ambush.call(
+		"get_local_state"
+	))
+	return bool(deep_state.get(
+		"underground_deep_cistern_stalker_defeated",
 		false
 	))
 

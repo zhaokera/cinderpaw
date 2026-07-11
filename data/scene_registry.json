@@ -38,6 +38,14 @@
 			"preload": false,
 			"default_spawn": "factory_drop_entry",
 			"display_name": "Underground Passage"
+		},
+		"area_03_factory_upper_altar": {
+			"scene_id": "area_03_factory_upper_altar",
+			"path": "res://scenes/areas/factory_upper_altar_approach.tscn",
+			"type": "area",
+			"preload": false,
+			"default_spawn": "cistern_ascender_arrival",
+			"display_name": "Factory Upper Altar"
 		}
 	}
 }

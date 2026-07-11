@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3]
+[gd_scene load_steps=38 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/underground_passage_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/underground_passage/env_underground_passage_entry_1280x720.png" id="2_background"]
@@ -22,6 +22,8 @@
 [ext_resource type="Texture2D" path="res://assets/environment/underground_passage/env_underground_deep_cistern_1280x720.png" id="20_deep_cistern_background"]
 [ext_resource type="Script" path="res://src/gameplay/underground_deep_cistern_ambush_controller.gd" id="21_deep_cistern_controller"]
 [ext_resource type="PackedScene" path="res://src/gameplay/underground_cistern_stalker.tscn" id="22_cistern_stalker"]
+[ext_resource type="Script" path="res://src/gameplay/deep_cistern_ascender_route_controller.gd" id="23_ascender_controller"]
+[ext_resource type="Texture2D" path="res://assets/environment/factory_upper_altar/prop_deep_cistern_ascender_384x512.png" id="24_ascender_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(2560, 48)
@@ -492,6 +494,48 @@ visible = false
 position = Vector2(4520, 576)
 collision_layer = 0
 collision_mask = 0
+
+[node name="DeepCisternAscenderRouteController" type="Node2D" parent="."]
+script = ExtResource("23_ascender_controller")
+
+[node name="DeepCisternAscenderReturnSpawn" type="Marker2D" parent="."]
+position = Vector2(4860, 576)
+
+[node name="DeepCisternAscenderRoute" type="Node2D" parent="."]
+z_index = 24
+position = Vector2(5000, 584)
+script = ExtResource("4_route")
+route_id = &"deep_cistern_factory_upper_altar_ascender"
+target_scene_id = &"area_03_factory_upper_altar"
+spawn_point = &"cistern_ascender_arrival"
+required_world_flag = &"underground_deep_cistern_stalker_defeated"
+interaction_radius_px = 112.0
+locked_prompt_text = "Defeat Cistern Stalker"
+available_prompt_text = "Ride to Factory Upper Works"
+
+[node name="Visual" type="Sprite2D" parent="DeepCisternAscenderRoute"]
+position = Vector2(0, -158)
+texture_filter = 1
+scale = Vector2(0.62, 0.62)
+texture = ExtResource("24_ascender_texture")
+
+[node name="InteractionArea" type="Area2D" parent="DeepCisternAscenderRoute"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeepCisternAscenderRoute/InteractionArea"]
+shape = SubResource("CircleShape2D_route")
+
+[node name="PromptLabel" type="Label" parent="DeepCisternAscenderRoute"]
+offset_left = -328.0
+offset_top = -352.0
+offset_right = -12.0
+offset_bottom = -318.0
+theme_override_colors/font_color = Color(0.44, 0.9, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "Defeat Cistern Stalker"
+horizontal_alignment = 1
 
 [node name="UndergroundObjectiveLabel" type="Label" parent="."]
 z_index = 50

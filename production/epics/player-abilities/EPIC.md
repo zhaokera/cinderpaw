@@ -171,6 +171,7 @@ recording the reward in progression state.
 | 131 | Underground Corrosion Channel Skirmish | Integration + Gameplay Runtime + Environmental Hazard + Visual | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
 | 132 | Underground Recovery Cistern Savepoint Traverse | Integration + Gameplay Runtime + Traversal + Save/Respawn + Visual | Complete | ADR-0002/0004/0007/0018/0019/0021 |
 | 133 | Underground Deep Cistern Stalker Ambush | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0006/0007 |
+| 134 | Deep Cistern Ascender Factory Upper Altar Approach | Integration + Traversal + Scene Handoff + Visual | Complete | ADR-0002/0004/0007/0018/0021 |
 
 ## Definition of Done
 
