@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 129 stories tracked
+> **Stories**: 130 stories tracked
 
 ## Overview
 
@@ -167,6 +167,7 @@ recording the reward in progression state.
 | 127 | Old Factory Tailrace Sluice Matriarch Arena Handoff | Integration + Gameplay Runtime + Scene Management + Visual | Complete | ADR-0002/0007/0018/0021 |
 | 128 | Sluice Matriarch Playable Boss3 Core | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
 | 129 | Sluice Matriarch Aerial Attack Reward Payoff | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0007/0018/0021 |
+| 130 | Factory Aerial Breach Underground Passage Handoff | Integration + Ability Gate + Scene Handoff + Visual | Complete | ADR-0002/0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -186,9 +187,8 @@ This epic is complete when:
 
 ## Next Step
 
-Story129 is complete: Boss3 defeat reveals a generated ability relic, claim
-state persists through SceneManager, and airborne attack input uses a generated
-three-frame downward strike with shared damage, cat energy, bounce, and
-air-jump restoration. Story130 should build the first aerial-attack exploration
-gate and Factory-to-Underground route handoff without widening the ability
-contract completed here.
+Story130 is complete: the Factory tailrace now spends `aerial_attack` on a
+generated cracked-floor ExplorationGate and performs a persistent bidirectional
+SceneManager handoff into the authored Underground Passage. Story131 should add
+the first compact playable Underground traversal or combat beat while retaining
+this entry scene, return route, and ability-state contract.

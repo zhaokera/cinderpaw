@@ -30,6 +30,14 @@
 			"preload": false,
 			"default_spawn": "boss_entry",
 			"display_name": "Sluice Matriarch Lair"
+		},
+		"area_04_underground_passage": {
+			"scene_id": "area_04_underground_passage",
+			"path": "res://scenes/areas/underground_passage.tscn",
+			"type": "area",
+			"preload": false,
+			"default_spawn": "factory_drop_entry",
+			"display_name": "Underground Passage"
 		}
 	}
 }

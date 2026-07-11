@@ -492,6 +492,12 @@ const FACTORY_OBJECTIVE_TAILRACE_EXIT_SLUICE_LEECH_CLEARED: StringName = (
 const FACTORY_OBJECTIVE_ENTER_SLUICE_MATRIARCH_LAIR: StringName = (
 	&"enter_sluice_matriarch_lair"
 )
+const FACTORY_OBJECTIVE_BREAK_TAILRACE_UNDERGROUND_FLOOR: StringName = (
+	&"break_tailrace_underground_floor"
+)
+const FACTORY_OBJECTIVE_UNDERGROUND_BREACH_OPENED: StringName = (
+	&"underground_breach_opened"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -629,6 +635,22 @@ const FACTORY_TAILRACE_SLUICE_MATRIARCH_TARGET_SPAWN_POINT: StringName = &"boss_
 const FACTORY_TAILRACE_SLUICE_MATRIARCH_RETURN_SPAWN_POINT: StringName = (
 	&"tailrace_matriarch_gate_return"
 )
+const FACTORY_TAILRACE_UNDERGROUND_BREACH_GATE_ID: StringName = (
+	&"factory_tailrace_underground_aerial_breach"
+)
+const FACTORY_TAILRACE_UNDERGROUND_TARGET_SCENE_ID: StringName = (
+	&"area_04_underground_passage"
+)
+const FACTORY_TAILRACE_UNDERGROUND_TARGET_SPAWN_POINT: StringName = (
+	&"factory_drop_entry"
+)
+const FACTORY_TAILRACE_UNDERGROUND_RETURN_SPAWN_POINT: StringName = (
+	&"tailrace_underground_return"
+)
+const FACTORY_TAILRACE_UNDERGROUND_BREACH_OPEN_KEY: String = (
+	"factory_tailrace_underground_aerial_breach_opened"
+)
+const FACTORY_TAILRACE_UNDERGROUND_REQUIRED_ABILITY: StringName = &"aerial_attack"
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_ACTIVATION_X: float = 3920.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_ACTIVATION_X: float = 4560.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_EXIT_X: float = 5020.0
@@ -679,6 +701,9 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUN
 )
 const FACTORY_TAILRACE_SLUICE_MATRIARCH_RETURN_LABEL: String = (
 	"Returned to Sluice Matriarch Gate"
+)
+const FACTORY_TAILRACE_UNDERGROUND_RETURN_LABEL: String = (
+	"Returned to Underground Breach"
 )
 const GAME_FLOW_SCRIPT: Script = preload("res://src/gameplay/game_flow_controller.gd")
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
@@ -1027,6 +1052,12 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _factory_tailrace_sluice_matriarch_return_spawn: Marker2D = (
 	get_node_or_null("FactoryTailraceSluiceMatriarchReturnSpawn") as Marker2D
 )
+@onready var _factory_tailrace_underground_aerial_breach: Node = (
+	get_node_or_null("FactoryTailraceUndergroundAerialBreach")
+)
+@onready var _factory_tailrace_underground_return_spawn: Marker2D = (
+	get_node_or_null("FactoryTailraceUndergroundReturnSpawn") as Marker2D
+)
 @onready var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_spark_rat: Node2D = (
 	get_node_or_null(
 		"FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerSparkRat"
@@ -1326,6 +1357,10 @@ var _factory_tailrace_exit_sluice_leech_defeated: bool = false
 var _factory_tailrace_sluice_matriarch_transition_requested: bool = false
 var _last_factory_tailrace_sluice_matriarch_rejected_reason: StringName = &""
 var _last_factory_tailrace_sluice_matriarch_request: Dictionary = {}
+var _factory_tailrace_underground_aerial_breach_opened: bool = false
+var _factory_tailrace_underground_transition_requested: bool = false
+var _last_factory_tailrace_underground_rejected_reason: StringName = &""
+var _last_factory_tailrace_underground_request: Dictionary = {}
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -1413,6 +1448,7 @@ func _ready() -> void:
 	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_state()
 	_sync_factory_tailrace_exit_sluice_leech_skirmish_state()
 	_sync_factory_tailrace_sluice_matriarch_route_state()
+	_setup_factory_tailrace_underground_aerial_breach()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -1487,6 +1523,7 @@ func _process(_delta: float) -> void:
 	_auto_complete_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway()
 	_auto_activate_factory_tailrace_exit_sluice_leech_skirmish()
 	_process_factory_tailrace_sluice_matriarch_route_contact()
+	_process_factory_tailrace_underground_breach_contact()
 	_sync_factory_player_control_lock()
 
 
@@ -4159,6 +4196,31 @@ func try_request_factory_tailrace_sluice_matriarch_transition(
 	return true
 
 
+## Requests Story130's one-way drop into the first Underground Passage.
+func try_request_factory_tailrace_underground_transition(
+	provider: Node = null
+) -> bool:
+	_sync_factory_tailrace_underground_aerial_breach_state()
+	if (
+		_factory_tailrace_underground_aerial_breach == null
+		or not _factory_tailrace_underground_aerial_breach_opened
+		or _factory_tailrace_underground_transition_requested
+	):
+		_record_factory_tailrace_underground_rejection(
+			&"breach_locked_or_transition_requested"
+		)
+		return false
+	var request_provider: Node = _player if provider == null else provider
+	if not _is_factory_tailrace_underground_provider_in_range(request_provider):
+		_record_factory_tailrace_underground_rejection(&"provider_out_of_range")
+		return false
+	if not _request_factory_tailrace_underground_scene():
+		return false
+	_factory_tailrace_underground_transition_requested = true
+	_update_route_label("Entering Underground Passage")
+	return true
+
+
 ## Starts the Story096 condenser outlet traversal beyond the condenser savepoint.
 func try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_outlet(
 	provider: Node = null
@@ -5013,6 +5075,9 @@ func get_local_state() -> Dictionary:
 			"factory_tailrace_exit_sluice_leech_skirmish_cleared": (
 				_is_factory_tailrace_exit_sluice_leech_skirmish_cleared()
 			),
+			FACTORY_TAILRACE_UNDERGROUND_BREACH_OPEN_KEY: (
+				_factory_tailrace_underground_aerial_breach_opened
+			),
 			"factory_return_checkpoint_activated": _return_checkpoint_activated,
 		"factory_route_objective_id": String(_get_factory_route_objective_id()),
 		"factory_service_lift_activated": _service_lift_activated,
@@ -5128,6 +5193,9 @@ func set_local_state(state: Dictionary) -> void:
 	_factory_tailrace_sluice_matriarch_transition_requested = false
 	_last_factory_tailrace_sluice_matriarch_rejected_reason = &""
 	_last_factory_tailrace_sluice_matriarch_request.clear()
+	_factory_tailrace_underground_transition_requested = false
+	_last_factory_tailrace_underground_rejected_reason = &""
+	_last_factory_tailrace_underground_request.clear()
 	_restore_player_unlocked_abilities(state)
 	_encounter_cleared = bool(state.get("encounter_cleared", false))
 	_cache_claimed = bool(state.get("factory_cache_claimed", false))
@@ -5949,6 +6017,19 @@ func set_local_state(state: Dictionary) -> void:
 	))
 	if _factory_tailrace_exit_sluice_leech_defeated:
 		_factory_tailrace_exit_sluice_leech_skirmish_activated = true
+	_factory_tailrace_underground_aerial_breach_opened = bool(state.get(
+		FACTORY_TAILRACE_UNDERGROUND_BREACH_OPEN_KEY,
+		false
+	))
+	if _factory_tailrace_underground_aerial_breach_opened \
+			and _factory_tailrace_underground_aerial_breach != null \
+			and _factory_tailrace_underground_aerial_breach.has_method(
+				"advance_unlock_feedback_time"
+			):
+		_factory_tailrace_underground_aerial_breach.call(
+			"advance_unlock_feedback_time",
+			999.0
+		)
 	if sluice_leech_cleared:
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_activated = true
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_crossed = true
@@ -6581,6 +6662,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_state()
 	_sync_factory_tailrace_exit_sluice_leech_skirmish_state()
 	_sync_factory_tailrace_sluice_matriarch_route_state()
+	_sync_factory_tailrace_underground_aerial_breach_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -9870,6 +9952,78 @@ func get_factory_tailrace_sluice_matriarch_route_diagnostics() -> Dictionary:
 	}
 
 
+## Returns Story130 ability-gate, art, persistence, and transition diagnostics.
+func get_factory_tailrace_underground_breach_diagnostics() -> Dictionary:
+	var gate: Node = _factory_tailrace_underground_aerial_breach
+	var visual: Sprite2D = (
+		gate.find_child("Visual", true, false) as Sprite2D if gate != null else null
+	)
+	var feedback: Dictionary = (
+		Dictionary(gate.call("get_unlock_feedback_snapshot"))
+		if gate != null and gate.has_method("get_unlock_feedback_snapshot")
+		else {}
+	)
+	var route_objective: Dictionary = get_factory_route_objective_diagnostics()
+	return {
+		"present": gate != null,
+		"gate_id": (
+			String(gate.call("get_gate_id"))
+			if gate != null and gate.has_method("get_gate_id")
+			else String(FACTORY_TAILRACE_UNDERGROUND_BREACH_GATE_ID)
+		),
+		"required_ability": (
+			String(gate.call("get_required_ability"))
+			if gate != null and gate.has_method("get_required_ability")
+			else String(FACTORY_TAILRACE_UNDERGROUND_REQUIRED_ABILITY)
+		),
+		"target_area_id": (
+			String(gate.call("get_target_area_id"))
+			if gate != null and gate.has_method("get_target_area_id")
+			else String(FACTORY_TAILRACE_UNDERGROUND_TARGET_SCENE_ID)
+		),
+		"target_scene_id": String(FACTORY_TAILRACE_UNDERGROUND_TARGET_SCENE_ID),
+		"spawn_point": String(FACTORY_TAILRACE_UNDERGROUND_TARGET_SPAWN_POINT),
+		"return_spawn_point": String(FACTORY_TAILRACE_UNDERGROUND_RETURN_SPAWN_POINT),
+		"opened": _factory_tailrace_underground_aerial_breach_opened,
+		"gate_state": (
+			String(gate.call("get_gate_state"))
+			if gate != null and gate.has_method("get_gate_state")
+			else ""
+		),
+		"collision_blocking": (
+			bool(gate.call("is_collision_blocking"))
+			if gate != null and gate.has_method("is_collision_blocking")
+			else false
+		),
+		"prompt_text": (
+			String(gate.call("get_prompt_text"))
+			if gate != null and gate.has_method("get_prompt_text")
+			else ""
+		),
+		"visual_texture_path": (
+			visual.texture.resource_path
+			if visual != null and visual.texture != null
+			else ""
+		),
+		"gate_position": (gate as Node2D).global_position if gate is Node2D else Vector2.ZERO,
+		"return_spawn_position": (
+			_factory_tailrace_underground_return_spawn.global_position
+			if _factory_tailrace_underground_return_spawn != null
+			else Vector2.ZERO
+		),
+		"ability_unlocked": _player_has_factory_tailrace_underground_ability(),
+		"unlock_vfx_spawn_count": int(feedback.get("spawn_count", 0)),
+		"unlock_vfx_active_count": int(feedback.get("active_count", 0)),
+		"transition_requested": _factory_tailrace_underground_transition_requested,
+		"rejected_reason": String(_last_factory_tailrace_underground_rejected_reason),
+		"last_request": _last_factory_tailrace_underground_request.duplicate(true),
+		"scene_manager_loading": _is_scene_manager_loading(),
+		"pending_scene": _get_scene_manager_pending_scene(),
+		"pending_spawn_point": _get_scene_manager_pending_spawn_point(),
+		"route_label_text": String(route_objective.get("route_label_text", "")),
+	}
+
+
 ## Returns deterministic aftershock condenser outlet diagnostics for tests and MCP probes.
 func get_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_diagnostics(
 ) -> Dictionary:
@@ -12938,6 +13092,81 @@ func _record_factory_tailrace_sluice_matriarch_rejection(reason: StringName) -> 
 	_last_factory_tailrace_sluice_matriarch_request.clear()
 
 
+func _request_factory_tailrace_underground_scene() -> bool:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if not _is_valid_scene_manager(scene_manager):
+		_record_factory_tailrace_underground_rejection(&"scene_manager_missing")
+		return false
+	if scene_manager.has_method("is_loading") and bool(scene_manager.call("is_loading")):
+		_record_factory_tailrace_underground_rejection(&"scene_manager_loading")
+		return false
+	if scene_manager.has_method("is_scene_locked") \
+			and bool(scene_manager.call("is_scene_locked")):
+		_record_factory_tailrace_underground_rejection(&"scene_locked")
+		return false
+	if scene_manager.has_method("has_scene") \
+			and not bool(scene_manager.call(
+				"has_scene",
+				FACTORY_TAILRACE_UNDERGROUND_TARGET_SCENE_ID
+			)):
+		_record_factory_tailrace_underground_rejection(&"unknown_scene")
+		return false
+	if not _ensure_factory_runtime_scene_root(scene_manager):
+		_record_factory_tailrace_underground_rejection(&"runtime_root_unavailable")
+		return false
+	if scene_manager.has_method("set_scene_state"):
+		scene_manager.call("set_scene_state", FACTORY_SCENE_ID, get_local_state())
+		if scene_manager.has_method("get_scene_state"):
+			var underground_state: Dictionary = Dictionary(scene_manager.call(
+				"get_scene_state",
+				FACTORY_TAILRACE_UNDERGROUND_TARGET_SCENE_ID
+			))
+			var underground_unlocked: Array = Array(
+				underground_state.get("unlocked_abilities", [])
+			)
+			for ability_id: String in _get_player_unlocked_ability_strings():
+				if not underground_unlocked.has(ability_id):
+					underground_unlocked.append(ability_id)
+			underground_state["unlocked_abilities"] = underground_unlocked
+			scene_manager.call(
+				"set_scene_state",
+				FACTORY_TAILRACE_UNDERGROUND_TARGET_SCENE_ID,
+				underground_state
+			)
+
+	var request_started: bool = false
+	if scene_manager.has_method("request_scene_change"):
+		request_started = bool(scene_manager.call(
+			"request_scene_change",
+			FACTORY_TAILRACE_UNDERGROUND_TARGET_SCENE_ID,
+			FACTORY_TAILRACE_UNDERGROUND_TARGET_SPAWN_POINT
+		))
+	elif scene_manager.has_method("change_scene"):
+		request_started = bool(scene_manager.call(
+			"change_scene",
+			FACTORY_TAILRACE_UNDERGROUND_TARGET_SCENE_ID,
+			FACTORY_TAILRACE_UNDERGROUND_TARGET_SPAWN_POINT
+		))
+	if not request_started:
+		_record_factory_tailrace_underground_rejection(&"request_rejected")
+		return false
+
+	_last_factory_tailrace_underground_rejected_reason = &""
+	_last_factory_tailrace_underground_request = {
+		"scene_id": String(FACTORY_TAILRACE_UNDERGROUND_TARGET_SCENE_ID),
+		"spawn_point": String(FACTORY_TAILRACE_UNDERGROUND_TARGET_SPAWN_POINT),
+		"scene_manager_loading": _is_scene_manager_loading(),
+		"pending_scene": _get_scene_manager_pending_scene(),
+		"pending_spawn_point": _get_scene_manager_pending_spawn_point(),
+	}
+	return true
+
+
+func _record_factory_tailrace_underground_rejection(reason: StringName) -> void:
+	_last_factory_tailrace_underground_rejected_reason = reason
+	_last_factory_tailrace_underground_request.clear()
+
+
 func _ensure_factory_runtime_scene_root(scene_manager: Object) -> bool:
 	if not scene_manager.has_method("configure_runtime_scene_root"):
 		return true
@@ -13006,6 +13235,7 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_SPAWN_POINT
 		)
 		or spawn_point == FACTORY_TAILRACE_SLUICE_MATRIARCH_RETURN_SPAWN_POINT
+		or spawn_point == FACTORY_TAILRACE_UNDERGROUND_RETURN_SPAWN_POINT
 	):
 		_grant_factory_hazard_respawn_grace()
 	if not _move_player_to_spawn_point(spawn_point):
@@ -13044,6 +13274,10 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 		_factory_return_checkpoint_spawn_snap_frames = 0
 		_set_player_physics_pinned_for_return_checkpoint(false)
 		_update_route_label(FACTORY_TAILRACE_SLUICE_MATRIARCH_RETURN_LABEL)
+	elif spawn_point == FACTORY_TAILRACE_UNDERGROUND_RETURN_SPAWN_POINT:
+		_factory_return_checkpoint_spawn_snap_frames = 0
+		_set_player_physics_pinned_for_return_checkpoint(false)
+		_update_route_label(FACTORY_TAILRACE_UNDERGROUND_RETURN_LABEL)
 	else:
 		_factory_return_checkpoint_spawn_snap_frames = 0
 		_set_player_physics_pinned_for_return_checkpoint(false)
@@ -13077,6 +13311,8 @@ func _move_player_to_spawn_point(spawn_point: StringName) -> bool:
 		)
 	elif spawn_point == FACTORY_TAILRACE_SLUICE_MATRIARCH_RETURN_SPAWN_POINT:
 		spawn_node = _factory_tailrace_sluice_matriarch_return_spawn
+	elif spawn_point == FACTORY_TAILRACE_UNDERGROUND_RETURN_SPAWN_POINT:
+		spawn_node = _factory_tailrace_underground_return_spawn
 	if spawn_node == null:
 		return false
 	_player.global_position = spawn_node.global_position
@@ -17057,6 +17293,92 @@ func _sync_factory_tailrace_sluice_matriarch_route_state() -> void:
 		)
 
 
+func _setup_factory_tailrace_underground_aerial_breach() -> void:
+	if _factory_tailrace_underground_aerial_breach == null:
+		return
+	if _factory_tailrace_underground_aerial_breach.has_signal("gate_state_changed"):
+		var state_signal: Signal = _factory_tailrace_underground_aerial_breach.get(
+			"gate_state_changed"
+		)
+		if not state_signal.is_connected(
+			_on_factory_tailrace_underground_breach_state_changed
+		):
+			state_signal.connect(_on_factory_tailrace_underground_breach_state_changed)
+	if _factory_tailrace_underground_aerial_breach.has_method("set_ability_provider"):
+		_factory_tailrace_underground_aerial_breach.call(
+			"set_ability_provider",
+			_player
+		)
+	_sync_factory_tailrace_underground_aerial_breach_state()
+
+
+func _sync_factory_tailrace_underground_aerial_breach_state() -> void:
+	if _factory_tailrace_underground_aerial_breach == null:
+		return
+	if _factory_tailrace_underground_aerial_breach.has_method("set_ability_provider"):
+		_factory_tailrace_underground_aerial_breach.call(
+			"set_ability_provider",
+			_player
+		)
+	if _factory_tailrace_underground_aerial_breach.has_method("set_gate_unlocked"):
+		_factory_tailrace_underground_aerial_breach.call(
+			"set_gate_unlocked",
+			_factory_tailrace_underground_aerial_breach_opened
+		)
+
+
+func _on_factory_tailrace_underground_breach_state_changed(
+	gate_id: StringName,
+	state: StringName
+) -> void:
+	if gate_id != FACTORY_TAILRACE_UNDERGROUND_BREACH_GATE_ID \
+			or state != &"unlocked" \
+			or _factory_tailrace_underground_aerial_breach_opened:
+		return
+	_factory_tailrace_underground_aerial_breach_opened = true
+	_sync_factory_tailrace_underground_aerial_breach_state()
+	_refresh_factory_route_objective()
+	_update_route_label("Underground Breach Opened")
+	try_request_factory_tailrace_underground_transition(_player)
+
+
+func _player_has_factory_tailrace_underground_ability() -> bool:
+	return (
+		_player != null
+		and _player.has_method("has_ability")
+		and bool(_player.call(
+			"has_ability",
+			FACTORY_TAILRACE_UNDERGROUND_REQUIRED_ABILITY
+		))
+	)
+
+
+func _is_factory_tailrace_underground_provider_in_range(provider: Node) -> bool:
+	if provider == null or not provider is Node2D \
+			or not _factory_tailrace_underground_aerial_breach is Node2D:
+		return false
+	var radius: float = 104.0
+	if _factory_tailrace_underground_aerial_breach.has_method(
+		"is_provider_in_unlock_range"
+	) and provider == _player:
+		return bool(_factory_tailrace_underground_aerial_breach.call(
+			"is_provider_in_unlock_range"
+		))
+	return (provider as Node2D).global_position.distance_to(
+		(_factory_tailrace_underground_aerial_breach as Node2D).global_position
+	) <= radius
+
+
+func _process_factory_tailrace_underground_breach_contact() -> void:
+	if (
+		not _factory_tailrace_underground_aerial_breach_opened
+		or _factory_tailrace_underground_transition_requested
+		or not _is_factory_tailrace_underground_provider_in_range(_player)
+	):
+		return
+	try_request_factory_tailrace_underground_transition(_player)
+
+
 func _sync_lower_deck_forward_pressure_exit_gate_state() -> void:
 	if _lower_deck_forward_pressure_exit_gate == null:
 		return
@@ -17225,6 +17547,10 @@ func _get_factory_route_objective_id() -> StringName:
 	if _is_factory_tailrace_exit_sluice_leech_skirmish_active():
 		return FACTORY_OBJECTIVE_BREAK_TAILRACE_EXIT_SLUICE_LEECH
 	if _is_factory_tailrace_exit_sluice_leech_skirmish_cleared():
+		if _factory_tailrace_underground_aerial_breach_opened:
+			return FACTORY_OBJECTIVE_UNDERGROUND_BREACH_OPENED
+		if _player_has_factory_tailrace_underground_ability():
+			return FACTORY_OBJECTIVE_BREAK_TAILRACE_UNDERGROUND_FLOOR
 		return FACTORY_OBJECTIVE_ENTER_SLUICE_MATRIARCH_LAIR
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_crossed:
 		return (
@@ -17556,6 +17882,10 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 		return "Tailrace Sluice Leech Cleared"
 	if objective_id == FACTORY_OBJECTIVE_ENTER_SLUICE_MATRIARCH_LAIR:
 		return "Enter Sluice Matriarch Lair"
+	if objective_id == FACTORY_OBJECTIVE_BREAK_TAILRACE_UNDERGROUND_FLOOR:
+		return "Aerial Attack the Cracked Floor"
+	if objective_id == FACTORY_OBJECTIVE_UNDERGROUND_BREACH_OPENED:
+		return "Underground Breach Opened"
 	if (
 		objective_id
 		== FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_RUNOFF_PINCER_CACHE_CLAIMED

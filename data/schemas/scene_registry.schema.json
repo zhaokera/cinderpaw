@@ -41,6 +41,17 @@
 				"default_spawn": {"type": "String"},
 				"display_name": {"type": "String"}
 			}
+		},
+		"area_04_underground_passage": {
+			"required": ["scene_id", "path", "type", "preload", "default_spawn", "display_name"],
+			"fields": {
+				"scene_id": {"type": "String", "enum": ["area_04_underground_passage"]},
+				"path": {"type": "String"},
+				"type": {"type": "String", "enum": ["area"]},
+				"preload": {"type": "bool"},
+				"default_spawn": {"type": "String"},
+				"display_name": {"type": "String"}
+			}
 		}
 	}
 }

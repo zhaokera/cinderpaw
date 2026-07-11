@@ -1,0 +1,117 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://src/gameplay/underground_passage_scene.gd" id="1_scene"]
+[ext_resource type="Texture2D" path="res://assets/environment/underground_passage/env_underground_passage_entry_1280x720.png" id="2_background"]
+[ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="3_player"]
+[ext_resource type="Script" path="res://src/feature/route_transition_shell.gd" id="4_route"]
+[ext_resource type="Texture2D" path="res://assets/environment/underground_passage/prop_factory_aerial_breach_floor_384x160.png" id="5_breach"]
+[ext_resource type="Script" path="res://src/presentation/hud_manager.gd" id="6_hud"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(1280, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(40, 720)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_route"]
+radius = 112.0
+
+[node name="UndergroundPassageScene" type="Node2D"]
+script = ExtResource("1_scene")
+metadata/scene_id = "area_04_underground_passage"
+
+[node name="Background" type="Sprite2D" parent="."]
+z_index = -100
+position = Vector2(640, 360)
+texture_filter = 1
+texture = ExtResource("2_background")
+
+[node name="Ground" type="StaticBody2D" parent="."]
+position = Vector2(640, 624)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_ground")
+
+[node name="LeftWall" type="StaticBody2D" parent="."]
+position = Vector2(20, 360)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="RightWall" type="StaticBody2D" parent="."]
+position = Vector2(1260, 360)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="UndergroundEntrySpawn" type="Marker2D" parent="."]
+position = Vector2(300, 576)
+
+[node name="Player" parent="." instance=ExtResource("3_player")]
+z_index = 20
+position = Vector2(300, 576)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+limit_left = 0
+limit_top = 0
+limit_right = 1280
+limit_bottom = 720
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+
+[node name="FactoryReturnRoute" type="Node2D" parent="."]
+z_index = 24
+position = Vector2(112, 558)
+script = ExtResource("4_route")
+route_id = &"underground_passage_factory_return"
+target_scene_id = &"area_03_factory"
+spawn_point = &"tailrace_underground_return"
+interaction_radius_px = 112.0
+locked_prompt_text = "Return unavailable"
+available_prompt_text = "Climb to Factory Tailrace"
+
+[node name="Visual" type="Sprite2D" parent="FactoryReturnRoute"]
+texture_filter = 1
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("5_breach")
+
+[node name="InteractionArea" type="Area2D" parent="FactoryReturnRoute"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryReturnRoute/InteractionArea"]
+shape = SubResource("CircleShape2D_route")
+
+[node name="PromptLabel" type="Label" parent="FactoryReturnRoute"]
+offset_left = -108.0
+offset_top = -112.0
+offset_right = 108.0
+offset_bottom = -82.0
+theme_override_colors/font_color = Color(0.44, 0.9, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.84)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 16
+text = "Climb to Factory Tailrace"
+horizontal_alignment = 1
+
+[node name="UndergroundObjectiveLabel" type="Label" parent="."]
+z_index = 50
+offset_left = 420.0
+offset_top = 72.0
+offset_right = 860.0
+offset_bottom = 108.0
+theme_override_colors/font_color = Color(0.86, 0.96, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.86)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 24
+text = "Explore Underground Passage"
+horizontal_alignment = 1
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("6_hud")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=52 format=3]
+[gd_scene load_steps=54 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -42,6 +42,7 @@
 [ext_resource type="PackedScene" path="res://src/gameplay/factory_sluice_leech.tscn" id="40_sluice_leech"]
 [ext_resource type="Script" path="res://src/feature/route_transition_shell.gd" id="41_route_shell"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_deep_bulkhead/env_old_factory_lower_deck_deep_bulkhead_closed_256.png" id="42_matriarch_gate"]
+[ext_resource type="Texture2D" path="res://assets/environment/underground_passage/prop_factory_aerial_breach_floor_384x160.png" id="43_underground_breach"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(30080, 40)
@@ -69,6 +70,9 @@ radius = 112.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lower_deck_parry_gate"]
 size = Vector2(48, 118)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_underground_breach"]
+size = Vector2(300, 28)
 
 [node name="FactoryRouteTransitionShellScene" type="Node2D"]
 script = ExtResource("1_scene")
@@ -2487,6 +2491,50 @@ position = Vector2(17760, 482)
 
 [node name="FactoryTailraceSluiceMatriarchReturnSpawn" type="Marker2D" parent="."]
 position = Vector2(17840, 456)
+
+[node name="FactoryTailraceUndergroundReturnSpawn" type="Marker2D" parent="."]
+position = Vector2(17680, 456)
+
+[node name="FactoryTailraceUndergroundAerialBreach" type="Node2D" parent="."]
+z_index = 24
+position = Vector2(17480, 476)
+script = ExtResource("21_gate_script")
+gate_id = "factory_tailrace_underground_aerial_breach"
+required_ability = "aerial_attack"
+target_area_id = "area_04_underground_passage"
+unlock_radius_px = 104.0
+prompt_radius_px = 208.0
+unlock_feedback_scale = 0.82
+locked_prompt_text = "Requires Aerial Attack"
+unlockable_prompt_text = "Aerial Attack to Breach"
+locked_modulate = Color(0.56, 0.66, 0.72, 0.82)
+unlockable_modulate = Color(1, 0.78, 0.24, 1)
+unlocked_modulate = Color(0.24, 0.88, 1, 0.16)
+
+[node name="Visual" type="Sprite2D" parent="FactoryTailraceUndergroundAerialBreach"]
+texture_filter = 1
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("43_underground_breach")
+
+[node name="Blocker" type="StaticBody2D" parent="FactoryTailraceUndergroundAerialBreach"]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryTailraceUndergroundAerialBreach/Blocker"]
+shape = SubResource("RectangleShape2D_underground_breach")
+
+[node name="PromptLabel" type="Label" parent="FactoryTailraceUndergroundAerialBreach"]
+offset_left = -152.0
+offset_top = -126.0
+offset_right = 152.0
+offset_bottom = -94.0
+theme_override_colors/font_color = Color(1, 0.82, 0.32, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.88)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "Requires Aerial Attack"
+horizontal_alignment = 1
 
 [node name="FactoryTailraceSluiceMatriarchRoute" type="Node2D" parent="."]
 z_index = 24

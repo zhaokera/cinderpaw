@@ -58,13 +58,17 @@
     attack input drives the three-frame downward strike, lands shared damage,
     grants eight cat energy, bounces, and restores one air-jump use
     (`tests/smoke/sluice_matriarch_aerial_attack_reward_payoff_smoke.gd`)
+18. The Factory tailrace floor unlocks only from a nearby real aerial attack,
+    persists open, swaps into the authored Underground Passage, and returns to
+    the exact Factory breach marker with `aerial_attack` intact
+    (`tests/smoke/factory_aerial_breach_underground_passage_handoff_smoke.gd`)
 
 ## Data Integrity
 
-18. Save game completes without error (once save system is implemented)
-19. Load game restores correct state (once load system is implemented)
+19. Save game completes without error (once save system is implemented)
+20. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-20. No visible frame rate drops on target hardware (60fps target)
-21. No memory growth over 5 minutes of play (once core loop is implemented)
+21. No visible frame rate drops on target hardware (60fps target)
+22. No memory growth over 5 minutes of play (once core loop is implemented)

@@ -4930,3 +4930,14 @@
 - Notes: Parallel design/art/QA sidecars failed before task execution because the backend supplied unsupported `reasoning.effort=max`; integration and review continued locally. Retained Old Factory parse rows were marked as pre-run history and did not recur in the final MCP run.
 - Blockers: None for Story129. The broader game goal remains active.
 - Next: implement Story130 as a bounded aerial-attack exploration gate and Factory-to-Underground route handoff, reusing the completed ability contract instead of widening Story129.
+
+## Session Extract -- /dev-story 2026-07-11
+
+- Delivery checkpoint: Story129 was committed as `65887a61` (`Implement Boss3 aerial attack reward`) and pushed to `origin/master` before Story130 began.
+- Story: `production/epics/player-abilities/story-130-factory-aerial-breach-underground-passage-handoff.md` -- Factory Aerial Breach Underground Passage Handoff.
+- Implementation: Added `FactoryTailraceUndergroundAerialBreach` using the shared ExplorationGate. It remains locked without `aerial_attack`; real airborne activation within 104 px opens it once, disables collision, plays shared generated feedback, persists `factory_tailrace_underground_aerial_breach_opened`, merges abilities into destination state, and requests `area_04_underground_passage / factory_drop_entry`. The new bounded Underground scene has Cinderpaw, Camera2D, floor/walls, HUD/objective, generated background, and a repeatable Factory return route to `tailrace_underground_return`.
+- Asset pipeline: Built-in image generation produced an opaque Underground source and a magenta-keyed cracked floor. Local processing produced exact opaque `1280x720` and transparent `384x160` runtime assets, imported them through Godot 4.7, and recorded source/alpha/runtime paths in generation records, spec, manifest, and inventory.
+- Verification: RED `reports/report_1421/`; final focused GREEN `reports/report_1423/` passed `2/2`; bounded adjacent GREEN `reports/report_1424/` passed `11/11`; real SceneManager smoke exited `0` with marker `factory_aerial_breach_underground_passage_handoff_smoke=passed`. Godot AI MCP `2.9.1` on Godot `4.7-stable` verified Factory gate properties/runtime metadata, Underground 26-node editor and 47-node runtime hierarchies, generated texture paths, clean current-run logs, and a non-empty `1278x718` gameplay screenshot.
+- Debugging: The smoke exposed missing ability propagation into the destination and stale active VFX on cached Factory return. Target-state merging and restore-time feedback completion fixed both without widening the gate state machine.
+- Blockers: None for Story130. The broader game goal remains active.
+- Next: implement Story131 as the first compact playable Underground traversal or combat beat, keeping the Story130 entry/return contract and bounded validation.
