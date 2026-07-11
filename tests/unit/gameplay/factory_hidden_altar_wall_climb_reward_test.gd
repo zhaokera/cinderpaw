@@ -236,7 +236,7 @@ func test_hidden_altar_claim_is_one_shot_persistent_and_alternate_path_safe() ->
 		var proven: Dictionary = upper.call("get_factory_upper_altar_diagnostics")
 		assert_bool(bool(proven.get("wall_climb_route_proven", false))).is_true()
 		assert_str(String(proven.get("objective_text", ""))).is_equal(
-			"Rooftop Route Reached"
+			"Enter Neon Rooftops"
 		)
 
 	var saved: Dictionary = upper.call("get_local_state")

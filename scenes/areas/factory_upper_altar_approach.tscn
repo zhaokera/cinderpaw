@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/factory_upper_altar_approach_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_upper_altar/env_factory_upper_altar_approach_1280x720.png" id="2_background"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://assets/environment/factory_upper_altar/prop_factory_hidden_altar_awakened_384x384.png" id="8_awakened_altar"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_upper_altar/prop_factory_magnetic_wall_256x512.png" id="9_magnetic_wall"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_upper_altar/vfx_wall_climb_contact_glow_192x192.png" id="10_contact_glow"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_factory_bridge_beacon_256x384.png" id="11_neon_bridge"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 48)
@@ -136,6 +137,9 @@ shape = SubResource("RectangleShape2D_proof_area")
 [node name="CisternAscenderArrival" type="Marker2D" parent="."]
 position = Vector2(196, 576)
 
+[node name="NeonRooftopsReturn" type="Marker2D" parent="."]
+position = Vector2(1040, 90)
+
 [node name="Player" parent="." instance=ExtResource("3_player")]
 z_index = 20
 position = Vector2(196, 576)
@@ -181,6 +185,42 @@ theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 18
 text = "Descend to Deep Cistern"
+horizontal_alignment = 1
+
+[node name="NeonRooftopsRoute" type="Node2D" parent="."]
+z_index = 18
+position = Vector2(1050, 90)
+script = ExtResource("4_route")
+route_id = &"factory_upper_neon_rooftops"
+target_scene_id = &"area_05_neon_rooftops"
+spawn_point = &"factory_rooftop_arrival"
+required_world_flag = &"factory_upper_wall_climb_route_proven"
+interaction_radius_px = 104.0
+locked_prompt_text = "Requires Wall Climb"
+available_prompt_text = "Enter Neon Rooftops"
+
+[node name="Visual" type="Sprite2D" parent="NeonRooftopsRoute"]
+position = Vector2(0, -44)
+texture_filter = 1
+scale = Vector2(0.34, 0.34)
+texture = ExtResource("11_neon_bridge")
+
+[node name="InteractionArea" type="Area2D" parent="NeonRooftopsRoute"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="NeonRooftopsRoute/InteractionArea"]
+shape = SubResource("CircleShape2D_interaction")
+
+[node name="PromptLabel" type="Label" parent="NeonRooftopsRoute"]
+offset_left = -290.0
+offset_top = 86.0
+offset_right = 20.0
+offset_bottom = 120.0
+theme_override_colors/font_color = Color(0.44, 0.9, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "Enter Neon Rooftops"
 horizontal_alignment = 1
 
 [node name="DormantHiddenAltar" type="Node2D" parent="."]

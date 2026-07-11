@@ -173,6 +173,7 @@ recording the reward in progression state.
 | 133 | Underground Deep Cistern Stalker Ambush | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0006/0007 |
 | 134 | Deep Cistern Ascender Factory Upper Altar Approach | Integration + Traversal + Scene Handoff + Visual | Complete | ADR-0002/0004/0007/0018/0021 |
 | 135 | Factory Hidden Altar Wall Climb Reward Traversal | Integration + Player Movement + Frame Animation Contract | Complete | ADR-0001/0002/0003/0005/0007/0018/0021 |
+| 136 | Neon Rooftops Magnetic Wall Gate Handoff | Integration + Ability Gate + Scene Handoff + Traversal + Visual | Complete | ADR-0001/0002/0003/0004/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -192,6 +193,7 @@ This epic is complete when:
 
 ## Next Step
 
-Story135 is complete. Plan Story136 as a bounded Neon Rooftops magnetic-wall
-gate and scene handoff that consumes the finished wall-climb contract. Do not
-invent Boss4 combat until its configuration and encounter story exist.
+Story136 is complete. Plan Story137 as the first compact Neon Rooftops combat
+or traversal expansion from the secured high roof, using generated environment
+art and frame animation for any new visible enemy. Do not invent Boss4 combat
+until its configuration and encounter story exist.

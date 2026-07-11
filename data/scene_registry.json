@@ -46,6 +46,14 @@
 			"preload": false,
 			"default_spawn": "cistern_ascender_arrival",
 			"display_name": "Factory Upper Altar"
+		},
+		"area_05_neon_rooftops": {
+			"scene_id": "area_05_neon_rooftops",
+			"path": "res://scenes/areas/neon_rooftops_entry.tscn",
+			"type": "area",
+			"preload": false,
+			"default_spawn": "factory_rooftop_arrival",
+			"display_name": "Neon Rooftops"
 		}
 	}
 }

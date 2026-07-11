@@ -6,6 +6,9 @@ const SCENE_ID: StringName = &"area_03_factory_upper_altar"
 const ARRIVAL_SPAWN_POINT: StringName = &"cistern_ascender_arrival"
 const UNDERGROUND_SCENE_ID: StringName = &"area_04_underground_passage"
 const UNDERGROUND_RETURN_SPAWN: StringName = &"deep_cistern_ascender_return"
+const NEON_ROOFTOPS_SCENE_ID: StringName = &"area_05_neon_rooftops"
+const NEON_ROOFTOPS_ARRIVAL_SPAWN: StringName = &"factory_rooftop_arrival"
+const NEON_ROOFTOPS_RETURN_SPAWN: StringName = &"neon_rooftops_return"
 const DISCOVERY_RADIUS_PX: float = 112.0
 const WALL_CLIMB_ABILITY_ID: StringName = &"wall_climb"
 const WALL_CLIMB_REWARD_FEEDBACK_DURATION_SEC: float = 1.5
@@ -33,6 +36,10 @@ const MAGNETIC_WALL_TEXTURE_PATH: String = (
 const WALL_CONTACT_GLOW_TEXTURE_PATH: String = (
 	"res://assets/environment/factory_upper_altar/"
 	+ "vfx_wall_climb_contact_glow_192x192.png"
+)
+const NEON_BRIDGE_TEXTURE_PATH: String = (
+	"res://assets/environment/neon_rooftops/"
+	+ "prop_neon_factory_bridge_beacon_256x384.png"
 )
 
 @onready var _background: Sprite2D = get_node_or_null("Background") as Sprite2D
@@ -75,6 +82,18 @@ const WALL_CONTACT_GLOW_TEXTURE_PATH: String = (
 @onready var _rooftop_proof_perch: StaticBody2D = (
 	get_node_or_null("RooftopProofPerch") as StaticBody2D
 )
+@onready var _neon_rooftops_route: Node2D = (
+	get_node_or_null("NeonRooftopsRoute") as Node2D
+)
+@onready var _neon_rooftops_route_visual: Sprite2D = (
+	get_node_or_null("NeonRooftopsRoute/Visual") as Sprite2D
+)
+@onready var _neon_rooftops_prompt: Label = (
+	get_node_or_null("NeonRooftopsRoute/PromptLabel") as Label
+)
+@onready var _neon_rooftops_return_spawn: Marker2D = (
+	get_node_or_null("NeonRooftopsReturn") as Marker2D
+)
 @onready var _objective_label: Label = (
 	get_node_or_null("ObjectiveLabel") as Label
 )
@@ -89,6 +108,10 @@ var _wall_climb_reward_feedback_count: int = 0
 var _wall_climb_route_proven: bool = false
 var _wall_contact_feedback_count: int = 0
 var _wall_contact_tween: Tween = null
+var _neon_rooftops_route_opened: bool = false
+var _neon_transition_requested: bool = false
+var _last_neon_rejected_reason: StringName = &""
+var _last_neon_request: Dictionary = {}
 var _return_transition_requested: bool = false
 var _last_return_rejected_reason: StringName = &""
 var _last_return_request: Dictionary = {}
@@ -101,6 +124,7 @@ func _ready() -> void:
 	_sync_return_route()
 	_sync_altar_state(false)
 	_sync_wall_climb_reward_state(false)
+	_sync_neon_rooftops_route()
 	_sync_objective_position()
 	var root_scene_manager: Node = get_node_or_null("/root/SceneManager")
 	if _is_valid_scene_manager(root_scene_manager):
@@ -117,6 +141,8 @@ func _process(delta: float) -> void:
 	_sync_objective_position()
 	if Input.is_action_just_pressed(&"interact"):
 		if try_claim_wall_climb_reward(_player):
+			return
+		if try_request_neon_rooftops(_player):
 			return
 		if (
 			not _return_transition_requested
@@ -204,6 +230,52 @@ func try_prove_wall_climb_route(provider: Node = null) -> bool:
 	_wall_climb_route_proven = true
 	if _is_valid_scene_manager(_scene_manager):
 		_persist_progress()
+	_sync_neon_rooftops_route()
+	_refresh_objective_text()
+	return true
+
+
+## Opens the permanent rooftop gate and requests the registered destination.
+func try_request_neon_rooftops(provider: Node = null) -> bool:
+	if _neon_rooftops_route == null or _neon_transition_requested:
+		_record_neon_rejection(&"transition_already_requested")
+		return false
+	var request_provider: Node = _player if provider == null else provider
+	if (
+		not _neon_rooftops_route.has_method("can_request_transition")
+		or not bool(_neon_rooftops_route.call(
+			"can_request_transition",
+			request_provider
+		))
+	):
+		_record_neon_rejection(&"provider_out_of_range_or_gate_locked")
+		return false
+	if not _can_use_scene_manager_for(NEON_ROOFTOPS_SCENE_ID, true):
+		return false
+	if not _ensure_runtime_scene_root():
+		_record_neon_rejection(&"runtime_root_unavailable")
+		return false
+	if not _persist_progress():
+		_record_neon_rejection(&"state_persist_failed")
+		return false
+	if not _request_scene_change(
+		NEON_ROOFTOPS_SCENE_ID,
+		NEON_ROOFTOPS_ARRIVAL_SPAWN
+	):
+		_record_neon_rejection(&"request_rejected")
+		return false
+
+	_neon_rooftops_route_opened = true
+	_neon_transition_requested = true
+	_last_neon_rejected_reason = &""
+	_last_neon_request = {
+		"scene_id": String(NEON_ROOFTOPS_SCENE_ID),
+		"spawn_point": String(NEON_ROOFTOPS_ARRIVAL_SPAWN),
+		"pending_scene": _get_pending_scene(),
+		"pending_spawn_point": _get_pending_spawn_point(),
+	}
+	_persist_progress()
+	_sync_neon_rooftops_route()
 	_refresh_objective_text()
 	return true
 
@@ -272,6 +344,7 @@ func get_local_state() -> Dictionary:
 		"factory_upper_hidden_altar_discovered": _altar_discovered,
 		"factory_upper_wall_climb_reward_claimed": _wall_climb_reward_claimed,
 		"factory_upper_wall_climb_route_proven": _wall_climb_route_proven,
+		"factory_upper_neon_rooftops_route_opened": _neon_rooftops_route_opened,
 		"unlocked_abilities": _get_player_unlocked_ability_strings(),
 	}
 
@@ -285,6 +358,13 @@ func set_local_state(state: Dictionary) -> void:
 		"factory_upper_wall_climb_route_proven",
 		false
 	))
+	_neon_rooftops_route_opened = bool(state.get(
+		"factory_upper_neon_rooftops_route_opened",
+		false
+	))
+	_wall_climb_route_proven = (
+		_wall_climb_route_proven or _neon_rooftops_route_opened
+	)
 	_altar_discovered = bool(state.get(
 		"factory_upper_hidden_altar_discovered",
 		false
@@ -294,6 +374,9 @@ func set_local_state(state: Dictionary) -> void:
 	_wall_climb_reward_feedback_remaining_sec = 0.0
 	_wall_climb_reward_feedback_count = 0
 	_wall_contact_feedback_count = 0
+	_neon_transition_requested = false
+	_last_neon_rejected_reason = &""
+	_last_neon_request.clear()
 	_return_transition_requested = false
 	_last_return_rejected_reason = &""
 	_last_return_request.clear()
@@ -301,7 +384,8 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_return_route()
 	_sync_altar_state(false)
 	_sync_wall_climb_reward_state(false)
-	_align_player_to_arrival()
+	_sync_neon_rooftops_route()
+	_apply_current_scene_manager_spawn_point()
 
 
 func get_factory_upper_altar_diagnostics() -> Dictionary:
@@ -326,6 +410,10 @@ func get_factory_upper_altar_diagnostics() -> Dictionary:
 			_wall_contact_glow
 		),
 		"wall_contact_glow_expected_path": WALL_CONTACT_GLOW_TEXTURE_PATH,
+		"neon_bridge_texture_path": _get_texture_path(
+			_neon_rooftops_route_visual
+		),
+		"neon_bridge_expected_path": NEON_BRIDGE_TEXTURE_PATH,
 		"arrival_spawn_position": (
 			_arrival_spawn.global_position if _arrival_spawn != null else Vector2.ZERO
 		),
@@ -364,6 +452,21 @@ func get_factory_upper_altar_diagnostics() -> Dictionary:
 		"wall_contact_feedback_count": _wall_contact_feedback_count,
 		"wall_contact_glow_visible": (
 			_wall_contact_glow != null and _wall_contact_glow.visible
+		),
+		"neon_route_available": _is_neon_rooftops_route_available(),
+		"neon_route_opened": _neon_rooftops_route_opened,
+		"neon_target_scene_id": String(NEON_ROOFTOPS_SCENE_ID),
+		"neon_target_spawn_point": String(NEON_ROOFTOPS_ARRIVAL_SPAWN),
+		"neon_return_spawn_position": (
+			_neon_rooftops_return_spawn.global_position
+			if _neon_rooftops_return_spawn != null
+			else Vector2.ZERO
+		),
+		"neon_transition_requested": _neon_transition_requested,
+		"last_neon_rejected_reason": String(_last_neon_rejected_reason),
+		"last_neon_request": _last_neon_request.duplicate(true),
+		"neon_prompt_visible": (
+			_neon_rooftops_prompt != null and _neon_rooftops_prompt.visible
 		),
 		"altar_prompt_visible": _altar_prompt != null and _altar_prompt.visible,
 		"wall_climb_reward_prompt_visible": (
@@ -547,6 +650,27 @@ func _sync_return_route() -> void:
 	_sync_prompt_visibility()
 
 
+func _sync_neon_rooftops_route() -> void:
+	if _neon_rooftops_route == null:
+		return
+	if _neon_rooftops_route.has_method("set_route_available"):
+		_neon_rooftops_route.call(
+			"set_route_available",
+			_neon_rooftops_route_opened
+			or (
+				_wall_climb_route_proven
+				and _has_player_ability(WALL_CLIMB_ABILITY_ID)
+			)
+		)
+	if _neon_rooftops_route.has_method("set_transition_requested"):
+		_neon_rooftops_route.call(
+			"set_transition_requested",
+			_neon_transition_requested
+		)
+	_refresh_objective_text()
+	_sync_prompt_visibility()
+
+
 func _sync_prompt_visibility() -> void:
 	if _return_prompt != null:
 		_return_prompt.visible = (
@@ -563,6 +687,12 @@ func _sync_prompt_visibility() -> void:
 			and not _wall_climb_reward_claimed
 			and _is_provider_near_altar(_player)
 		)
+	if _neon_rooftops_prompt != null:
+		_neon_rooftops_prompt.visible = (
+			not _neon_transition_requested
+			and _is_neon_rooftops_route_available()
+			and _is_provider_near_neon_rooftops_route(_player)
+		)
 
 
 func _refresh_objective_text() -> void:
@@ -570,6 +700,10 @@ func _refresh_objective_text() -> void:
 		return
 	if _return_transition_requested:
 		_objective_label.text = "Descending to Deep Cistern"
+	elif _neon_transition_requested:
+		_objective_label.text = "Crossing to Neon Rooftops"
+	elif _is_neon_rooftops_route_available():
+		_objective_label.text = "Enter Neon Rooftops"
 	elif _wall_climb_route_proven:
 		_objective_label.text = "Rooftop Route Reached"
 	elif _wall_climb_reward_feedback_remaining_sec > 0.0:
@@ -591,9 +725,13 @@ func _sync_objective_position() -> void:
 
 
 func _align_player_to_arrival() -> bool:
-	if _player == null or _arrival_spawn == null:
+	return _align_player_to_marker(_arrival_spawn)
+
+
+func _align_player_to_marker(marker: Marker2D) -> bool:
+	if _player == null or marker == null:
 		return false
-	_player.global_position = _arrival_spawn.global_position
+	_player.global_position = marker.global_position
 	if _player is CharacterBody2D:
 		(_player as CharacterBody2D).velocity = Vector2.ZERO
 	return true
@@ -611,6 +749,8 @@ func _apply_current_scene_manager_spawn_point() -> void:
 		spawn_point = StringName(_scene_manager.call("get_current_spawn_point"))
 	if spawn_point in [ARRIVAL_SPAWN_POINT, &"default"]:
 		_align_player_to_arrival()
+	elif spawn_point == NEON_ROOFTOPS_RETURN_SPAWN:
+		_align_player_to_marker(_neon_rooftops_return_spawn)
 
 
 func _is_provider_near_altar(provider: Node) -> bool:
@@ -630,6 +770,26 @@ func _is_provider_near_wall_climb_proof(provider: Node) -> bool:
 		and (provider as Node2D).global_position.distance_to(
 			_wall_climb_proof_area.global_position
 		) <= WALL_CLIMB_PROOF_RADIUS_PX
+	)
+
+
+func _is_provider_near_neon_rooftops_route(provider: Node) -> bool:
+	return (
+		_neon_rooftops_route != null
+		and provider != null
+		and _neon_rooftops_route.has_method("is_provider_in_transition_range")
+		and bool(_neon_rooftops_route.call(
+			"is_provider_in_transition_range",
+			provider
+		))
+	)
+
+
+func _is_neon_rooftops_route_available() -> bool:
+	return (
+		_neon_rooftops_route != null
+		and _neon_rooftops_route.has_method("is_route_available")
+		and bool(_neon_rooftops_route.call("is_route_available"))
 	)
 
 
@@ -673,24 +833,63 @@ func _persist_progress() -> bool:
 		SCENE_ID,
 		get_local_state()
 	))
-	var underground_state: Dictionary = {}
+	var underground_persisted: bool = _merge_player_abilities_into_scene_state(
+		UNDERGROUND_SCENE_ID
+	)
+	var rooftops_persisted: bool = _merge_player_abilities_into_scene_state(
+		NEON_ROOFTOPS_SCENE_ID
+	)
+	return persisted and underground_persisted and rooftops_persisted
+
+
+func _merge_player_abilities_into_scene_state(scene_id: StringName) -> bool:
+	if (
+		_scene_manager.has_method("has_scene")
+		and not bool(_scene_manager.call("has_scene", scene_id))
+	):
+		return true
+	var scene_state: Dictionary = {}
 	if _scene_manager.has_method("get_scene_state"):
-		underground_state = Dictionary(_scene_manager.call(
+		scene_state = Dictionary(_scene_manager.call(
 			"get_scene_state",
-			UNDERGROUND_SCENE_ID
+			scene_id
 		)).duplicate(true)
-	var underground_abilities: Array = Array(
-		underground_state.get("unlocked_abilities", [])
+	var abilities: Array = Array(
+		scene_state.get("unlocked_abilities", [])
 	)
 	for ability_id: String in _get_player_unlocked_ability_strings():
-		if not underground_abilities.has(ability_id):
-			underground_abilities.append(ability_id)
-	underground_state["unlocked_abilities"] = underground_abilities
-	return bool(_scene_manager.call(
-		"set_scene_state",
-		UNDERGROUND_SCENE_ID,
-		underground_state
-	)) and persisted
+		if not abilities.has(ability_id):
+			abilities.append(ability_id)
+	scene_state["unlocked_abilities"] = abilities
+	return bool(_scene_manager.call("set_scene_state", scene_id, scene_state))
+
+
+func _can_use_scene_manager_for(
+	scene_id: StringName,
+	for_neon_route: bool = false
+) -> bool:
+	var rejection: StringName = &""
+	if not _is_valid_scene_manager(_scene_manager):
+		rejection = &"scene_manager_missing"
+	elif _scene_manager.has_method("is_loading") and bool(
+		_scene_manager.call("is_loading")
+	):
+		rejection = &"scene_manager_loading"
+	elif _scene_manager.has_method("is_scene_locked") and bool(
+		_scene_manager.call("is_scene_locked")
+	):
+		rejection = &"scene_locked"
+	elif _scene_manager.has_method("has_scene") and not bool(
+		_scene_manager.call("has_scene", scene_id)
+	):
+		rejection = &"unknown_scene"
+	if rejection == &"":
+		return true
+	if for_neon_route:
+		_record_neon_rejection(rejection)
+	else:
+		_record_return_rejection(rejection)
+	return false
 
 
 func _ensure_runtime_scene_root() -> bool:
@@ -764,6 +963,10 @@ func _get_route_texture_path() -> String:
 
 func _record_return_rejection(reason: StringName) -> void:
 	_last_return_rejected_reason = reason
+
+
+func _record_neon_rejection(reason: StringName) -> void:
+	_last_neon_rejected_reason = reason
 
 
 func _get_pending_scene() -> String:
