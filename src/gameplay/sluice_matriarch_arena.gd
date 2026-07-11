@@ -5,11 +5,23 @@ extends Node2D
 const SCENE_ID: StringName = &"boss_03_sluice_matriarch_arena"
 const ENTRY_SPAWN_POINT: StringName = &"boss_entry"
 const FACTORY_SCENE_ID: StringName = &"area_03_factory"
+const MAIN_SCENE_ID: StringName = &"main"
 const FACTORY_RETURN_SPAWN_POINT: StringName = &"tailrace_matriarch_gate_return"
 const BOSS_ENTITY_ID: int = 2300
 const BOSS_ID: StringName = &"boss_03_sluice_matriarch"
 const BOSS_DISPLAY_NAME: String = "Sluice Matriarch"
 const BOSS_DEFEATED_STATE_KEY: String = "boss_03_sluice_matriarch_defeated"
+const AERIAL_ATTACK_REWARD_CLAIMED_STATE_KEY: String = (
+	"boss_03_aerial_attack_reward_claimed"
+)
+const AERIAL_ATTACK_REWARD_ID: StringName = &"boss_03_aerial_attack_reward"
+const AERIAL_ATTACK_ABILITY_ID: StringName = &"aerial_attack"
+const AERIAL_ATTACK_NOTIFICATION: String = "Aerial Attack Unlocked"
+const AERIAL_ATTACK_REWARD_REVEAL_VFX_PATH: String = (
+	"res://assets/environment/ability_gate/vfx/"
+	+ "vfx_ability_gate_unlock_dissolve_burst_256.png"
+)
+const AERIAL_ATTACK_REWARD_REVEAL_DURATION_SEC: float = 0.55
 const PLAYER_LIGHT_DAMAGE: int = 12
 const BOSS_PRESSURE_LUNGE_HITBOX_ID: StringName = &"sluice_matriarch_pressure_lunge"
 const BOSS_PRESSURE_LUNGE_DAMAGE: int = 16
@@ -26,6 +38,9 @@ const BACKGROUND_TEXTURE_PATH: String = (
 @onready var _objective_label: Label = get_node_or_null("ArenaObjectiveLabel") as Label
 @onready var _boss: Node2D = get_node_or_null("SluiceMatriarchBoss") as Node2D
 @onready var _hud: HUDManager = get_node_or_null("HUD") as HUDManager
+@onready var _aerial_attack_reward_source: Node = get_node_or_null(
+	"AerialAttackRewardSource"
+)
 @onready var _left_room_seal: StaticBody2D = (
 	get_node_or_null("LeftRoomSeal") as StaticBody2D
 )
@@ -38,6 +53,10 @@ var _return_transition_requested: bool = false
 var _last_return_rejected_reason: StringName = &""
 var _last_return_request: Dictionary = {}
 var _boss_defeated: bool = false
+var _aerial_attack_reward_claimed: bool = false
+var _aerial_attack_reward_reveal_vfx: Sprite2D = null
+var _aerial_attack_reward_reveal_elapsed_sec: float = 0.0
+var _aerial_attack_reward_reveal_spawn_count: int = 0
 var _last_player_hit_metadata: Dictionary = {}
 var _last_boss_attack_metadata: Dictionary = {}
 var _player_retry_pending: bool = false
@@ -51,13 +70,16 @@ func _ready() -> void:
 	_setup_weapon_component()
 	_setup_boss3_combat()
 	_sync_boss3_combat_state()
+	_sync_aerial_attack_reward_payoff()
 	_sync_return_route()
 	var root_scene_manager: Node = get_node_or_null("/root/SceneManager")
 	if _is_valid_scene_manager(root_scene_manager):
 		configure_scene_manager_runtime(root_scene_manager)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_advance_aerial_attack_reward_reveal_vfx(delta)
+	_process_aerial_attack_reward_contact()
 	_process_factory_return_contact()
 
 
@@ -148,6 +170,7 @@ func try_request_factory_return(provider: Node = null) -> bool:
 	if not _ensure_runtime_scene_root(scene_manager):
 		_record_return_rejection(&"runtime_root_unavailable")
 		return false
+	_persist_aerial_attack_progress_to_scene_manager(scene_manager)
 	if not _request_scene_change(
 		scene_manager,
 		FACTORY_SCENE_ID,
@@ -175,6 +198,8 @@ func get_local_state() -> Dictionary:
 	return {
 		"sluice_matriarch_arena_discovered": true,
 		BOSS_DEFEATED_STATE_KEY: _boss_defeated,
+		AERIAL_ATTACK_REWARD_CLAIMED_STATE_KEY: _aerial_attack_reward_claimed,
+		"unlocked_abilities": _get_player_unlocked_ability_strings(),
 	}
 
 
@@ -183,13 +208,22 @@ func set_local_state(state: Dictionary) -> void:
 	_return_transition_requested = false
 	_last_return_rejected_reason = &""
 	_last_return_request.clear()
-	_boss_defeated = bool(state.get(BOSS_DEFEATED_STATE_KEY, false))
+	_aerial_attack_reward_claimed = bool(state.get(
+		AERIAL_ATTACK_REWARD_CLAIMED_STATE_KEY,
+		false
+	))
+	_boss_defeated = bool(state.get(
+		BOSS_DEFEATED_STATE_KEY,
+		_aerial_attack_reward_claimed
+	)) or _aerial_attack_reward_claimed
+	_restore_player_unlocked_abilities(state)
 	if _boss != null:
 		if _boss_defeated and _boss.has_method("mark_defeated_from_progress"):
 			_boss.call("mark_defeated_from_progress")
 		elif not _boss_defeated and _boss.has_method("reset_encounter"):
 			_boss.call("reset_encounter")
 	_sync_boss3_combat_state()
+	_sync_aerial_attack_reward_payoff()
 	_sync_return_route()
 	_align_player_to_entry_spawn()
 
@@ -287,6 +321,71 @@ func get_boss3_combat_diagnostics() -> Dictionary:
 	}
 
 
+## Claims the visible Boss3 reward exactly once and unlocks the runtime move.
+func claim_aerial_attack_reward_source(provider: Node = null) -> bool:
+	if (
+		_aerial_attack_reward_source == null
+		or _aerial_attack_reward_claimed
+		or not _boss_defeated
+		or not _aerial_attack_reward_source.has_method("try_claim")
+	):
+		return false
+	var claim_provider: Node = _player if provider == null else provider
+	if not bool(_aerial_attack_reward_source.call("try_claim", claim_provider)):
+		return false
+	_aerial_attack_reward_claimed = true
+	if _player != null and _player.has_method("unlock_ability"):
+		_player.call("unlock_ability", AERIAL_ATTACK_ABILITY_ID)
+	_sync_aerial_attack_reward_payoff()
+	if _hud != null:
+		_hud.show_notification(AERIAL_ATTACK_NOTIFICATION, 2.5)
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if _is_valid_scene_manager(scene_manager):
+		_persist_aerial_attack_progress_to_scene_manager(scene_manager)
+	return true
+
+
+## Returns reward, animation, and persistence details for tests and MCP.
+func get_aerial_attack_payoff_diagnostics() -> Dictionary:
+	var texture_path: String = ""
+	var reward_canvas: CanvasItem = _aerial_attack_reward_source as CanvasItem
+	if _aerial_attack_reward_source != null \
+			and _aerial_attack_reward_source.has_method("get_visual_texture_path"):
+		texture_path = String(_aerial_attack_reward_source.call("get_visual_texture_path"))
+	return {
+		"reward_id": String(AERIAL_ATTACK_REWARD_ID),
+		"ability_id": String(AERIAL_ATTACK_ABILITY_ID),
+		"boss_defeated": _boss_defeated,
+		"reward_present": _aerial_attack_reward_source != null,
+		"reward_visible": reward_canvas != null and reward_canvas.visible,
+		"reward_available": (
+			bool(_aerial_attack_reward_source.call("is_claim_available"))
+			if _aerial_attack_reward_source != null
+					and _aerial_attack_reward_source.has_method("is_claim_available")
+			else false
+		),
+		"reward_claimed": _aerial_attack_reward_claimed,
+		"reward_texture_path": texture_path,
+		"reveal_vfx_texture_path": AERIAL_ATTACK_REWARD_REVEAL_VFX_PATH,
+		"reveal_vfx_active": (
+			_aerial_attack_reward_reveal_vfx != null
+			and is_instance_valid(_aerial_attack_reward_reveal_vfx)
+		),
+		"reveal_vfx_spawn_count": _aerial_attack_reward_reveal_spawn_count,
+		"ability_unlocked": (
+			bool(_player.call("has_ability", AERIAL_ATTACK_ABILITY_ID))
+			if _player != null and _player.has_method("has_ability")
+			else false
+		),
+		"objective_text": _objective_label.text if _objective_label != null else "",
+		"player_aerial_attack": (
+			Dictionary(_player.call("get_aerial_attack_diagnostics"))
+			if _player != null and _player.has_method("get_aerial_attack_diagnostics")
+			else {}
+		),
+	}
+
+
 func _process_factory_return_contact() -> void:
 	if (
 		_player == null
@@ -297,6 +396,19 @@ func _process_factory_return_contact() -> void:
 		return
 	if bool(_return_route.call("is_provider_in_transition_range", _player)):
 		try_request_factory_return(_player)
+
+
+func _process_aerial_attack_reward_contact() -> void:
+	if (
+		_player == null
+		or _aerial_attack_reward_source == null
+		or _aerial_attack_reward_claimed
+		or not _boss_defeated
+		or not _aerial_attack_reward_source.has_method("is_provider_in_reward_range")
+	):
+		return
+	if bool(_aerial_attack_reward_source.call("is_provider_in_reward_range", _player)):
+		claim_aerial_attack_reward_source(_player)
 
 
 func _sync_return_route() -> void:
@@ -394,12 +506,135 @@ func _sync_boss3_combat_state() -> void:
 				int(_player.call("get_current_hp")),
 				int(_player.call("get_max_hp"))
 			)
-	if _objective_label != null and not _return_transition_requested:
-		_objective_label.text = (
-			"Sluice Matriarch Defeated"
-			if _boss_defeated
-			else "Defeat Sluice Matriarch"
+		if _objective_label != null and not _return_transition_requested:
+			if not _boss_defeated:
+				_objective_label.text = "Defeat Sluice Matriarch"
+			elif not _aerial_attack_reward_claimed:
+				_objective_label.text = "Claim Aerial Attack"
+			else:
+				_objective_label.text = "Aerial Attack Unlocked"
+	_sync_aerial_attack_reward_payoff()
+
+
+func _sync_aerial_attack_reward_payoff() -> void:
+	if _aerial_attack_reward_source == null:
+		return
+	if _aerial_attack_reward_source is CanvasItem:
+		(_aerial_attack_reward_source as CanvasItem).visible = _boss_defeated
+	if _aerial_attack_reward_source.has_method("set_prompt_provider"):
+		_aerial_attack_reward_source.call("set_prompt_provider", _player)
+	if _aerial_attack_reward_source.has_method("set_claimed"):
+		_aerial_attack_reward_source.call("set_claimed", _aerial_attack_reward_claimed)
+	if _aerial_attack_reward_source.has_method("set_available"):
+		_aerial_attack_reward_source.call(
+			"set_available",
+			_boss_defeated and not _aerial_attack_reward_claimed
 		)
+
+
+func _spawn_aerial_attack_reward_reveal_vfx() -> void:
+	if _aerial_attack_reward_source == null:
+		return
+	_clear_aerial_attack_reward_reveal_vfx()
+	var texture: Texture2D = load(AERIAL_ATTACK_REWARD_REVEAL_VFX_PATH) as Texture2D
+	if texture == null:
+		return
+	var vfx := Sprite2D.new()
+	vfx.name = "AerialAttackRewardRevealVfx"
+	vfx.texture = texture
+	vfx.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	vfx.position = (_aerial_attack_reward_source as Node2D).position
+	vfx.scale = Vector2(0.68, 0.68)
+	vfx.z_index = 31
+	vfx.set_meta(&"asset_source", &"image_generation")
+	vfx.set_meta(&"vfx_role", &"boss3_ability_reward_reveal")
+	add_child(vfx)
+	_aerial_attack_reward_reveal_vfx = vfx
+	_aerial_attack_reward_reveal_elapsed_sec = 0.0
+	_aerial_attack_reward_reveal_spawn_count += 1
+
+
+func _advance_aerial_attack_reward_reveal_vfx(delta_sec: float) -> void:
+	if _aerial_attack_reward_reveal_vfx == null \
+			or not is_instance_valid(_aerial_attack_reward_reveal_vfx):
+		return
+	_aerial_attack_reward_reveal_elapsed_sec += maxf(delta_sec, 0.0)
+	var progress: float = clampf(
+		_aerial_attack_reward_reveal_elapsed_sec
+			/ AERIAL_ATTACK_REWARD_REVEAL_DURATION_SEC,
+		0.0,
+		1.0
+	)
+	_aerial_attack_reward_reveal_vfx.modulate.a = 1.0 - progress
+	var scale_value: float = lerpf(0.68, 0.82, progress)
+	_aerial_attack_reward_reveal_vfx.scale = Vector2(scale_value, scale_value)
+	if progress >= 1.0:
+		_clear_aerial_attack_reward_reveal_vfx()
+
+
+func _clear_aerial_attack_reward_reveal_vfx() -> void:
+	if _aerial_attack_reward_reveal_vfx != null \
+			and is_instance_valid(_aerial_attack_reward_reveal_vfx):
+		_aerial_attack_reward_reveal_vfx.queue_free()
+	_aerial_attack_reward_reveal_vfx = null
+	_aerial_attack_reward_reveal_elapsed_sec = 0.0
+
+
+func _get_player_unlocked_ability_strings() -> Array[String]:
+	var unlocked: Array[String] = []
+	if _player == null or not _player.has_method("get_unlocked_abilities"):
+		return unlocked
+	var values: Variant = _player.call("get_unlocked_abilities")
+	if not values is Array:
+		return unlocked
+	for value: Variant in values:
+		var ability_id: String = String(value)
+		if not unlocked.has(ability_id):
+			unlocked.append(ability_id)
+	return unlocked
+
+
+func _restore_player_unlocked_abilities(state: Dictionary) -> void:
+	if _player == null or not _player.has_method("set_unlocked_abilities"):
+		return
+	var fallback: Array[String] = _get_player_unlocked_ability_strings()
+	var unlocked: Array = Array(state.get("unlocked_abilities", fallback))
+	if _aerial_attack_reward_claimed and not unlocked.has(String(AERIAL_ATTACK_ABILITY_ID)):
+		unlocked.append(String(AERIAL_ATTACK_ABILITY_ID))
+	_player.call("set_unlocked_abilities", unlocked)
+
+
+func _persist_aerial_attack_progress_to_scene_manager(scene_manager: Object) -> bool:
+	if (
+		scene_manager == null
+		or not scene_manager.has_method("set_scene_state")
+		or not scene_manager.has_method("get_scene_state")
+	):
+		return false
+	var unlocked: Array[String] = _get_player_unlocked_ability_strings()
+	var persisted: bool = bool(scene_manager.call(
+		"set_scene_state",
+		SCENE_ID,
+		get_local_state()
+	))
+	for target_scene_id: StringName in [FACTORY_SCENE_ID, MAIN_SCENE_ID]:
+		if scene_manager.has_method("has_scene") \
+				and not bool(scene_manager.call("has_scene", target_scene_id)):
+			continue
+		var target_state: Dictionary = Dictionary(
+			scene_manager.call("get_scene_state", target_scene_id)
+		)
+		var target_unlocked: Array = Array(target_state.get("unlocked_abilities", []))
+		for ability_id: String in unlocked:
+			if not target_unlocked.has(ability_id):
+				target_unlocked.append(ability_id)
+		target_state["unlocked_abilities"] = target_unlocked
+		persisted = bool(scene_manager.call(
+			"set_scene_state",
+			target_scene_id,
+			target_state
+		)) and persisted
+	return persisted
 
 
 func _set_room_seals_enabled(enabled: bool) -> void:
@@ -499,6 +734,7 @@ func _on_boss3_health_changed(current_hp: int, max_hp: int) -> void:
 func _on_boss3_defeated() -> void:
 	_boss_defeated = true
 	_sync_boss3_combat_state()
+	_spawn_aerial_attack_reward_reveal_vfx()
 
 
 func _on_boss3_phase_transition_started(

@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 128 stories tracked
+> **Stories**: 129 stories tracked
 
 ## Overview
 
@@ -166,6 +166,7 @@ recording the reward in progression state.
 | 126 | Old Factory Tailrace Exit Spillway Sluice Leech Skirmish | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0004/0005/0006/0007 |
 | 127 | Old Factory Tailrace Sluice Matriarch Arena Handoff | Integration + Gameplay Runtime + Scene Management + Visual | Complete | ADR-0002/0007/0018/0021 |
 | 128 | Sluice Matriarch Playable Boss3 Core | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 129 | Sluice Matriarch Aerial Attack Reward Payoff | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -185,9 +186,9 @@ This epic is complete when:
 
 ## Next Step
 
-Story128 is complete with a frame-animated Sluice Matriarch, one playable
-pressure-lunge combat loop, phase-two pressure, Boss HUD, room seals,
-player-death retry, persistent defeat state, and a verified return route.
-Continue with Story129: present and persist the Boss3 `aerial_attack` reward,
-connect the post-victory progression handoff, and keep the reward visible and
-playable before extending the route further.
+Story129 is complete: Boss3 defeat reveals a generated ability relic, claim
+state persists through SceneManager, and airborne attack input uses a generated
+three-frame downward strike with shared damage, cat energy, bounce, and
+air-jump restoration. Story130 should build the first aerial-attack exploration
+gate and Factory-to-Underground route handoff without widening the ability
+contract completed here.

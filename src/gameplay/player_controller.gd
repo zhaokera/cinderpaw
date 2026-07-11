@@ -12,6 +12,8 @@ signal attack_started(attack_data: Dictionary)
 signal dodge_started(texture: Texture2D, world_position: Vector2, facing: float)
 signal dash_started(texture: Texture2D, world_position: Vector2, facing: float)
 signal double_jump_started(texture: Texture2D, world_position: Vector2, facing: float)
+signal aerial_attack_started(texture: Texture2D, world_position: Vector2, facing: float)
+signal aerial_attack_bounced(metadata: Dictionary)
 signal ability_unlocked(ability_id: StringName)
 signal ability_activated(ability_id: StringName)
 
@@ -41,6 +43,11 @@ const DASH_DURATION_FRAMES: int = 10
 const DASH_SPEED: float = 620.0
 const DOUBLE_JUMP_HEIGHT_RATIO: float = 0.82
 const DOUBLE_JUMP_ANIMATION_LOCK_FRAMES: int = 10
+const AERIAL_ATTACK_DURATION_FRAMES: int = 12
+const AERIAL_ATTACK_HITBOX_FRAMES: int = 8
+const AERIAL_ATTACK_DIVE_SPEED: float = 480.0
+const AERIAL_ATTACK_BOUNCE_VELOCITY: float = -280.0
+const AERIAL_ATTACK_HITBOX_OFFSET_Y: float = 34.0
 const NORMAL_MODULATE: Color = Color.WHITE
 const ATTACK_MODULATE: Color = Color(1.0, 0.55, 0.45, 1.0)
 const DAMAGE_MODULATE: Color = Color(1.0, 0.25, 0.25, 1.0)
@@ -55,6 +62,7 @@ const ANIMATION_DEATH: StringName = &"death"
 const ANIMATION_REVIVE: StringName = &"revive"
 const ANIMATION_JUMP: StringName = &"jump"
 const ANIMATION_FALL: StringName = &"fall"
+const ANIMATION_AERIAL_ATTACK: StringName = &"aerial_attack"
 const PARRY_DURATION_FRAMES: int = 18
 const RUN_ANIMATION_MIN_SPEED: float = 5.0
 const HURT_ANIMATION_LOCK_FRAMES: int = 12
@@ -75,12 +83,13 @@ const ABILITY_COMPONENT_SCRIPT: Script = preload("res://src/core/ability_compone
 const ABILITY_DASH: StringName = &"dash"
 const ABILITY_DOUBLE_JUMP: StringName = &"double_jump"
 const ABILITY_PARRY: StringName = &"parry"
+const ABILITY_AERIAL_ATTACK: StringName = &"aerial_attack"
 
 # ---------------------------------------------------------------------------
 # State
 # ---------------------------------------------------------------------------
 
-enum State { IDLE, ATTACKING, DODGING, DASHING, PARRYING }
+enum State { IDLE, ATTACKING, DODGING, DASHING, PARRYING, AERIAL_ATTACKING }
 
 var _state: State = State.IDLE
 var _facing: float = 1.0  # 1 = right, -1 = left
@@ -91,6 +100,10 @@ var _dodge_timer: int = 0
 var _dodge_cooldown_timer: int = 0
 var _dash_timer: int = 0
 var _parry_timer: int = 0
+var _aerial_attack_timer: int = 0
+var _aerial_bounce_consumed: bool = false
+var _aerial_air_jump_restored: bool = false
+var _last_aerial_attack_metadata: Dictionary = {}
 var _control_locked: bool = false
 var _respawn_visual_remaining_frames: int = 0
 var _respawn_visual_elapsed_frames: int = 0
@@ -159,6 +172,12 @@ func _physics_process(delta: float) -> void:
 			_state = State.IDLE
 			_sprite.modulate = NORMAL_MODULATE
 
+	if _state == State.AERIAL_ATTACKING:
+		_aerial_attack_timer -= 1
+		if _aerial_attack_timer <= 0:
+			_state = State.IDLE
+			_sprite.modulate = NORMAL_MODULATE
+
 	# Input + movement
 	_handle_input()
 	_apply_gravity(delta)
@@ -195,6 +214,7 @@ func _handle_input() -> void:
 		and _state != State.DODGING
 		and _state != State.DASHING
 		and _state != State.PARRYING
+		and _state != State.AERIAL_ATTACKING
 	):
 		if input_dir != 0.0:
 			velocity.x = move_toward(velocity.x, input_dir * MAX_RUN_SPEED, ACCELERATION * get_physics_process_delta_time())
@@ -248,6 +268,8 @@ func _apply_burst_movement_velocity(_delta: float) -> void:
 		velocity.x = _facing * DODGE_SPEED
 	elif _state == State.DASHING:
 		velocity.x = _facing * DASH_SPEED
+	elif _state == State.AERIAL_ATTACKING:
+		velocity.y = maxf(velocity.y, AERIAL_ATTACK_DIVE_SPEED)
 
 # ---------------------------------------------------------------------------
 # Attack
@@ -258,12 +280,75 @@ func request_attack() -> bool:
 	if _control_locked:
 		return false
 	if _state == State.IDLE:
+		if request_aerial_attack():
+			return true
 		var combo_index: int = _combat.get_combo_index() if _combat != null else 0
 		return _request_light_attack_stage(combo_index, false)
 	if _state == State.ATTACKING and _combat != null and _combat.is_in_attack_recovery():
 		_combat.on_action_triggered(&"attack", {})
 		return _request_light_attack_stage(_combat.get_combo_index(), true)
 	return false
+
+
+## Starts the unlocked airborne downward strike through the Core hit chain.
+func request_aerial_attack() -> bool:
+	if _control_locked or _state != State.IDLE:
+		return false
+	_ensure_ability_component()
+	if _combat != null and _combat.get_current_state() != CombatComponent.CombatState.IDLE:
+		return false
+	if _ability == null or not _ability.try_activate_ability(ABILITY_AERIAL_ATTACK):
+		return false
+	var hitbox_activated: bool = _activate_aerial_attack_hitbox()
+	if not hitbox_activated and _weapon_component != null:
+		return false
+	if _combat != null:
+		_combat.on_action_triggered(&"attack", {"combo_index": 0})
+	_start_aerial_attack_visual()
+	_last_aerial_attack_metadata = _build_aerial_attack_metadata()
+	attack_started.emit(_last_aerial_attack_metadata.duplicate(true))
+	aerial_attack_started.emit(
+		_get_current_sprite_texture(),
+		_sprite.global_position,
+		_facing
+	)
+	return true
+
+
+func _activate_aerial_attack_hitbox() -> bool:
+	if _weapon_component == null or not _weapon_component.has_method("activate_current_attack_hitbox"):
+		return false
+	return bool(_weapon_component.call(
+		"activate_current_attack_hitbox",
+		&"aerial",
+		AERIAL_ATTACK_HITBOX_FRAMES,
+		0,
+		{
+			"hitbox_offset_y": AERIAL_ATTACK_HITBOX_OFFSET_Y,
+			"aerial_attack": true,
+		}
+	))
+
+
+func _start_aerial_attack_visual() -> void:
+	_state = State.AERIAL_ATTACKING
+	_aerial_attack_timer = AERIAL_ATTACK_DURATION_FRAMES
+	_aerial_bounce_consumed = false
+	_aerial_air_jump_restored = false
+	velocity.y = AERIAL_ATTACK_DIVE_SPEED
+	_set_hitbox_shape_disabled(true)
+	_play_character_animation(ANIMATION_AERIAL_ATTACK, true)
+
+
+func _build_aerial_attack_metadata() -> Dictionary:
+	return {
+		"weapon_id": _get_current_weapon_id(),
+		"attack_type": &"aerial",
+		"combo_index": 0,
+		"attack_position": global_position + Vector2(0.0, AERIAL_ATTACK_HITBOX_OFFSET_Y),
+		"facing": _facing,
+		"hitbox_id": StringName("%s_aerial" % String(_get_current_weapon_id())),
+	}
 
 
 func _request_light_attack_stage(combo_index: int, combat_already_advanced: bool) -> bool:
@@ -595,12 +680,27 @@ func get_last_skill_lunge_px() -> float:
 	return _last_skill_lunge_px
 
 
+## Returns deterministic aerial state for tests and MCP runtime inspection.
+func get_aerial_attack_diagnostics() -> Dictionary:
+	return {
+		"active": _state == State.AERIAL_ATTACKING,
+		"animation": String(_sprite.animation) if _sprite != null else "",
+		"hitbox_id": StringName("%s_aerial" % String(_get_current_weapon_id())),
+		"remaining_frames": _aerial_attack_timer,
+		"velocity": velocity,
+		"bounce_consumed": _aerial_bounce_consumed,
+		"air_jump_restored": _aerial_air_jump_restored,
+		"last_attack_metadata": _last_aerial_attack_metadata.duplicate(true),
+	}
+
+
 func set_control_locked(locked: bool) -> void:
 	_control_locked = locked
 	if locked:
 		velocity = Vector2.ZERO
 		_set_hitbox_shape_disabled(true)
 		_parry_timer = 0
+		_aerial_attack_timer = 0
 
 
 func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
@@ -612,6 +712,10 @@ func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
 	_dodge_cooldown_timer = 0
 	_dash_timer = 0
 	_parry_timer = 0
+	_aerial_attack_timer = 0
+	_aerial_bounce_consumed = false
+	_aerial_air_jump_restored = false
+	_last_aerial_attack_metadata.clear()
 	advance_ability_cooldowns(999.0)
 	reset_air_abilities()
 	_jump_buffer_timer = 0
@@ -687,7 +791,27 @@ func _setup_core_combat_chain() -> void:
 
 
 func _on_core_attack_hit(metadata: Dictionary) -> void:
+	if (
+		StringName(metadata.get("attack_type", &"")) == &"aerial"
+		and not _aerial_bounce_consumed
+	):
+		_resolve_aerial_attack_bounce(metadata)
 	attack_landed.emit(metadata.duplicate(true))
+
+
+func _resolve_aerial_attack_bounce(metadata: Dictionary) -> void:
+	_aerial_bounce_consumed = true
+	_aerial_attack_timer = 0
+	_state = State.IDLE
+	velocity.y = AERIAL_ATTACK_BOUNCE_VELOCITY
+	if _ability != null:
+		_aerial_air_jump_restored = _ability.restore_air_ability_use(ABILITY_DOUBLE_JUMP)
+	var bounce_metadata: Dictionary = metadata.duplicate(true)
+	bounce_metadata["restore_jump"] = _aerial_air_jump_restored
+	bounce_metadata["bounce_velocity"] = AERIAL_ATTACK_BOUNCE_VELOCITY
+	_last_aerial_attack_metadata = bounce_metadata.duplicate(true)
+	_play_timed_character_animation(ANIMATION_JUMP, DOUBLE_JUMP_ANIMATION_LOCK_FRAMES)
+	aerial_attack_bounced.emit(bounce_metadata)
 
 
 func _resolve_skill_lunge_px(combo_index: int) -> float:
@@ -771,6 +895,9 @@ func _update_character_animation() -> void:
 		return
 	if _state == State.PARRYING:
 		_play_character_animation(ANIMATION_PARRY)
+		return
+	if _state == State.AERIAL_ATTACKING:
+		_play_character_animation(ANIMATION_AERIAL_ATTACK)
 		return
 	_play_character_animation(_get_locomotion_animation(is_on_floor(), velocity))
 

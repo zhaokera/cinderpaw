@@ -54,13 +54,17 @@
     lands the pressure lunge through the shared hitbox chain, enters phase two,
     and opens the persistent return route on defeat
     (`tests/smoke/sluice_matriarch_playable_boss3_core_smoke.gd`)
+17. Boss3 defeat reveals and persists the `aerial_attack` reward; airborne
+    attack input drives the three-frame downward strike, lands shared damage,
+    grants eight cat energy, bounces, and restores one air-jump use
+    (`tests/smoke/sluice_matriarch_aerial_attack_reward_payoff_smoke.gd`)
 
 ## Data Integrity
 
-17. Save game completes without error (once save system is implemented)
-18. Load game restores correct state (once load system is implemented)
+18. Save game completes without error (once save system is implemented)
+19. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-19. No visible frame rate drops on target hardware (60fps target)
-20. No memory growth over 5 minutes of play (once core loop is implemented)
+20. No visible frame rate drops on target hardware (60fps target)
+21. No memory growth over 5 minutes of play (once core loop is implemented)

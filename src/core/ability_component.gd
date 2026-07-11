@@ -162,6 +162,21 @@ func reset_air_abilities() -> void:
 	airborne_changed.emit(false)
 
 
+## Restores one consumed use for a specific air-count ability without landing.
+func restore_air_ability_use(ability_id: StringName) -> bool:
+	var config: Dictionary = _get_ability_config(ability_id)
+	if maxi(0, int(config.get("air_count_max", 0))) <= 0:
+		return false
+	var used_count: int = int(_air_count_used_by_ability.get(ability_id, 0))
+	if used_count <= 0:
+		return false
+	if used_count == 1:
+		_air_count_used_by_ability.erase(ability_id)
+	else:
+		_air_count_used_by_ability[ability_id] = used_count - 1
+	return true
+
+
 func set_airborne(is_in_air: bool) -> void:
 	if _is_airborne == is_in_air:
 		return

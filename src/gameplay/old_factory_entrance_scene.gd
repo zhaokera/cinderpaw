@@ -4537,9 +4537,34 @@ func apply_factory_steam_vent_contact(hazard: Area2D, target: Node) -> bool:
 	return true
 
 
+func _get_player_unlocked_ability_strings() -> Array[String]:
+	var unlocked: Array[String] = []
+	if _player == null or not _player.has_method("get_unlocked_abilities"):
+		return unlocked
+	var values: Variant = _player.call("get_unlocked_abilities")
+	if not values is Array:
+		return unlocked
+	for value: Variant in values:
+		var ability_id: String = String(value)
+		if not unlocked.has(ability_id):
+			unlocked.append(ability_id)
+	return unlocked
+
+
+func _restore_player_unlocked_abilities(state: Dictionary) -> void:
+	if _player == null or not _player.has_method("set_unlocked_abilities"):
+		return
+	var fallback: Array[String] = _get_player_unlocked_ability_strings()
+	_player.call(
+		"set_unlocked_abilities",
+		Array(state.get("unlocked_abilities", fallback))
+	)
+
+
 ## Captures scene-local state for SceneManager runtime swap persistence.
 func get_local_state() -> Dictionary:
 	return {
+		"unlocked_abilities": _get_player_unlocked_ability_strings(),
 		"encounter_cleared": _encounter_cleared,
 		"factory_cache_claimed": _cache_claimed,
 		"factory_deep_guard_activated": _deep_guard_activated,
@@ -5103,6 +5128,7 @@ func set_local_state(state: Dictionary) -> void:
 	_factory_tailrace_sluice_matriarch_transition_requested = false
 	_last_factory_tailrace_sluice_matriarch_rejected_reason = &""
 	_last_factory_tailrace_sluice_matriarch_request.clear()
+	_restore_player_unlocked_abilities(state)
 	_encounter_cleared = bool(state.get("encounter_cleared", false))
 	_cache_claimed = bool(state.get("factory_cache_claimed", false))
 	_deep_guard_activated = bool(state.get("factory_deep_guard_activated", false))

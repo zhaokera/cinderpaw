@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=34 format=3]
+[gd_resource type="SpriteFrames" load_steps=37 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/idle/cinderpaw_idle_000.png" id="1_idle0"]
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/idle/cinderpaw_idle_001.png" id="2_idle1"]
@@ -33,6 +33,9 @@
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/parry/cinderpaw_parry_000.png" id="31_parry0"]
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/parry/cinderpaw_parry_001.png" id="32_parry1"]
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/parry/cinderpaw_parry_002.png" id="33_parry2"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/aerial_attack/cinderpaw_aerial_attack_000.png" id="34_aerial0"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/aerial_attack/cinderpaw_aerial_attack_001.png" id="35_aerial1"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/aerial_attack/cinderpaw_aerial_attack_002.png" id="36_aerial2"]
 
 [resource]
 animations = [{
@@ -76,6 +79,20 @@ animations = [{
 }],
 "loop": false,
 "name": &"attack",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("34_aerial0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("35_aerial1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("36_aerial2")
+}],
+"loop": false,
+"name": &"aerial_attack",
 "speed": 12.0
 }, {
 "frames": [{
