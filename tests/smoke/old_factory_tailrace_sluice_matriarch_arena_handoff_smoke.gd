@@ -6,6 +6,7 @@ const ARENA_SCENE_ID: StringName = &"boss_03_sluice_matriarch_arena"
 const ARENA_SPAWN_POINT: StringName = &"boss_entry"
 const FACTORY_RETURN_SPAWN_POINT: StringName = &"tailrace_matriarch_gate_return"
 const STORY126_CLEAR_KEY: String = "factory_tailrace_exit_sluice_leech_skirmish_cleared"
+const BOSS3_DEFEATED_KEY: String = "boss_03_sluice_matriarch_defeated"
 const MAX_TRANSITION_STEPS: int = 48
 
 
@@ -72,6 +73,7 @@ func _run() -> void:
 	if String(scene_manager.call("get_current_spawn_point")) != String(ARENA_SPAWN_POINT):
 		_fail("arena_spawn_mismatch")
 		return
+	arena.call("set_local_state", {BOSS3_DEFEATED_KEY: true})
 	var arena_player: Node2D = arena.get_node_or_null("Player") as Node2D
 	var return_route: Node2D = arena.get_node_or_null("FactoryReturnRoute") as Node2D
 	if arena_player == null or return_route == null:

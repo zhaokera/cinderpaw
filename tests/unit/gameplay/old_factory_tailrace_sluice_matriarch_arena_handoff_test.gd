@@ -18,6 +18,7 @@ const TARGET_SPAWN_POINT: StringName = &"boss_entry"
 const FACTORY_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_RETURN_SPAWN_POINT: StringName = &"tailrace_matriarch_gate_return"
 const STORY126_CLEAR_KEY: String = "factory_tailrace_exit_sluice_leech_skirmish_cleared"
+const BOSS3_DEFEATED_KEY: String = "boss_03_sluice_matriarch_defeated"
 
 var _spawned_nodes: Array[Node] = []
 
@@ -49,6 +50,12 @@ class FakeArenaSceneManager:
 
 	func is_scene_locked() -> bool:
 		return locked
+
+	func lock_scene() -> void:
+		locked = true
+
+	func unlock_scene() -> void:
+		locked = false
 
 	func is_runtime_scene_swap_enabled() -> bool:
 		return runtime_root_configured
@@ -138,7 +145,9 @@ func test_registry_and_authored_arena_scene_contract() -> void:
 	assert_that(arena.get_node_or_null("RightWall/CollisionShape2D")).is_not_null()
 	assert_that(arena.get_node_or_null(ARENA_RETURN_ROUTE_NODE)).is_not_null()
 	assert_that(arena.get_node_or_null("ArenaObjectiveLabel")).is_not_null()
-	assert_int(arena.find_children("*", "ColorRect", true, false).size()).is_equal(0)
+	var hud: Node = arena.get_node_or_null("HUD")
+	for color_rect: Node in arena.find_children("*", "ColorRect", true, false):
+		assert_bool(_is_descendant_of(color_rect, hud)).is_true()
 	assert_int(arena.find_children("*", "Polygon2D", true, false).size()).is_equal(0)
 	assert_bool(arena.has_method("get_arena_handoff_diagnostics")).is_true()
 	if not arena.has_method("get_arena_handoff_diagnostics"):
@@ -223,6 +232,9 @@ func test_factory_clear_requests_arena_and_arena_requests_factory_return_once() 
 		return
 	manager.reset_for_scene(TARGET_SCENE_ID)
 	assert_bool(bool(arena.call("configure_scene_manager_runtime", manager))).is_true()
+	assert_bool(manager.locked).is_true()
+	arena.call("set_local_state", {BOSS3_DEFEATED_KEY: true})
+	assert_bool(manager.locked).is_false()
 	var arena_player: Node2D = arena.get_node_or_null("Player") as Node2D
 	var return_route: Node2D = arena.get_node_or_null(ARENA_RETURN_ROUTE_NODE) as Node2D
 	assert_that(arena_player).is_not_null()
@@ -240,6 +252,17 @@ func test_factory_clear_requests_arena_and_arena_requests_factory_return_once() 
 	)
 	assert_bool(bool(arena.call("try_request_factory_return", arena_player))).is_false()
 	assert_int(manager.request_calls.size()).is_equal(1)
+
+
+func _is_descendant_of(node: Node, ancestor: Node) -> bool:
+	if node == null or ancestor == null:
+		return false
+	var current: Node = node
+	while current != null:
+		if current == ancestor:
+			return true
+		current = current.get_parent()
+	return false
 
 
 func _instantiate_scene(path: String) -> Node:

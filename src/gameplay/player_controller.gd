@@ -619,6 +619,8 @@ func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
 	_set_hitbox_shape_disabled(true)
 	_sprite.modulate = NORMAL_MODULATE
 	_health.revive(revive_hp_percentage)
+	if _collision != null:
+		_collision.set_hurtbox_state(CollisionComponent.HURTBOX_STATE_NORMAL)
 	_health.grant_iframes(RESPAWN_INVINCIBILITY_FRAMES)
 	_start_respawn_visual_feedback()
 	_play_timed_character_animation(ANIMATION_REVIVE, REVIVE_ANIMATION_LOCK_FRAMES)

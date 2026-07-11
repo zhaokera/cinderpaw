@@ -50,13 +50,17 @@
     restores Factory at `tailrace_matriarch_gate_return` without losing the
     leech clear or carrying a stale transition latch
     (`tests/smoke/old_factory_tailrace_sluice_matriarch_arena_handoff_smoke.gd`)
+16. Sluice Matriarch starts with Boss HUD and room seals active, telegraphs and
+    lands the pressure lunge through the shared hitbox chain, enters phase two,
+    and opens the persistent return route on defeat
+    (`tests/smoke/sluice_matriarch_playable_boss3_core_smoke.gd`)
 
 ## Data Integrity
 
-16. Save game completes without error (once save system is implemented)
-17. Load game restores correct state (once load system is implemented)
+17. Save game completes without error (once save system is implemented)
+18. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-18. No visible frame rate drops on target hardware (60fps target)
-19. No memory growth over 5 minutes of play (once core loop is implemented)
+19. No visible frame rate drops on target hardware (60fps target)
+20. No memory growth over 5 minutes of play (once core loop is implemented)

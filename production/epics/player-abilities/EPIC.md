@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 127 stories tracked
+> **Stories**: 128 stories tracked
 
 ## Overview
 
@@ -165,6 +165,7 @@ recording the reward in progression state.
 | 125 | Old Factory Tailrace Exit Spillway Visual Pass | Integration + Visual | Complete | ADR-0004/0005/0007/0018/0021 |
 | 126 | Old Factory Tailrace Exit Spillway Sluice Leech Skirmish | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0004/0005/0006/0007 |
 | 127 | Old Factory Tailrace Sluice Matriarch Arena Handoff | Integration + Gameplay Runtime + Scene Management + Visual | Complete | ADR-0002/0007/0018/0021 |
+| 128 | Sluice Matriarch Playable Boss3 Core | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -184,8 +185,9 @@ This epic is complete when:
 
 ## Next Step
 
-Story127 is complete with an asynchronous Factory-to-Boss3 arena handoff, an
-authored image-generated arena backdrop, and a verified return route. Continue
-with Story128: implement the playable Sluice Matriarch Boss3 slice first,
-including generated frame animation, room seals, combat/HUD state, and defeat
-handoff, before adding the post-Boss3 aerial-attack reward.
+Story128 is complete with a frame-animated Sluice Matriarch, one playable
+pressure-lunge combat loop, phase-two pressure, Boss HUD, room seals,
+player-death retry, persistent defeat state, and a verified return route.
+Continue with Story129: present and persist the Boss3 `aerial_attack` reward,
+connect the post-victory progression handoff, and keep the reward visible and
+playable before extending the route further.
