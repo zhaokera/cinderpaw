@@ -172,6 +172,7 @@ recording the reward in progression state.
 | 132 | Underground Recovery Cistern Savepoint Traverse | Integration + Gameplay Runtime + Traversal + Save/Respawn + Visual | Complete | ADR-0002/0004/0007/0018/0019/0021 |
 | 133 | Underground Deep Cistern Stalker Ambush | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0006/0007 |
 | 134 | Deep Cistern Ascender Factory Upper Altar Approach | Integration + Traversal + Scene Handoff + Visual | Complete | ADR-0002/0004/0007/0018/0021 |
+| 135 | Factory Hidden Altar Wall Climb Reward Traversal | Integration + Player Movement + Frame Animation Contract | Complete | ADR-0001/0002/0003/0005/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -191,6 +192,6 @@ This epic is complete when:
 
 ## Next Step
 
-Story133 is complete. Plan Story134 as a deliberate deep-Underground route
-handoff or Boss4 approach design from the secured Stalker arena; do not add a
-wall-climb reward or Boss4 implementation until its GDD/Story contract exists.
+Story135 is complete. Plan Story136 as a bounded Neon Rooftops magnetic-wall
+gate and scene handoff that consumes the finished wall-climb contract. Do not
+invent Boss4 combat until its configuration and encounter story exist.

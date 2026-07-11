@@ -14,6 +14,12 @@ signal dash_started(texture: Texture2D, world_position: Vector2, facing: float)
 signal double_jump_started(texture: Texture2D, world_position: Vector2, facing: float)
 signal aerial_attack_started(texture: Texture2D, world_position: Vector2, facing: float)
 signal aerial_attack_bounced(metadata: Dictionary)
+signal wall_climb_started(
+	texture: Texture2D,
+	world_position: Vector2,
+	wall_normal: Vector2
+)
+signal wall_jump_started(world_position: Vector2, wall_normal: Vector2)
 signal ability_unlocked(ability_id: StringName)
 signal ability_activated(ability_id: StringName)
 
@@ -63,6 +69,7 @@ const ANIMATION_REVIVE: StringName = &"revive"
 const ANIMATION_JUMP: StringName = &"jump"
 const ANIMATION_FALL: StringName = &"fall"
 const ANIMATION_AERIAL_ATTACK: StringName = &"aerial_attack"
+const ANIMATION_WALL_CLIMB: StringName = &"wall_climb"
 const PARRY_DURATION_FRAMES: int = 18
 const RUN_ANIMATION_MIN_SPEED: float = 5.0
 const HURT_ANIMATION_LOCK_FRAMES: int = 12
@@ -84,12 +91,24 @@ const ABILITY_DASH: StringName = &"dash"
 const ABILITY_DOUBLE_JUMP: StringName = &"double_jump"
 const ABILITY_PARRY: StringName = &"parry"
 const ABILITY_AERIAL_ATTACK: StringName = &"aerial_attack"
+const ABILITY_WALL_CLIMB: StringName = &"wall_climb"
+const WALL_NORMAL_X_MIN: float = 0.65
+const WALL_INPUT_EPSILON: float = 0.1
+const WALL_CONTACT_HOLD_SPEED: float = 24.0
 
 # ---------------------------------------------------------------------------
 # State
 # ---------------------------------------------------------------------------
 
-enum State { IDLE, ATTACKING, DODGING, DASHING, PARRYING, AERIAL_ATTACKING }
+enum State {
+	IDLE,
+	ATTACKING,
+	DODGING,
+	DASHING,
+	PARRYING,
+	AERIAL_ATTACKING,
+	WALL_CLIMBING,
+}
 
 var _state: State = State.IDLE
 var _facing: float = 1.0  # 1 = right, -1 = left
@@ -104,6 +123,8 @@ var _aerial_attack_timer: int = 0
 var _aerial_bounce_consumed: bool = false
 var _aerial_air_jump_restored: bool = false
 var _last_aerial_attack_metadata: Dictionary = {}
+var _wall_normal: Vector2 = Vector2.ZERO
+var _wall_regrab_lock_frames: int = 0
 var _control_locked: bool = false
 var _respawn_visual_remaining_frames: int = 0
 var _respawn_visual_elapsed_frames: int = 0
@@ -144,6 +165,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	# Tick timers
 	_dodge_cooldown_timer = maxi(_dodge_cooldown_timer - 1, 0)
+	_wall_regrab_lock_frames = maxi(_wall_regrab_lock_frames - 1, 0)
 
 	# State transitions back to IDLE
 	if _state == State.ATTACKING:
@@ -183,12 +205,15 @@ func _physics_process(delta: float) -> void:
 	_apply_gravity(delta)
 	_apply_burst_movement_velocity(delta)
 	move_and_slide()
+	if _state == State.WALL_CLIMBING and (is_on_floor() or not is_on_wall()):
+		_stop_wall_climb()
 
 	# Update facing direction
 	_update_facing()
 
 	# Coyote time tracking
 	if is_on_floor():
+		clear_wall_climb_regrab_lock()
 		set_airborne(false)
 		_coyote_timer = COYOTE_FRAMES
 	else:
@@ -203,10 +228,14 @@ func _physics_process(delta: float) -> void:
 
 func _handle_input() -> void:
 	if _control_locked:
+		_stop_wall_climb()
 		velocity.x = move_toward(velocity.x, 0.0, FRICTION * get_physics_process_delta_time())
 		return
 
 	var input_dir: float = Input.get_axis("move_left", "move_right")
+	var vertical_input: float = Input.get_axis("move_up", "move_down")
+	if _handle_wall_climb_input(input_dir, vertical_input):
+		return
 
 	# Horizontal movement (disabled during attack/dodge)
 	if (
@@ -254,12 +283,53 @@ func _handle_input() -> void:
 	if Input.is_action_just_pressed("parry"):
 		request_parry()
 
+
+func _handle_wall_climb_input(
+	horizontal_input: float,
+	vertical_input: float
+) -> bool:
+	if _state == State.WALL_CLIMBING:
+		if Input.is_action_just_pressed("jump"):
+			return request_wall_jump()
+		if not is_on_wall() or not _is_input_toward_wall(
+			horizontal_input,
+			_wall_normal
+		):
+			_stop_wall_climb()
+			return false
+		return request_wall_climb(
+			get_wall_normal(),
+			vertical_input,
+			true
+		)
+	if (
+		_wall_regrab_lock_frames > 0
+		or is_on_floor()
+		or not is_on_wall()
+		or absf(vertical_input) <= WALL_INPUT_EPSILON
+	):
+		return false
+	var wall_normal: Vector2 = get_wall_normal()
+	if not _is_input_toward_wall(horizontal_input, wall_normal):
+		return false
+	return request_wall_climb(wall_normal, vertical_input, true)
+
+
+func _is_input_toward_wall(
+	horizontal_input: float,
+	wall_normal: Vector2
+) -> bool:
+	return (
+		absf(horizontal_input) > WALL_INPUT_EPSILON
+		and horizontal_input * wall_normal.x < -WALL_INPUT_EPSILON
+	)
+
 # ---------------------------------------------------------------------------
 # Physics Helpers
 # ---------------------------------------------------------------------------
 
 func _apply_gravity(delta: float) -> void:
-	if not is_on_floor():
+	if not is_on_floor() and _state != State.WALL_CLIMBING:
 		velocity.y += GRAVITY * delta
 
 
@@ -485,6 +555,8 @@ func set_unlocked_abilities(ability_ids: Array) -> void:
 	_ensure_ability_component()
 	if _ability != null:
 		_ability.set_unlocked_abilities(ability_ids)
+		if not _ability.has_ability(ABILITY_WALL_CLIMB):
+			_stop_wall_climb()
 
 
 func has_ability(ability_id: StringName) -> bool:
@@ -562,6 +634,128 @@ func request_double_jump() -> bool:
 	return true
 
 
+## Starts or advances wall movement from a valid horizontal wall contact.
+func request_wall_climb(
+	wall_normal: Vector2,
+	vertical_input: float,
+	holding_toward_wall: bool = true
+) -> bool:
+	if (
+		_control_locked
+		or is_on_floor()
+		or not holding_toward_wall
+		or absf(wall_normal.x) < WALL_NORMAL_X_MIN
+		or _state not in [State.IDLE, State.WALL_CLIMBING]
+	):
+		return false
+	var starting_climb: bool = _state != State.WALL_CLIMBING
+	if starting_climb and _wall_regrab_lock_frames > 0:
+		return false
+	_ensure_ability_component()
+	if _ability == null or not _ability.has_ability(ABILITY_WALL_CLIMB):
+		return false
+	if starting_climb:
+		if _combat != null and _combat.get_current_state() != CombatComponent.CombatState.IDLE:
+			return false
+		if not _ability.try_activate_ability(ABILITY_WALL_CLIMB):
+			return false
+	var tuning: Dictionary = _ability.get_ability_config(ABILITY_WALL_CLIMB)
+	var climb_speed: float = float(tuning.get("climb_speed_px_sec", 0.0))
+	var slide_speed: float = float(tuning.get("wall_slide_speed_px_sec", 0.0))
+	if climb_speed <= 0.0 or slide_speed < 0.0:
+		return false
+	_wall_normal = wall_normal.normalized()
+	_state = State.WALL_CLIMBING
+	_facing = -signf(_wall_normal.x)
+	velocity.x = -_wall_normal.x * WALL_CONTACT_HOLD_SPEED
+	if vertical_input < -WALL_INPUT_EPSILON:
+		velocity.y = -climb_speed
+	elif vertical_input > WALL_INPUT_EPSILON:
+		velocity.y = climb_speed
+	else:
+		velocity.y = slide_speed
+	_play_character_animation(ANIMATION_WALL_CLIMB, starting_climb)
+	if starting_climb:
+		wall_climb_started.emit(
+			_get_current_sprite_texture(),
+			_sprite.global_position,
+			_wall_normal
+		)
+	return true
+
+
+## Jumps away from the current wall and starts the configured regrab lock.
+func request_wall_jump() -> bool:
+	if _control_locked or _state != State.WALL_CLIMBING:
+		return false
+	_ensure_ability_component()
+	if _ability == null:
+		return false
+	var tuning: Dictionary = _ability.get_ability_config(ABILITY_WALL_CLIMB)
+	var horizontal_speed: float = float(tuning.get(
+		"wall_jump_horizontal_speed_px_sec",
+		0.0
+	))
+	var vertical_speed: float = float(tuning.get(
+		"wall_jump_vertical_speed_px_sec",
+		0.0
+	))
+	var regrab_frames: int = maxi(0, int(tuning.get(
+		"wall_regrab_lock_frames",
+		0
+	)))
+	if horizontal_speed <= 0.0 or vertical_speed <= 0.0:
+		return false
+	var jump_normal: Vector2 = _wall_normal
+	_state = State.IDLE
+	_wall_normal = Vector2.ZERO
+	_wall_regrab_lock_frames = regrab_frames
+	_facing = signf(jump_normal.x)
+	velocity = Vector2(
+		jump_normal.x * horizontal_speed,
+		-vertical_speed
+	)
+	set_airborne(true)
+	_play_character_animation(ANIMATION_JUMP, true)
+	wall_jump_started.emit(_sprite.global_position, jump_normal)
+	return true
+
+
+## Clears the short post-jump wall regrab lock, including on landing/respawn.
+func clear_wall_climb_regrab_lock() -> void:
+	_wall_regrab_lock_frames = 0
+
+
+## Returns wall movement state and resolved data tuning for tests and MCP.
+func get_wall_climb_diagnostics() -> Dictionary:
+	_ensure_ability_component()
+	var tuning: Dictionary = (
+		_ability.get_ability_config(ABILITY_WALL_CLIMB)
+		if _ability != null
+		else {}
+	)
+	return {
+		"active": _state == State.WALL_CLIMBING,
+		"animation": String(_sprite.animation) if _sprite != null else "",
+		"wall_normal": _wall_normal,
+		"velocity": velocity,
+		"regrab_lock_frames": _wall_regrab_lock_frames,
+		"climb_speed_px_sec": float(tuning.get("climb_speed_px_sec", 0.0)),
+		"wall_slide_speed_px_sec": float(tuning.get(
+			"wall_slide_speed_px_sec",
+			0.0
+		)),
+		"wall_jump_horizontal_speed_px_sec": float(tuning.get(
+			"wall_jump_horizontal_speed_px_sec",
+			0.0
+		)),
+		"wall_jump_vertical_speed_px_sec": float(tuning.get(
+			"wall_jump_vertical_speed_px_sec",
+			0.0
+		)),
+	}
+
+
 ## Requests a player parry through AbilityComponent cooldowns and Core combat timing.
 func request_parry() -> bool:
 	if _control_locked or _state != State.IDLE:
@@ -584,6 +778,13 @@ func _start_parry() -> void:
 	_parry_timer = PARRY_DURATION_FRAMES
 	_sprite.modulate = Color(0.72, 0.95, 1.0, 0.82)
 	_play_character_animation(ANIMATION_PARRY, true)
+
+
+func _stop_wall_climb() -> void:
+	if _state != State.WALL_CLIMBING:
+		return
+	_state = State.IDLE
+	_wall_normal = Vector2.ZERO
 
 
 # ---------------------------------------------------------------------------
@@ -615,6 +816,7 @@ func apply_damage(final_damage: int, metadata: Dictionary = {}) -> void:
 		return  # Dash and Core dodge i-frames ignore incoming damage.
 	if final_damage <= 0:
 		return
+	_stop_wall_climb()
 	_sprite.modulate = DAMAGE_MODULATE
 	var hp_before: int = _health.get_current_hp()
 	_health.apply_damage(final_damage, metadata)
@@ -703,6 +905,7 @@ func get_aerial_attack_diagnostics() -> Dictionary:
 func set_control_locked(locked: bool) -> void:
 	_control_locked = locked
 	if locked:
+		_stop_wall_climb()
 		velocity = Vector2.ZERO
 		_set_hitbox_shape_disabled(true)
 		_parry_timer = 0
@@ -722,6 +925,8 @@ func respawn_at(respawn_position: Vector2, revive_hp_percentage: float) -> void:
 	_aerial_bounce_consumed = false
 	_aerial_air_jump_restored = false
 	_last_aerial_attack_metadata.clear()
+	_wall_normal = Vector2.ZERO
+	_wall_regrab_lock_frames = 0
 	advance_ability_cooldowns(999.0)
 	reset_air_abilities()
 	_jump_buffer_timer = 0
@@ -762,6 +967,7 @@ func _on_health_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:
 
 
 func _on_death(_entity_id: int, metadata: Dictionary) -> void:
+	_stop_wall_climb()
 	_play_timed_character_animation(ANIMATION_DEATH, DEATH_ANIMATION_LOCK_FRAMES)
 	player_died.emit(metadata.duplicate(true))
 
@@ -904,6 +1110,9 @@ func _update_character_animation() -> void:
 		return
 	if _state == State.AERIAL_ATTACKING:
 		_play_character_animation(ANIMATION_AERIAL_ATTACK)
+		return
+	if _state == State.WALL_CLIMBING:
+		_play_character_animation(ANIMATION_WALL_CLIMB)
 		return
 	_play_character_animation(_get_locomotion_animation(is_on_floor(), velocity))
 

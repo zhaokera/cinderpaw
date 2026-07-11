@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=37 format=3]
+[gd_resource type="SpriteFrames" load_steps=40 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/idle/cinderpaw_idle_000.png" id="1_idle0"]
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/idle/cinderpaw_idle_001.png" id="2_idle1"]
@@ -36,6 +36,9 @@
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/aerial_attack/cinderpaw_aerial_attack_000.png" id="34_aerial0"]
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/aerial_attack/cinderpaw_aerial_attack_001.png" id="35_aerial1"]
 [ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/aerial_attack/cinderpaw_aerial_attack_002.png" id="36_aerial2"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/wall_climb/cinderpaw_wall_climb_000.png" id="37_wall_climb0"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/wall_climb/cinderpaw_wall_climb_001.png" id="38_wall_climb1"]
+[ext_resource type="Texture2D" path="res://assets/characters/cinderpaw/wall_climb/cinderpaw_wall_climb_002.png" id="39_wall_climb2"]
 
 [resource]
 animations = [{
@@ -205,5 +208,19 @@ animations = [{
 }],
 "loop": true,
 "name": &"fall",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("37_wall_climb0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("38_wall_climb1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("39_wall_climb2")
+}],
+"loop": true,
+"name": &"wall_climb",
 "speed": 8.0
 }]

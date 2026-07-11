@@ -81,7 +81,7 @@
 			}
 		},
 		"wall_climb": {
-			"required": ["ability_id", "display_name", "unlock_condition", "cooldown_sec", "cooldown_type", "air_count_max", "requires_airborne", "combat_state_blocking"],
+			"required": ["ability_id", "display_name", "unlock_condition", "cooldown_sec", "cooldown_type", "air_count_max", "requires_airborne", "combat_state_blocking", "climb_speed_px_sec", "wall_slide_speed_px_sec", "wall_jump_horizontal_speed_px_sec", "wall_jump_vertical_speed_px_sec", "wall_regrab_lock_frames"],
 			"fields": {
 				"ability_id": {"type": "String"},
 				"display_name": {"type": "String"},
@@ -90,7 +90,12 @@
 				"cooldown_type": {"type": "String", "enum": ["none", "short", "medium", "air_count"]},
 				"air_count_max": {"type": "int", "min": 0, "max": 4},
 				"requires_airborne": {"type": "bool"},
-				"combat_state_blocking": {"type": "Array"}
+				"combat_state_blocking": {"type": "Array"},
+				"climb_speed_px_sec": {"type": "float", "min": 32.0, "max": 320.0},
+				"wall_slide_speed_px_sec": {"type": "float", "min": 0.0, "max": 240.0},
+				"wall_jump_horizontal_speed_px_sec": {"type": "float", "min": 96.0, "max": 480.0},
+				"wall_jump_vertical_speed_px_sec": {"type": "float", "min": 160.0, "max": 520.0},
+				"wall_regrab_lock_frames": {"type": "int", "min": 0, "max": 30}
 			}
 		},
 		"parry": {

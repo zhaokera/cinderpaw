@@ -71,7 +71,12 @@
 			"cooldown_type": "none",
 			"air_count_max": 0,
 			"requires_airborne": false,
-			"combat_state_blocking": []
+			"combat_state_blocking": [],
+			"climb_speed_px_sec": 160.0,
+			"wall_slide_speed_px_sec": 72.0,
+			"wall_jump_horizontal_speed_px_sec": 260.0,
+			"wall_jump_vertical_speed_px_sec": 340.0,
+			"wall_regrab_lock_frames": 8
 		},
 		"parry": {
 			"ability_id": "parry",

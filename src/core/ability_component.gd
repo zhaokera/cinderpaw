@@ -69,6 +69,11 @@ const FALLBACK_ABILITY_CONFIGS: Dictionary = {
 		"air_count_max": 0,
 		"requires_airborne": false,
 		"combat_state_blocking": [],
+		"climb_speed_px_sec": 160.0,
+		"wall_slide_speed_px_sec": 72.0,
+		"wall_jump_horizontal_speed_px_sec": 260.0,
+		"wall_jump_vertical_speed_px_sec": 340.0,
+		"wall_regrab_lock_frames": 8,
 	},
 	&"parry": {
 		"unlock_condition": "game_start",
@@ -129,6 +134,11 @@ func is_ability_on_cooldown(ability_id: StringName) -> bool:
 
 func get_ability_cooldown_remaining(ability_id: StringName) -> float:
 	return float(_cooldown_remaining.get(ability_id, 0.0))
+
+
+## Returns an isolated config snapshot for movement and presentation consumers.
+func get_ability_config(ability_id: StringName) -> Dictionary:
+	return _get_ability_config(ability_id).duplicate(true)
 
 
 func unlock_ability(ability_id: StringName) -> bool:
