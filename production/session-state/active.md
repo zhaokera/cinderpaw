@@ -4973,3 +4973,25 @@
 - Parallel review: Two rounds of level/art/QA sidecars failed before execution because the backend forced unsupported `reasoning.effort=max`; integration, review, and verification were completed by the integrating agent.
 - Blockers: None for Story132. ADR-0018/0019/0021 remain project-level Proposed records already used as governing guidance by Stories129-132; this Story does not alter their status. The broader game goal remains active.
 - Next: plan Story133 as a compact deep-Underground encounter or scene handoff from the secured endpoint, using frame animation for any new visible character and keeping verification focused plus MCP runtime evidence.
+
+## Session Extract -- /create-stories 2026-07-11
+
+- Delivery checkpoint: Story132 was committed as `b9966c78` (`feat: add Underground recovery cistern`) and pushed to `origin/master` before Story133 planning.
+- Story: `production/epics/player-abilities/story-133-underground-deep-cistern-stalker-ambush.md` -- Underground Deep Cistern Stalker Ambush.
+- Design: Extend `area_04_underground_passage` to a fourth viewport after the secured recovery endpoint. Gate a single new 48 HP Cistern Stalker behind Story132 traversal, close two generated Underground seals at x `3980/4960`, expose a 24-frame tell plus 6-frame leap-lunge, and clear the route through the shared combat chain.
+- Alternatives rejected: an immediate scene handoff creates an empty destination; another Sluice Leech pair repeats Story131. Boss4 and wall-climb remain out of scope until their design contracts exist.
+- Art contract: Generate one opaque deep-cistern background and one strict keyed 3x6 Stalker animation sheet. Normalize six three-frame transparent `96x96` animations and wire them through `AnimatedSprite2D + SpriteFrames`.
+- Verification budget: three focused acceptance tests, one bounded related run, one targeted smoke, and one final Godot MCP runtime pass. Do not run the full suite repeatedly.
+- Parallel review: Do not retry the sidecars that failed twice before execution on the unsupported backend reasoning setting; complete the bounded design, art, QA, and integration reviews locally.
+- Next: write the focused RED suite before production code, then generate/import assets and implement the dedicated controller plus thin parent integration.
+
+## Session Extract -- /dev-story 2026-07-11
+
+- Story: `production/epics/player-abilities/story-133-underground-deep-cistern-stalker-ambush.md` -- Underground Deep Cistern Stalker Ambush.
+- Implementation: Expanded Underground Passage to `5120x720` with a fourth generated background, continuous arena ground, rear/front seals, and `UndergroundDeepCisternAmbushController`. Story132 traversal unlocks a new entity `2501` Cistern Stalker with 48 HP, a 24-frame red-spine tell, 6-frame 14-damage leap-lunge, 18-frame recovery, shared component combat routing, durable activation/clear state, and `Deep Cistern Secured` objective.
+- Frame animation: Built-in image generation produced a strict magenta `3x6` Stalker sheet. Local helper removal and equal-cell normalization produced eighteen transparent `96x96` frames for `idle`, `run`, `attack_tell`, `attack`, `hurt`, and `death`; each animation has three frames and is wired through `AnimatedSprite2D + SpriteFrames` character/runtime scenes.
+- Asset pipeline: Built-in image generation also produced an opaque fourth-view background. Source, alpha, preview, prompts, processing, runtime paths, spec, manifest, and inventory records are complete and imported through Godot 4.7.
+- Runtime fixes: Focused combat exposed the parent player's fixed 12-damage calculator overriding the authored 14-damage leap; the enemy now uses the dedicated controller adapter. MCP exposed a clipped completed Story132 endpoint label; relay/endpoint prompts now use 192 px proximity visibility. Local review exposed immediate enemy hiding during clear; gameplay state now resolves immediately while the non-damaging `death` animation remains visible and fades out.
+- Verification: RED `report_1448`; death-presentation regression RED `report_1455`; final focused GREEN `report_1456` passed `3/3`; bounded Story131-133 GREEN `report_1451` passed `9/9`; targeted smoke exited `0` with `underground_deep_cistern_stalker_ambush_smoke=passed`. Godot MCP `2.9.1` / Godot `4.7-stable` force-reloaded 97 authored nodes, ran 146 runtime nodes with real movement/attack input, verified the generated texture and SpriteFrames paths, produced a non-empty `1278x718` screenshot, captured the visible fading Stalker `death` animation with already-open seals in run `36`, returned `current_run_errors=[]`, helper-only final current-run logs, and no editor rows after cursor `3`.
+- Blockers: None for Story133. The broader game goal remains active.
+- Next: plan Story134 as a bounded deep-Underground route handoff or Boss4 approach design. Do not invent Boss4 or wall-climb implementation before the corresponding GDD/Story contract exists.

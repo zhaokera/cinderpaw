@@ -137,7 +137,7 @@ func test_authored_recovery_cistern_route_and_controller_contract() -> void:
 	var camera: Camera2D = scene.get_node_or_null("Player/Camera2D") as Camera2D
 	assert_that(camera).is_not_null()
 	if camera != null:
-		assert_int(camera.limit_right).is_equal(ROUTE_WIDTH_PX)
+		assert_int(camera.limit_right).is_greater_equal(ROUTE_WIDTH_PX)
 	var relay: Node = scene.get_node_or_null(RELAY_NODE_PATH)
 	var endpoint: Node = scene.get_node_or_null(ENDPOINT_NODE_PATH)
 	assert_that(relay).is_not_null()

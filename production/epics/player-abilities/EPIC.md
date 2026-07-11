@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 130 stories tracked
+> **Stories**: 133 stories tracked
 
 ## Overview
 
@@ -170,6 +170,7 @@ recording the reward in progression state.
 | 130 | Factory Aerial Breach Underground Passage Handoff | Integration + Ability Gate + Scene Handoff + Visual | Complete | ADR-0002/0004/0007/0018/0021 |
 | 131 | Underground Corrosion Channel Skirmish | Integration + Gameplay Runtime + Environmental Hazard + Visual | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
 | 132 | Underground Recovery Cistern Savepoint Traverse | Integration + Gameplay Runtime + Traversal + Save/Respawn + Visual | Complete | ADR-0002/0004/0007/0018/0019/0021 |
+| 133 | Underground Deep Cistern Stalker Ambush | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0006/0007 |
 
 ## Definition of Done
 
@@ -189,6 +190,6 @@ This epic is complete when:
 
 ## Next Step
 
-Story132 is complete. Plan Story133 as a bounded deep-Underground payoff after
-the secured recovery-cistern endpoint, preferring a compact frame-animated ACT
-encounter or deliberate scene handoff over another documentation-only slice.
+Story133 is complete. Plan Story134 as a deliberate deep-Underground route
+handoff or Boss4 approach design from the secured Stalker arena; do not add a
+wall-climb reward or Boss4 implementation until its GDD/Story contract exists.

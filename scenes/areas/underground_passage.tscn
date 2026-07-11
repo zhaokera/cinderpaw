@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/underground_passage_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/underground_passage/env_underground_passage_entry_1280x720.png" id="2_background"]
@@ -19,6 +19,9 @@
 [ext_resource type="Texture2D" path="res://assets/environment/underground_passage/prop_underground_recovery_relay_256x256.png" id="17_relay_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/underground_passage/prop_underground_deep_route_endpoint_256x384.png" id="18_endpoint_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_deep_route/vfx/factory_deep_route_unlock_spark.png" id="19_relay_vfx"]
+[ext_resource type="Texture2D" path="res://assets/environment/underground_passage/env_underground_deep_cistern_1280x720.png" id="20_deep_cistern_background"]
+[ext_resource type="Script" path="res://src/gameplay/underground_deep_cistern_ambush_controller.gd" id="21_deep_cistern_controller"]
+[ext_resource type="PackedScene" path="res://src/gameplay/underground_cistern_stalker.tscn" id="22_cistern_stalker"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(2560, 48)
@@ -56,6 +59,9 @@ radius = 104.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_recovery_endpoint"]
 radius = 112.0
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_deep_cistern_ground"]
+size = Vector2(1280, 48)
+
 [node name="UndergroundPassageScene" type="Node2D"]
 script = ExtResource("1_scene")
 metadata/scene_id = "area_04_underground_passage"
@@ -78,6 +84,12 @@ position = Vector2(3200, 360)
 texture_filter = 1
 texture = ExtResource("15_recovery_background")
 
+[node name="DeepCisternBackground" type="Sprite2D" parent="."]
+z_index = -100
+position = Vector2(4480, 360)
+texture_filter = 1
+texture = ExtResource("20_deep_cistern_background")
+
 [node name="Ground" type="StaticBody2D" parent="."]
 position = Vector2(1280, 624)
 collision_layer = 16
@@ -95,7 +107,7 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_wall")
 
 [node name="RightWall" type="StaticBody2D" parent="."]
-position = Vector2(3820, 360)
+position = Vector2(5100, 360)
 collision_layer = 16
 collision_mask = 0
 
@@ -157,7 +169,7 @@ position = Vector2(300, 576)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 3840
+limit_right = 5120
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
@@ -435,6 +447,51 @@ monitorable = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RecoveryCisternController/DeepRouteEndpoint/InteractionArea"]
 shape = SubResource("CircleShape2D_recovery_endpoint")
 disabled = true
+
+[node name="DeepCisternAmbushController" type="Node2D" parent="."]
+script = ExtResource("21_deep_cistern_controller")
+
+[node name="ArenaGround" type="StaticBody2D" parent="DeepCisternAmbushController"]
+position = Vector2(4480, 624)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeepCisternAmbushController/ArenaGround"]
+shape = SubResource("RectangleShape2D_deep_cistern_ground")
+
+[node name="BackSeal" type="StaticBody2D" parent="DeepCisternAmbushController"]
+z_index = 18
+position = Vector2(3980, 432)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="DeepCisternAmbushController/BackSeal"]
+texture_filter = 1
+texture = ExtResource("10_seal_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeepCisternAmbushController/BackSeal"]
+shape = SubResource("RectangleShape2D_seal")
+
+[node name="ForwardSeal" type="StaticBody2D" parent="DeepCisternAmbushController"]
+z_index = 18
+position = Vector2(4960, 432)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="DeepCisternAmbushController/ForwardSeal"]
+texture_filter = 1
+texture = ExtResource("10_seal_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeepCisternAmbushController/ForwardSeal"]
+shape = SubResource("RectangleShape2D_seal")
+
+[node name="CisternStalker" parent="DeepCisternAmbushController" instance=ExtResource("22_cistern_stalker")]
+process_mode = 4
+z_index = 20
+visible = false
+position = Vector2(4520, 576)
+collision_layer = 0
+collision_mask = 0
 
 [node name="UndergroundObjectiveLabel" type="Label" parent="."]
 z_index = 50

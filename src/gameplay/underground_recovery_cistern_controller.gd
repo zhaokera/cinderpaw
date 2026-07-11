@@ -55,6 +55,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	advance_respawn_flow(delta)
+	_sync_prompt_visibility()
 
 
 ## Injects the player, scene owner, and optional SaveSystem runtime adapters.
@@ -308,13 +309,26 @@ func _sync_authored_state() -> void:
 				else "Activate Recovery Relay"
 			)
 		)
-		_endpoint_prompt.visible = _route_unlocked
+	_sync_prompt_visibility()
 	if _fall_zone != null:
 		_set_area_monitoring(
 			_fall_zone,
 			_route_unlocked and _relay_activated
 		)
 	_emit_objective_if_changed()
+
+
+func _sync_prompt_visibility() -> void:
+	if _relay_prompt != null:
+		_relay_prompt.visible = (
+			_route_unlocked
+			and _is_provider_near(_relay, _player, 192.0)
+		)
+	if _endpoint_prompt != null:
+		_endpoint_prompt.visible = (
+			_route_unlocked
+			and _is_provider_near(_endpoint, _player, 192.0)
+		)
 
 
 func _connect_relay_signal() -> void:

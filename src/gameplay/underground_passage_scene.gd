@@ -5,7 +5,7 @@ const SCENE_ID: StringName = &"area_04_underground_passage"
 const ENTRY_SPAWN_POINT: StringName = &"factory_drop_entry"
 const FACTORY_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_RETURN_SPAWN_POINT: StringName = &"tailrace_underground_return"
-const ROUTE_WIDTH_PX: int = 3840
+const ROUTE_WIDTH_PX: int = 5120
 const ENCOUNTER_ACTIVATION_X: float = 1450.0
 const CORROSION_LEFT_ENTITY_ID: int = 2401
 const CORROSION_RIGHT_ENTITY_ID: int = 2402
@@ -77,6 +77,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _recovery_cistern: Node = (
 	get_node_or_null("RecoveryCisternController")
 )
+@onready var _deep_cistern_ambush: Node = (
+	get_node_or_null("DeepCisternAmbushController")
+)
 @onready var _hud: HUDManager = get_node_or_null("HUD") as HUDManager
 
 var _scene_manager: Object = null
@@ -108,6 +111,7 @@ func _ready() -> void:
 	_setup_corrosion_enemies()
 	_setup_corrosion_salvage_cache()
 	_setup_recovery_cistern()
+	_setup_deep_cistern_ambush()
 	_sync_corrosion_slice_state()
 	_sync_return_route()
 	_request_underground_audio()
@@ -180,6 +184,26 @@ func try_activate_recovery_cistern_endpoint(provider: Node = null) -> bool:
 	return bool(_recovery_cistern.call("try_activate_endpoint", provider))
 
 
+## Attempts the one-shot Story133 deep-cistern ambush activation.
+func try_activate_deep_cistern_ambush(provider: Node = null) -> bool:
+	if (
+		_deep_cistern_ambush == null
+		or not _deep_cistern_ambush.has_method("try_activate")
+	):
+		return false
+	return bool(_deep_cistern_ambush.call("try_activate", provider))
+
+
+## Requests the Story133 Stalker attack for deterministic runtime probes.
+func request_deep_cistern_stalker_attack() -> bool:
+	if (
+		_deep_cistern_ambush == null
+		or not _deep_cistern_ambush.has_method("request_stalker_attack")
+	):
+		return false
+	return bool(_deep_cistern_ambush.call("request_stalker_attack"))
+
+
 ## Captures the JSON-safe Underground snapshot used by savepoint autosave.
 func capture_save_snapshot() -> Dictionary:
 	var last_savepoint: Dictionary = {}
@@ -227,6 +251,18 @@ func apply_damage(
 	final_damage: int,
 	metadata: Dictionary = {}
 ) -> bool:
+	if (
+		_deep_cistern_ambush != null
+		and _deep_cistern_ambush.has_method("handles_target_id")
+		and bool(_deep_cistern_ambush.call("handles_target_id", target_id))
+		and _deep_cistern_ambush.has_method("apply_damage")
+	):
+		return bool(_deep_cistern_ambush.call(
+			"apply_damage",
+			target_id,
+			final_damage,
+			metadata
+		))
 	var damage_target: Node = _get_corrosion_enemy_by_entity_id(target_id)
 	if (
 		damage_target == null
@@ -403,6 +439,14 @@ func get_local_state() -> Dictionary:
 			Dictionary(_recovery_cistern.call("get_local_state")),
 			true
 		)
+	if (
+		_deep_cistern_ambush != null
+		and _deep_cistern_ambush.has_method("get_local_state")
+	):
+		state.merge(
+			Dictionary(_deep_cistern_ambush.call("get_local_state")),
+			true
+		)
 	return state
 
 
@@ -450,7 +494,13 @@ func set_local_state(state: Dictionary) -> void:
 	_restore_player_unlocked_abilities(state)
 	if _recovery_cistern != null and _recovery_cistern.has_method("set_local_state"):
 		_recovery_cistern.call("set_local_state", state)
+	if (
+		_deep_cistern_ambush != null
+		and _deep_cistern_ambush.has_method("set_local_state")
+	):
+		_deep_cistern_ambush.call("set_local_state", state)
 	_sync_corrosion_slice_state()
+	_setup_deep_cistern_ambush()
 	_sync_return_route()
 	_align_player_to_entry_spawn()
 
@@ -548,6 +598,21 @@ func get_underground_combat_diagnostics() -> Dictionary:
 func get_underground_recovery_cistern_diagnostics() -> Dictionary:
 	if _recovery_cistern != null and _recovery_cistern.has_method("get_diagnostics"):
 		return Dictionary(_recovery_cistern.call("get_diagnostics")).duplicate(true)
+	return {
+		"route_width_px": ROUTE_WIDTH_PX,
+		"controller_present": false,
+	}
+
+
+## Returns the dedicated Story133 encounter diagnostics surface.
+func get_underground_deep_cistern_diagnostics() -> Dictionary:
+	if (
+		_deep_cistern_ambush != null
+		and _deep_cistern_ambush.has_method("get_diagnostics")
+	):
+		return Dictionary(_deep_cistern_ambush.call(
+			"get_diagnostics"
+		)).duplicate(true)
 	return {
 		"route_width_px": ROUTE_WIDTH_PX,
 		"controller_present": false,
@@ -671,7 +736,32 @@ func _setup_recovery_cistern() -> void:
 		)
 
 
+func _setup_deep_cistern_ambush() -> void:
+	if _deep_cistern_ambush == null:
+		return
+	if _deep_cistern_ambush.has_signal("objective_changed"):
+		var objective_signal: Signal = _deep_cistern_ambush.get(
+			"objective_changed"
+		)
+		if not objective_signal.is_connected(
+			_on_deep_cistern_objective_changed
+		):
+			objective_signal.connect(_on_deep_cistern_objective_changed)
+	if _deep_cistern_ambush.has_method("configure_runtime"):
+		_deep_cistern_ambush.call("configure_runtime", _player, self)
+	if _deep_cistern_ambush.has_method("set_route_unlocked"):
+		_deep_cistern_ambush.call(
+			"set_route_unlocked",
+			_is_recovery_cistern_traversed()
+		)
+
+
 func _on_recovery_cistern_objective_changed(_objective_text: String) -> void:
+	_setup_deep_cistern_ambush()
+	_refresh_objective_text()
+
+
+func _on_deep_cistern_objective_changed(_objective_text: String) -> void:
 	_refresh_objective_text()
 
 
@@ -724,6 +814,7 @@ func _sync_corrosion_slice_state() -> void:
 			)
 	_sync_corrosion_cache_prompt_visibility()
 	_setup_recovery_cistern()
+	_setup_deep_cistern_ambush()
 	_refresh_objective_text()
 
 
@@ -879,6 +970,18 @@ func _refresh_objective_text() -> void:
 	if _objective_label == null:
 		return
 	if (
+		_deep_cistern_ambush != null
+		and _deep_cistern_ambush.has_method("should_own_objective")
+		and bool(_deep_cistern_ambush.call(
+			"should_own_objective",
+			_player
+		))
+		and _deep_cistern_ambush.has_method("get_objective_text")
+	):
+		_objective_label.text = String(_deep_cistern_ambush.call(
+			"get_objective_text"
+		))
+	elif (
 		_recovery_cistern != null
 		and _recovery_cistern.has_method("should_own_objective")
 		and bool(_recovery_cistern.call("should_own_objective", _player))
@@ -1070,6 +1173,21 @@ func _is_corrosion_channel_cleared() -> bool:
 		_corrosion_channel_cleared
 		or (_corrosion_left_defeated and _corrosion_right_defeated)
 	)
+
+
+func _is_recovery_cistern_traversed() -> bool:
+	if (
+		_recovery_cistern == null
+		or not _recovery_cistern.has_method("get_local_state")
+	):
+		return false
+	var recovery_state: Dictionary = Dictionary(_recovery_cistern.call(
+		"get_local_state"
+	))
+	return bool(recovery_state.get(
+		"underground_recovery_cistern_traversed",
+		false
+	))
 
 
 func _get_corrosion_encounter_state() -> StringName:
