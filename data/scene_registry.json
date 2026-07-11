@@ -22,6 +22,14 @@
 			"preload": false,
 			"default_spawn": "factory_gate_entry",
 			"display_name": "Factory Route"
+		},
+		"boss_03_sluice_matriarch_arena": {
+			"scene_id": "boss_03_sluice_matriarch_arena",
+			"path": "res://scenes/bosses/sluice_matriarch_arena.tscn",
+			"type": "boss_arena",
+			"preload": false,
+			"default_spawn": "boss_entry",
+			"display_name": "Sluice Matriarch Lair"
 		}
 	}
 }

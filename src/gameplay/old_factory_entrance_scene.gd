@@ -489,6 +489,9 @@ const FACTORY_OBJECTIVE_BREAK_TAILRACE_EXIT_SLUICE_LEECH: StringName = (
 const FACTORY_OBJECTIVE_TAILRACE_EXIT_SLUICE_LEECH_CLEARED: StringName = (
 	&"tailrace_exit_sluice_leech_cleared"
 )
+const FACTORY_OBJECTIVE_ENTER_SLUICE_MATRIARCH_LAIR: StringName = (
+	&"enter_sluice_matriarch_lair"
+)
 const FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID: StringName = (
 	&"old_factory_lower_deck_forward_pressure_counter_ambush"
 )
@@ -616,6 +619,16 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUN
 const FACTORY_TAILRACE_EXIT_SLUICE_LEECH_SKIRMISH_ID: StringName = (
 	&"old_factory_tailrace_exit_sluice_leech_skirmish"
 )
+const FACTORY_TAILRACE_SLUICE_MATRIARCH_ROUTE_ID: StringName = (
+	&"factory_tailrace_sluice_matriarch_route"
+)
+const FACTORY_TAILRACE_SLUICE_MATRIARCH_TARGET_SCENE_ID: StringName = (
+	&"boss_03_sluice_matriarch_arena"
+)
+const FACTORY_TAILRACE_SLUICE_MATRIARCH_TARGET_SPAWN_POINT: StringName = &"boss_entry"
+const FACTORY_TAILRACE_SLUICE_MATRIARCH_RETURN_SPAWN_POINT: StringName = (
+	&"tailrace_matriarch_gate_return"
+)
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_ACTIVATION_X: float = 3920.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_ACTIVATION_X: float = 4560.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_EXIT_X: float = 5020.0
@@ -663,6 +676,9 @@ const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_SAVEPOINT_RESPAWN
 )
 const FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_RESPAWN_LABEL: String = (
 	"Returned to Tailrace Relay"
+)
+const FACTORY_TAILRACE_SLUICE_MATRIARCH_RETURN_LABEL: String = (
+	"Returned to Sluice Matriarch Gate"
 )
 const GAME_FLOW_SCRIPT: Script = preload("res://src/gameplay/game_flow_controller.gd")
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
@@ -1005,6 +1021,12 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _factory_tailrace_exit_sluice_leech: Node2D = (
 	get_node_or_null("FactoryTailraceExitSluiceLeech") as Node2D
 )
+@onready var _factory_tailrace_sluice_matriarch_route: Node = (
+	get_node_or_null("FactoryTailraceSluiceMatriarchRoute")
+)
+@onready var _factory_tailrace_sluice_matriarch_return_spawn: Marker2D = (
+	get_node_or_null("FactoryTailraceSluiceMatriarchReturnSpawn") as Marker2D
+)
 @onready var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_spark_rat: Node2D = (
 	get_node_or_null(
 		"FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerSparkRat"
@@ -1301,6 +1323,9 @@ var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outle
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_elapsed_sec: float = 0.0
 var _factory_tailrace_exit_sluice_leech_skirmish_activated: bool = false
 var _factory_tailrace_exit_sluice_leech_defeated: bool = false
+var _factory_tailrace_sluice_matriarch_transition_requested: bool = false
+var _last_factory_tailrace_sluice_matriarch_rejected_reason: StringName = &""
+var _last_factory_tailrace_sluice_matriarch_request: Dictionary = {}
 var _return_checkpoint_activated: bool = false
 var _last_return_checkpoint: Dictionary = {}
 var _service_lift_activated: bool = false
@@ -1387,6 +1412,7 @@ func _ready() -> void:
 	_setup_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch()
 	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_state()
 	_sync_factory_tailrace_exit_sluice_leech_skirmish_state()
+	_sync_factory_tailrace_sluice_matriarch_route_state()
 	_setup_factory_return_checkpoint()
 	_setup_factory_hazards()
 	_setup_factory_deep_route()
@@ -1460,6 +1486,7 @@ func _process(_delta: float) -> void:
 	)
 	_auto_complete_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway()
 	_auto_activate_factory_tailrace_exit_sluice_leech_skirmish()
+	_process_factory_tailrace_sluice_matriarch_route_contact()
 	_sync_factory_player_control_lock()
 
 
@@ -4097,6 +4124,41 @@ func try_activate_factory_tailrace_exit_sluice_leech_skirmish(
 	return true
 
 
+## Requests the Story127 asynchronous transition into the Sluice Matriarch arena.
+func try_request_factory_tailrace_sluice_matriarch_transition(
+	provider: Node = null
+) -> bool:
+	_sync_factory_tailrace_sluice_matriarch_route_state()
+	if (
+		_factory_tailrace_sluice_matriarch_route == null
+		or _factory_tailrace_sluice_matriarch_transition_requested
+	):
+		_record_factory_tailrace_sluice_matriarch_rejection(
+			&"transition_already_requested"
+		)
+		return false
+	var request_provider: Node = _player if provider == null else provider
+	if (
+		not _factory_tailrace_sluice_matriarch_route.has_method(
+			"can_request_transition"
+		)
+		or not bool(_factory_tailrace_sluice_matriarch_route.call(
+			"can_request_transition",
+			request_provider
+		))
+	):
+		_record_factory_tailrace_sluice_matriarch_rejection(
+			&"route_unavailable_or_out_of_range"
+		)
+		return false
+	if not _request_factory_tailrace_sluice_matriarch_scene():
+		return false
+	_factory_tailrace_sluice_matriarch_transition_requested = true
+	_factory_tailrace_sluice_matriarch_route.call("set_transition_requested", true)
+	_update_route_label("Entering Sluice Matriarch Lair")
+	return true
+
+
 ## Starts the Story096 condenser outlet traversal beyond the condenser savepoint.
 func try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_outlet(
 	provider: Node = null
@@ -5038,6 +5100,9 @@ func get_local_state() -> Dictionary:
 
 ## Restores scene-local state from SceneManager runtime swap persistence.
 func set_local_state(state: Dictionary) -> void:
+	_factory_tailrace_sluice_matriarch_transition_requested = false
+	_last_factory_tailrace_sluice_matriarch_rejected_reason = &""
+	_last_factory_tailrace_sluice_matriarch_request.clear()
 	_encounter_cleared = bool(state.get("encounter_cleared", false))
 	_cache_claimed = bool(state.get("factory_cache_claimed", false))
 	_deep_guard_activated = bool(state.get("factory_deep_guard_activated", false))
@@ -6489,6 +6554,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_state()
 	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_state()
 	_sync_factory_tailrace_exit_sluice_leech_skirmish_state()
+	_sync_factory_tailrace_sluice_matriarch_route_state()
 	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	if _spark_rat_activated and not _spark_rat_defeated:
@@ -9734,6 +9800,50 @@ func get_factory_tailrace_exit_sluice_leech_skirmish_diagnostics() -> Dictionary
 	}
 
 
+## Returns deterministic Story127 gate, spawn, and SceneManager diagnostics.
+func get_factory_tailrace_sluice_matriarch_route_diagnostics() -> Dictionary:
+	var route: Node = _factory_tailrace_sluice_matriarch_route
+	var route_objective: Dictionary = get_factory_route_objective_diagnostics()
+	return {
+		"present": route != null,
+		"route_id": (
+			String(route.call("get_route_id"))
+			if route != null and route.has_method("get_route_id")
+			else String(FACTORY_TAILRACE_SLUICE_MATRIARCH_ROUTE_ID)
+		),
+		"story126_cleared": _is_factory_tailrace_exit_sluice_leech_skirmish_cleared(),
+		"available": (
+			bool(route.call("is_route_available"))
+			if route != null and route.has_method("is_route_available")
+			else false
+		),
+		"prompt_text": (
+			String(route.call("get_prompt_text"))
+			if route != null and route.has_method("get_prompt_text")
+			else ""
+		),
+		"target_scene_id": String(FACTORY_TAILRACE_SLUICE_MATRIARCH_TARGET_SCENE_ID),
+		"spawn_point": String(FACTORY_TAILRACE_SLUICE_MATRIARCH_TARGET_SPAWN_POINT),
+		"return_spawn_point": String(FACTORY_TAILRACE_SLUICE_MATRIARCH_RETURN_SPAWN_POINT),
+		"route_position": (
+			(route as Node2D).global_position if route is Node2D else Vector2.ZERO
+		),
+		"return_spawn_position": (
+			_factory_tailrace_sluice_matriarch_return_spawn.global_position
+			if _factory_tailrace_sluice_matriarch_return_spawn != null
+			else Vector2.ZERO
+		),
+		"transition_requested": _factory_tailrace_sluice_matriarch_transition_requested,
+		"rejected_reason": String(_last_factory_tailrace_sluice_matriarch_rejected_reason),
+		"last_request": _last_factory_tailrace_sluice_matriarch_request.duplicate(true),
+		"scene_manager_loading": _is_scene_manager_loading(),
+		"pending_scene": _get_scene_manager_pending_scene(),
+		"pending_spawn_point": _get_scene_manager_pending_spawn_point(),
+		"route_label_text": String(route_objective.get("route_label_text", "")),
+		"last_savepoint": _last_return_checkpoint.duplicate(true),
+	}
+
+
 ## Returns deterministic aftershock condenser outlet diagnostics for tests and MCP probes.
 func get_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_diagnostics(
 ) -> Dictionary:
@@ -12728,6 +12838,91 @@ func _record_service_lift_exit_rejection(reason: StringName) -> void:
 	_last_service_lift_exit_request = {}
 
 
+func _process_factory_tailrace_sluice_matriarch_route_contact() -> void:
+	if (
+		_player == null
+		or _factory_tailrace_sluice_matriarch_route == null
+		or _factory_tailrace_sluice_matriarch_transition_requested
+		or not _is_factory_tailrace_exit_sluice_leech_skirmish_cleared()
+		or not _factory_tailrace_sluice_matriarch_route.has_method(
+			"is_provider_in_transition_range"
+		)
+	):
+		return
+	if bool(_factory_tailrace_sluice_matriarch_route.call(
+		"is_provider_in_transition_range",
+		_player
+	)):
+		try_request_factory_tailrace_sluice_matriarch_transition(_player)
+
+
+func _request_factory_tailrace_sluice_matriarch_scene() -> bool:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if not _is_valid_scene_manager(scene_manager):
+		_record_factory_tailrace_sluice_matriarch_rejection(&"scene_manager_missing")
+		return false
+	if scene_manager.has_method("is_loading") and bool(scene_manager.call("is_loading")):
+		_record_factory_tailrace_sluice_matriarch_rejection(&"scene_manager_loading")
+		return false
+	if scene_manager.has_method("is_scene_locked") \
+			and bool(scene_manager.call("is_scene_locked")):
+		_record_factory_tailrace_sluice_matriarch_rejection(&"scene_locked")
+		return false
+	if scene_manager.has_method("has_scene") \
+			and not bool(scene_manager.call(
+				"has_scene",
+				FACTORY_TAILRACE_SLUICE_MATRIARCH_TARGET_SCENE_ID
+			)):
+		_record_factory_tailrace_sluice_matriarch_rejection(&"unknown_scene")
+		return false
+	if not _ensure_factory_runtime_scene_root(scene_manager):
+		_record_factory_tailrace_sluice_matriarch_rejection(&"runtime_root_unavailable")
+		return false
+
+	var request_started: bool = false
+	if scene_manager.has_method("request_scene_change"):
+		request_started = bool(scene_manager.call(
+			"request_scene_change",
+			FACTORY_TAILRACE_SLUICE_MATRIARCH_TARGET_SCENE_ID,
+			FACTORY_TAILRACE_SLUICE_MATRIARCH_TARGET_SPAWN_POINT
+		))
+	elif scene_manager.has_method("change_scene"):
+		request_started = bool(scene_manager.call(
+			"change_scene",
+			FACTORY_TAILRACE_SLUICE_MATRIARCH_TARGET_SCENE_ID,
+			FACTORY_TAILRACE_SLUICE_MATRIARCH_TARGET_SPAWN_POINT
+		))
+	if not request_started:
+		_record_factory_tailrace_sluice_matriarch_rejection(&"request_rejected")
+		return false
+
+	_last_factory_tailrace_sluice_matriarch_rejected_reason = &""
+	_last_factory_tailrace_sluice_matriarch_request = {
+		"scene_id": String(FACTORY_TAILRACE_SLUICE_MATRIARCH_TARGET_SCENE_ID),
+		"spawn_point": String(FACTORY_TAILRACE_SLUICE_MATRIARCH_TARGET_SPAWN_POINT),
+		"scene_manager_loading": _is_scene_manager_loading(),
+		"pending_scene": _get_scene_manager_pending_scene(),
+		"pending_spawn_point": _get_scene_manager_pending_spawn_point(),
+	}
+	return true
+
+
+func _record_factory_tailrace_sluice_matriarch_rejection(reason: StringName) -> void:
+	_last_factory_tailrace_sluice_matriarch_rejected_reason = reason
+	_last_factory_tailrace_sluice_matriarch_request.clear()
+
+
+func _ensure_factory_runtime_scene_root(scene_manager: Object) -> bool:
+	if not scene_manager.has_method("configure_runtime_scene_root"):
+		return true
+	if scene_manager.has_method("is_runtime_scene_swap_enabled") \
+			and bool(scene_manager.call("is_runtime_scene_swap_enabled")):
+		return true
+	if not is_inside_tree() or get_parent() == null:
+		return false
+	return bool(scene_manager.call("configure_runtime_scene_root", get_parent(), self))
+
+
 func _resolve_scene_manager_for_runtime() -> Object:
 	if _is_valid_scene_manager(_scene_manager):
 		return _scene_manager
@@ -12784,6 +12979,7 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 		or spawn_point == (
 			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_SPAWN_POINT
 		)
+		or spawn_point == FACTORY_TAILRACE_SLUICE_MATRIARCH_RETURN_SPAWN_POINT
 	):
 		_grant_factory_hazard_respawn_grace()
 	if not _move_player_to_spawn_point(spawn_point):
@@ -12818,6 +13014,10 @@ func _apply_scene_manager_spawn_point(scene_id: StringName) -> bool:
 		_update_route_label(
 			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_RESPAWN_LABEL
 		)
+	elif spawn_point == FACTORY_TAILRACE_SLUICE_MATRIARCH_RETURN_SPAWN_POINT:
+		_factory_return_checkpoint_spawn_snap_frames = 0
+		_set_player_physics_pinned_for_return_checkpoint(false)
+		_update_route_label(FACTORY_TAILRACE_SLUICE_MATRIARCH_RETURN_LABEL)
 	else:
 		_factory_return_checkpoint_spawn_snap_frames = 0
 		_set_player_physics_pinned_for_return_checkpoint(false)
@@ -12849,6 +13049,8 @@ func _move_player_to_spawn_point(spawn_point: StringName) -> bool:
 			_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay
 			as Node2D
 		)
+	elif spawn_point == FACTORY_TAILRACE_SLUICE_MATRIARCH_RETURN_SPAWN_POINT:
+		spawn_node = _factory_tailrace_sluice_matriarch_return_spawn
 	if spawn_node == null:
 		return false
 	_player.global_position = spawn_node.global_position
@@ -14164,7 +14366,8 @@ func _on_factory_tailrace_exit_sluice_leech_defeated() -> void:
 	_factory_tailrace_exit_sluice_leech_skirmish_activated = true
 	_factory_tailrace_exit_sluice_leech_defeated = true
 	_sync_factory_tailrace_exit_sluice_leech_skirmish_state()
-	_refresh_factory_route_objective()
+	_sync_factory_tailrace_sluice_matriarch_route_state()
+	_update_route_label("Tailrace Sluice Leech Cleared")
 
 
 func _on_factory_lower_deck_parry_gate_state_changed(
@@ -16813,6 +17016,21 @@ func _sync_factory_tailrace_exit_sluice_leech_skirmish_state() -> void:
 	)
 
 
+func _sync_factory_tailrace_sluice_matriarch_route_state() -> void:
+	if _factory_tailrace_sluice_matriarch_route == null:
+		return
+	if _factory_tailrace_sluice_matriarch_route.has_method("set_route_available"):
+		_factory_tailrace_sluice_matriarch_route.call(
+			"set_route_available",
+			_is_factory_tailrace_exit_sluice_leech_skirmish_cleared()
+		)
+	if _factory_tailrace_sluice_matriarch_route.has_method("set_transition_requested"):
+		_factory_tailrace_sluice_matriarch_route.call(
+			"set_transition_requested",
+			_factory_tailrace_sluice_matriarch_transition_requested
+		)
+
+
 func _sync_lower_deck_forward_pressure_exit_gate_state() -> void:
 	if _lower_deck_forward_pressure_exit_gate == null:
 		return
@@ -16981,7 +17199,7 @@ func _get_factory_route_objective_id() -> StringName:
 	if _is_factory_tailrace_exit_sluice_leech_skirmish_active():
 		return FACTORY_OBJECTIVE_BREAK_TAILRACE_EXIT_SLUICE_LEECH
 	if _is_factory_tailrace_exit_sluice_leech_skirmish_cleared():
-		return FACTORY_OBJECTIVE_TAILRACE_EXIT_SLUICE_LEECH_CLEARED
+		return FACTORY_OBJECTIVE_ENTER_SLUICE_MATRIARCH_LAIR
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_crossed:
 		return (
 			FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_RUNOFF_PINCER_EXIT_SPILLWAY_CROSSED
@@ -17310,6 +17528,8 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 		return "Break Tailrace Sluice Leech"
 	if objective_id == FACTORY_OBJECTIVE_TAILRACE_EXIT_SLUICE_LEECH_CLEARED:
 		return "Tailrace Sluice Leech Cleared"
+	if objective_id == FACTORY_OBJECTIVE_ENTER_SLUICE_MATRIARCH_LAIR:
+		return "Enter Sluice Matriarch Lair"
 	if (
 		objective_id
 		== FACTORY_OBJECTIVE_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_RUNOFF_PINCER_CACHE_CLAIMED

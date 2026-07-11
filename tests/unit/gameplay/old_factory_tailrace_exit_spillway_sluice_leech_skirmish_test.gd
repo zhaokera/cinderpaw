@@ -250,7 +250,7 @@ func test_spillway_crossed_gates_sluice_leech_skirmish_and_restores_clear() -> v
 	assert_bool(bool(cleared.get("enemy_process_enabled", true))).is_false()
 	assert_bool(bool(cleared.get("enemy_physics_enabled", true))).is_false()
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
-		"Tailrace Sluice Leech Cleared"
+		"Enter Sluice Matriarch Lair"
 	)
 	var local_state: Dictionary = ready_scene.call("get_local_state")
 	assert_bool(bool(local_state.get(STORY126_ACTIVATED_KEY, false))).is_true()
@@ -267,7 +267,7 @@ func test_spillway_crossed_gates_sluice_leech_skirmish_and_restores_clear() -> v
 	assert_bool(bool(restored_diagnostics.get("cleared", false))).is_true()
 	assert_bool(bool(restored_diagnostics.get("enemy_visible", true))).is_false()
 	assert_str(String(restored_diagnostics.get("route_label_text", ""))).is_equal(
-		"Tailrace Sluice Leech Cleared"
+		"Enter Sluice Matriarch Lair"
 	)
 	var spillway: Dictionary = restored.call(
 		"get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_"

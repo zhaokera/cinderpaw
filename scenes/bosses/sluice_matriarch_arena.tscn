@@ -1,0 +1,112 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://src/gameplay/sluice_matriarch_arena.gd" id="1_scene"]
+[ext_resource type="Texture2D" path="res://assets/environment/sluice_matriarch_arena/env_sluice_matriarch_arena_backdrop_1280x720.png" id="2_background"]
+[ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="3_player"]
+[ext_resource type="Script" path="res://src/feature/route_transition_shell.gd" id="4_route"]
+[ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="5_route_visual"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(1280, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(40, 720)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_route"]
+radius = 112.0
+
+[node name="SluiceMatriarchArenaScene" type="Node2D"]
+script = ExtResource("1_scene")
+metadata/scene_id = "boss_03_sluice_matriarch_arena"
+
+[node name="Background" type="Sprite2D" parent="."]
+z_index = -100
+position = Vector2(640, 360)
+texture_filter = 1
+texture = ExtResource("2_background")
+
+[node name="Ground" type="StaticBody2D" parent="."]
+position = Vector2(640, 588)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_ground")
+
+[node name="LeftWall" type="StaticBody2D" parent="."]
+position = Vector2(20, 360)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="RightWall" type="StaticBody2D" parent="."]
+position = Vector2(1260, 360)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="BossEntrySpawn" type="Marker2D" parent="."]
+position = Vector2(260, 540)
+
+[node name="Player" parent="." instance=ExtResource("3_player")]
+z_index = 20
+position = Vector2(260, 540)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+limit_left = 0
+limit_top = 0
+limit_right = 1280
+limit_bottom = 720
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+
+[node name="FactoryReturnRoute" type="Node2D" parent="."]
+z_index = 24
+position = Vector2(128, 516)
+script = ExtResource("4_route")
+route_id = &"sluice_matriarch_factory_return"
+target_scene_id = &"area_03_factory"
+spawn_point = &"tailrace_matriarch_gate_return"
+interaction_radius_px = 112.0
+locked_prompt_text = "Return unavailable"
+available_prompt_text = "Return to Tailrace Spillway"
+
+[node name="Visual" type="Sprite2D" parent="FactoryReturnRoute"]
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("5_route_visual")
+
+[node name="InteractionArea" type="Area2D" parent="FactoryReturnRoute"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FactoryReturnRoute/InteractionArea"]
+shape = SubResource("CircleShape2D_route")
+
+[node name="PromptLabel" type="Label" parent="FactoryReturnRoute"]
+offset_left = -112.0
+offset_top = -118.0
+offset_right = 112.0
+offset_bottom = -88.0
+theme_override_colors/font_color = Color(0.44, 0.9, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "Return to Tailrace Spillway"
+horizontal_alignment = 1
+
+[node name="ArenaObjectiveLabel" type="Label" parent="."]
+z_index = 50
+offset_left = 440.0
+offset_top = 30.0
+offset_right = 840.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.84)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 24
+text = "Sluice Matriarch Lair"
+horizontal_alignment = 1

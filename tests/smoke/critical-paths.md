@@ -45,13 +45,18 @@
     crossed, telegraphs for 18 frames, lunges through the shared hitbox path,
     and persists its cleared state
     (`tests/smoke/old_factory_tailrace_exit_spillway_sluice_leech_skirmish_smoke.gd`)
+15. Old Factory Sluice Leech clear unlocks the Matriarch route, SceneManager
+    enters the authored Boss3 arena at `boss_entry`, and the return route
+    restores Factory at `tailrace_matriarch_gate_return` without losing the
+    leech clear or carrying a stale transition latch
+    (`tests/smoke/old_factory_tailrace_sluice_matriarch_arena_handoff_smoke.gd`)
 
 ## Data Integrity
 
-15. Save game completes without error (once save system is implemented)
-16. Load game restores correct state (once load system is implemented)
+16. Save game completes without error (once save system is implemented)
+17. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-17. No visible frame rate drops on target hardware (60fps target)
-18. No memory growth over 5 minutes of play (once core loop is implemented)
+18. No visible frame rate drops on target hardware (60fps target)
+19. No memory growth over 5 minutes of play (once core loop is implemented)

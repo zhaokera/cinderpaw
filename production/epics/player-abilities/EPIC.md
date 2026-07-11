@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 126 stories tracked
+> **Stories**: 127 stories tracked
 
 ## Overview
 
@@ -164,6 +164,7 @@ recording the reward in progression state.
 | 124 | Old Factory Lower Deck Forward Pressure Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Tailrace Relay Runoff Pincer Exit Spillway Traverse | Integration + Gameplay Runtime + Visual/Feel | Complete | ADR-0004/0007/0018/0021 |
 | 125 | Old Factory Tailrace Exit Spillway Visual Pass | Integration + Visual | Complete | ADR-0004/0005/0007/0018/0021 |
 | 126 | Old Factory Tailrace Exit Spillway Sluice Leech Skirmish | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0004/0005/0006/0007 |
+| 127 | Old Factory Tailrace Sluice Matriarch Arena Handoff | Integration + Gameplay Runtime + Scene Management + Visual | Complete | ADR-0002/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -183,7 +184,8 @@ This epic is complete when:
 
 ## Next Step
 
-Story126 is complete with the first generated Factory Sluice Leech enemy and a
-short post-spillway ACT skirmish. Continue into a deliberate route or chapter
-handoff, broader MainScene art cleanup, minimap gameplay, skill-tree branches,
-authored audio, or final Boss2 balancing/cutscene polish.
+Story127 is complete with an asynchronous Factory-to-Boss3 arena handoff, an
+authored image-generated arena backdrop, and a verified return route. Continue
+with Story128: implement the playable Sluice Matriarch Boss3 slice first,
+including generated frame animation, room seals, combat/HUD state, and defeat
+handoff, before adding the post-Boss3 aerial-attack reward.

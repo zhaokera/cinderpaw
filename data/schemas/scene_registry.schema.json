@@ -30,6 +30,17 @@
 				"default_spawn": {"type": "String"},
 				"display_name": {"type": "String"}
 			}
+		},
+		"boss_03_sluice_matriarch_arena": {
+			"required": ["scene_id", "path", "type", "preload", "default_spawn", "display_name"],
+			"fields": {
+				"scene_id": {"type": "String", "enum": ["boss_03_sluice_matriarch_arena"]},
+				"path": {"type": "String"},
+				"type": {"type": "String", "enum": ["boss_arena"]},
+				"preload": {"type": "bool"},
+				"default_spawn": {"type": "String"},
+				"display_name": {"type": "String"}
+			}
 		}
 	}
 }
