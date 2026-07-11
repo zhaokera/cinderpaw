@@ -168,6 +168,7 @@ recording the reward in progression state.
 | 128 | Sluice Matriarch Playable Boss3 Core | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
 | 129 | Sluice Matriarch Aerial Attack Reward Payoff | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0007/0018/0021 |
 | 130 | Factory Aerial Breach Underground Passage Handoff | Integration + Ability Gate + Scene Handoff + Visual | Complete | ADR-0002/0004/0007/0018/0021 |
+| 131 | Underground Corrosion Channel Skirmish | Integration + Gameplay Runtime + Environmental Hazard + Visual | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -187,8 +188,7 @@ This epic is complete when:
 
 ## Next Step
 
-Story130 is complete: the Factory tailrace now spends `aerial_attack` on a
-generated cracked-floor ExplorationGate and performs a persistent bidirectional
-SceneManager handoff into the authored Underground Passage. Story131 should add
-the first compact playable Underground traversal or combat beat while retaining
-this entry scene, return route, and ability-state contract.
+Story131 is complete: the Underground Passage now contains a generated corrosion
+channel traversal, contact hazard, sealed two-enemy skirmish, persistent opening,
+and one-shot salvage payoff. Story132 should continue deeper from the secured
+channel with a bounded route/savepoint or a distinct second encounter.

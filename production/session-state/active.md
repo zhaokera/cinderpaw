@@ -4941,3 +4941,15 @@
 - Debugging: The smoke exposed missing ability propagation into the destination and stale active VFX on cached Factory return. Target-state merging and restore-time feedback completion fixed both without widening the gate state machine.
 - Blockers: None for Story130. The broader game goal remains active.
 - Next: implement Story131 as the first compact playable Underground traversal or combat beat, keeping the Story130 entry/return contract and bounded validation.
+
+## Session Extract -- /dev-story 2026-07-11
+
+- Delivery checkpoint: Story130 was committed as `c15be403` (`Add Factory Underground aerial breach`) and pushed to `origin/master` before Story131 began.
+- Story: `production/epics/player-abilities/story-131-underground-corrosion-channel-skirmish.md` -- Underground Corrosion Channel Skirmish.
+- Implementation: Expanded Underground Passage to `2560x720` with a second generated background, three stepping platforms, an `8`-damage/`1.0s` cooldown corrosive runoff hazard, rear/front generated combat seals, two existing six-animation Factory Sluice Leeches (entities `2401/2402`), shared Weapon/Combat/Collision hit routing, dual-defeat clear, a persistent one-shot `+20 Gears` salvage cache, proximity-only prompt, sewer audio requests, and preserved Factory return state.
+- Asset pipeline: Built-in image generation produced the opaque corrosion channel plus magenta-keyed runoff, seal, and cache. Local chroma-key processing retained RGB/alpha sources, normalized exact `1280x720`, `512x160`, `256x384`, and `256x256` runtime assets, and imported all files through Godot 4.7. Four generation records, a shared asset spec, manifest rows, and inventory rows record the pipeline.
+- Verification: RED `reports/report_1426/`; final focused GREEN `reports/report_1432/` passed `3/3`; bounded related GREEN `reports/report_1429/` passed `7/7`; real SceneManager smoke exited `0` with marker `underground_corrosion_channel_skirmish_smoke=passed`. Godot AI MCP `2.9.1` / Godot `4.7-stable` final run token `27` verified the 56-node authored and 90-node runtime hierarchies, real movement to x `1510.93`, rear seal safely behind at x `1370`, two live AnimatedSprite2D enemies, hidden distant cache prompt, non-empty `1278x718` screenshot, `current_run_errors=[]`, helper-only game log, and no editor rows after cursor `3`.
+- Debugging: MCP play found that the initial rear seal at x `1488` would close in front of the x `1450` trigger; it moved to x `1370` and gained a geometry assertion. A clipped distant cache prompt was also hidden until clear plus proximity.
+- Notes: Design/art/QA sidecars failed before task execution because the backend forced unsupported `reasoning.effort=max` even when `high` was requested; integration and all three reviews continued locally.
+- Blockers: None for Story131. The broader game goal remains active.
+- Next: implement Story132 as a deeper Underground route/savepoint or a distinct second encounter from the secured corrosion channel.

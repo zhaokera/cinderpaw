@@ -1,41 +1,123 @@
-## First bounded Underground destination reached through the Factory aerial breach.
+## Underground entry, corrosion-channel combat slice, and Factory return route.
 extends Node2D
 
 const SCENE_ID: StringName = &"area_04_underground_passage"
 const ENTRY_SPAWN_POINT: StringName = &"factory_drop_entry"
 const FACTORY_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_RETURN_SPAWN_POINT: StringName = &"tailrace_underground_return"
+const ROUTE_WIDTH_PX: int = 2560
+const ENCOUNTER_ACTIVATION_X: float = 1450.0
+const CORROSION_LEFT_ENTITY_ID: int = 2401
+const CORROSION_RIGHT_ENTITY_ID: int = 2402
+const CORROSION_ENCOUNTER_ID: StringName = &"underground_corrosion_channel"
+const CORROSION_LEFT_SUMMON_ID: StringName = &"underground_corrosion_left"
+const CORROSION_RIGHT_SUMMON_ID: StringName = &"underground_corrosion_right"
+const CORROSION_HAZARD_ID: StringName = &"underground_corrosive_runoff"
+const CORROSION_CACHE_ID: StringName = &"underground_corrosion_salvage"
+const UNDERGROUND_PLAYER_LIGHT_DAMAGE: int = 12
+const UNDERGROUND_MUSIC_ID: StringName = &"mus_sewer"
+const UNDERGROUND_AMBIENT_ID: StringName = &"amb_sewer"
+const UNDERGROUND_AUDIO_FADE_SEC: float = 0.45
 const BACKGROUND_TEXTURE_PATH: String = (
 	"res://assets/environment/underground_passage/"
 	+ "env_underground_passage_entry_1280x720.png"
 )
+const CORROSION_BACKGROUND_TEXTURE_PATH: String = (
+	"res://assets/environment/underground_passage/"
+	+ "env_underground_corrosion_channel_1280x720.png"
+)
+const CORROSIVE_RUNOFF_TEXTURE_PATH: String = (
+	"res://assets/environment/underground_passage/"
+	+ "prop_underground_corrosive_runoff_512x160.png"
+)
+const CORROSION_SEAL_TEXTURE_PATH: String = (
+	"res://assets/environment/underground_passage/"
+	+ "prop_underground_seal_gate_256x384.png"
+)
+const CORROSION_CACHE_TEXTURE_PATH: String = (
+	"res://assets/environment/underground_passage/"
+	+ "prop_underground_salvage_cache_256x256.png"
+)
+const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
 @onready var _background: Sprite2D = get_node_or_null("Background") as Sprite2D
+@onready var _corrosion_background: Sprite2D = (
+	get_node_or_null("CorrosionChannelBackground") as Sprite2D
+)
 @onready var _entry_spawn: Marker2D = (
 	get_node_or_null("UndergroundEntrySpawn") as Marker2D
 )
 @onready var _player: Node2D = get_node_or_null("Player") as Node2D
+@onready var _camera: Camera2D = get_node_or_null("Player/Camera2D") as Camera2D
 @onready var _return_route: Node = get_node_or_null("FactoryReturnRoute")
+@onready var _corrosive_runoff: Area2D = (
+	get_node_or_null("CorrosiveRunoffHazard") as Area2D
+)
+@onready var _encounter_back_seal: StaticBody2D = (
+	get_node_or_null("EncounterBackSeal") as StaticBody2D
+)
+@onready var _encounter_forward_seal: StaticBody2D = (
+	get_node_or_null("EncounterForwardSeal") as StaticBody2D
+)
+@onready var _corrosion_leech_left: Node2D = (
+	get_node_or_null("CorrosionLeechLeft") as Node2D
+)
+@onready var _corrosion_leech_right: Node2D = (
+	get_node_or_null("CorrosionLeechRight") as Node2D
+)
+@onready var _corrosion_salvage_cache: Node = (
+	get_node_or_null("CorrosionSalvageCache")
+)
+@onready var _corrosion_salvage_prompt: Label = (
+	get_node_or_null("CorrosionSalvageCache/PromptLabel") as Label
+)
 @onready var _objective_label: Label = (
 	get_node_or_null("UndergroundObjectiveLabel") as Label
 )
 
 var _scene_manager: Object = null
+var _weapon_component: WeaponComponent = null
 var _return_transition_requested: bool = false
 var _last_return_rejected_reason: StringName = &""
 var _last_return_request: Dictionary = {}
+var _corrosion_channel_activated: bool = false
+var _corrosion_left_defeated: bool = false
+var _corrosion_right_defeated: bool = false
+var _corrosion_channel_cleared: bool = false
+var _corrosion_salvage_claimed: bool = false
+var _corrosion_elapsed_sec: float = 0.0
+var _corrosion_contact_cooldowns: Dictionary = {}
+var _hazard_accepted_contacts: int = 0
+var _last_hazard_damage: Dictionary = {}
+var _last_player_hit_metadata: Dictionary = {}
+var _last_reward: Dictionary = {}
+var _reward_audio_request_count: int = 0
+var _last_reward_audio_event: Dictionary = {}
 
 
 func _ready() -> void:
 	_align_player_to_entry_spawn()
+	_setup_weapon_component()
+	_bind_player_combat_to_room()
+	_setup_corrosive_runoff()
+	_setup_corrosion_enemies()
+	_setup_corrosion_salvage_cache()
+	_sync_corrosion_slice_state()
 	_sync_return_route()
+	_request_underground_audio()
+	_sync_objective_position()
 	var root_scene_manager: Node = get_node_or_null("/root/SceneManager")
 	if _is_valid_scene_manager(root_scene_manager):
 		configure_scene_manager_runtime(root_scene_manager)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	advance_corrosive_runoff_time(delta)
+	_auto_activate_corrosion_channel_encounter()
+	_process_corrosion_salvage_contact()
 	_process_factory_return_contact()
+	_sync_corrosion_cache_prompt_visibility()
+	_sync_objective_position()
 
 
 ## Injects SceneManager and reapplies the requested Underground spawn.
@@ -45,6 +127,134 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 		return false
 	_apply_current_scene_manager_spawn_point()
 	return true
+
+
+## Starts the corrosion-channel encounter once the provider crosses its threshold.
+func try_activate_corrosion_channel_encounter(provider: Node = null) -> bool:
+	if (
+		_corrosion_channel_activated
+		or _corrosion_channel_cleared
+		or not _is_provider_past_encounter_threshold(provider)
+	):
+		return false
+	_corrosion_channel_activated = true
+	_sync_corrosion_slice_state()
+	return true
+
+
+## Routes player hit-confirm damage to the matching Underground enemy entity.
+func apply_damage(
+	target_id: int,
+	final_damage: int,
+	metadata: Dictionary = {}
+) -> bool:
+	var damage_target: Node = _get_corrosion_enemy_by_entity_id(target_id)
+	if (
+		damage_target == null
+		or final_damage <= 0
+		or not damage_target.has_method("apply_damage")
+	):
+		return false
+	damage_target.call("apply_damage", final_damage, metadata)
+	_sync_corrosion_damage_target_defeat(target_id, damage_target)
+	return true
+
+
+## Supplies deterministic room damage through the shared CombatComponent adapter.
+func calculate_damage(
+	_attack_type: StringName,
+	_weapon_id: StringName,
+	_hit_frame: int,
+	combo_index: int,
+	_parry_timing: int,
+	_attack_power: int,
+	_enemy_defense: int,
+	_skill_modifiers: Dictionary = {},
+	_injected_damage_params: Dictionary = {},
+	_data_manager: Object = null
+) -> Dictionary:
+	return {
+		"final_damage": UNDERGROUND_PLAYER_LIGHT_DAMAGE,
+		"base_damage": UNDERGROUND_PLAYER_LIGHT_DAMAGE,
+		"attack_damage": float(UNDERGROUND_PLAYER_LIGHT_DAMAGE),
+		"reduction_factor": 1.0,
+		"damage_multiplier": 1.0,
+		"is_crit": false,
+		"crit_type": &"none",
+		"parry_type": &"none",
+		"combo_stage": combo_index,
+		"damage_category": &"scratch",
+	}
+
+
+## Returns the most recent player hit-confirm payload observed by this room.
+func get_last_player_hit_metadata() -> Dictionary:
+	return _last_player_hit_metadata.duplicate(true)
+
+
+## Applies corrosive runoff damage with a deterministic per-target cooldown.
+func apply_corrosive_runoff_contact(hazard: Area2D, target: Node) -> bool:
+	if (
+		hazard == null
+		or target == null
+		or target != _player
+		or hazard != _corrosive_runoff
+		or not _is_corrosive_runoff_active(hazard)
+	):
+		return false
+	var hazard_id: StringName = _get_hazard_id(hazard)
+	if hazard_id != CORROSION_HAZARD_ID:
+		return false
+	var cooldown_key: String = "%s:%d" % [
+		String(hazard_id),
+		PlayerController.PLAYER_ENTITY_ID,
+	]
+	var next_allowed_sec: float = float(
+		_corrosion_contact_cooldowns.get(cooldown_key, -1.0)
+	)
+	if next_allowed_sec > _corrosion_elapsed_sec:
+		return false
+	var damage: int = _get_hazard_damage(hazard)
+	var hp_before: int = _get_target_current_hp(target)
+	var damage_data: Dictionary = {
+		"damage": damage,
+		"final_damage": damage,
+		"hit_position": hazard.global_position,
+		"is_crit": false,
+		"source": hazard_id,
+		"damage_type": &"corrosion",
+		"scene_id": SCENE_ID,
+		"target_id": PlayerController.PLAYER_ENTITY_ID,
+	}
+	if target.has_method("apply_damage"):
+		target.call("apply_damage", damage, damage_data)
+	var hp_after: int = _get_target_current_hp(target)
+	if hp_after >= hp_before:
+		return false
+	_corrosion_contact_cooldowns[cooldown_key] = (
+		_corrosion_elapsed_sec + _get_hazard_contact_cooldown_sec(hazard)
+	)
+	_hazard_accepted_contacts += 1
+	_last_hazard_damage = damage_data.duplicate(true)
+	return true
+
+
+## Advances only the scene-local hazard clock used by deterministic cooldowns.
+func advance_corrosive_runoff_time(delta_sec: float) -> void:
+	_corrosion_elapsed_sec += maxf(delta_sec, 0.0)
+
+
+## Attempts the one-time post-combat salvage claim for a nearby provider.
+func try_claim_corrosion_salvage(provider: Node = null) -> bool:
+	if (
+		_corrosion_salvage_cache == null
+		or not _corrosion_salvage_cache.has_method("try_claim")
+	):
+		return false
+	var claim_provider: Node = _player if provider == null else provider
+	if claim_provider == null:
+		return false
+	return bool(_corrosion_salvage_cache.call("try_claim", claim_provider))
 
 
 ## Requests the repeatable Factory return once per Underground visit.
@@ -98,27 +308,67 @@ func try_request_factory_return(provider: Node = null) -> bool:
 	return true
 
 
-## Captures durable discovery and ability state; transition latches stay transient.
+## Captures durable discovery, encounter, reward, and ability state.
 func get_local_state() -> Dictionary:
 	return {
 		"underground_passage_discovered": true,
+		"underground_corrosion_channel_activated": _corrosion_channel_activated,
+		"underground_corrosion_left_defeated": _corrosion_left_defeated,
+		"underground_corrosion_right_defeated": _corrosion_right_defeated,
+		"underground_corrosion_channel_cleared": _is_corrosion_channel_cleared(),
+		"underground_corrosion_salvage_claimed": _corrosion_salvage_claimed,
 		"unlocked_abilities": _get_player_unlocked_ability_strings(),
 	}
 
 
-## Restores a reusable entry without replaying a stale return request.
+## Restores durable progress while clearing transient request and cooldown latches.
 func set_local_state(state: Dictionary) -> void:
 	_return_transition_requested = false
 	_last_return_rejected_reason = &""
 	_last_return_request.clear()
+	_corrosion_elapsed_sec = 0.0
+	_corrosion_contact_cooldowns.clear()
+	_hazard_accepted_contacts = 0
+	_last_hazard_damage.clear()
+	_last_player_hit_metadata.clear()
+	_last_reward.clear()
+	_corrosion_salvage_claimed = bool(state.get(
+		"underground_corrosion_salvage_claimed",
+		false
+	))
+	var saved_cleared: bool = bool(state.get(
+		"underground_corrosion_channel_cleared",
+		_corrosion_salvage_claimed
+	))
+	_corrosion_left_defeated = bool(state.get(
+		"underground_corrosion_left_defeated",
+		saved_cleared
+	))
+	_corrosion_right_defeated = bool(state.get(
+		"underground_corrosion_right_defeated",
+		saved_cleared
+	))
+	_corrosion_channel_cleared = (
+		saved_cleared
+		or _corrosion_salvage_claimed
+		or (_corrosion_left_defeated and _corrosion_right_defeated)
+	)
+	if _corrosion_channel_cleared:
+		_corrosion_left_defeated = true
+		_corrosion_right_defeated = true
+	_corrosion_channel_activated = bool(state.get(
+		"underground_corrosion_channel_activated",
+		_corrosion_channel_cleared
+			or _corrosion_left_defeated
+			or _corrosion_right_defeated
+	))
 	_restore_player_unlocked_abilities(state)
+	_sync_corrosion_slice_state()
 	_sync_return_route()
 	_align_player_to_entry_spawn()
-	if _objective_label != null:
-		_objective_label.text = "Explore Underground Passage"
 
 
-## Returns scene, art, spawn, and return-route details for tests and MCP.
+## Returns scene, art, spawn, and return-route details for Story130 verification.
 func get_underground_handoff_diagnostics() -> Dictionary:
 	var background_path: String = ""
 	if _background != null and _background.texture != null:
@@ -144,7 +394,264 @@ func get_underground_handoff_diagnostics() -> Dictionary:
 		"last_return_request": _last_return_request.duplicate(true),
 		"unlocked_abilities": _get_player_unlocked_ability_strings(),
 		"objective_text": _objective_label.text if _objective_label != null else "",
+		"combat_state": String(_get_corrosion_encounter_state()),
 	}
+
+
+## Returns authored layout and live encounter state for tests and MCP probes.
+func get_underground_combat_diagnostics() -> Dictionary:
+	return {
+		"route_width_px": ROUTE_WIDTH_PX,
+		"activation_x": ENCOUNTER_ACTIVATION_X,
+		"stepping_platform_count": 3,
+		"background_texture_path": _get_sprite_texture_path(_corrosion_background),
+		"background_expected_path": CORROSION_BACKGROUND_TEXTURE_PATH,
+		"runoff_texture_path": _get_hazard_visual_texture_path(_corrosive_runoff),
+		"runoff_expected_path": CORROSIVE_RUNOFF_TEXTURE_PATH,
+		"seal_texture_path": _get_seal_texture_path(_encounter_forward_seal),
+		"seal_expected_path": CORROSION_SEAL_TEXTURE_PATH,
+		"cache_texture_path": _get_cache_visual_texture_path(),
+		"cache_expected_path": CORROSION_CACHE_TEXTURE_PATH,
+		"encounter_state": String(_get_corrosion_encounter_state()),
+		"encounter_activated": _corrosion_channel_activated,
+		"encounter_cleared": _is_corrosion_channel_cleared(),
+		"enemy_count": 2,
+		"enemy_entity_ids": [CORROSION_LEFT_ENTITY_ID, CORROSION_RIGHT_ENTITY_ID],
+		"active_enemy_count": _get_active_corrosion_enemy_count(),
+		"left_defeated": _corrosion_left_defeated,
+		"right_defeated": _corrosion_right_defeated,
+		"left_has_target": _enemy_has_attack_target(_corrosion_leech_left),
+		"right_has_target": _enemy_has_attack_target(_corrosion_leech_right),
+		"left_animation": _get_enemy_animation(_corrosion_leech_left),
+		"right_animation": _get_enemy_animation(_corrosion_leech_right),
+		"weapon_component_present": _weapon_component != null,
+		"back_seal_x": (
+			_encounter_back_seal.global_position.x
+			if _encounter_back_seal != null
+			else 0.0
+		),
+		"forward_seal_x": (
+			_encounter_forward_seal.global_position.x
+			if _encounter_forward_seal != null
+			else 0.0
+		),
+		"back_seal_blocking": _is_seal_blocking(_encounter_back_seal),
+		"forward_seal_blocking": _is_seal_blocking(_encounter_forward_seal),
+		"hazard_damage": _get_hazard_damage(_corrosive_runoff),
+		"hazard_contact_cooldown_sec": (
+			_get_hazard_contact_cooldown_sec(_corrosive_runoff)
+		),
+		"hazard_accepted_contacts": _hazard_accepted_contacts,
+		"last_hazard_damage": _last_hazard_damage.duplicate(true),
+		"cache_available": _is_corrosion_cache_available(),
+		"cache_claimed": _corrosion_salvage_claimed,
+		"cache_prompt_visible": (
+			_corrosion_salvage_prompt.visible
+			if _corrosion_salvage_prompt != null
+			else false
+		),
+		"last_reward": _last_reward.duplicate(true),
+		"reward_audio_request_count": _reward_audio_request_count,
+		"last_reward_audio_event": _last_reward_audio_event.duplicate(true),
+		"objective_text": _objective_label.text if _objective_label != null else "",
+	}
+
+
+func _setup_weapon_component() -> void:
+	_weapon_component = get_node_or_null("WeaponComponent") as WeaponComponent
+	if _weapon_component == null:
+		_weapon_component = WEAPON_COMPONENT_SCRIPT.new() as WeaponComponent
+		_weapon_component.name = "WeaponComponent"
+		add_child(_weapon_component)
+	var root_data_manager: Node = get_node_or_null("/root/DataManager")
+	if root_data_manager != null:
+		_weapon_component.set_data_manager(root_data_manager)
+
+
+func _bind_player_combat_to_room() -> void:
+	if _player == null:
+		return
+	if _player.has_method("set_target_health_adapter"):
+		_player.call("set_target_health_adapter", self)
+	if _player.has_method("set_damage_calculator_adapter"):
+		_player.call("set_damage_calculator_adapter", self)
+	if _player.has_method("set_weapon_component"):
+		_player.call("set_weapon_component", _weapon_component)
+	if _weapon_component != null:
+		if _player.has_method("get_combat_component"):
+			_weapon_component.set_combat_adapter(_player.call("get_combat_component"))
+		if _player.has_method("get_collision_component"):
+			_weapon_component.set_collision_adapter(_player.call("get_collision_component"))
+	if _player.has_signal("attack_landed"):
+		var attack_signal: Signal = _player.get("attack_landed")
+		if not attack_signal.is_connected(_on_player_attack_landed):
+			attack_signal.connect(_on_player_attack_landed)
+
+
+func _setup_corrosive_runoff() -> void:
+	if _corrosive_runoff == null:
+		return
+	if not _corrosive_runoff.area_entered.is_connected(
+		_on_corrosive_runoff_area_entered
+	):
+		_corrosive_runoff.area_entered.connect(_on_corrosive_runoff_area_entered)
+	if not _corrosive_runoff.body_entered.is_connected(
+		_on_corrosive_runoff_body_entered
+	):
+		_corrosive_runoff.body_entered.connect(_on_corrosive_runoff_body_entered)
+
+
+func _setup_corrosion_enemies() -> void:
+	_configure_corrosion_enemy(
+		_corrosion_leech_left,
+		CORROSION_LEFT_ENTITY_ID,
+		CORROSION_LEFT_SUMMON_ID,
+		_on_corrosion_left_defeated
+	)
+	_configure_corrosion_enemy(
+		_corrosion_leech_right,
+		CORROSION_RIGHT_ENTITY_ID,
+		CORROSION_RIGHT_SUMMON_ID,
+		_on_corrosion_right_defeated
+	)
+
+
+func _setup_corrosion_salvage_cache() -> void:
+	if (
+		_corrosion_salvage_cache == null
+		or not _corrosion_salvage_cache.has_signal("cache_claimed")
+	):
+		return
+	var claimed_signal: Signal = _corrosion_salvage_cache.get("cache_claimed")
+	if not claimed_signal.is_connected(_on_corrosion_salvage_claimed):
+		claimed_signal.connect(_on_corrosion_salvage_claimed)
+
+
+func _configure_corrosion_enemy(
+	enemy: Node,
+	entity_id: int,
+	summon_id: StringName,
+	defeated_callback: Callable
+) -> void:
+	if enemy == null:
+		return
+	if enemy.has_method("configure_summon"):
+		enemy.call(
+			"configure_summon",
+			CORROSION_ENCOUNTER_ID,
+			entity_id,
+			summon_id
+		)
+	if enemy.has_signal("enemy_defeated"):
+		var defeated_signal: Signal = enemy.get("enemy_defeated")
+		if not defeated_signal.is_connected(defeated_callback):
+			defeated_signal.connect(defeated_callback)
+
+
+func _sync_corrosion_slice_state() -> void:
+	_corrosion_channel_cleared = _is_corrosion_channel_cleared()
+	_set_corrosion_enemy_active(
+		_corrosion_leech_left,
+		_corrosion_channel_activated and not _corrosion_left_defeated
+	)
+	_set_corrosion_enemy_active(
+		_corrosion_leech_right,
+		_corrosion_channel_activated and not _corrosion_right_defeated
+	)
+	_set_seal_blocking(
+		_encounter_back_seal,
+		_corrosion_channel_activated and not _corrosion_channel_cleared
+	)
+	_set_seal_blocking(_encounter_forward_seal, not _corrosion_channel_cleared)
+	if _corrosion_salvage_cache != null:
+		if _corrosion_salvage_cache.has_method("set_available"):
+			_corrosion_salvage_cache.call(
+				"set_available",
+				_corrosion_channel_cleared
+			)
+		if _corrosion_salvage_cache.has_method("set_claimed"):
+			_corrosion_salvage_cache.call(
+				"set_claimed",
+				_corrosion_salvage_claimed
+			)
+	_sync_corrosion_cache_prompt_visibility()
+	_refresh_objective_text()
+
+
+func _set_corrosion_enemy_active(enemy: Node2D, active: bool) -> void:
+	if enemy == null or not is_instance_valid(enemy):
+		return
+	var was_active: bool = (
+		enemy.visible and enemy.process_mode != Node.PROCESS_MODE_DISABLED
+	)
+	if active:
+		enemy.visible = true
+		enemy.process_mode = Node.PROCESS_MODE_INHERIT
+		enemy.set_physics_process(true)
+		enemy.collision_layer = 2
+		enemy.collision_mask = 17
+		if enemy.has_method("set_attack_target"):
+			enemy.call("set_attack_target", _player)
+		if not was_active and enemy.has_method("begin_pacing"):
+			enemy.call("begin_pacing")
+		return
+	if enemy.has_method("set_attack_target"):
+		enemy.call("set_attack_target", null)
+	enemy.set_physics_process(false)
+	enemy.process_mode = Node.PROCESS_MODE_DISABLED
+	enemy.collision_layer = 0
+	enemy.collision_mask = 0
+	enemy.visible = false
+
+
+func _set_seal_blocking(seal: StaticBody2D, blocking: bool) -> void:
+	if seal == null:
+		return
+	seal.visible = blocking
+	seal.collision_layer = 16 if blocking else 0
+	seal.collision_mask = 0
+	var collision_shape: CollisionShape2D = (
+		seal.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	)
+	if collision_shape != null:
+		collision_shape.set_deferred("disabled", not blocking)
+
+
+func _auto_activate_corrosion_channel_encounter() -> void:
+	if _player == null or _corrosion_channel_activated or _corrosion_channel_cleared:
+		return
+	try_activate_corrosion_channel_encounter(_player)
+
+
+func _process_corrosion_salvage_contact() -> void:
+	if (
+		_player == null
+		or _corrosion_salvage_cache == null
+		or not _corrosion_salvage_cache.has_method("is_claim_available")
+		or not bool(_corrosion_salvage_cache.call("is_claim_available"))
+		or not _corrosion_salvage_cache.has_method("is_provider_in_reward_range")
+	):
+		return
+	if bool(_corrosion_salvage_cache.call(
+		"is_provider_in_reward_range",
+		_player
+	)):
+		try_claim_corrosion_salvage(_player)
+
+
+func _sync_corrosion_cache_prompt_visibility() -> void:
+	if _corrosion_salvage_prompt == null:
+		return
+	var provider_in_prompt_range: bool = false
+	if _player != null and _corrosion_salvage_cache is Node2D:
+		provider_in_prompt_range = _player.global_position.distance_to(
+			(_corrosion_salvage_cache as Node2D).global_position
+		) <= 192.0
+	_corrosion_salvage_prompt.visible = (
+		_is_corrosion_cache_available()
+		and not _corrosion_salvage_claimed
+		and provider_in_prompt_range
+	)
 
 
 func _process_factory_return_contact() -> void:
@@ -157,6 +664,82 @@ func _process_factory_return_contact() -> void:
 		return
 	if bool(_return_route.call("is_provider_in_transition_range", _player)):
 		try_request_factory_return(_player)
+
+
+func _on_player_attack_landed(metadata: Dictionary) -> void:
+	_last_player_hit_metadata = metadata.duplicate(true)
+
+
+func _on_corrosion_left_defeated() -> void:
+	_corrosion_channel_activated = true
+	_corrosion_left_defeated = true
+	_sync_corrosion_slice_state()
+
+
+func _on_corrosion_right_defeated() -> void:
+	_corrosion_channel_activated = true
+	_corrosion_right_defeated = true
+	_sync_corrosion_slice_state()
+
+
+func _on_corrosion_salvage_claimed(
+	cache_id: StringName,
+	reward: Dictionary
+) -> void:
+	if cache_id != CORROSION_CACHE_ID:
+		return
+	_corrosion_salvage_claimed = true
+	_last_reward = reward.duplicate(true)
+	_request_corrosion_reward_audio(reward)
+	_sync_corrosion_slice_state()
+
+
+func _on_corrosive_runoff_area_entered(area: Area2D) -> void:
+	var target: Node = _resolve_corrosion_target_from_area(area)
+	if target != null:
+		apply_corrosive_runoff_contact(_corrosive_runoff, target)
+
+
+func _on_corrosive_runoff_body_entered(body: Node2D) -> void:
+	if body == _player:
+		apply_corrosive_runoff_contact(_corrosive_runoff, _player)
+
+
+func _sync_corrosion_damage_target_defeat(
+	target_id: int,
+	damage_target: Node
+) -> void:
+	if (
+		damage_target == null
+		or not damage_target.has_method("get_current_hp")
+		or int(damage_target.call("get_current_hp")) > 0
+	):
+		return
+	if target_id == CORROSION_LEFT_ENTITY_ID and not _corrosion_left_defeated:
+		_on_corrosion_left_defeated()
+	elif target_id == CORROSION_RIGHT_ENTITY_ID and not _corrosion_right_defeated:
+		_on_corrosion_right_defeated()
+
+
+func _refresh_objective_text() -> void:
+	if _objective_label == null:
+		return
+	if _corrosion_salvage_claimed:
+		_objective_label.text = "Corrosion Channel Secured"
+	elif _is_corrosion_channel_cleared():
+		_objective_label.text = "Claim Underground Salvage"
+	elif _corrosion_channel_activated:
+		_objective_label.text = "Clear Corrosion Channel"
+	else:
+		_objective_label.text = "Cross Corrosion Runoff"
+
+
+func _sync_objective_position() -> void:
+	if _objective_label == null or _camera == null or not _camera.is_inside_tree():
+		return
+	_objective_label.position = (
+		_camera.get_screen_center_position() + Vector2(-220.0, -288.0)
+	)
 
 
 func _sync_return_route() -> void:
@@ -207,13 +790,20 @@ func _restore_player_unlocked_abilities(state: Dictionary) -> void:
 	if _player == null or not _player.has_method("set_unlocked_abilities"):
 		return
 	var fallback: Array[String] = _get_player_unlocked_ability_strings()
-	_player.call("set_unlocked_abilities", Array(state.get("unlocked_abilities", fallback)))
+	_player.call(
+		"set_unlocked_abilities",
+		Array(state.get("unlocked_abilities", fallback))
+	)
 
 
 func _persist_progress_to_scene_manager(scene_manager: Object) -> bool:
 	if not scene_manager.has_method("set_scene_state"):
 		return true
-	var persisted: bool = bool(scene_manager.call("set_scene_state", SCENE_ID, get_local_state()))
+	var persisted: bool = bool(scene_manager.call(
+		"set_scene_state",
+		SCENE_ID,
+		get_local_state()
+	))
 	if not scene_manager.has_method("get_scene_state"):
 		return persisted
 	var factory_state: Dictionary = Dictionary(
@@ -229,6 +819,233 @@ func _persist_progress_to_scene_manager(scene_manager: Object) -> bool:
 		FACTORY_SCENE_ID,
 		factory_state
 	)) and persisted
+
+
+func _request_underground_audio() -> void:
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system == null:
+		return
+	if audio_system.has_method("play_music"):
+		audio_system.call(
+			"play_music",
+			UNDERGROUND_MUSIC_ID,
+			UNDERGROUND_AUDIO_FADE_SEC
+		)
+	if audio_system.has_method("play_ambient"):
+		audio_system.call(
+			"play_ambient",
+			UNDERGROUND_AMBIENT_ID,
+			UNDERGROUND_AUDIO_FADE_SEC
+		)
+
+
+func _request_corrosion_reward_audio(reward: Dictionary) -> void:
+	var world_position: Vector2 = Vector2.ZERO
+	if _corrosion_salvage_cache is Node2D:
+		world_position = (_corrosion_salvage_cache as Node2D).global_position
+	var metadata: Dictionary = {
+		"cache_id": CORROSION_CACHE_ID,
+		"display_name": "Underground Corrosion Salvage",
+		"feedback_role": &"reward_cache_claim",
+		"gears": int(reward.get("gears", 0)),
+		"reward_gears": int(reward.get("gears", 0)),
+		"route_label": "Corrosion Channel Secured +20 Gears",
+		"scene_id": SCENE_ID,
+		"source": CORROSION_CACHE_ID,
+		"world_position": world_position,
+	}
+	_reward_audio_request_count += 1
+	_last_reward_audio_event = {
+		"event_id": &"reward_cache_claimed",
+		"sfx_id": &"sfx_door_unlock",
+		"position": world_position,
+		"priority": 90,
+		"metadata": metadata.duplicate(true),
+	}
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system == null or not audio_system.has_method("on_reward_cache_claimed"):
+		return
+	audio_system.call(
+		"on_reward_cache_claimed",
+		CORROSION_CACHE_ID,
+		reward,
+		world_position,
+		metadata
+	)
+	if audio_system.has_method("get_last_gameplay_audio_event"):
+		var runtime_event: Variant = audio_system.call("get_last_gameplay_audio_event")
+		if runtime_event is Dictionary:
+			_last_reward_audio_event = (runtime_event as Dictionary).duplicate(true)
+
+
+func _get_corrosion_enemy_by_entity_id(entity_id: int) -> Node:
+	if entity_id == CORROSION_LEFT_ENTITY_ID and not _corrosion_left_defeated:
+		return _get_valid_node(_corrosion_leech_left)
+	if entity_id == CORROSION_RIGHT_ENTITY_ID and not _corrosion_right_defeated:
+		return _get_valid_node(_corrosion_leech_right)
+	return null
+
+
+func _get_valid_node(node: Node) -> Node:
+	return node if node != null and is_instance_valid(node) else null
+
+
+func _is_provider_past_encounter_threshold(provider: Node) -> bool:
+	return (
+		provider != null
+		and provider is Node2D
+		and (provider as Node2D).global_position.x >= ENCOUNTER_ACTIVATION_X
+	)
+
+
+func _is_corrosion_channel_cleared() -> bool:
+	return (
+		_corrosion_channel_cleared
+		or (_corrosion_left_defeated and _corrosion_right_defeated)
+	)
+
+
+func _get_corrosion_encounter_state() -> StringName:
+	if _corrosion_salvage_claimed:
+		return &"claimed"
+	if _is_corrosion_channel_cleared():
+		return &"cleared"
+	if _corrosion_channel_activated:
+		return &"active"
+	return &"ready"
+
+
+func _get_active_corrosion_enemy_count() -> int:
+	var count: int = 0
+	if _is_enemy_active(_corrosion_leech_left, _corrosion_left_defeated):
+		count += 1
+	if _is_enemy_active(_corrosion_leech_right, _corrosion_right_defeated):
+		count += 1
+	return count
+
+
+func _is_enemy_active(enemy: Node2D, defeated: bool) -> bool:
+	return (
+		not defeated
+		and enemy != null
+		and is_instance_valid(enemy)
+		and enemy.visible
+		and enemy.process_mode != Node.PROCESS_MODE_DISABLED
+	)
+
+
+func _enemy_has_attack_target(enemy: Node) -> bool:
+	return (
+		enemy != null
+		and is_instance_valid(enemy)
+		and enemy.has_method("has_attack_target")
+		and bool(enemy.call("has_attack_target"))
+	)
+
+
+func _get_enemy_animation(enemy: Node) -> String:
+	if enemy == null or not is_instance_valid(enemy):
+		return ""
+	var sprite: AnimatedSprite2D = enemy.get_node_or_null("Sprite") as AnimatedSprite2D
+	return String(sprite.animation) if sprite != null else ""
+
+
+func _is_seal_blocking(seal: StaticBody2D) -> bool:
+	if seal == null or not seal.visible or seal.collision_layer == 0:
+		return false
+	var collision_shape: CollisionShape2D = (
+		seal.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	)
+	return collision_shape != null and not collision_shape.disabled
+
+
+func _is_corrosive_runoff_active(hazard: Area2D) -> bool:
+	return (
+		hazard != null
+		and hazard.visible
+		and hazard.monitoring
+		and hazard.collision_layer != 0
+		and hazard.collision_mask != 0
+	)
+
+
+func _resolve_corrosion_target_from_area(area: Area2D) -> Node:
+	if area == null:
+		return null
+	var parent: Node = area.get_parent()
+	if parent == _player:
+		return _player
+	if (
+		parent != null
+		and parent.has_method("get_entity_id")
+		and int(parent.call("get_entity_id")) == PlayerController.PLAYER_ENTITY_ID
+	):
+		return _player
+	return null
+
+
+func _get_target_current_hp(target: Node) -> int:
+	return (
+		int(target.call("get_current_hp"))
+		if target != null and target.has_method("get_current_hp")
+		else 0
+	)
+
+
+func _get_hazard_id(hazard: Area2D) -> StringName:
+	if hazard != null and hazard.has_method("get_hazard_id"):
+		return StringName(String(hazard.call("get_hazard_id")))
+	return &""
+
+
+func _get_hazard_damage(hazard: Area2D) -> int:
+	if hazard != null and hazard.has_method("get_damage"):
+		return int(hazard.call("get_damage"))
+	return 0
+
+
+func _get_hazard_contact_cooldown_sec(hazard: Area2D) -> float:
+	if hazard != null and hazard.has_method("get_contact_cooldown_sec"):
+		return float(hazard.call("get_contact_cooldown_sec"))
+	return 0.0
+
+
+func _get_hazard_visual_texture_path(hazard: Area2D) -> String:
+	if hazard != null and hazard.has_method("get_visual_texture_path"):
+		return String(hazard.call("get_visual_texture_path"))
+	return ""
+
+
+func _get_sprite_texture_path(sprite: Sprite2D) -> String:
+	return (
+		sprite.texture.resource_path
+		if sprite != null and sprite.texture != null
+		else ""
+	)
+
+
+func _get_seal_texture_path(seal: StaticBody2D) -> String:
+	if seal == null:
+		return ""
+	var visual: Sprite2D = seal.get_node_or_null("Visual") as Sprite2D
+	return _get_sprite_texture_path(visual)
+
+
+func _get_cache_visual_texture_path() -> String:
+	if _corrosion_salvage_cache == null:
+		return ""
+	var visual: Sprite2D = (
+		_corrosion_salvage_cache.get_node_or_null("Visual") as Sprite2D
+	)
+	return _get_sprite_texture_path(visual)
+
+
+func _is_corrosion_cache_available() -> bool:
+	return (
+		_corrosion_salvage_cache != null
+		and _corrosion_salvage_cache.has_method("is_claim_available")
+		and bool(_corrosion_salvage_cache.call("is_claim_available"))
+	)
 
 
 func _resolve_scene_manager_for_runtime() -> Object:

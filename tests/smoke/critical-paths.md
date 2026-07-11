@@ -62,13 +62,18 @@
     persists open, swaps into the authored Underground Passage, and returns to
     the exact Factory breach marker with `aerial_attack` intact
     (`tests/smoke/factory_aerial_breach_underground_passage_handoff_smoke.gd`)
+19. The Underground corrosion channel crosses a generated runoff hazard, closes
+    both generated seals around two frame-animated Sluice Leeches, accepts a
+    real Core attack, opens on dual defeat, claims one salvage reward, and
+    restores the claimed state after Factory return and Underground re-entry
+    (`tests/smoke/underground_corrosion_channel_skirmish_smoke.gd`)
 
 ## Data Integrity
 
-19. Save game completes without error (once save system is implemented)
-20. Load game restores correct state (once load system is implemented)
+20. Save game completes without error (once save system is implemented)
+21. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-21. No visible frame rate drops on target hardware (60fps target)
-22. No memory growth over 5 minutes of play (once core loop is implemented)
+22. No visible frame rate drops on target hardware (60fps target)
+23. No memory growth over 5 minutes of play (once core loop is implemented)
