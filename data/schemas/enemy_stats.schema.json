@@ -16,6 +16,14 @@
 				"attack_patterns": {"type": "Array"}
 			}
 		},
+		"central_tower_threshold_guard": {
+			"required": ["max_hp", "patrol_speed", "attack_patterns"],
+			"fields": {
+				"max_hp": {"type": "int", "min": 1, "max": 999},
+				"patrol_speed": {"type": "float", "min": 0.0, "max": 500.0},
+				"attack_patterns": {"type": "Array"}
+			}
+		},
 		"boss_01_rat_king": {
 			"required": ["max_hp", "patrol_speed", "attack_patterns"],
 			"fields": {

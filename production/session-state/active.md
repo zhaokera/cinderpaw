@@ -134,24 +134,48 @@
 	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Reward
 	  Cache、Player Abilities Story116 Old Factory Lower Deck Forward Pressure
 	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Exit Hatch
-	  Handoff
-	  已完成；
-  下一步推进更深 Old Factory route/combat content、minimap gameplay、其他
-  ExplorationGate 能力门、more skill-tree branches、final
-  Boss2 balancing/cutscene polish、authored/final audio replacement、
-  DEATH/CUTSCENE audio states，以及玩家可见角色/敌人帧动画持续审计。
+	  Handoff、Player Abilities Story117-139 的 Factory tailrace、Boss3、
+	  Underground、Factory Upper Altar 与 Neon Rooftops 连续切片、Player
+	  Abilities Story140 Central Tower Threshold Guard Handoff 已完成；
+	  下一步先编写中央塔下一段 bounded interior contract，再推进 Story141。
+	  Boss4 的身份、竞技场、数据、奖励和遭遇合同未批准前不得自行补写；
+	  minimap、其他 ExplorationGate、skill-tree branches、Boss polish、final
+	  audio replacement 与玩家可见帧动画审计继续保留在后续队列。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Technical Maintenance
 - Godot AI MCP current baseline — the project-local plugin reports version
   `2.9.1`, Godot 4.7 editor settings use managed server version `2.9.1`,
-  and live MCP session `cinderpaw@1014` reports plugin/server `2.9.1` with
+	  and live MCP session `cinderpaw@e40d` reports plugin/server `2.9.1` with
   readiness `ready`. Current runtime validation should use Godot `4.7-stable`
   and Godot AI MCP `2.9.1`; older 2.8.x entries below are historical evidence
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 140: Central Tower Threshold Guard Handoff -- secured
+  Story139 state now exposes one explicit Rooftops route to
+  `area_05_central_tower / neon_rooftops_threshold_arrival`, while
+  `central_tower_threshold_return` restores the open rooftop gate without
+  replay. The generated `1280x720` Tower vestibule contains a real Threshold
+  Roost, dual generated security seals, and entity `2701`, a unique heavy guard
+  with six three-frame `96x96` animations, `48` HP, a `24/6/24` latch thrust,
+  and `14` shared-pipeline damage. Death revives at 50% HP and resets an
+  uncleared attempt at the valid arrival standing position with immediate control
+  plus 120 i-frame protection; defeat, including during the death window, opens
+  both seals and persists durable clear.
+  Verification: RED `report_1493`; import-gated attempt `report_1494`; focused
+  GREEN `report_1495` (`3/3`); Story139 regression `report_1496` (`3/3`);
+  post-review focused GREEN `report_1497` (`3/3`);
+  final consolidated `report_1500` (`6/6`); real bidirectional SceneManager
+  and review-closure focused `report_1501` (`3/3`); real bidirectional
+  SceneManager smoke marker `central_tower_threshold_guard_handoff_smoke=passed`
+  also proved cache-window reuse of the same cleared Tower instance;
+  Godot MCP 2.9.1 run `62` on Godot 4.7 inspected `44` authored and `78`
+  runtime nodes, drove real movement into the encounter, captured a non-empty
+  `1278x718` frame with Cinderpaw, guard and both closed seals, and found no
+  current-run game error or editor row after cursor `3`.
+
 - Player Abilities Story 116: Old Factory Lower Deck Forward Pressure
   Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Exit Hatch
   Handoff -- after Story115 claims the service sluice reward cache, a reused

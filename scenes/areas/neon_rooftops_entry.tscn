@@ -568,6 +568,41 @@ theme_override_font_sizes/font_size = 19
 text = "Secure Central Tower Gate"
 horizontal_alignment = 1
 
+[node name="CentralTowerRoute" type="Node2D" parent="."]
+z_index = 19
+position = Vector2(4990, 520)
+script = ExtResource("4_route")
+route_id = &"neon_rooftops_central_tower_threshold"
+target_scene_id = &"area_05_central_tower"
+spawn_point = &"neon_rooftops_threshold_arrival"
+interaction_radius_px = 112.0
+locked_prompt_text = "Secure Central Tower Gate"
+available_prompt_text = "Enter Central Tower"
+
+[node name="InteractionArea" type="Area2D" parent="CentralTowerRoute"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CentralTowerRoute/InteractionArea"]
+shape = SubResource("CircleShape2D_tower_threshold")
+
+[node name="PromptLabel" type="Label" parent="CentralTowerRoute"]
+visible = false
+offset_left = -214.0
+offset_top = -254.0
+offset_right = 146.0
+offset_bottom = -218.0
+theme_override_colors/font_color = Color(0.48, 0.96, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 19
+text = "Enter Central Tower"
+horizontal_alignment = 1
+
+[node name="CentralTowerThresholdReturn" type="Marker2D" parent="."]
+position = Vector2(4900, 520)
+
 [node name="Player" parent="." instance=ExtResource("3_player")]
 z_index = 20
 position = Vector2(180, 520)

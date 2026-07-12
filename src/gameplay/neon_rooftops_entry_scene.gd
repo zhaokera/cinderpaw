@@ -6,6 +6,9 @@ const SCENE_ID: StringName = &"area_05_neon_rooftops"
 const ARRIVAL_SPAWN_POINT: StringName = &"factory_rooftop_arrival"
 const FACTORY_SCENE_ID: StringName = &"area_03_factory_upper_altar"
 const FACTORY_RETURN_SPAWN: StringName = &"neon_rooftops_return"
+const CENTRAL_TOWER_SCENE_ID: StringName = &"area_05_central_tower"
+const CENTRAL_TOWER_ENTRY_SPAWN: StringName = &"neon_rooftops_threshold_arrival"
+const CENTRAL_TOWER_RETURN_SPAWN: StringName = &"central_tower_threshold_return"
 const WALL_CLIMB_ABILITY_ID: StringName = &"wall_climb"
 const PROOF_RADIUS_PX: float = 150.0
 const ROOFTOP_MUSIC_ID: StringName = &"mus_rooftop"
@@ -71,6 +74,15 @@ const CONTACT_GLOW_TEXTURE_PATH: String = (
 	get_node_or_null("TowerParryTrialController")
 	as NeonTowerParryTrialController
 )
+@onready var _central_tower_route: Node2D = (
+	get_node_or_null("CentralTowerRoute") as Node2D
+)
+@onready var _central_tower_prompt: Label = (
+	get_node_or_null("CentralTowerRoute/PromptLabel") as Label
+)
+@onready var _central_tower_return_spawn: Marker2D = (
+	get_node_or_null("CentralTowerThresholdReturn") as Marker2D
+)
 
 var _scene_manager: Object = null
 var _weapon_component: WeaponComponent = null
@@ -82,6 +94,9 @@ var _wall_contact_tween: Tween = null
 var _return_transition_requested: bool = false
 var _last_return_rejected_reason: StringName = &""
 var _last_return_request: Dictionary = {}
+var _central_tower_transition_requested: bool = false
+var _last_central_tower_rejected_reason: StringName = &""
+var _last_central_tower_request: Dictionary = {}
 var _audio_request_count: int = 0
 var _last_signal_roof_player_hit: Dictionary = {}
 
@@ -97,6 +112,7 @@ func _ready() -> void:
 	_setup_relay_spire()
 	_setup_tower_parry_trial()
 	_sync_return_route()
+	_sync_central_tower_route()
 	_refresh_objective_text()
 	_sync_objective_position()
 	_request_rooftop_audio()
@@ -116,17 +132,51 @@ func _process(_delta: float) -> void:
 	):
 		if _is_provider_near_return(_player):
 			try_request_factory_return(_player)
+		elif _is_provider_near_central_tower_route(_player):
+			try_request_central_tower_entry(_player)
 		else:
 			try_claim_signal_cache(_player)
 
 
 func configure_scene_manager_runtime(scene_manager: Object) -> bool:
+	_disconnect_scene_manager_failure_signal()
 	_scene_manager = scene_manager
 	if not _is_valid_scene_manager(_scene_manager):
 		return false
+	_connect_scene_manager_failure_signal()
 	_entry_arrived = true
 	_apply_current_scene_manager_spawn_point()
 	return true
+
+
+func _connect_scene_manager_failure_signal() -> void:
+	if _scene_manager == null or not _scene_manager.has_signal("on_scene_load_failed"):
+		return
+	var failed_signal: Signal = _scene_manager.get("on_scene_load_failed")
+	if not failed_signal.is_connected(_on_scene_load_failed):
+		failed_signal.connect(_on_scene_load_failed)
+
+
+func _disconnect_scene_manager_failure_signal() -> void:
+	if (
+		_scene_manager == null
+		or not is_instance_valid(_scene_manager)
+		or not _scene_manager.has_signal("on_scene_load_failed")
+	):
+		return
+	var failed_signal: Signal = _scene_manager.get("on_scene_load_failed")
+	if failed_signal.is_connected(_on_scene_load_failed):
+		failed_signal.disconnect(_on_scene_load_failed)
+
+
+func _on_scene_load_failed(scene_id: StringName, reason: StringName) -> void:
+	if scene_id != CENTRAL_TOWER_SCENE_ID or not _central_tower_transition_requested:
+		return
+	_central_tower_transition_requested = false
+	_record_central_tower_rejection(reason if reason != &"" else &"load_failed")
+	_last_central_tower_request["load_failed_reason"] = String(reason)
+	_sync_central_tower_route()
+	_refresh_objective_text()
 
 
 ## Configures Story138 autosave through a SaveSystem-like adapter.
@@ -189,6 +239,55 @@ func try_activate_central_tower_threshold(
 	if _tower_parry_trial == null:
 		return false
 	return _tower_parry_trial.try_activate_threshold(provider)
+
+
+## Enters Story140 only after Story139's outer threshold is durably secured.
+func try_request_central_tower_entry(provider: Node = null) -> bool:
+	if _central_tower_route == null or _central_tower_transition_requested:
+		_record_central_tower_rejection(&"transition_already_requested")
+		return false
+	var request_provider: Node = _player if provider == null else provider
+	if not _is_central_tower_threshold_secured():
+		_record_central_tower_rejection(&"threshold_not_secured")
+		return false
+	if (
+		not _central_tower_route.has_method("can_request_transition")
+		or not bool(_central_tower_route.call(
+			"can_request_transition",
+			request_provider
+		))
+	):
+		_record_central_tower_rejection(&"provider_out_of_range")
+		return false
+	if not _can_use_scene_manager_for_central_tower():
+		return false
+	if not _ensure_runtime_scene_root():
+		_record_central_tower_rejection(&"runtime_root_unavailable")
+		return false
+	if not _persist_progress():
+		_record_central_tower_rejection(&"state_persist_failed")
+		return false
+	if not _merge_player_abilities_into_scene_state(CENTRAL_TOWER_SCENE_ID):
+		_record_central_tower_rejection(&"target_state_persist_failed")
+		return false
+	if not _request_scene_change(
+		CENTRAL_TOWER_SCENE_ID,
+		CENTRAL_TOWER_ENTRY_SPAWN
+	):
+		_record_central_tower_rejection(&"request_rejected")
+		return false
+
+	_central_tower_transition_requested = true
+	_last_central_tower_rejected_reason = &""
+	_last_central_tower_request = {
+		"scene_id": String(CENTRAL_TOWER_SCENE_ID),
+		"spawn_point": String(CENTRAL_TOWER_ENTRY_SPAWN),
+		"pending_scene": _get_pending_scene(),
+		"pending_spawn_point": _get_pending_spawn_point(),
+	}
+	_sync_central_tower_route()
+	_refresh_objective_text()
+	return true
 
 
 ## Captures the JSON-safe rooftop snapshot used by roost autosave.
@@ -328,6 +427,7 @@ func persist_neon_relay_spire_progress() -> bool:
 
 ## Persists the latest Story139 trial and threshold progress.
 func persist_central_tower_parry_trial_progress() -> bool:
+	_sync_central_tower_route()
 	_refresh_objective_text()
 	if not _is_valid_scene_manager(_scene_manager):
 		return true
@@ -453,8 +553,12 @@ func set_local_state(state: Dictionary) -> void:
 	_return_transition_requested = false
 	_last_return_rejected_reason = &""
 	_last_return_request.clear()
+	_central_tower_transition_requested = false
+	_last_central_tower_rejected_reason = &""
+	_last_central_tower_request.clear()
 	_last_signal_roof_player_hit.clear()
 	_sync_return_route()
+	_sync_central_tower_route()
 	_refresh_objective_text()
 	_apply_current_scene_manager_spawn_point()
 
@@ -499,6 +603,15 @@ func get_neon_rooftops_entry_diagnostics() -> Dictionary:
 		"return_transition_requested": _return_transition_requested,
 		"last_return_rejected_reason": String(_last_return_rejected_reason),
 		"last_return_request": _last_return_request.duplicate(true),
+		"central_tower_route_available": _is_central_tower_route_available(),
+		"central_tower_target_scene_id": String(CENTRAL_TOWER_SCENE_ID),
+		"central_tower_entry_spawn_point": String(CENTRAL_TOWER_ENTRY_SPAWN),
+		"central_tower_return_spawn_point": String(CENTRAL_TOWER_RETURN_SPAWN),
+		"central_tower_transition_requested": _central_tower_transition_requested,
+		"last_central_tower_rejected_reason": String(
+			_last_central_tower_rejected_reason
+		),
+		"last_central_tower_request": _last_central_tower_request.duplicate(true),
 		"objective_text": _objective_label.text if _objective_label != null else "",
 		"music_id": String(ROOFTOP_MUSIC_ID),
 		"ambient_id": String(ROOFTOP_AMBIENT_ID),
@@ -612,6 +725,7 @@ func _sync_tower_parry_trial_route() -> void:
 func _on_tower_parry_trial_objective_changed(
 	_objective_text: String
 ) -> void:
+	_sync_central_tower_route()
 	_refresh_objective_text()
 
 
@@ -699,18 +813,42 @@ func _sync_return_route() -> void:
 	_sync_prompt_visibility()
 
 
+func _sync_central_tower_route() -> void:
+	if _central_tower_route == null:
+		return
+	if _central_tower_route.has_method("set_route_available"):
+		_central_tower_route.call(
+			"set_route_available",
+			_is_central_tower_threshold_secured()
+		)
+	if _central_tower_route.has_method("set_transition_requested"):
+		_central_tower_route.call(
+			"set_transition_requested",
+			_central_tower_transition_requested
+		)
+	_sync_prompt_visibility()
+
+
 func _sync_prompt_visibility() -> void:
 	if _return_prompt != null:
 		_return_prompt.visible = (
 			not _return_transition_requested
 			and _is_provider_near_return(_player)
 		)
+	if _central_tower_prompt != null:
+		_central_tower_prompt.visible = (
+			_is_central_tower_route_available()
+			and not _central_tower_transition_requested
+			and _is_provider_near_central_tower_route(_player)
+		)
 
 
 func _refresh_objective_text() -> void:
 	if _objective_label == null:
 		return
-	if _return_transition_requested:
+	if _central_tower_transition_requested:
+		_objective_label.text = "Entering Central Tower"
+	elif _return_transition_requested:
 		_objective_label.text = "Returning to Factory Altar"
 	elif (
 		_tower_parry_trial != null
@@ -781,6 +919,14 @@ func _apply_current_scene_manager_spawn_point() -> void:
 		_align_player_to_arrival()
 	elif spawn_point == &"relay_spire_roost" and _relay_spire != null:
 		_relay_spire.align_player_to_roost()
+	elif (
+		spawn_point == CENTRAL_TOWER_RETURN_SPAWN
+		and _central_tower_return_spawn != null
+		and _player != null
+	):
+		_player.global_position = _central_tower_return_spawn.global_position
+		if _player is CharacterBody2D:
+			(_player as CharacterBody2D).velocity = Vector2.ZERO
 
 
 func _is_signal_cache_claimed() -> bool:
@@ -797,6 +943,15 @@ func _is_relay_spire_traversed() -> bool:
 		return false
 	return bool(_relay_spire.get_local_state().get(
 		"neon_rooftops_relay_spire_traversed",
+		false
+	))
+
+
+func _is_central_tower_threshold_secured() -> bool:
+	if _tower_parry_trial == null:
+		return false
+	return bool(_tower_parry_trial.get_local_state().get(
+		"neon_rooftops_central_tower_threshold_secured",
 		false
 	))
 
@@ -823,6 +978,20 @@ func _is_provider_near_return(provider: Node) -> bool:
 	)
 
 
+func _is_provider_near_central_tower_route(provider: Node) -> bool:
+	return (
+		_central_tower_route != null
+		and provider != null
+		and _central_tower_route.has_method(
+			"is_provider_in_transition_range"
+		)
+		and bool(_central_tower_route.call(
+			"is_provider_in_transition_range",
+			provider
+		))
+	)
+
+
 func _provider_has_ability(provider: Node, ability_id: StringName) -> bool:
 	return (
 		provider != null
@@ -836,6 +1005,14 @@ func _is_return_route_available() -> bool:
 		_return_route != null
 		and _return_route.has_method("is_route_available")
 		and bool(_return_route.call("is_route_available"))
+	)
+
+
+func _is_central_tower_route_available() -> bool:
+	return (
+		_central_tower_route != null
+		and _central_tower_route.has_method("is_route_available")
+		and bool(_central_tower_route.call("is_route_available"))
 	)
 
 
@@ -891,6 +1068,28 @@ func _can_use_scene_manager_for(scene_id: StringName) -> bool:
 		_scene_manager.call("has_scene", scene_id)
 	):
 		_record_return_rejection(&"unknown_scene")
+		return false
+	return true
+
+
+func _can_use_scene_manager_for_central_tower() -> bool:
+	if not _is_valid_scene_manager(_scene_manager):
+		_record_central_tower_rejection(&"scene_manager_missing")
+		return false
+	if _scene_manager.has_method("is_loading") and bool(
+		_scene_manager.call("is_loading")
+	):
+		_record_central_tower_rejection(&"scene_manager_loading")
+		return false
+	if _scene_manager.has_method("is_scene_locked") and bool(
+		_scene_manager.call("is_scene_locked")
+	):
+		_record_central_tower_rejection(&"scene_locked")
+		return false
+	if _scene_manager.has_method("has_scene") and not bool(
+		_scene_manager.call("has_scene", CENTRAL_TOWER_SCENE_ID)
+	):
+		_record_central_tower_rejection(&"unknown_scene")
 		return false
 	return true
 
@@ -958,6 +1157,10 @@ func _get_texture_path(sprite: Sprite2D) -> String:
 
 func _record_return_rejection(reason: StringName) -> void:
 	_last_return_rejected_reason = reason
+
+
+func _record_central_tower_rejection(reason: StringName) -> void:
+	_last_central_tower_rejected_reason = reason
 
 
 func _get_pending_scene() -> String:

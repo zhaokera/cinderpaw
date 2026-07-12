@@ -1,0 +1,35 @@
+{
+	"session_id": "cinderpaw@e40d",
+	"engine": "Godot 4.7-stable (official)",
+	"plugin_version": "2.9.1",
+	"server_version": "2.9.1",
+	"scene": "res://scenes/areas/central_tower_threshold.tscn",
+	"run_token": 62,
+	"run_id": "r422065907-62",
+	"current_run_errors": [],
+	"authored_node_count": 44,
+	"runtime_node_count": 78,
+	"runtime_probe": {
+		"input": "move_right",
+		"objective": "Break the Threshold Guard",
+		"guard_type": "AnimatedSprite2D",
+		"guard_animation": "run",
+		"guard_visible": true,
+		"sprite_frames": "res://assets/characters/central_tower_threshold_guard/central_tower_threshold_guard_sprite_frames.tres"
+	},
+	"game_log": [
+		"[godot_ai game_helper] registered mcp capture (debugger active=true, logger=true)",
+		"DataManager: domain 'enemy_stats' loaded"
+	],
+	"editor_log_cursor_before": 3,
+	"editor_log_cursor_after": 3,
+	"new_editor_log_rows": [],
+	"screenshot": {
+		"path": "reports/visual/cinderpaw-mcp-central-tower-threshold-guard-run62-20260712.png",
+		"width": 1278,
+		"height": 718,
+		"format": "png",
+		"bytes": 1426538,
+		"sha256": "5ac26d6fa4138e90c2bef97c65d8f4dfaf632eb80b6d7b19fe0d8fea30c1d7f5"
+	}
+}

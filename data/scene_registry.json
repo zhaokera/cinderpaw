@@ -54,6 +54,14 @@
 			"preload": false,
 			"default_spawn": "factory_rooftop_arrival",
 			"display_name": "Neon Rooftops"
+		},
+		"area_05_central_tower": {
+			"scene_id": "area_05_central_tower",
+			"path": "res://scenes/areas/central_tower_threshold.tscn",
+			"type": "area",
+			"preload": false,
+			"default_spawn": "neon_rooftops_threshold_arrival",
+			"display_name": "Central Tower Threshold"
 		}
 	}
 }

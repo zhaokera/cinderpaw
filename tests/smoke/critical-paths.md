@@ -87,13 +87,20 @@
     real strike-window parries, opens the generated ExplorationGate once,
     secures the threshold, and restores state without replay
     (`tests/smoke/neon_rooftops_central_tower_parry_laser_trial_smoke.gd`)
+24. The secured Rooftops threshold enters the generated Central Tower vestibule,
+    uses the real SceneManager for exact entry and return spawns, activates a real
+    Threshold Roost, closes both seals around the frame-animated guard, routes its
+    14-damage latch thrust through shared collision, opens both seals on entity
+    `2701` defeat, retains durable clear/ability/return state, and reuses the same
+    cleared Tower runtime instance during a cache-window second round trip
+    (`tests/smoke/central_tower_threshold_guard_handoff_smoke.gd`)
 
 ## Data Integrity
 
-24. Save game completes without error (once save system is implemented)
-25. Load game restores correct state (once load system is implemented)
+25. Save game completes without error (once save system is implemented)
+26. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-26. No visible frame rate drops on target hardware (60fps target)
-27. No memory growth over 5 minutes of play (once core loop is implemented)
+27. No visible frame rate drops on target hardware (60fps target)
+28. No memory growth over 5 minutes of play (once core loop is implemented)

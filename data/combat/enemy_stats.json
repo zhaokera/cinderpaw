@@ -67,6 +67,32 @@
 				}
 			]
 		},
+		"central_tower_threshold_guard": {
+			"max_hp": 48,
+			"patrol_speed": 48,
+			"attack_patterns": [
+				{
+					"pattern_id": "latch_thrust",
+					"startup_frames": 24,
+					"active_frames": 6,
+					"recovery_frames": 24,
+					"damage": 14,
+					"damage_type": "physical",
+					"lunge_speed": 156,
+					"attack_range_px": 104,
+					"hitbox_config": {
+						"hitbox_id": "central_tower_guard_latch_thrust",
+						"offset": {"x": 44, "y": -30},
+						"size": {"x": 64, "y": 40}
+					},
+					"vulnerability_window": {
+						"start_frame": 14,
+						"size_frames": 10
+					},
+					"base_weight": 1.0
+				}
+			]
+		},
 		"boss_01_rat_king": {
 			"max_hp": 300,
 			"patrol_speed": 0,
