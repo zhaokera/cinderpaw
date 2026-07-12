@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=74 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/central_tower_threshold_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/central_tower/env_central_tower_threshold_1280x720.png" id="2_background"]
@@ -12,12 +12,45 @@
 [ext_resource type="Script" path="res://src/gameplay/central_tower_threshold_guard_controller.gd" id="10_guard_controller"]
 [ext_resource type="Script" path="res://src/presentation/hud_manager.gd" id="11_hud"]
 [ext_resource type="Script" path="res://src/gameplay/game_flow_controller.gd" id="12_game_flow"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/env_central_tower_service_spine_1280x720.png" id="13_service_background"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_service_relay_256x512.png" id="14_relay"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_observation_shutter_384x512.png" id="15_shutter"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_mantis_perch_256x256.png" id="16_perch"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_relay_cache_256x256.png" id="17_cache"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/vfx_central_tower_relay_pulse_512x128.png" id="18_pulse"]
+[ext_resource type="PackedScene" path="res://src/gameplay/central_tower_relay_mantis.tscn" id="19_mantis"]
+[ext_resource type="Script" path="res://src/gameplay/central_tower_inner_relay_controller.gd" id="20_inner_controller"]
+[ext_resource type="Script" path="res://src/feature/factory_combat_cache.gd" id="21_cache_script"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/env_central_tower_cooling_shaft_1280x720.png" id="22_cooling_background"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_cooling_roost_256x256.png" id="23_cooling_roost"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_cooling_spine_256x512.png" id="24_cooling_spine"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_cooling_perch_384x128.png" id="25_cooling_perch"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_deep_lift_beacon_256x384.png" id="26_deep_lift"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/vfx_central_tower_cooling_arc_512x160.png" id="27_cooling_arc"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/vfx_central_tower_cooling_contact_spark_192x192.png" id="28_contact_spark"]
+[ext_resource type="Script" path="res://src/gameplay/central_tower_cooling_shaft_controller.gd" id="29_cooling_controller"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/env_central_tower_deep_lift_1280x720.png" id="30_deep_lift_background"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_deep_lift_platform_512x160.png" id="31_deep_lift_platform"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_deep_lift_counterweight_256x512.png" id="32_counterweight"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_deep_lift_entry_shutter_384x512.png" id="33_deep_shutter"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_counterweight_sentry_cradle_256x256.png" id="34_sentry_cradle"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_deep_lift_brake_console_256x384.png" id="35_brake_console"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/vfx_central_tower_deep_lift_warning_sweep_512x128.png" id="36_warning_sweep"]
+[ext_resource type="PackedScene" path="res://src/gameplay/central_tower_counterweight_sentry.tscn" id="37_counterweight_sentry"]
+[ext_resource type="Script" path="res://src/gameplay/central_tower_deep_lift_controller.gd" id="38_deep_lift_controller"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/env_central_tower_apex_conduit_1280x720.png" id="39_apex_background"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_apex_roost_256x256.png" id="40_apex_roost"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_apex_magnetic_spine_256x512.png" id="41_apex_spine"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_apex_purge_emitter_256x384.png" id="42_apex_emitter"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_apex_beacon_256x384.png" id="43_apex_beacon"]
+[ext_resource type="Texture2D" path="res://assets/environment/central_tower/vfx_central_tower_apex_purge_wall_192x640.png" id="44_apex_purge"]
+[ext_resource type="Script" path="res://src/gameplay/central_tower_apex_purge_controller.gd" id="45_apex_controller"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
-size = Vector2(1280, 48)
+size = Vector2(2560, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_top"]
-size = Vector2(1280, 40)
+size = Vector2(6400, 40)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_side"]
 size = Vector2(40, 720)
@@ -31,6 +64,72 @@ radius = 104.0
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_seal"]
 size = Vector2(48, 420)
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_cache"]
+radius = 96.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cooling_approach"]
+size = Vector2(380, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cooling_exit"]
+size = Vector2(360, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cooling_spine"]
+size = Vector2(48, 280)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cooling_perch"]
+size = Vector2(300, 24)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cooling_fall"]
+size = Vector2(560, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cooling_arc"]
+size = Vector2(460, 78)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cooling_endpoint"]
+radius = 112.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_deep_entry"]
+size = Vector2(330, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_deep_upper"]
+size = Vector2(530, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_deep_platform"]
+size = Vector2(420, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_deep_shutter"]
+size = Vector2(48, 420)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_deep_fall"]
+size = Vector2(420, 80)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_deep_endpoint"]
+radius = 112.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_apex_entry"]
+size = Vector2(320, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_apex_lower"]
+size = Vector2(200, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_apex_spine"]
+size = Vector2(48, 320)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_apex_upper"]
+size = Vector2(240, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_apex_endpoint_ground"]
+size = Vector2(260, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_apex_trigger"]
+size = Vector2(120, 360)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_apex_purge"]
+size = Vector2(96, 640)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_apex_fall"]
+size = Vector2(960, 80)
+
 [node name="CentralTowerThreshold" type="Node2D"]
 script = ExtResource("1_scene")
 metadata/scene_id = "area_05_central_tower"
@@ -41,16 +140,118 @@ position = Vector2(640, 360)
 texture_filter = 1
 texture = ExtResource("2_background")
 
+[node name="ServiceSpineBackground" type="Sprite2D" parent="."]
+z_index = -100
+position = Vector2(1920, 360)
+texture_filter = 1
+texture = ExtResource("13_service_background")
+
+[node name="CoolingShaftBackground" type="Sprite2D" parent="."]
+z_index = -100
+position = Vector2(3200, 360)
+texture_filter = 1
+texture = ExtResource("22_cooling_background")
+
+[node name="DeepLiftBackground" type="Sprite2D" parent="."]
+z_index = -100
+position = Vector2(4480, 360)
+texture_filter = 1
+texture = ExtResource("30_deep_lift_background")
+
+[node name="ApexConduitBackground" type="Sprite2D" parent="."]
+z_index = -100
+position = Vector2(5760, 360)
+texture_filter = 1
+texture = ExtResource("39_apex_background")
+
 [node name="Ground" type="StaticBody2D" parent="."]
-position = Vector2(640, 600)
+position = Vector2(1280, 600)
 collision_layer = 16
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
 shape = SubResource("RectangleShape2D_ground")
 
+[node name="CoolingShaftApproachGround" type="StaticBody2D" parent="."]
+position = Vector2(2730, 600)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CoolingShaftApproachGround"]
+shape = SubResource("RectangleShape2D_cooling_approach")
+
+[node name="CoolingShaftExitGround" type="StaticBody2D" parent="."]
+position = Vector2(3660, 600)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CoolingShaftExitGround"]
+shape = SubResource("RectangleShape2D_cooling_exit")
+
+[node name="DeepLiftEntryGround" type="StaticBody2D" parent="."]
+position = Vector2(4005, 600)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeepLiftEntryGround"]
+shape = SubResource("RectangleShape2D_deep_entry")
+
+[node name="DeepLiftUpperGround" type="StaticBody2D" parent="."]
+position = Vector2(4855, 300)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeepLiftUpperGround"]
+shape = SubResource("RectangleShape2D_deep_upper")
+
+[node name="ApexEntryGround" type="StaticBody2D" parent="."]
+position = Vector2(5280, 300)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ApexEntryGround"]
+shape = SubResource("RectangleShape2D_apex_entry")
+
+[node name="ApexLowerCatwalk" type="StaticBody2D" parent="."]
+position = Vector2(5600, 486)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ApexLowerCatwalk"]
+shape = SubResource("RectangleShape2D_apex_lower")
+
+[node name="ApexMagneticSpine" type="StaticBody2D" parent="."]
+z_index = 8
+position = Vector2(5770, 370)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="ApexMagneticSpine"]
+texture_filter = 1
+scale = Vector2(0.68, 0.68)
+texture = ExtResource("41_apex_spine")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ApexMagneticSpine"]
+shape = SubResource("RectangleShape2D_apex_spine")
+
+[node name="ApexUpperCatwalk" type="StaticBody2D" parent="."]
+position = Vector2(5940, 286)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ApexUpperCatwalk"]
+shape = SubResource("RectangleShape2D_apex_upper")
+
+[node name="ApexEndpointGround" type="StaticBody2D" parent="."]
+position = Vector2(6270, 344)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ApexEndpointGround"]
+shape = SubResource("RectangleShape2D_apex_endpoint_ground")
+
 [node name="TopBoundary" type="StaticBody2D" parent="."]
-position = Vector2(640, -20)
+position = Vector2(3200, -20)
 collision_layer = 16
 collision_mask = 0
 
@@ -66,7 +267,7 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_side")
 
 [node name="RightBoundary" type="StaticBody2D" parent="."]
-position = Vector2(1300, 360)
+position = Vector2(6420, 360)
 collision_layer = 16
 collision_mask = 0
 
@@ -190,6 +391,524 @@ disabled = true
 z_index = 20
 position = Vector2(780, 576)
 
+[node name="InnerRelayController" type="Node2D" parent="."]
+script = ExtResource("20_inner_controller")
+
+[node name="BackShutter" type="StaticBody2D" parent="InnerRelayController"]
+visible = false
+z_index = 18
+position = Vector2(1420, 366)
+collision_layer = 0
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="InnerRelayController/BackShutter"]
+texture_filter = 1
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("15_shutter")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InnerRelayController/BackShutter"]
+shape = SubResource("RectangleShape2D_seal")
+disabled = true
+
+[node name="RelayEmitter" type="Sprite2D" parent="InnerRelayController"]
+z_index = 8
+position = Vector2(1640, 366)
+texture_filter = 1
+scale = Vector2(0.82, 0.82)
+texture = ExtResource("14_relay")
+
+[node name="RelayPulseVisual" type="Sprite2D" parent="InnerRelayController"]
+visible = false
+z_index = 24
+position = Vector2(1800, 520)
+texture_filter = 1
+texture = ExtResource("18_pulse")
+
+[node name="MantisPerch" type="Sprite2D" parent="InnerRelayController"]
+z_index = 7
+position = Vector2(2140, 576)
+texture_filter = 1
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("16_perch")
+
+[node name="CentralTowerRelayMantis" parent="InnerRelayController" instance=ExtResource("19_mantis")]
+process_mode = 4
+visible = false
+z_index = 20
+position = Vector2(2140, 576)
+collision_layer = 0
+collision_mask = 0
+
+[node name="ForwardShutter" type="StaticBody2D" parent="InnerRelayController"]
+visible = false
+z_index = 18
+position = Vector2(2440, 366)
+collision_layer = 0
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="InnerRelayController/ForwardShutter"]
+texture_filter = 1
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("15_shutter")
+flip_h = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InnerRelayController/ForwardShutter"]
+shape = SubResource("RectangleShape2D_seal")
+disabled = true
+
+[node name="InnerRelayCache" type="Node2D" parent="InnerRelayController"]
+visible = false
+z_index = 16
+position = Vector2(2320, 576)
+script = ExtResource("21_cache_script")
+cache_id = &"central_tower_inner_relay_cache"
+reward_source = &"central_tower_inner_relay"
+reward_gears = 20
+claim_radius_px = 96.0
+locked_prompt_text = "Break Relay Mantis"
+available_prompt_text = "+20 Gears"
+
+[node name="Visual" type="Sprite2D" parent="InnerRelayController/InnerRelayCache"]
+position = Vector2(0, -86)
+texture_filter = 1
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("17_cache")
+
+[node name="InteractionArea" type="Area2D" parent="InnerRelayController/InnerRelayCache"]
+position = Vector2(0, -48)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InnerRelayController/InnerRelayCache/InteractionArea"]
+shape = SubResource("CircleShape2D_cache")
+
+[node name="PromptLabel" type="Label" parent="InnerRelayController/InnerRelayCache"]
+visible = false
+offset_left = -112.0
+offset_top = -216.0
+offset_right = 112.0
+offset_bottom = -180.0
+theme_override_colors/font_color = Color(0.93, 0.78, 0.25, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 20
+text = "+20 Gears"
+horizontal_alignment = 1
+
+[node name="CoolingShaftLeftSpine" type="StaticBody2D" parent="."]
+z_index = 7
+position = Vector2(3060, 460)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="CoolingShaftLeftSpine"]
+texture_filter = 1
+scale = Vector2(0.62, 0.62)
+texture = ExtResource("24_cooling_spine")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CoolingShaftLeftSpine"]
+shape = SubResource("RectangleShape2D_cooling_spine")
+
+[node name="CoolingShaftMidPerch" type="StaticBody2D" parent="."]
+z_index = 8
+position = Vector2(3225, 438)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="CoolingShaftMidPerch"]
+position = Vector2(0, -34)
+texture_filter = 1
+scale = Vector2(0.82, 0.82)
+texture = ExtResource("25_cooling_perch")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CoolingShaftMidPerch"]
+shape = SubResource("RectangleShape2D_cooling_perch")
+
+[node name="CoolingShaftRightSpine" type="StaticBody2D" parent="."]
+z_index = 7
+position = Vector2(3390, 460)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="CoolingShaftRightSpine"]
+texture_filter = 1
+scale = Vector2(0.62, 0.62)
+texture = ExtResource("24_cooling_spine")
+flip_h = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CoolingShaftRightSpine"]
+shape = SubResource("RectangleShape2D_cooling_spine")
+
+[node name="CoolingShaftController" type="Node2D" parent="."]
+script = ExtResource("29_cooling_controller")
+
+[node name="CoolingShaftRoost" type="Node2D" parent="CoolingShaftController"]
+visible = false
+z_index = 12
+position = Vector2(2740, 576)
+script = ExtResource("5_savepoint")
+savepoint_id = &"central_tower_cooling_shaft_roost"
+scene_id = &"area_05_central_tower"
+spawn_point = &"cooling_shaft_roost"
+display_name = "Cooling Shaft Roost"
+prompt_text = "Activate Cooling Shaft Roost"
+activation_vfx_texture = ExtResource("28_contact_spark")
+
+[node name="Visual" type="Sprite2D" parent="CoolingShaftController/CoolingShaftRoost"]
+position = Vector2(0, -128)
+texture_filter = 1
+scale = Vector2(0.88, 0.88)
+texture = ExtResource("23_cooling_roost")
+
+[node name="InteractionArea" type="Area2D" parent="CoolingShaftController/CoolingShaftRoost"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CoolingShaftController/CoolingShaftRoost/InteractionArea"]
+position = Vector2(0, -44)
+shape = SubResource("CircleShape2D_roost")
+
+[node name="PromptLabel" type="Label" parent="CoolingShaftController/CoolingShaftRoost"]
+visible = false
+offset_left = -162.0
+offset_top = -258.0
+offset_right = 162.0
+offset_bottom = -222.0
+theme_override_colors/font_color = Color(0.93, 0.78, 0.25, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "Activate Cooling Shaft Roost"
+horizontal_alignment = 1
+
+[node name="CoolingShaftRoostSpawn" type="Marker2D" parent="CoolingShaftController"]
+position = Vector2(2740, 552)
+
+[node name="CoolingShaftFallZone" type="Area2D" parent="CoolingShaftController"]
+position = Vector2(3200, 680)
+collision_layer = 0
+collision_mask = 1
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CoolingShaftController/CoolingShaftFallZone"]
+shape = SubResource("RectangleShape2D_cooling_fall")
+
+[node name="CoolingShaftArcHazard" type="Area2D" parent="CoolingShaftController"]
+position = Vector2(3220, 430)
+collision_layer = 0
+collision_mask = 1
+monitoring = false
+
+[node name="Visual" type="Sprite2D" parent="CoolingShaftController/CoolingShaftArcHazard"]
+visible = false
+z_index = 24
+texture_filter = 1
+texture = ExtResource("27_cooling_arc")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CoolingShaftController/CoolingShaftArcHazard"]
+shape = SubResource("RectangleShape2D_cooling_arc")
+
+[node name="CoolingShaftEndpoint" type="Node2D" parent="CoolingShaftController"]
+visible = false
+z_index = 12
+position = Vector2(3690, 576)
+
+[node name="Visual" type="Sprite2D" parent="CoolingShaftController/CoolingShaftEndpoint"]
+position = Vector2(0, -192)
+texture_filter = 1
+scale = Vector2(0.86, 0.86)
+texture = ExtResource("26_deep_lift")
+
+[node name="InteractionArea" type="Area2D" parent="CoolingShaftController/CoolingShaftEndpoint"]
+position = Vector2(0, -64)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CoolingShaftController/CoolingShaftEndpoint/InteractionArea"]
+shape = SubResource("CircleShape2D_cooling_endpoint")
+
+[node name="PromptLabel" type="Label" parent="CoolingShaftController/CoolingShaftEndpoint"]
+visible = false
+offset_left = -146.0
+offset_top = -346.0
+offset_right = 146.0
+offset_bottom = -310.0
+theme_override_colors/font_color = Color(0.55, 0.95, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "Secure Deep Lift"
+horizontal_alignment = 1
+
+[node name="DeepLiftController" type="Node2D" parent="."]
+script = ExtResource("38_deep_lift_controller")
+
+[node name="PlatformStart" type="Marker2D" parent="DeepLiftController"]
+position = Vector2(4380, 590)
+
+[node name="PlatformAmbushStop" type="Marker2D" parent="DeepLiftController"]
+position = Vector2(4380, 450)
+
+[node name="PlatformTop" type="Marker2D" parent="DeepLiftController"]
+position = Vector2(4380, 290)
+
+[node name="SentryCradle" type="Sprite2D" parent="DeepLiftController"]
+z_index = 7
+position = Vector2(4380, 344)
+texture_filter = 1
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("34_sentry_cradle")
+
+[node name="CounterweightCarriage" type="Sprite2D" parent="DeepLiftController"]
+z_index = 6
+position = Vector2(4740, 290)
+texture_filter = 1
+scale = Vector2(0.64, 0.64)
+texture = ExtResource("32_counterweight")
+
+[node name="WarningSweep" type="Sprite2D" parent="DeepLiftController"]
+visible = false
+z_index = 19
+position = Vector2(4380, 394)
+texture_filter = 1
+scale = Vector2(0.25, 0.4)
+texture = ExtResource("36_warning_sweep")
+
+[node name="DeepLiftPlatform" type="AnimatableBody2D" parent="DeepLiftController"]
+z_index = 14
+position = Vector2(4380, 590)
+collision_layer = 16
+collision_mask = 0
+sync_to_physics = true
+
+[node name="Visual" type="Sprite2D" parent="DeepLiftController/DeepLiftPlatform"]
+position = Vector2(0, 46)
+texture_filter = 1
+scale = Vector2(1.24, 1.24)
+texture = ExtResource("31_deep_lift_platform")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeepLiftController/DeepLiftPlatform"]
+shape = SubResource("RectangleShape2D_deep_platform")
+
+[node name="PromptLabel" type="Label" parent="DeepLiftController/DeepLiftPlatform"]
+visible = false
+z_index = 26
+offset_left = -146.0
+offset_top = -126.0
+offset_right = 146.0
+offset_bottom = -90.0
+theme_override_colors/font_color = Color(0.93, 0.78, 0.25, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "Board Deep Lift"
+horizontal_alignment = 1
+
+[node name="EntryShutter" type="StaticBody2D" parent="DeepLiftController"]
+visible = false
+z_index = 18
+position = Vector2(4130, 366)
+collision_layer = 0
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="DeepLiftController/EntryShutter"]
+texture_filter = 1
+scale = Vector2(0.72, 0.82)
+texture = ExtResource("33_deep_shutter")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeepLiftController/EntryShutter"]
+shape = SubResource("RectangleShape2D_deep_shutter")
+disabled = true
+
+[node name="UpperShutter" type="StaticBody2D" parent="DeepLiftController"]
+visible = false
+z_index = 18
+position = Vector2(4630, 66)
+collision_layer = 0
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="DeepLiftController/UpperShutter"]
+texture_filter = 1
+scale = Vector2(0.72, 0.82)
+texture = ExtResource("33_deep_shutter")
+flip_h = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeepLiftController/UpperShutter"]
+shape = SubResource("RectangleShape2D_deep_shutter")
+disabled = true
+
+[node name="CentralTowerCounterweightSentry" parent="DeepLiftController" instance=ExtResource("37_counterweight_sentry")]
+process_mode = 4
+visible = false
+z_index = 20
+position = Vector2(4470, 436)
+collision_layer = 0
+collision_mask = 0
+
+[node name="DeepLiftFallZone" type="Area2D" parent="DeepLiftController"]
+position = Vector2(4380, 680)
+collision_layer = 0
+collision_mask = 1
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeepLiftController/DeepLiftFallZone"]
+shape = SubResource("RectangleShape2D_deep_fall")
+
+[node name="UpperEndpoint" type="Node2D" parent="DeepLiftController"]
+z_index = 12
+position = Vector2(4980, 252)
+
+[node name="Visual" type="Sprite2D" parent="DeepLiftController/UpperEndpoint"]
+position = Vector2(0, -142)
+texture_filter = 1
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("35_brake_console")
+
+[node name="InteractionArea" type="Area2D" parent="DeepLiftController/UpperEndpoint"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeepLiftController/UpperEndpoint/InteractionArea"]
+shape = SubResource("CircleShape2D_deep_endpoint")
+
+[node name="PromptLabel" type="Label" parent="DeepLiftController/UpperEndpoint"]
+visible = false
+offset_left = -146.0
+offset_top = -314.0
+offset_right = 146.0
+offset_bottom = -278.0
+theme_override_colors/font_color = Color(0.55, 0.95, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "Reach Upper Deck"
+horizontal_alignment = 1
+
+[node name="ApexPurgeController" type="Node2D" parent="."]
+script = ExtResource("45_apex_controller")
+
+[node name="ApexRoost" type="Node2D" parent="ApexPurgeController"]
+visible = false
+z_index = 13
+position = Vector2(5260, 276)
+script = ExtResource("5_savepoint")
+savepoint_id = &"central_tower_apex_roost"
+scene_id = &"area_05_central_tower"
+spawn_point = &"apex_roost"
+display_name = "Apex Roost"
+prompt_text = "Activate Apex Roost"
+activation_vfx_texture = ExtResource("28_contact_spark")
+
+[node name="Visual" type="Sprite2D" parent="ApexPurgeController/ApexRoost"]
+position = Vector2(0, -102)
+texture_filter = 1
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("40_apex_roost")
+
+[node name="InteractionArea" type="Area2D" parent="ApexPurgeController/ApexRoost"]
+position = Vector2(0, -24)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ApexPurgeController/ApexRoost/InteractionArea"]
+shape = SubResource("CircleShape2D_roost")
+
+[node name="PromptLabel" type="Label" parent="ApexPurgeController/ApexRoost"]
+visible = false
+offset_left = -142.0
+offset_top = -248.0
+offset_right = 142.0
+offset_bottom = -212.0
+theme_override_colors/font_color = Color(0.93, 0.78, 0.25, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "Activate Apex Roost"
+horizontal_alignment = 1
+
+[node name="ApexRoostSpawn" type="Marker2D" parent="ApexPurgeController"]
+position = Vector2(5260, 252)
+
+[node name="PurgeTrigger" type="Area2D" parent="ApexPurgeController"]
+position = Vector2(5360, 360)
+collision_layer = 0
+collision_mask = 1
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ApexPurgeController/PurgeTrigger"]
+shape = SubResource("RectangleShape2D_apex_trigger")
+
+[node name="PurgeEmitter" type="Sprite2D" parent="ApexPurgeController"]
+visible = false
+z_index = 9
+position = Vector2(5165, 360)
+texture_filter = 1
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("42_apex_emitter")
+
+[node name="PurgeWall" type="Area2D" parent="ApexPurgeController"]
+z_index = 24
+position = Vector2(5200, 360)
+collision_layer = 0
+collision_mask = 1
+monitoring = false
+
+[node name="Visual" type="Sprite2D" parent="ApexPurgeController/PurgeWall"]
+visible = false
+texture_filter = 1
+scale = Vector2(0.86, 1.24)
+texture = ExtResource("44_apex_purge")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ApexPurgeController/PurgeWall"]
+shape = SubResource("RectangleShape2D_apex_purge")
+
+[node name="ApexFallZone" type="Area2D" parent="ApexPurgeController"]
+position = Vector2(5920, 680)
+collision_layer = 0
+collision_mask = 1
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ApexPurgeController/ApexFallZone"]
+shape = SubResource("RectangleShape2D_apex_fall")
+
+[node name="ApexEndpoint" type="Node2D" parent="ApexPurgeController"]
+visible = false
+z_index = 13
+position = Vector2(6280, 296)
+
+[node name="Visual" type="Sprite2D" parent="ApexPurgeController/ApexEndpoint"]
+position = Vector2(0, -156)
+texture_filter = 1
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("43_apex_beacon")
+
+[node name="InteractionArea" type="Area2D" parent="ApexPurgeController/ApexEndpoint"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ApexPurgeController/ApexEndpoint/InteractionArea"]
+shape = SubResource("CircleShape2D_deep_endpoint")
+
+[node name="PromptLabel" type="Label" parent="ApexPurgeController/ApexEndpoint"]
+visible = false
+offset_left = -168.0
+offset_top = -324.0
+offset_right = 168.0
+offset_bottom = -288.0
+theme_override_colors/font_color = Color(0.55, 0.95, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "Secure Apex Approach"
+horizontal_alignment = 1
+
 [node name="Player" parent="." instance=ExtResource("3_player")]
 z_index = 22
 position = Vector2(180, 552)
@@ -197,7 +916,7 @@ position = Vector2(180, 552)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 1280
+limit_right = 6400
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0

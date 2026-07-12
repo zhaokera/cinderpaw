@@ -136,8 +136,9 @@
 	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Exit Hatch
 	  Handoff、Player Abilities Story117-139 的 Factory tailrace、Boss3、
 	  Underground、Factory Upper Altar 与 Neon Rooftops 连续切片、Player
-	  Abilities Story140 Central Tower Threshold Guard Handoff 已完成；
-	  下一步先编写中央塔下一段 bounded interior contract，再推进 Story141。
+	  Abilities Story140 Central Tower Threshold Guard Handoff 与 Story141
+	  Central Tower Inner Relay Skirmish 已完成；下一步先定义中央塔更深处的
+	  bounded route contract，再推进 Story142。
 	  Boss4 的身份、竞技场、数据、奖励和遭遇合同未批准前不得自行补写；
 	  minimap、其他 ExplorationGate、skill-tree branches、Boss polish、final
 	  audio replacement 与玩家可见帧动画审计继续保留在后续队列。
@@ -153,6 +154,21 @@
   from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 141: Central Tower Inner Relay Skirmish -- expanded
+  `area_05_central_tower` to `2560x720` with a generated Service Spine,
+  deterministic `0.55/0.18/0.55s` relay pulse, one real strike-window parry,
+  dual generated shutters, and entity `2702`, a distinct frame-animated Relay
+  Mantis with `40` HP and a data-driven `20/6/20`, 12-damage scythe dash.
+  Defeat opens the room and exposes one persistent `+20 Gears` cache; death
+  before clear resets the attempt at the Threshold Roost while death-window
+  clear and cache claim remain durable. Verification: RED `report_1503`;
+  focused GREEN `report_1507` (`3/3`); independent review `report_1508`
+  (`3/3`); Story140 adjacent `report_1509` (`3/3`); target smoke marker
+  `central_tower_inner_relay_skirmish_smoke=passed`; MCP 2.9.1 / Godot 4.7
+  run `65` used real parry input, inspected the live Mantis `run` animation,
+  captured a non-empty `1278x718` frame, returned `current_run_errors=[]`,
+  helper/data-only game logs, and no new editor rows after cursor `3`.
+
 - Player Abilities Story 140: Central Tower Threshold Guard Handoff -- secured
   Story139 state now exposes one explicit Rooftops route to
   `area_05_central_tower / neon_rooftops_threshold_arrival`, while
@@ -5090,3 +5106,52 @@
 - Parallel review: Three read-only level/art/QA sidecars were explicitly requested with supported `high` effort, but the backend rewrote them to invalid `reasoning.effort=max`. They failed before execution, were closed once, and were not retried; bounded review completed locally.
 - Blockers: None for Story139. Central Tower interior and Boss4 remain out of scope until approved design/data contracts exist. The broader game goal remains active.
 - Next: define Story140 as a Central Tower threshold scene-handoff slice only after authoring its interior contract, or select another player-visible rooftop branch while that contract is absent.
+
+## Session Extract -- /dev-story 2026-07-12
+
+- Delivery checkpoint: Story140 was committed as `c7bb69be` (`feat: add Central Tower threshold guard`) and pushed to `origin/master` before Story141 implementation began. Story141 remains a complete verified local change; no later commit or push was performed without a new repository-history instruction.
+- Story: `production/epics/player-abilities/story-141-central-tower-inner-relay-skirmish.md` -- Central Tower Inner Relay Skirmish.
+- Design: Expanded the existing `area_05_central_tower` instead of inventing a new scene id or Boss4. Story140 guard clear gates one second-viewport Service Spine loop: close two shutters, parry one real relay pulse, fight one ordinary enemy, and claim one established small cache.
+- Implementation: The Tower is now bounded at `2560x720`. `CentralTowerInnerRelayController` owns `0.55/0.18/0.55s` pulse timing, 8-damage misses, real strike-window parry signal handling, entity `2702`, dual shutters, objective priority, failed-attempt reset, death-window durable clear, cache persistence, and narrow parent adapters. Relay Mantis has `40` HP, data-driven `20/6/20` scythe timing, `12` damage, and shared Health/Collision/Combat/StatusEffect routing. The cache records one `+20 Gears` payload without changing abilities.
+- Frame animation: Built-in image generation produced a strict keyed `3x6` Relay Mantis sheet. Chroma processing and common-anchor normalization produced eighteen transparent `96x96` frames for `idle`, `run`, `attack_tell`, `attack`, `hurt`, and `death`, wired through mandatory character/runtime scenes with `AnimatedSprite2D + SpriteFrames`.
+- Asset pipeline: Built-in image generation also produced one opaque Service Spine background and one keyed five-prop sheet. Processing retained source/alpha/prompt/preview files and normalized exact RGB `1280x720` plus transparent RGBA `256x512`, `384x512`, `256x256`, `256x256`, and `512x128` runtime assets. Godot 4.7 imported the complete set; asset spec, manifest, and inventory records are complete.
+- Verification: Initial RED `report_1503`; final focused GREEN `report_1507` passed `3/3`; independent read-only review and rerun `report_1508` passed `3/3`; Story140 adjacent `report_1509` passed `3/3`; targeted smoke exited `0` with `central_tower_inner_relay_skirmish_smoke=passed`. Godot AI MCP `2.9.1` on Godot `4.7-stable` force-reloaded `63` authored nodes; run `65` used real `parry` input, changed the pulse from visible strike to hidden complete, activated the live Mantis at collision `2/17`, inspected its `run` animation and exact six-by-three SpriteFrames contract, captured a non-empty `1278x718` generated-art combat frame, returned `current_run_errors=[]`, helper/data-only current logs, and no new editor row after cursor `3`.
+- Parallel review: Three read-only design/art/QA agents completed bounded recommendations before implementation; a final independent read-only integration reviewer found no blocking bug or soft lock. The integrating agent owned all shared Godot files and final verification.
+- Blockers: None for Story141. Boss4 identity, arena, data, phases, music, reward, and ending content remain out of scope until explicitly authored. The broader complete-game goal remains active.
+- Next: define Story142 as one bounded deeper-Tower route/traversal contract that consumes `central_tower_relay_mantis_defeated` or the claimed relay cache; do not invent Boss4 yet.
+
+## Session Extract -- /dev-story 2026-07-12
+
+- Delivery checkpoint: Story140 remains pushed as `c7bb69be`; Story141 and Story142 are complete verified local changes. No commit or push was performed for either later story without a new repository-history instruction.
+- Story: `production/epics/player-abilities/story-142-central-tower-cooling-shaft-roost-traverse.md` -- Central Tower Cooling Shaft Roost Traverse.
+- Design: Expanded the existing `area_05_central_tower` to a third viewport rather than inventing Boss4 or a new scene id. Relay Mantis defeat gates one post-combat recovery/traversal loop: activate a second Roost, cross a lethal suspension gap using existing movement abilities, read and avoid a cyclic arc, then secure one bounded Deep Lift endpoint. The Story141 cache remains optional.
+- Implementation: The Tower is now bounded at `3840x720`. `CentralTowerCoolingShaftController` owns route gating, `SavepointRuntime` activation, exact `0.75/0.50/0.35/0.70s` hazard timing, `10` damage with `1.0s` contact cooldown, lethal fall, endpoint, objectives, autosave/audio/VFX diagnostics, and durable state. The parent Tower controller adds only narrow proxies, save snapshot/state merge, objective priority, newest-savepoint selection, and Cooling Roost spawn alignment. Existing GameFlow supplies the `1.5s` death beat, 50% HP revive, and 120 i-frames.
+- Asset pipeline: Built-in image generation produced one opaque Cooling Shaft background and one keyed `3x2` six-asset sheet. Processing retained both exact prompts, source images, the transparent alpha intermediate, and normalized runtime RGB `1280x720` plus RGBA `256x256`, `256x512`, `384x128`, `256x384`, `512x160`, and `192x192` assets. Godot 4.7 imported the complete set; asset spec, manifest, and entity inventory are complete.
+- Verification: Expected RED `report_1510`; final focused GREEN `report_1513` passed `3/3`; adjacent Story140/141 plus savepoint regression `report_1514` passed `10/10`; target smoke exited `0` with `central_tower_cooling_shaft_roost_traverse_smoke=passed`. Coverage includes exact assets/geometry, Story141 gate, Roost/autosave, arc damage/cooldown, lethal fall/revive, real double-jump/dash APIs, endpoint, exact abilities, and fresh restore without feedback replay.
+- MCP: Session `cinderpaw@e40d`, Godot `4.7-stable`, MCP `2.9.1`. Run `66` exposed a stale live-editor global class cache; reimporting the four Tower scripts increased the scan from `288` to `292` classes. Final run `68` exposed `94` authored and `128` runtime nodes, exact generated textures, active Roost/arc, readable objective/HUD, live Cinderpaw SpriteFrames, real `jump` frame `1`, and a real dash of about `129px`. It captured a non-empty `1278x718` generated-art gameplay frame, returned `current_run_errors=[]`, added no editor rows after cursor `3`, and stopped cleanly.
+- Parallel review: Three read-only design/art/QA agents completed bounded planning before shared-file implementation. The integrating agent owned scene/controller integration and all final focused, regression, smoke, visual, and MCP verification.
+- Blockers: None for Story142. Boss4 identity, arena, data, phases, music, reward, narrative, and ending remain out of scope until explicitly authored. The broader complete-game goal remains active.
+- Next: define Story143 as a bounded Deep Lift or deeper-Tower handoff that consumes `central_tower_cooling_shaft_traversed`, keeping Boss4 out of implementation until its complete contract exists.
+
+## Session Extract -- /dev-story 2026-07-12
+
+- Delivery checkpoint: Story140 remains pushed as `c7bb69be`; Story141-143 are complete verified local changes. No commit or push was performed for Story141-143 without a new repository-history instruction.
+- Story: `production/epics/player-abilities/story-143-central-tower-deep-lift-counterweight-ambush.md` -- Central Tower Deep Lift Counterweight Ambush.
+- Implementation: Expanded `area_05_central_tower` to `5120x720`. `CentralTowerDeepLiftController` owns the Story142 gate, real physics-synchronized lift, lower/upper shutters, Sentry lifecycle, attempt reset, durable clear, upper endpoint, objectives, feedback, and diagnostics. Entity `2703` has data-driven `44` HP and a `24/5/24`-frame, 12-damage counterweight ram through shared combat components.
+- Frame animation and assets: Image generation produced the fourth background, six transparent lift prop/VFX assets, and a strict `3x6` Sentry source. Eighteen transparent `96x96` frames provide three-frame `idle`, `run`, `attack_tell`, `attack`, `hurt`, and `death` animations through mandatory `AnimatedSprite2D + SpriteFrames` character/runtime scenes. Source, prompt, alpha, preview, spec, manifest, and inventory records are complete.
+- Runtime fix: MCP Run69 found that Story142 disabled its fall zone after traversal, so a pre-clear Deep Lift death could leave the player falling forever while returning from Cooling Roost. The fall zone now remains active after traversal while the electrical arc still disables; a focused post-traversal death/revive regression covers the route.
+- Verification: Expected RED `report_1516`; implementation diagnostic `report_1517`; final focused GREEN `report_1520` passed `3/3`; adjacent Story141-142 GREEN `report_1519` passed `6/6`; post-fix Story142-143 GREEN `report_1521` passed `6/6`; fresh closure regression `report_1522` again passed Story142-143 `6/6`; target smoke passed with `central_tower_deep_lift_counterweight_ambush_smoke=passed`. Godot AI MCP `2.9.1` / Godot `4.7-stable` Run73 used real `E`, movement, and `J` input, carried Cinderpaw from y `552` to `412`, damaged the live Sentry `44 -> 32`, inspected its exact SpriteFrames in `attack` frame `2`, captured the generated-art combat frame including `hurt`, returned `current_run_errors=[]`, added no editor rows after cursor `3`, and stopped cleanly.
+- Blockers: None for Story143. Boss4 and the upper-Tower continuation remain out of scope until an approved contract exists. The broader complete-game goal remains active.
+- Next: author the bounded upper-Tower continuation contract before Story144 implementation; do not infer Boss4 content from the current endpoint.
+
+## Session Extract -- /story-done 2026-07-12
+
+- Verdict: COMPLETE WITH NOTES.
+- Story: `production/epics/player-abilities/story-144-central-tower-apex-conduit-purge-run.md` -- Central Tower Apex Conduit Purge Run.
+- Implementation: Expanded `area_05_central_tower` to `6400x720` with a generated fifth background, Apex Roost, authored catwalk/magnetic-spine route, `0.75s` warning, deterministic `150px/s` purge wall, lethal fall, retry reset and durable Apex Approach endpoint. No Boss4, enemy, ability or reward was inferred.
+- Asset pipeline: Built-in image generation produced one opaque background and one strict keyed `3x2` source. Five selected cells became transparent Roost, spine, emitter, beacon and purge-wall runtime assets; source, prompt, alpha, spec, manifest and inventory records are retained.
+- Verification: RED `report_1523`; fresh focused GREEN `report_1528` passed `3/3`; fresh Story143-144 GREEN `report_1529` passed `6/6`; target smoke printed `central_tower_apex_conduit_purge_run_smoke=passed`. Focused coverage includes both purge-wall and bottom-fall lethal paths, 50% HP revive, 120 i-frames, exact abilities, endpoint and fresh restore.
+- MCP: Godot `4.7-stable` / MCP `2.9.1` Run74 proved live pursuit and complete route traversal, then exposed and triggered repair of a stale global-class cache. Final Run75 returned `current_run_errors=[]`, no new editor rows after cursor `8`, live Cinderpaw `AnimatedSprite2D`, generated assets and a non-empty `1278x718` screenshot; the run stopped cleanly.
+- Review: Integrator review found and closed the missing direct fall assertion. Two requested full-review agents failed before project access because the backend supplied unsupported effort `max`; no independent-agent approval is claimed.
+- Tech debt logged: None. Boss4 and any later upper-Tower continuation remain blocked on an authored contract. The broader complete-game goal remains active.
+- Next recommended: author the Boss4 approach/handoff or another bounded upper-Tower continuation contract before Story145 implementation.

@@ -1,0 +1,53 @@
+{
+  "story": 141,
+  "session_id": "cinderpaw@e40d",
+  "engine_version": "4.7-stable (official)",
+  "plugin_version": "2.9.1",
+  "server_version": "2.9.1",
+  "scene": "res://scenes/areas/central_tower_threshold.tscn",
+  "fixture": "res://tests/fixtures/gameplay/central_tower_inner_relay_mcp_probe.tscn",
+  "authored_node_count": 63,
+  "run_token": 65,
+  "run_id": "r431937210-65",
+  "current_run_errors": [],
+  "editor_log_cursor_before": 3,
+  "editor_log_cursor_after": 3,
+  "input": {
+    "action": "parry",
+    "pressed": true,
+    "player_x": 1800.0,
+    "pulse_before": "strike",
+    "pulse_visible_after": false
+  },
+  "mantis_runtime": {
+    "path": "/CentralTowerInnerRelayMcpProbe/CentralTowerThreshold/InnerRelayController/CentralTowerRelayMantis",
+    "visible": true,
+    "process_mode": 0,
+    "collision_layer": 2,
+    "collision_mask": 17,
+    "sprite_type": "AnimatedSprite2D",
+    "animation": "run",
+    "sprite_frames": "res://assets/characters/central_tower_relay_mantis/central_tower_relay_mantis_sprite_frames.tres",
+    "character_script": "res://src/characters/central_tower_relay_mantis.gd"
+  },
+  "animation_frames": {
+    "idle": 3,
+    "run": 3,
+    "attack_tell": 3,
+    "attack": 3,
+    "hurt": 3,
+    "death": 3
+  },
+  "screenshot": {
+    "path": "reports/visual/cinderpaw-mcp-central-tower-inner-relay-run65-20260712.png",
+    "width": 1278,
+    "height": 718,
+    "bytes": 1336565,
+    "sha256": "590e30a1d16cde2c530e7330108026becf237d693c53819ea9b457b5b607ab9b"
+  },
+  "game_log_lines": [
+    "[godot_ai game_helper] registered mcp capture (debugger active=true, logger=true)",
+    "DataManager: domain 'enemy_stats' loaded"
+  ],
+  "verdict": "pass"
+}

@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 133 stories tracked
+> **Stories**: 144 stories tracked
 
 ## Overview
 
@@ -178,6 +178,10 @@ recording the reward in progression state.
 | 138 | Neon Rooftops Relay Spire Savepoint Traverse | Integration + Gameplay Runtime + Traversal + Save/Respawn + Visual | Complete | ADR-0002/0004/0007/0018/0019/0021 |
 | 139 | Neon Rooftops Central Tower Parry-Laser Trial | Integration + Gameplay Runtime + Parry Timing + Visual | Complete | ADR-0001/0002/0004/0005/0007/0018/0019/0021 |
 | 140 | Central Tower Threshold Guard Handoff | Integration + Scene Management + Combat + Save/Respawn + Frame Animation | Complete | ADR-0001/0002/0003/0004/0005/0006/0007 |
+| 141 | Central Tower Inner Relay Skirmish | Integration + Gameplay Runtime + Combat + Frame Animation + Reward | Complete | ADR-0001/0002/0003/0004/0005/0006/0007 |
+| 142 | Central Tower Cooling Shaft Roost Traverse | Integration + Gameplay Runtime + Traversal + Save/Respawn + Visual | Complete | ADR-0001/0002/0004/0005/0007/0018/0019/0021 |
+| 143 | Central Tower Deep Lift Counterweight Ambush | Integration + Gameplay Runtime + Combat + Moving Platform + Frame Animation | Complete | ADR-0001/0002/0003/0004/0005/0006/0007/0019/0021 |
+| 144 | Central Tower Apex Conduit Purge Run | Integration + Gameplay Runtime + Traversal + Save/Respawn + Environmental Hazard + Visual | Complete | ADR-0001/0002/0003/0004/0005/0007/0018/0019/0021 |
 
 ## Definition of Done
 
@@ -197,8 +201,7 @@ This epic is complete when:
 
 ## Next Step
 
-Story140 is complete. The project now reaches a playable first Central Tower
-threshold room with bidirectional handoff, savepoint, ordinary guard combat, and
-durable clear. Author the next bounded Tower-interior contract before Story141;
-do not invent Boss4 combat until its identity, arena, data, reward, and encounter
-contract exist.
+Story144 is complete. The next Tower slice must first receive an authored
+Boss4 approach/handoff or other upper-Tower continuation contract; do not infer
+Boss4 identity, data, arena, reward, narrative, music, ending or scene handoff
+from the Apex Approach endpoint.

@@ -1,0 +1,101 @@
+{
+  "story": 143,
+  "session_id": "cinderpaw@e40d",
+  "engine_version": "4.7-stable (official)",
+  "plugin_version": "2.9.1",
+  "server_version": "2.9.1",
+  "scene": "res://scenes/areas/central_tower_threshold.tscn",
+  "fixture": "res://tests/fixtures/gameplay/central_tower_deep_lift_mcp_probe.tscn",
+  "global_class_count_before": 292,
+  "global_class_count_after": 295,
+  "run_token": 73,
+  "run_id": "r444160184-73",
+  "current_run_errors": [],
+  "recent_errors_may_predate_run": true,
+  "editor_log_cursor_before": 3,
+  "editor_log_cursor_after": 3,
+  "editor_new_lines": [],
+  "diagnostics": {
+    "scene_size_px": [5120, 720],
+    "route_unlocked": true,
+    "controller_script": "res://src/gameplay/central_tower_deep_lift_controller.gd",
+    "platform_start": [4380.0, 590.0],
+    "platform_mid": [4380.0, 450.0],
+    "platform_top": [4380.0, 290.0],
+    "player_y_before": 552.0,
+    "player_y_after": 412.0,
+    "player_platform_offset_y": -38.0,
+    "combat_player_position": [4416.333, 412.0],
+    "sentry_entity_id": 2703,
+    "sentry_config_id": "central_tower_counterweight_sentry",
+    "sentry_max_hp": 44,
+    "sentry_hp_after_player_attack": 32,
+    "endpoint_id": "central_tower_deep_lift_upper_endpoint",
+    "animation_frames": {
+      "idle": 3,
+      "run": 3,
+      "attack_tell": 3,
+      "attack": 3,
+      "hurt": 3,
+      "death": 3
+    }
+  },
+  "runtime_nodes": {
+    "sentry_sprite": {
+      "path": "/CentralTowerDeepLiftMcpProbe/CentralTowerThreshold/DeepLiftController/CentralTowerCounterweightSentry/Sprite",
+      "type": "AnimatedSprite2D",
+      "animation": "attack",
+      "frame": 2,
+      "sprite_frames": "res://assets/characters/central_tower_counterweight_sentry/central_tower_counterweight_sentry_sprite_frames.tres"
+    }
+  },
+  "real_input": {
+    "activation": {
+      "key": "E",
+      "platform_y_before": 590.0,
+      "platform_y_after": 450.0
+    },
+    "movement": {
+      "action": "move_right",
+      "player_x_after": 4416.333
+    },
+    "attack": {
+      "key": "J",
+      "sentry_hp_before": 44,
+      "sentry_hp_after": 32,
+      "damage": 12
+    }
+  },
+  "regression_fix": {
+    "discovered_in_run_token": 69,
+    "run_id": "r443274285-69",
+    "issue": "Story142 disabled the fall zone after traversal, causing a Cooling Roost return soft lock before Story143 clear",
+    "fix": "Keep the fall zone monitoring after traversal while keeping the electrical arc disabled",
+    "post_fix_report": "reports/report_1521/report_1/results.xml",
+    "post_fix_tests": 6,
+    "post_fix_failures": 0,
+    "fresh_closure_report": "reports/report_1522/results.xml",
+    "fresh_closure_tests": 6,
+    "fresh_closure_failures": 0
+  },
+  "game_log": {
+    "line_count": 7,
+    "helper_registered": true,
+    "enemy_stats_loaded": true,
+    "probe_ready": true,
+    "diagnostics_json_emitted": true,
+    "capture_animations": ["idle", "attack_tell", "hurt"],
+    "errors": [],
+    "warnings": []
+  },
+  "screenshot": {
+    "path": "reports/visual/cinderpaw-mcp-central-tower-deep-lift-run73-20260712.png",
+    "width": 1278,
+    "height": 718,
+    "bytes": 1296055,
+    "sha256": "d53351fa75f225db81fcdde14edb1afff5c0416f266cdd98704e5eee79ebd888"
+  },
+  "stopped_cleanly": true,
+  "editor_readiness_after": "ready",
+  "verdict": "pass"
+}

@@ -93,6 +93,58 @@
 				}
 			]
 		},
+		"central_tower_relay_mantis": {
+			"max_hp": 40,
+			"patrol_speed": 68,
+			"attack_patterns": [
+				{
+					"pattern_id": "relay_scythe_dash",
+					"startup_frames": 20,
+					"active_frames": 6,
+					"recovery_frames": 20,
+					"damage": 12,
+					"damage_type": "electric",
+					"lunge_speed": 210,
+					"attack_range_px": 128,
+					"hitbox_config": {
+						"hitbox_id": "central_tower_relay_mantis_scythe_dash",
+						"offset": {"x": 46, "y": -34},
+						"size": {"x": 72, "y": 44}
+					},
+					"vulnerability_window": {
+						"start_frame": 12,
+						"size_frames": 8
+					},
+					"base_weight": 1.0
+				}
+			]
+		},
+		"central_tower_counterweight_sentry": {
+			"max_hp": 44,
+			"patrol_speed": 56,
+			"attack_patterns": [
+				{
+					"pattern_id": "counterweight_ram",
+					"startup_frames": 24,
+					"active_frames": 5,
+					"recovery_frames": 24,
+					"damage": 12,
+					"damage_type": "physical",
+					"lunge_speed": 120,
+					"attack_range_px": 108,
+					"hitbox_config": {
+						"hitbox_id": "central_tower_counterweight_sentry_ram",
+						"offset": {"x": 44, "y": -32},
+						"size": {"x": 70, "y": 42}
+					},
+					"vulnerability_window": {
+						"start_frame": 15,
+						"size_frames": 9
+					},
+					"base_weight": 1.0
+				}
+			]
+		},
 		"boss_01_rat_king": {
 			"max_hp": 300,
 			"patrol_speed": 0,

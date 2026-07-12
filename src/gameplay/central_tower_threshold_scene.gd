@@ -1,4 +1,4 @@
-## Story140 destination: one bounded Central Tower threshold guard room.
+## Central Tower threshold, relay, shafts, Deep Lift, and Apex ACT route.
 class_name CentralTowerThresholdScene
 extends Node2D
 
@@ -19,9 +19,39 @@ const ROOST_TEXTURE_PATH: String = (
 	"res://assets/environment/central_tower/"
 	+ "prop_central_tower_threshold_roost_256x256.png"
 )
+const SERVICE_SPINE_BACKGROUND_PATH: String = (
+	"res://assets/environment/central_tower/"
+	+ "env_central_tower_service_spine_1280x720.png"
+)
+const COOLING_SHAFT_BACKGROUND_PATH: String = (
+	"res://assets/environment/central_tower/"
+	+ "env_central_tower_cooling_shaft_1280x720.png"
+)
+const DEEP_LIFT_BACKGROUND_PATH: String = (
+	"res://assets/environment/central_tower/"
+	+ "env_central_tower_deep_lift_1280x720.png"
+)
+const APEX_CONDUIT_BACKGROUND_PATH: String = (
+	"res://assets/environment/central_tower/"
+	+ "env_central_tower_apex_conduit_1280x720.png"
+)
+const COOLING_SHAFT_SPAWN_POINT: StringName = &"cooling_shaft_roost"
+const APEX_ROOST_SPAWN_POINT: StringName = &"apex_roost"
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 
 @onready var _background: Sprite2D = get_node_or_null("Background") as Sprite2D
+@onready var _service_spine_background: Sprite2D = (
+	get_node_or_null("ServiceSpineBackground") as Sprite2D
+)
+@onready var _cooling_shaft_background: Sprite2D = (
+	get_node_or_null("CoolingShaftBackground") as Sprite2D
+)
+@onready var _deep_lift_background: Sprite2D = (
+	get_node_or_null("DeepLiftBackground") as Sprite2D
+)
+@onready var _apex_conduit_background: Sprite2D = (
+	get_node_or_null("ApexConduitBackground") as Sprite2D
+)
 @onready var _arrival_spawn: Marker2D = (
 	get_node_or_null("NeonRooftopsThresholdArrival") as Marker2D
 )
@@ -41,6 +71,19 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _guard_controller: CentralTowerThresholdGuardController = (
 	get_node_or_null("ThresholdGuardController")
 	as CentralTowerThresholdGuardController
+)
+@onready var _inner_relay_controller: CentralTowerInnerRelayController = (
+	get_node_or_null("InnerRelayController") as CentralTowerInnerRelayController
+)
+@onready var _cooling_shaft_controller: CentralTowerCoolingShaftController = (
+	get_node_or_null("CoolingShaftController")
+	as CentralTowerCoolingShaftController
+)
+@onready var _deep_lift_controller: CentralTowerDeepLiftController = (
+	get_node_or_null("DeepLiftController") as CentralTowerDeepLiftController
+)
+@onready var _apex_purge_controller: CentralTowerApexPurgeController = (
+	get_node_or_null("ApexPurgeController") as CentralTowerApexPurgeController
 )
 @onready var _game_flow: GameFlowController = (
 	get_node_or_null("GameFlowController") as GameFlowController
@@ -63,6 +106,10 @@ func _ready() -> void:
 	_bind_player_combat_to_room()
 	_setup_player_hud()
 	_setup_guard_controller()
+	_setup_inner_relay_controller()
+	_setup_cooling_shaft_controller()
+	_setup_deep_lift_controller()
+	_setup_apex_purge_controller()
 	_setup_threshold_roost()
 	_setup_game_flow()
 	_sync_return_route()
@@ -79,12 +126,47 @@ func _process(delta: float) -> void:
 	_sync_return_prompt_visibility()
 	_refresh_objective_text()
 	_sync_objective_position()
-	if (
-		not _return_transition_requested
-		and Input.is_action_just_pressed(&"interact")
-		and _is_provider_near_return(_player)
-	):
-		try_request_neon_rooftops_return(_player)
+	if Input.is_action_just_pressed(&"interact"):
+		if (
+			_inner_relay_controller != null
+			and _inner_relay_controller.try_claim_cache(_player)
+		):
+			_refresh_objective_text()
+		elif (
+			_cooling_shaft_controller != null
+			and _cooling_shaft_controller.try_activate_roost(_player)
+		):
+			_refresh_objective_text()
+		elif (
+			_cooling_shaft_controller != null
+			and _cooling_shaft_controller.try_activate_endpoint(_player)
+		):
+			_refresh_objective_text()
+		elif (
+			_deep_lift_controller != null
+			and _deep_lift_controller.try_activate(_player)
+		):
+			_refresh_objective_text()
+		elif (
+			_deep_lift_controller != null
+			and _deep_lift_controller.try_activate_endpoint(_player)
+		):
+			_refresh_objective_text()
+		elif (
+			_apex_purge_controller != null
+			and _apex_purge_controller.try_activate_roost(_player)
+		):
+			_refresh_objective_text()
+		elif (
+			_apex_purge_controller != null
+			and _apex_purge_controller.try_activate_endpoint(_player)
+		):
+			_refresh_objective_text()
+		elif (
+			not _return_transition_requested
+			and _is_provider_near_return(_player)
+		):
+			try_request_neon_rooftops_return(_player)
 
 
 func configure_scene_manager_runtime(scene_manager: Object) -> bool:
@@ -140,6 +222,184 @@ func request_threshold_guard_attack() -> bool:
 	)
 
 
+## Starts Story141's inner relay after the Threshold Guard is durably clear.
+func try_activate_inner_relay(provider: Node = null) -> bool:
+	if _inner_relay_controller == null:
+		return false
+	_sync_inner_relay_prerequisite()
+	return _inner_relay_controller.try_activate(provider)
+
+
+## Advances Story141's relay timing deterministically for tests and probes.
+func advance_inner_relay_time(delta_sec: float) -> void:
+	if _inner_relay_controller != null:
+		_inner_relay_controller.advance_time(delta_sec)
+
+
+## Requests the Relay Mantis scythe dash for tests and MCP probes.
+func request_relay_mantis_attack() -> bool:
+	return (
+		_inner_relay_controller != null
+		and _inner_relay_controller.request_mantis_attack()
+	)
+
+
+## Attempts Story141's one-shot Service Spine cache claim.
+func try_claim_inner_relay_cache(provider: Node = null) -> bool:
+	if _inner_relay_controller == null:
+		return false
+	var claimed: bool = _inner_relay_controller.try_claim_cache(provider)
+	if claimed:
+		_refresh_objective_text()
+	return claimed
+
+
+## Configures Story142's local Roost autosave adapter.
+func configure_cooling_shaft_save_system_runtime(save_system: Object) -> bool:
+	return (
+		_cooling_shaft_controller != null
+		and _cooling_shaft_controller.configure_save_system_runtime(save_system)
+	)
+
+
+## Attempts Story142's one-shot Cooling Shaft Roost activation.
+func try_activate_cooling_shaft_roost(provider: Node = null) -> bool:
+	if _cooling_shaft_controller == null:
+		return false
+	_sync_cooling_shaft_prerequisite()
+	return _cooling_shaft_controller.try_activate_roost(provider)
+
+
+## Starts Story142's deterministic hazard loop at the gap lip.
+func try_activate_cooling_shaft(provider: Node = null) -> bool:
+	if _cooling_shaft_controller == null:
+		return false
+	_sync_cooling_shaft_prerequisite()
+	return _cooling_shaft_controller.try_activate(provider)
+
+
+## Advances Story142's arc timing deterministically for tests and probes.
+func advance_cooling_shaft_time(delta_sec: float) -> void:
+	if _cooling_shaft_controller != null:
+		_cooling_shaft_controller.advance_time(delta_sec)
+
+
+## Applies one active Cooling Shaft arc contact through the real player API.
+func apply_cooling_shaft_arc_contact(target: Node = null) -> bool:
+	return (
+		_cooling_shaft_controller != null
+		and _cooling_shaft_controller.apply_arc_contact(target)
+	)
+
+
+## Applies Story142's lethal fall through the shared death/respawn flow.
+func apply_cooling_shaft_fall(target: Node = null) -> bool:
+	return (
+		_cooling_shaft_controller != null
+		and _cooling_shaft_controller.apply_fall(target)
+	)
+
+
+## Records Story142's bounded Deep Lift endpoint exactly once.
+func try_activate_cooling_shaft_endpoint(provider: Node = null) -> bool:
+	return (
+		_cooling_shaft_controller != null
+		and _cooling_shaft_controller.try_activate_endpoint(provider)
+	)
+
+
+## Starts Story143's Deep Lift from its authored lower platform.
+func try_activate_deep_lift(provider: Node = null) -> bool:
+	if _deep_lift_controller == null:
+		return false
+	_sync_deep_lift_prerequisite()
+	return _deep_lift_controller.try_activate(provider)
+
+
+## Advances Story143's moving-platform phases deterministically.
+func advance_deep_lift_time(delta_sec: float) -> void:
+	if _deep_lift_controller != null:
+		_deep_lift_controller.advance_time(delta_sec)
+
+
+## Requests the Counterweight Sentry's readable ram attack.
+func request_counterweight_sentry_attack() -> bool:
+	return (
+		_deep_lift_controller != null
+		and _deep_lift_controller.request_sentry_attack()
+	)
+
+
+## Applies Story143's lethal shaft fall through the shared respawn flow.
+func apply_deep_lift_fall(target: Node = null) -> bool:
+	return (
+		_deep_lift_controller != null
+		and _deep_lift_controller.apply_fall(target)
+	)
+
+
+## Records Story143's upper-deck endpoint after the current ride docks.
+func try_activate_deep_lift_endpoint(provider: Node = null) -> bool:
+	return (
+		_deep_lift_controller != null
+		and _deep_lift_controller.try_activate_endpoint(provider)
+	)
+
+
+## Configures Story144's local Apex Roost autosave adapter.
+func configure_apex_save_system_runtime(save_system: Object) -> bool:
+	return (
+		_apex_purge_controller != null
+		and _apex_purge_controller.configure_save_system_runtime(save_system)
+	)
+
+
+## Attempts Story144's one-shot Apex Roost activation.
+func try_activate_apex_roost(provider: Node = null) -> bool:
+	if _apex_purge_controller == null:
+		return false
+	_sync_apex_purge_prerequisite()
+	return _apex_purge_controller.try_activate_roost(provider)
+
+
+## Starts Story144's warning and purge chase at the authored trigger line.
+func try_trigger_apex_purge(provider: Node = null) -> bool:
+	if _apex_purge_controller == null:
+		return false
+	_sync_apex_purge_prerequisite()
+	return _apex_purge_controller.try_trigger(provider)
+
+
+## Advances Story144's warning and purge motion deterministically.
+func advance_apex_purge_time(delta_sec: float) -> void:
+	if _apex_purge_controller != null:
+		_apex_purge_controller.advance_time(delta_sec)
+
+
+## Applies Story144's lethal moving-wall contact through the player API.
+func apply_apex_purge_contact(target: Node = null) -> bool:
+	return (
+		_apex_purge_controller != null
+		and _apex_purge_controller.apply_purge_contact(target)
+	)
+
+
+## Applies Story144's lethal bottom fall through shared respawn flow.
+func apply_apex_fall(target: Node = null) -> bool:
+	return (
+		_apex_purge_controller != null
+		and _apex_purge_controller.apply_fall(target)
+	)
+
+
+## Records Story144's bounded Apex Approach endpoint exactly once.
+func try_activate_apex_endpoint(provider: Node = null) -> bool:
+	return (
+		_apex_purge_controller != null
+		and _apex_purge_controller.try_activate_endpoint(provider)
+	)
+
+
 ## Advances the existing death delay and revive protection deterministically.
 func advance_central_tower_respawn_flow(delta_sec: float) -> void:
 	if _game_flow == null:
@@ -157,11 +417,30 @@ func apply_damage(
 	final_damage: int,
 	metadata: Dictionary = {}
 ) -> bool:
-	return (
+	if (
 		_guard_controller != null
 		and _guard_controller.handles_target_id(target_id)
-		and _guard_controller.apply_damage(target_id, final_damage, metadata)
-	)
+	):
+		return _guard_controller.apply_damage(target_id, final_damage, metadata)
+	if (
+		_inner_relay_controller != null
+		and _inner_relay_controller.handles_target_id(target_id)
+	):
+		return _inner_relay_controller.apply_damage(
+			target_id,
+			final_damage,
+			metadata
+		)
+	if (
+		_deep_lift_controller != null
+		and _deep_lift_controller.handles_target_id(target_id)
+	):
+		return _deep_lift_controller.apply_damage(
+			target_id,
+			final_damage,
+			metadata
+		)
+	return false
 
 
 ## Supplies deterministic player scratch damage through the shared combat chain.
@@ -248,6 +527,14 @@ func get_local_state() -> Dictionary:
 	}
 	if _guard_controller != null:
 		state.merge(_guard_controller.get_local_state(), true)
+	if _inner_relay_controller != null:
+		state.merge(_inner_relay_controller.get_local_state(), true)
+	if _cooling_shaft_controller != null:
+		state.merge(_cooling_shaft_controller.get_local_state(), true)
+	if _deep_lift_controller != null:
+		state.merge(_deep_lift_controller.get_local_state(), true)
+	if _apex_purge_controller != null:
+		state.merge(_apex_purge_controller.get_local_state(), true)
 	return state
 
 
@@ -267,6 +554,18 @@ func set_local_state(state: Dictionary) -> void:
 	_restore_player_unlocked_abilities(state)
 	if _guard_controller != null:
 		_guard_controller.set_local_state(state)
+	if _inner_relay_controller != null:
+		_inner_relay_controller.set_local_state(state)
+	_sync_inner_relay_prerequisite()
+	if _cooling_shaft_controller != null:
+		_cooling_shaft_controller.set_local_state(state)
+	_sync_cooling_shaft_prerequisite()
+	if _deep_lift_controller != null:
+		_deep_lift_controller.set_local_state(state)
+	_sync_deep_lift_prerequisite()
+	if _apex_purge_controller != null:
+		_apex_purge_controller.set_local_state(state)
+	_sync_apex_purge_prerequisite()
 	_return_transition_requested = false
 	_last_return_rejected_reason = &""
 	_last_return_request.clear()
@@ -274,6 +573,29 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_return_route()
 	_refresh_objective_text()
 	_apply_current_scene_manager_spawn_point()
+
+
+## Captures the JSON-safe Central Tower snapshot used by Roost autosave.
+func capture_save_snapshot() -> Dictionary:
+	return {
+		"player_state": {
+			"current_hp": int(_player.call("get_current_hp")) if (
+				_player != null and _player.has_method("get_current_hp")
+			) else 0,
+			"max_hp": int(_player.call("get_max_hp")) if (
+				_player != null and _player.has_method("get_max_hp")
+			) else 0,
+			"unlocked_abilities": _get_player_unlocked_ability_strings(),
+		},
+		"world_state": {
+			"scene_id": String(SCENE_ID),
+			"scene_states": {
+				String(SCENE_ID): get_local_state(),
+			},
+			"last_savepoint": get_last_discovered_savepoint(),
+		},
+		"settings": {},
+	}
 
 
 func capture_no_loss_state() -> Dictionary:
@@ -289,9 +611,98 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 			false
 		))
 	)
+	var inner_state: Dictionary = (
+		_inner_relay_controller.get_local_state()
+		if _inner_relay_controller != null
+		else {}
+	)
+	var mantis_cleared_after_snapshot: bool = bool(inner_state.get(
+		"central_tower_relay_mantis_defeated",
+		false
+	))
+	var cache_claimed_after_snapshot: bool = bool(inner_state.get(
+		"central_tower_inner_cache_claimed",
+		false
+	))
+	var cooling_state: Dictionary = (
+		_cooling_shaft_controller.get_local_state()
+		if _cooling_shaft_controller != null
+		else {}
+	)
+	var cooling_roost_after_snapshot: bool = bool(cooling_state.get(
+		"central_tower_cooling_shaft_roost_activated",
+		false
+	))
+	var cooling_activated_after_snapshot: bool = bool(cooling_state.get(
+		"central_tower_cooling_shaft_activated",
+		false
+	))
+	var cooling_traversed_after_snapshot: bool = bool(cooling_state.get(
+		"central_tower_cooling_shaft_traversed",
+		false
+	))
+	var deep_lift_state: Dictionary = (
+		_deep_lift_controller.get_local_state()
+		if _deep_lift_controller != null
+		else {}
+	)
+	var sentry_cleared_after_snapshot: bool = bool(deep_lift_state.get(
+		"central_tower_counterweight_sentry_defeated",
+		false
+	))
+	var deep_lift_ascended_after_snapshot: bool = bool(deep_lift_state.get(
+		"central_tower_deep_lift_ascended",
+		false
+	))
+	var apex_state: Dictionary = (
+		_apex_purge_controller.get_local_state()
+		if _apex_purge_controller != null
+		else {}
+	)
+	var apex_roost_after_snapshot: bool = bool(apex_state.get(
+		"central_tower_apex_roost_activated",
+		false
+	))
+	var apex_secured_after_snapshot: bool = bool(apex_state.get(
+		"central_tower_apex_approach_secured",
+		false
+	))
 	if cleared_after_snapshot:
 		restored_snapshot["central_tower_threshold_guard_activated"] = true
 		restored_snapshot["central_tower_threshold_guard_defeated"] = true
+	if mantis_cleared_after_snapshot:
+		restored_snapshot["central_tower_inner_relay_activated"] = true
+		restored_snapshot["central_tower_inner_relay_parried"] = true
+		restored_snapshot["central_tower_relay_mantis_activated"] = true
+		restored_snapshot["central_tower_relay_mantis_defeated"] = true
+	if cache_claimed_after_snapshot:
+		restored_snapshot["central_tower_inner_cache_claimed"] = true
+	if cooling_roost_after_snapshot:
+		restored_snapshot["central_tower_cooling_shaft_roost_activated"] = true
+		restored_snapshot["central_tower_cooling_shaft_last_savepoint"] = (
+			cooling_state.get(
+				"central_tower_cooling_shaft_last_savepoint",
+				{}
+			)
+		)
+	if cooling_activated_after_snapshot:
+		restored_snapshot["central_tower_cooling_shaft_activated"] = true
+	if cooling_traversed_after_snapshot:
+		restored_snapshot["central_tower_cooling_shaft_traversed"] = true
+	if sentry_cleared_after_snapshot:
+		restored_snapshot["central_tower_counterweight_sentry_defeated"] = true
+	if deep_lift_ascended_after_snapshot:
+		restored_snapshot["central_tower_counterweight_sentry_defeated"] = true
+		restored_snapshot["central_tower_deep_lift_ascended"] = true
+	if apex_roost_after_snapshot:
+		restored_snapshot["central_tower_apex_roost_activated"] = true
+		restored_snapshot["central_tower_apex_last_savepoint"] = apex_state.get(
+			"central_tower_apex_last_savepoint",
+			{}
+		)
+	if apex_secured_after_snapshot:
+		restored_snapshot["central_tower_apex_roost_activated"] = true
+		restored_snapshot["central_tower_apex_approach_secured"] = true
 	set_local_state(restored_snapshot)
 	if (
 		_guard_controller != null
@@ -301,10 +712,46 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 		))
 	):
 		_guard_controller.reset_failed_attempt()
+	if (
+		_inner_relay_controller != null
+		and not bool(_inner_relay_controller.get_local_state().get(
+			"central_tower_relay_mantis_defeated",
+			false
+		))
+	):
+		_inner_relay_controller.reset_failed_attempt()
+	if (
+		_deep_lift_controller != null
+		and not bool(_deep_lift_controller.get_local_state().get(
+			"central_tower_counterweight_sentry_defeated",
+			false
+		))
+	):
+		_deep_lift_controller.reset_failed_attempt()
+	if (
+		_apex_purge_controller != null
+		and not bool(_apex_purge_controller.get_local_state().get(
+			"central_tower_apex_approach_secured",
+			false
+		))
+	):
+		_apex_purge_controller.reset_failed_attempt()
 	_persist_progress()
 
 
 func get_last_discovered_savepoint() -> Dictionary:
+	if _apex_purge_controller != null:
+		var apex_savepoint: Dictionary = (
+			_apex_purge_controller.get_last_discovered_savepoint()
+		)
+		if not apex_savepoint.is_empty():
+			return apex_savepoint
+	if _cooling_shaft_controller != null:
+		var cooling_savepoint: Dictionary = (
+			_cooling_shaft_controller.get_last_discovered_savepoint()
+		)
+		if not cooling_savepoint.is_empty():
+			return cooling_savepoint
 	return _last_discovered_savepoint.duplicate(true)
 
 
@@ -319,13 +766,17 @@ func get_central_tower_threshold_diagnostics() -> Dictionary:
 	)
 	diagnostics.merge({
 		"scene_id": String(SCENE_ID),
-		"scene_size_px": Vector2i(1280, 720),
+		"scene_size_px": Vector2i(6400, 720),
 		"background_texture_path": _texture_path(_background),
 		"background_expected_path": BACKGROUND_TEXTURE_PATH,
+		"service_spine_background_texture_path": _texture_path(
+			_service_spine_background
+		),
+		"service_spine_background_expected_path": SERVICE_SPINE_BACKGROUND_PATH,
 		"threshold_roost_texture_path": _savepoint_texture_path(),
 		"threshold_roost_expected_path": ROOST_TEXTURE_PATH,
 		"threshold_roost_activated": _threshold_roost_activated,
-		"last_discovered_savepoint": _last_discovered_savepoint.duplicate(true),
+		"last_discovered_savepoint": get_last_discovered_savepoint(),
 		"arrival_spawn_position": (
 			_arrival_spawn.global_position
 			if _arrival_spawn != null
@@ -343,6 +794,107 @@ func get_central_tower_threshold_diagnostics() -> Dictionary:
 		"music_id": String(TOWER_MUSIC_ID),
 		"ambient_id": String(TOWER_AMBIENT_ID),
 		"audio_request_count": _audio_request_count,
+		"unlocked_abilities": _get_player_unlocked_ability_strings(),
+	}, true)
+	return diagnostics
+
+
+## Returns Story141's second-viewport diagnostics plus shared scene state.
+func get_central_tower_inner_relay_diagnostics() -> Dictionary:
+	var diagnostics: Dictionary = (
+		_inner_relay_controller.get_diagnostics()
+		if _inner_relay_controller != null
+		else {
+			"controller_present": false,
+			"encounter_state": "missing",
+		}
+	)
+	diagnostics.merge({
+		"scene_id": String(SCENE_ID),
+		"scene_size_px": Vector2i(6400, 720),
+		"background_texture_path": _texture_path(_service_spine_background),
+		"background_expected_path": SERVICE_SPINE_BACKGROUND_PATH,
+		"player_position": _player.global_position if _player != null else Vector2.ZERO,
+		"arrival_spawn_position": (
+			_arrival_spawn.global_position
+			if _arrival_spawn != null
+			else Vector2.ZERO
+		),
+		"threshold_roost_activated": _threshold_roost_activated,
+		"flow_state": String(_game_flow.get_flow_state()) if _game_flow != null else "",
+		"player_control_locked": _is_room_player_control_locked(),
+		"unlocked_abilities": _get_player_unlocked_ability_strings(),
+	}, true)
+	return diagnostics
+
+
+## Returns Story142's third-viewport diagnostics plus shared scene state.
+func get_central_tower_cooling_shaft_diagnostics() -> Dictionary:
+	var diagnostics: Dictionary = (
+		_cooling_shaft_controller.get_diagnostics()
+		if _cooling_shaft_controller != null
+		else {
+			"controller_present": false,
+			"hazard_phase": "missing",
+		}
+	)
+	diagnostics.merge({
+		"scene_id": String(SCENE_ID),
+		"scene_size_px": Vector2i(6400, 720),
+		"background_texture_path": _texture_path(_cooling_shaft_background),
+		"background_expected_path": COOLING_SHAFT_BACKGROUND_PATH,
+		"player_position": _player.global_position if _player != null else Vector2.ZERO,
+		"last_discovered_savepoint": get_last_discovered_savepoint(),
+		"flow_state": String(_game_flow.get_flow_state()) if _game_flow != null else "",
+		"player_control_locked": _is_room_player_control_locked(),
+		"unlocked_abilities": _get_player_unlocked_ability_strings(),
+	}, true)
+	return diagnostics
+
+
+## Returns Story143's fourth-viewport diagnostics plus shared scene state.
+func get_central_tower_deep_lift_diagnostics() -> Dictionary:
+	var diagnostics: Dictionary = (
+		_deep_lift_controller.get_diagnostics()
+		if _deep_lift_controller != null
+		else {
+			"controller_present": false,
+			"phase": "missing",
+		}
+	)
+	diagnostics.merge({
+		"scene_id": String(SCENE_ID),
+		"scene_size_px": Vector2i(6400, 720),
+		"background_texture_path": _texture_path(_deep_lift_background),
+		"background_expected_path": DEEP_LIFT_BACKGROUND_PATH,
+		"player_position": _player.global_position if _player != null else Vector2.ZERO,
+		"last_discovered_savepoint": get_last_discovered_savepoint(),
+		"flow_state": String(_game_flow.get_flow_state()) if _game_flow != null else "",
+		"player_control_locked": _is_room_player_control_locked(),
+		"unlocked_abilities": _get_player_unlocked_ability_strings(),
+	}, true)
+	return diagnostics
+
+
+## Returns Story144's fifth-viewport diagnostics plus shared scene state.
+func get_central_tower_apex_diagnostics() -> Dictionary:
+	var diagnostics: Dictionary = (
+		_apex_purge_controller.get_diagnostics()
+		if _apex_purge_controller != null
+		else {
+			"controller_present": false,
+			"phase": "missing",
+		}
+	)
+	diagnostics.merge({
+		"scene_id": String(SCENE_ID),
+		"scene_size_px": Vector2i(6400, 720),
+		"background_texture_path": _texture_path(_apex_conduit_background),
+		"background_expected_path": APEX_CONDUIT_BACKGROUND_PATH,
+		"player_position": _player.global_position if _player != null else Vector2.ZERO,
+		"last_discovered_savepoint": get_last_discovered_savepoint(),
+		"flow_state": String(_game_flow.get_flow_state()) if _game_flow != null else "",
+		"player_control_locked": _is_room_player_control_locked(),
 		"unlocked_abilities": _get_player_unlocked_ability_strings(),
 	}, true)
 	return diagnostics
@@ -393,10 +945,154 @@ func _setup_guard_controller() -> void:
 	):
 		_guard_controller.objective_changed.connect(_on_guard_objective_changed)
 	_guard_controller.configure_runtime(_player, self)
+	_sync_inner_relay_prerequisite()
 
 
 func _on_guard_objective_changed(_objective_text: String) -> void:
+	_sync_inner_relay_prerequisite()
 	_refresh_objective_text()
+
+
+func _setup_inner_relay_controller() -> void:
+	if _inner_relay_controller == null:
+		return
+	if not _inner_relay_controller.objective_changed.is_connected(
+		_on_inner_relay_objective_changed
+	):
+		_inner_relay_controller.objective_changed.connect(
+			_on_inner_relay_objective_changed
+		)
+	_inner_relay_controller.configure_runtime(_player, self)
+	_sync_inner_relay_prerequisite()
+
+
+func _on_inner_relay_objective_changed(_objective_text: String) -> void:
+	_sync_cooling_shaft_prerequisite()
+	_refresh_objective_text()
+
+
+func _sync_inner_relay_prerequisite() -> void:
+	if _inner_relay_controller == null:
+		return
+	_inner_relay_controller.set_threshold_cleared(
+		_is_threshold_guard_defeated()
+	)
+
+
+func _is_threshold_guard_defeated() -> bool:
+	return (
+		_guard_controller != null
+		and bool(_guard_controller.get_local_state().get(
+			"central_tower_threshold_guard_defeated",
+			false
+		))
+	)
+
+
+func _setup_cooling_shaft_controller() -> void:
+	if _cooling_shaft_controller == null:
+		return
+	if not _cooling_shaft_controller.objective_changed.is_connected(
+		_on_cooling_shaft_objective_changed
+	):
+		_cooling_shaft_controller.objective_changed.connect(
+			_on_cooling_shaft_objective_changed
+		)
+	_cooling_shaft_controller.configure_runtime(_player, self)
+	_sync_cooling_shaft_prerequisite()
+
+
+func _on_cooling_shaft_objective_changed(_objective_text: String) -> void:
+	_sync_deep_lift_prerequisite()
+	_refresh_objective_text()
+
+
+func _sync_cooling_shaft_prerequisite() -> void:
+	if _cooling_shaft_controller == null:
+		return
+	_cooling_shaft_controller.set_route_unlocked(
+		_is_relay_mantis_defeated()
+	)
+
+
+func _is_relay_mantis_defeated() -> bool:
+	return (
+		_inner_relay_controller != null
+		and bool(_inner_relay_controller.get_local_state().get(
+			"central_tower_relay_mantis_defeated",
+			false
+		))
+	)
+
+
+func _setup_deep_lift_controller() -> void:
+	if _deep_lift_controller == null:
+		return
+	if not _deep_lift_controller.objective_changed.is_connected(
+		_on_deep_lift_objective_changed
+	):
+		_deep_lift_controller.objective_changed.connect(
+			_on_deep_lift_objective_changed
+		)
+	_deep_lift_controller.configure_runtime(_player, self)
+	_sync_deep_lift_prerequisite()
+
+
+func _on_deep_lift_objective_changed(_objective_text: String) -> void:
+	_sync_apex_purge_prerequisite()
+	_refresh_objective_text()
+
+
+func _sync_deep_lift_prerequisite() -> void:
+	if _deep_lift_controller == null:
+		return
+	_deep_lift_controller.set_route_unlocked(
+		_is_cooling_shaft_traversed()
+	)
+
+
+func _is_cooling_shaft_traversed() -> bool:
+	return (
+		_cooling_shaft_controller != null
+		and bool(_cooling_shaft_controller.get_local_state().get(
+			"central_tower_cooling_shaft_traversed",
+			false
+		))
+	)
+
+
+func _setup_apex_purge_controller() -> void:
+	if _apex_purge_controller == null:
+		return
+	if not _apex_purge_controller.objective_changed.is_connected(
+		_on_apex_purge_objective_changed
+	):
+		_apex_purge_controller.objective_changed.connect(
+			_on_apex_purge_objective_changed
+		)
+	var save_system: Node = get_node_or_null("/root/SaveSystem")
+	_apex_purge_controller.configure_runtime(_player, self, save_system)
+	_sync_apex_purge_prerequisite()
+
+
+func _on_apex_purge_objective_changed(_objective_text: String) -> void:
+	_refresh_objective_text()
+
+
+func _sync_apex_purge_prerequisite() -> void:
+	if _apex_purge_controller == null:
+		return
+	_apex_purge_controller.set_route_unlocked(_is_deep_lift_ascended())
+
+
+func _is_deep_lift_ascended() -> bool:
+	return (
+		_deep_lift_controller != null
+		and bool(_deep_lift_controller.get_local_state().get(
+			"central_tower_deep_lift_ascended",
+			false
+		))
+	)
 
 
 func _setup_threshold_roost() -> void:
@@ -531,6 +1227,26 @@ func _refresh_objective_text() -> void:
 		return
 	if _return_transition_requested:
 		_objective_label.text = "Returning to Neon Rooftops"
+	elif (
+		_apex_purge_controller != null
+		and _apex_purge_controller.should_own_objective(_player)
+	):
+		_objective_label.text = _apex_purge_controller.get_objective_text()
+	elif (
+		_deep_lift_controller != null
+		and _deep_lift_controller.should_own_objective(_player)
+	):
+		_objective_label.text = _deep_lift_controller.get_objective_text()
+	elif (
+		_cooling_shaft_controller != null
+		and _cooling_shaft_controller.should_own_objective(_player)
+	):
+		_objective_label.text = _cooling_shaft_controller.get_objective_text()
+	elif (
+		_inner_relay_controller != null
+		and _inner_relay_controller.should_own_objective(_player)
+	):
+		_objective_label.text = _inner_relay_controller.get_objective_text()
 	elif _guard_controller != null:
 		_objective_label.text = _guard_controller.get_objective_text()
 	else:
@@ -579,6 +1295,16 @@ func _apply_current_scene_manager_spawn_point() -> void:
 		spawn_point = StringName(_scene_manager.call("get_current_spawn_point"))
 	if spawn_point in [ENTRY_SPAWN_POINT, &"default"]:
 		_align_player_to_arrival()
+	elif (
+		spawn_point == COOLING_SHAFT_SPAWN_POINT
+		and _cooling_shaft_controller != null
+	):
+		_cooling_shaft_controller.align_player_to_roost()
+	elif (
+		spawn_point == APEX_ROOST_SPAWN_POINT
+		and _apex_purge_controller != null
+	):
+		_apex_purge_controller.align_player_to_roost()
 
 
 func _build_threshold_roost_state() -> Dictionary:

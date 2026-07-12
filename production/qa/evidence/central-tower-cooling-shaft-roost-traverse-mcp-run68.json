@@ -1,0 +1,114 @@
+{
+  "story": 142,
+  "session_id": "cinderpaw@e40d",
+  "engine_version": "4.7-stable (official)",
+  "plugin_version": "2.9.1",
+  "server_version": "2.9.1",
+  "scene": "res://scenes/areas/central_tower_threshold.tscn",
+  "fixture": "res://tests/fixtures/gameplay/central_tower_cooling_shaft_mcp_probe.tscn",
+  "authored_node_count": 94,
+  "runtime_node_count": 128,
+  "global_class_cache_recovery": {
+    "failed_run_token": 66,
+    "cause": "live editor global class cache did not yet contain the new CentralTower classes",
+    "class_count_before": 288,
+    "reimported_scripts": [
+      "res://src/gameplay/central_tower_threshold_guard_controller.gd",
+      "res://src/gameplay/central_tower_inner_relay_controller.gd",
+      "res://src/gameplay/central_tower_cooling_shaft_controller.gd",
+      "res://src/gameplay/central_tower_threshold_scene.gd"
+    ],
+    "class_count_after": 292,
+    "exploratory_run_token": 67
+  },
+  "run_token": 68,
+  "run_id": "r436604459-68",
+  "current_run_errors": [],
+  "recent_errors_may_predate_run": true,
+  "editor_log_cursor_before": 3,
+  "editor_log_cursor_after": 3,
+  "editor_new_lines": [],
+  "diagnostics": {
+    "route_width_px": 3840,
+    "route_unlocked": true,
+    "roost_activated": true,
+    "activated": true,
+    "traversed": false,
+    "roost_id": "central_tower_cooling_shaft_roost",
+    "roost_scene_id": "area_05_central_tower",
+    "roost_spawn_point": "cooling_shaft_roost",
+    "hazard_id": "central_tower_cooling_shaft_arc",
+    "hazard_damage": 10,
+    "hazard_contact_cooldown_sec": 1.0,
+    "hazard_phase": "active",
+    "hazard_remaining_sec": 0.33,
+    "hazard_timing": {
+      "grace_sec": 0.75,
+      "warning_sec": 0.5,
+      "active_sec": 0.35,
+      "safe_sec": 0.7
+    },
+    "endpoint_id": "central_tower_cooling_shaft_endpoint",
+    "objective_text": "Cross Cooling Shaft",
+    "player_position": [3225.0, 402.0],
+    "last_savepoint_position": [2740.0, 552.0],
+    "unlocked_abilities": [
+      "aerial_attack",
+      "dash",
+      "double_jump",
+      "parry",
+      "wall_climb"
+    ]
+  },
+  "runtime_nodes": {
+    "roost": {
+      "path": "/CentralTowerCoolingShaftMcpProbe/CentralTowerThreshold/CoolingShaftController/CoolingShaftRoost",
+      "visible": true,
+      "texture": "res://assets/environment/central_tower/prop_central_tower_cooling_roost_256x256.png"
+    },
+    "arc_visual": {
+      "path": "/CentralTowerCoolingShaftMcpProbe/CentralTowerThreshold/CoolingShaftController/CoolingShaftArcHazard/Visual",
+      "visible": true,
+      "texture": "res://assets/environment/central_tower/vfx_central_tower_cooling_arc_512x160.png"
+    },
+    "endpoint": {
+      "path": "/CentralTowerCoolingShaftMcpProbe/CentralTowerThreshold/CoolingShaftController/CoolingShaftEndpoint",
+      "visible": true,
+      "texture": "res://assets/environment/central_tower/prop_central_tower_deep_lift_beacon_256x384.png"
+    },
+    "player_sprite": {
+      "path": "/CentralTowerCoolingShaftMcpProbe/CentralTowerThreshold/Player/Sprite",
+      "type": "AnimatedSprite2D",
+      "sprite_frames": "res://assets/characters/cinderpaw/cinderpaw_sprite_frames.tres"
+    }
+  },
+  "real_input": {
+    "jump": {
+      "action": "jump",
+      "animation": "jump",
+      "frame": 1
+    },
+    "dash": {
+      "action": "dash",
+      "player_x_before": 3225.0,
+      "player_x_after": 3353.924,
+      "distance_px": 128.924
+    }
+  },
+  "game_log": {
+    "line_count": 5,
+    "helper_registered": true,
+    "enemy_stats_loaded": true,
+    "probe_ready": true,
+    "diagnostics_json_emitted": true,
+    "capture_result": "res://reports/visual/cinderpaw-mcp-central-tower-cooling-shaft-run68-20260712.png:OK"
+  },
+  "screenshot": {
+    "path": "reports/visual/cinderpaw-mcp-central-tower-cooling-shaft-run68-20260712.png",
+    "width": 1278,
+    "height": 718,
+    "bytes": 1336522,
+    "sha256": "8eceae0dc68ff1d197830693650d7e2f66e118dcc95c9c0adbf90ae5c3d9a124"
+  },
+  "verdict": "pass"
+}

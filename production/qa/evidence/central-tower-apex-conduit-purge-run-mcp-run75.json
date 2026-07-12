@@ -1,0 +1,86 @@
+{
+  "story": 144,
+  "session_id": "cinderpaw@e40d",
+  "engine_version": "4.7-stable (official)",
+  "plugin_version": "2.9.1",
+  "server_version": "2.9.1",
+  "scene": "res://scenes/areas/central_tower_threshold.tscn",
+  "fixture": "res://tests/fixtures/gameplay/central_tower_apex_purge_mcp_probe.tscn",
+  "global_class_count_after": 296,
+  "authored_node_count": 159,
+  "runtime_node_count": 107,
+  "run_token": 75,
+  "run_id": "r452722296-75",
+  "current_run_errors": [],
+  "recent_errors_may_predate_run": true,
+  "editor_log_cursor_before": 8,
+  "editor_log_cursor_after": 8,
+  "editor_new_rows": [],
+  "diagnostics": {
+    "scene_size_px": [6400, 720],
+    "route_unlocked": true,
+    "controller_script": "res://src/gameplay/central_tower_apex_purge_controller.gd",
+    "roost_id": "central_tower_apex_roost",
+    "roost_spawn": [5260.0, 252.0],
+    "trigger_x": 5360.0,
+    "warning_delay_sec": 0.75,
+    "purge_start": [5200.0, 360.0],
+    "purge_speed_px_sec": 150.0,
+    "endpoint_id": "central_tower_apex_approach_endpoint",
+    "endpoint_position": [6280.0, 296.0]
+  },
+  "runtime_nodes": {
+    "player_sprite": {
+      "type": "AnimatedSprite2D",
+      "sprite_frames": "res://assets/characters/cinderpaw/cinderpaw_sprite_frames.tres"
+    },
+    "purge_wall_visual": {
+      "texture": "res://assets/environment/central_tower/vfx_central_tower_apex_purge_wall_192x640.png"
+    }
+  },
+  "real_input": {
+    "actions": ["move_right", "move_up", "dash"],
+    "warning_started": true,
+    "warning_capture_succeeded": true
+  },
+  "exploratory_route_proof": {
+    "run_token": 74,
+    "pursuit_player_position": [5743.925, 646.592],
+    "pursuit_purge_x": 5660.0,
+    "upper_route_player_position": [6319.775, 295.925],
+    "upper_route_purge_x": 6075.0,
+    "note": "Run74 proved live pursuit and route traversal, then exposed a stale editor global-class cache; Run75 is the final clean run after reimport and scan."
+  },
+  "game_log": {
+    "helper_registered": true,
+    "data_manager_loaded": true,
+    "probe_ready": true,
+    "diagnostics_emitted": true,
+    "capture_succeeded": true,
+    "errors": [],
+    "warnings": []
+  },
+  "fresh_closure": {
+    "focused_report": "reports/report_1528/report_1/results.xml",
+    "focused_tests": 3,
+    "focused_errors": 0,
+    "focused_failures": 0,
+    "related_report": "reports/report_1529/report_1/results.xml",
+    "related_tests": 6,
+    "related_errors": 0,
+    "related_failures": 0,
+    "target_smoke": "central_tower_apex_conduit_purge_run_smoke=passed"
+  },
+  "screenshot": {
+    "path": "reports/visual/cinderpaw-mcp-central-tower-apex-purge-run75-20260712.png",
+    "width": 1278,
+    "height": 718,
+    "bytes": 1418504,
+    "sha256": "faa1fc72fc01b46fcc1819cadc7e97c3251f8e0ead13a152ac0bf3c73c807c5f",
+    "entropy": 0.801807,
+    "unique_colors": 165480
+  },
+  "stopped_cleanly": true,
+  "editor_readiness_after": "ready",
+  "verdict": "pass"
+}
