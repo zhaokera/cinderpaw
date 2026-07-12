@@ -175,6 +175,8 @@ recording the reward in progression state.
 | 135 | Factory Hidden Altar Wall Climb Reward Traversal | Integration + Player Movement + Frame Animation Contract | Complete | ADR-0001/0002/0003/0005/0007/0018/0021 |
 | 136 | Neon Rooftops Magnetic Wall Gate Handoff | Integration + Ability Gate + Scene Handoff + Traversal + Visual | Complete | ADR-0001/0002/0003/0004/0007/0018/0021 |
 | 137 | Neon Rooftops Signal Rat Ambush | Integration + Gameplay Runtime + Frame Animation Contract + Reward | Complete | ADR-0001/0002/0003/0004/0005/0006/0007 |
+| 138 | Neon Rooftops Relay Spire Savepoint Traverse | Integration + Gameplay Runtime + Traversal + Save/Respawn + Visual | Complete | ADR-0002/0004/0007/0018/0019/0021 |
+| 139 | Neon Rooftops Central Tower Parry-Laser Trial | Integration + Gameplay Runtime + Parry Timing + Visual | Complete | ADR-0001/0002/0004/0005/0007/0018/0019/0021 |
 
 ## Definition of Done
 
@@ -194,6 +196,7 @@ This epic is complete when:
 
 ## Next Step
 
-Story137 is complete. Plan Story138 as a bounded post-Signal-Roof traversal or
-savepoint beat that reuses the completed encounter state. Do not invent Boss4
-combat until its configuration and encounter story exist.
+Story139 is complete. Plan Story140 as a bounded Central Tower threshold scene
+handoff only after the tower-interior contract is authored; otherwise continue
+with a player-visible rooftop branch. Do not invent Boss4 combat until its data
+and encounter contract exist.

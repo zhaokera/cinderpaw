@@ -159,7 +159,7 @@ func test_authored_expansion_data_and_frame_animation_contract() -> void:
 	var camera: Camera2D = scene.get_node_or_null("Player/Camera2D") as Camera2D
 	assert_that(camera).is_not_null()
 	if camera != null:
-		assert_int(camera.limit_right).is_equal(ROUTE_WIDTH_PX)
+		assert_int(camera.limit_right).is_greater_equal(ROUTE_WIDTH_PX)
 	assert_that(scene.get_node_or_null(ENCOUNTER_NODE_PATH)).is_not_null()
 	assert_that(scene.get_node_or_null(ENEMY_NODE_PATH)).is_not_null()
 	assert_that(scene.get_node_or_null(CACHE_NODE_PATH)).is_not_null()

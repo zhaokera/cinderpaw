@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3]
+[gd_scene load_steps=51 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/neon_rooftops_entry_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/env_neon_rooftops_entry_1280x720.png" id="2_background"]
@@ -14,12 +14,25 @@
 [ext_resource type="Script" path="res://src/feature/factory_combat_cache.gd" id="12_cache"]
 [ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_signal_seal_256x384.png" id="13_seal"]
 [ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_signal_cache_256x256.png" id="14_cache"]
+[ext_resource type="Script" path="res://src/gameplay/neon_relay_spire_controller.gd" id="15_relay_controller"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/env_neon_relay_spire_1280x720.png" id="16_relay_background"]
+[ext_resource type="Script" path="res://src/feature/savepoint_runtime.gd" id="17_savepoint"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_relay_spire_roost_256x256.png" id="18_roost"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_magnetic_relay_spire_256x512.png" id="19_spire"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_tower_approach_beacon_256x384.png" id="20_endpoint"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_deep_route/vfx/factory_deep_route_unlock_spark.png" id="21_save_vfx"]
+[ext_resource type="Script" path="res://src/gameplay/neon_tower_parry_trial_controller.gd" id="22_tower_trial_controller"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/env_neon_tower_parry_trial_1280x720.png" id="23_tower_trial_background"]
+[ext_resource type="Script" path="res://src/feature/exploration_gate.gd" id="24_exploration_gate"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_tower_laser_gate_384x512.png" id="25_tower_gate"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/vfx_neon_tower_laser_pulse_512x128.png" id="26_tower_pulse"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_tower_threshold_beacon_256x384.png" id="27_tower_endpoint"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lower_roof"]
 size = Vector2(858, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_full_width"]
-size = Vector2(2560, 48)
+size = Vector2(5120, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_boundary"]
 size = Vector2(40, 720)
@@ -48,6 +61,42 @@ size = Vector2(40, 340)
 [sub_resource type="CircleShape2D" id="CircleShape2D_cache"]
 radius = 96.0
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_relay_approach"]
+size = Vector2(440, 36)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_relay_perch_lower"]
+size = Vector2(160, 24)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_relay_spire_wall"]
+size = Vector2(40, 520)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_relay_perch_upper"]
+size = Vector2(220, 24)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_relay_exit"]
+size = Vector2(440, 36)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_relay_fall"]
+size = Vector2(600, 60)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_relay_roost"]
+radius = 104.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_relay_endpoint"]
+radius = 112.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tower_trial_floor"]
+size = Vector2(1280, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tower_trial_zone"]
+size = Vector2(720, 300)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tower_gate_collision"]
+size = Vector2(48, 420)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_tower_threshold"]
+radius = 112.0
+
 [node name="NeonRooftopsEntryScene" type="Node2D"]
 script = ExtResource("1_scene")
 metadata/scene_id = "area_05_neon_rooftops"
@@ -63,6 +112,18 @@ z_index = -100
 position = Vector2(1920, 360)
 texture_filter = 1
 texture = ExtResource("10_signal_background")
+
+[node name="RelaySpireBackground" type="Sprite2D" parent="."]
+z_index = -100
+position = Vector2(3200, 360)
+texture_filter = 1
+texture = ExtResource("16_relay_background")
+
+[node name="TowerParryBackground" type="Sprite2D" parent="."]
+z_index = -100
+position = Vector2(4480, 360)
+texture_filter = 1
+texture = ExtResource("23_tower_trial_background")
 
 [node name="LowerRoof" type="StaticBody2D" parent="."]
 position = Vector2(429, 580)
@@ -110,8 +171,66 @@ collision_mask = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SignalRoofArenaGround"]
 shape = SubResource("RectangleShape2D_arena_ground")
 
+[node name="RelaySpireApproachRoof" type="StaticBody2D" parent="."]
+position = Vector2(2780, 455)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RelaySpireApproachRoof"]
+shape = SubResource("RectangleShape2D_relay_approach")
+
+[node name="RelaySpireLowerPerch" type="StaticBody2D" parent="."]
+position = Vector2(3060, 348)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RelaySpireLowerPerch"]
+shape = SubResource("RectangleShape2D_relay_perch_lower")
+one_way_collision = true
+one_way_collision_margin = 4.0
+
+[node name="RelaySpireMagneticWall" type="StaticBody2D" parent="."]
+z_index = 12
+position = Vector2(3180, 380)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RelaySpireMagneticWall"]
+shape = SubResource("RectangleShape2D_relay_spire_wall")
+
+[node name="Visual" type="Sprite2D" parent="RelaySpireMagneticWall"]
+texture_filter = 1
+scale = Vector2(0.82, 0.96)
+texture = ExtResource("19_spire")
+
+[node name="RelaySpireUpperPerch" type="StaticBody2D" parent="."]
+position = Vector2(3260, 164)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RelaySpireUpperPerch"]
+shape = SubResource("RectangleShape2D_relay_perch_upper")
+one_way_collision = true
+one_way_collision_margin = 4.0
+
+[node name="RelaySpireExitRoof" type="StaticBody2D" parent="."]
+position = Vector2(3600, 455)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RelaySpireExitRoof"]
+shape = SubResource("RectangleShape2D_relay_exit")
+
+[node name="TowerParryTrialFloor" type="StaticBody2D" parent="."]
+position = Vector2(4480, 580)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TowerParryTrialFloor"]
+shape = SubResource("RectangleShape2D_tower_trial_floor")
+
 [node name="TopBoundary" type="StaticBody2D" parent="."]
-position = Vector2(1280, -24)
+position = Vector2(2560, -24)
 collision_layer = 16
 collision_mask = 0
 
@@ -127,7 +246,7 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_boundary")
 
 [node name="RightBoundary" type="StaticBody2D" parent="."]
-position = Vector2(2540, 360)
+position = Vector2(5100, 360)
 collision_layer = 16
 collision_mask = 0
 
@@ -240,6 +359,215 @@ theme_override_font_sizes/font_size = 20
 text = "+20 Gears"
 horizontal_alignment = 1
 
+[node name="RelaySpireController" type="Node2D" parent="."]
+script = ExtResource("15_relay_controller")
+
+[node name="AccessSeal" type="StaticBody2D" parent="RelaySpireController"]
+z_index = 16
+position = Vector2(2580, 410)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="RelaySpireController/AccessSeal"]
+texture_filter = 1
+scale = Vector2(0.52, 0.88)
+texture = ExtResource("13_seal")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RelaySpireController/AccessSeal"]
+shape = SubResource("RectangleShape2D_signal_seal")
+
+[node name="RelaySpireRoost" type="Node2D" parent="RelaySpireController"]
+visible = false
+z_index = 18
+position = Vector2(2760, 410)
+script = ExtResource("17_savepoint")
+savepoint_id = &"neon_rooftops_relay_spire_roost"
+scene_id = &"area_05_neon_rooftops"
+spawn_point = &"relay_spire_roost"
+display_name = "Relay Spire Roost"
+prompt_text = "Activate Relay Spire Roost"
+activation_vfx_texture = ExtResource("21_save_vfx")
+
+[node name="Visual" type="Sprite2D" parent="RelaySpireController/RelaySpireRoost"]
+position = Vector2(0, -64)
+texture_filter = 1
+scale = Vector2(0.64, 0.64)
+texture = ExtResource("18_roost")
+
+[node name="InteractionArea" type="Area2D" parent="RelaySpireController/RelaySpireRoost"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RelaySpireController/RelaySpireRoost/InteractionArea"]
+shape = SubResource("CircleShape2D_relay_roost")
+
+[node name="PromptLabel" type="Label" parent="RelaySpireController/RelaySpireRoost"]
+visible = false
+offset_left = -150.0
+offset_top = -190.0
+offset_right = 150.0
+offset_bottom = -156.0
+theme_override_colors/font_color = Color(1, 0.82, 0.36, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 19
+text = "Activate Relay Spire Roost"
+horizontal_alignment = 1
+
+[node name="RelaySpireRoostSpawn" type="Marker2D" parent="RelaySpireController"]
+position = Vector2(2760, 413)
+
+[node name="FallZone" type="Area2D" parent="RelaySpireController"]
+position = Vector2(3160, 690)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RelaySpireController/FallZone"]
+shape = SubResource("RectangleShape2D_relay_fall")
+
+[node name="TowerApproachEndpoint" type="Node2D" parent="RelaySpireController"]
+visible = false
+z_index = 18
+position = Vector2(3690, 410)
+
+[node name="Visual" type="Sprite2D" parent="RelaySpireController/TowerApproachEndpoint"]
+position = Vector2(0, -70)
+texture_filter = 1
+scale = Vector2(0.62, 0.62)
+texture = ExtResource("20_endpoint")
+
+[node name="InteractionArea" type="Area2D" parent="RelaySpireController/TowerApproachEndpoint"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RelaySpireController/TowerApproachEndpoint/InteractionArea"]
+shape = SubResource("CircleShape2D_relay_endpoint")
+
+[node name="PromptLabel" type="Label" parent="RelaySpireController/TowerApproachEndpoint"]
+visible = false
+offset_left = -170.0
+offset_top = -236.0
+offset_right = 170.0
+offset_bottom = -200.0
+theme_override_colors/font_color = Color(0.5, 0.94, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 19
+text = "Activate Relay Spire Roost"
+horizontal_alignment = 1
+
+[node name="TowerParryTrialController" type="Node2D" parent="."]
+script = ExtResource("22_tower_trial_controller")
+telegraph_duration_sec = 0.6
+strike_duration_sec = 0.18
+recovery_duration_sec = 0.55
+required_parries = 3
+miss_damage = 18
+
+[node name="AccessSeal" type="StaticBody2D" parent="TowerParryTrialController"]
+z_index = 16
+position = Vector2(3860, 410)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="TowerParryTrialController/AccessSeal"]
+texture_filter = 1
+scale = Vector2(0.52, 0.88)
+texture = ExtResource("13_seal")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TowerParryTrialController/AccessSeal"]
+shape = SubResource("RectangleShape2D_signal_seal")
+
+[node name="LaserEmitter" type="Node2D" parent="TowerParryTrialController"]
+position = Vector2(4320, 500)
+
+[node name="TrialZone" type="Area2D" parent="TowerParryTrialController"]
+position = Vector2(4440, 430)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TowerParryTrialController/TrialZone"]
+shape = SubResource("RectangleShape2D_tower_trial_zone")
+
+[node name="LaserPulseVisual" type="Sprite2D" parent="TowerParryTrialController"]
+visible = false
+z_index = 28
+position = Vector2(4480, 500)
+texture_filter = 1
+texture = ExtResource("26_tower_pulse")
+
+[node name="TowerLaserGate" type="Node2D" parent="TowerParryTrialController"]
+z_index = 18
+position = Vector2(4740, 324)
+script = ExtResource("24_exploration_gate")
+gate_id = "central_tower_outer_laser_net"
+required_ability = "parry"
+target_area_id = "area_05_central_tower"
+unlock_radius_px = 1.0
+prompt_radius_px = 420.0
+locked_prompt_text = "Secure Tower Approach"
+unlockable_prompt_text = "Reflect Tower Laser"
+
+[node name="Visual" type="Sprite2D" parent="TowerParryTrialController/TowerLaserGate"]
+texture_filter = 1
+texture = ExtResource("25_tower_gate")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="TowerParryTrialController/TowerLaserGate"]
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TowerParryTrialController/TowerLaserGate/StaticBody2D"]
+position = Vector2(0, 44)
+shape = SubResource("RectangleShape2D_tower_gate_collision")
+
+[node name="PromptLabel" type="Label" parent="TowerParryTrialController/TowerLaserGate"]
+visible = false
+offset_left = -190.0
+offset_top = -306.0
+offset_right = 190.0
+offset_bottom = -270.0
+theme_override_colors/font_color = Color(1, 0.82, 0.36, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 19
+text = "Reflect Tower Laser 0/3"
+horizontal_alignment = 1
+
+[node name="TowerThresholdEndpoint" type="Node2D" parent="TowerParryTrialController"]
+visible = false
+z_index = 18
+position = Vector2(4970, 410)
+
+[node name="Visual" type="Sprite2D" parent="TowerParryTrialController/TowerThresholdEndpoint"]
+position = Vector2(0, -70)
+texture_filter = 1
+scale = Vector2(0.66, 0.66)
+texture = ExtResource("27_tower_endpoint")
+
+[node name="InteractionArea" type="Area2D" parent="TowerParryTrialController/TowerThresholdEndpoint"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TowerParryTrialController/TowerThresholdEndpoint/InteractionArea"]
+shape = SubResource("CircleShape2D_tower_threshold")
+
+[node name="PromptLabel" type="Label" parent="TowerParryTrialController/TowerThresholdEndpoint"]
+visible = false
+offset_left = -180.0
+offset_top = -250.0
+offset_right = 180.0
+offset_bottom = -214.0
+theme_override_colors/font_color = Color(0.48, 0.96, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 19
+text = "Secure Central Tower Gate"
+horizontal_alignment = 1
+
 [node name="Player" parent="." instance=ExtResource("3_player")]
 z_index = 20
 position = Vector2(180, 520)
@@ -247,7 +575,7 @@ position = Vector2(180, 520)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 2560
+limit_right = 5120
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0

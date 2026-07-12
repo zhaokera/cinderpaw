@@ -77,13 +77,23 @@
     opens on defeat, grants one `+20 Gears` signal cache, and restores clear and
     claimed state without replaying feedback
     (`tests/smoke/neon_rooftops_signal_rat_ambush_smoke.gd`)
+22. The Neon Relay Spire route opens only after the signal cache claim,
+    activates and autosaves the generated roost once, revives a lethal fall at
+    50% HP, uses real wall-climb input to cross the magnetic spire, persists the
+    Tower Approach endpoint, and restores all rooftop state without replay
+    (`tests/smoke/neon_rooftops_relay_spire_savepoint_traverse_smoke.gd`)
+23. The Central Tower outer laser trial opens only after Story138 traversal,
+    routes a missed pulse through player damage and roost revive, accepts three
+    real strike-window parries, opens the generated ExplorationGate once,
+    secures the threshold, and restores state without replay
+    (`tests/smoke/neon_rooftops_central_tower_parry_laser_trial_smoke.gd`)
 
 ## Data Integrity
 
-22. Save game completes without error (once save system is implemented)
-23. Load game restores correct state (once load system is implemented)
+24. Save game completes without error (once save system is implemented)
+25. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-24. No visible frame rate drops on target hardware (60fps target)
-25. No memory growth over 5 minutes of play (once core loop is implemented)
+26. No visible frame rate drops on target hardware (60fps target)
+27. No memory growth over 5 minutes of play (once core loop is implemented)

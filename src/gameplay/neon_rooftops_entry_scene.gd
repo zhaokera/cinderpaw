@@ -64,6 +64,13 @@ const CONTACT_GLOW_TEXTURE_PATH: String = (
 	get_node_or_null("SignalRoofEncounter")
 	as NeonSignalRoofEncounterController
 )
+@onready var _relay_spire: NeonRelaySpireController = (
+	get_node_or_null("RelaySpireController") as NeonRelaySpireController
+)
+@onready var _tower_parry_trial: NeonTowerParryTrialController = (
+	get_node_or_null("TowerParryTrialController")
+	as NeonTowerParryTrialController
+)
 
 var _scene_manager: Object = null
 var _weapon_component: WeaponComponent = null
@@ -87,6 +94,8 @@ func _ready() -> void:
 	_setup_player_hud()
 	_setup_wall_climb_runtime()
 	_setup_signal_roof_encounter()
+	_setup_relay_spire()
+	_setup_tower_parry_trial()
 	_sync_return_route()
 	_refresh_objective_text()
 	_sync_objective_position()
@@ -118,6 +127,94 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 	_entry_arrived = true
 	_apply_current_scene_manager_spawn_point()
 	return true
+
+
+## Configures Story138 autosave through a SaveSystem-like adapter.
+func configure_neon_relay_spire_save_system_runtime(
+	save_system: Object
+) -> bool:
+	if _relay_spire == null:
+		return false
+	return _relay_spire.configure_save_system_runtime(save_system)
+
+
+## Attempts the nearby one-shot Story138 roost activation.
+func try_activate_neon_relay_spire_roost(provider: Node = null) -> bool:
+	if _relay_spire == null:
+		return false
+	return _relay_spire.try_activate_roost(provider)
+
+
+## Routes Story138's lethal gap through the dedicated controller.
+func apply_neon_relay_spire_fall(target: Node = null) -> bool:
+	if _relay_spire == null:
+		return false
+	return _relay_spire.apply_fall(target)
+
+
+## Advances Story138's deterministic death and revive timers.
+func advance_neon_relay_spire_respawn_flow(delta_sec: float) -> void:
+	if _relay_spire != null:
+		_relay_spire.advance_respawn_flow(delta_sec)
+
+
+## Attempts the far-side Story138 Tower Approach endpoint.
+func try_activate_neon_relay_spire_endpoint(
+	provider: Node = null
+) -> bool:
+	if _relay_spire == null:
+		return false
+	return _relay_spire.try_activate_endpoint(provider)
+
+
+## Attempts to start Story139's nearby Central Tower laser timing trial.
+func try_activate_central_tower_parry_trial(
+	provider: Node = null
+) -> bool:
+	if _tower_parry_trial == null:
+		return false
+	return _tower_parry_trial.try_activate(provider)
+
+
+## Advances Story139 pulse timing for focused tests and deterministic smoke.
+func advance_central_tower_parry_trial(delta_sec: float) -> void:
+	if _tower_parry_trial != null:
+		_tower_parry_trial.advance_time(delta_sec)
+
+
+## Attempts the one-shot Story139 Central Tower outer threshold endpoint.
+func try_activate_central_tower_threshold(
+	provider: Node = null
+) -> bool:
+	if _tower_parry_trial == null:
+		return false
+	return _tower_parry_trial.try_activate_threshold(provider)
+
+
+## Captures the JSON-safe rooftop snapshot used by roost autosave.
+func capture_save_snapshot() -> Dictionary:
+	var last_savepoint: Dictionary = {}
+	if _relay_spire != null:
+		last_savepoint = _relay_spire.get_last_discovered_savepoint()
+	return {
+		"player_state": {
+			"current_hp": int(_player.call("get_current_hp")) if (
+				_player != null and _player.has_method("get_current_hp")
+			) else 0,
+			"max_hp": int(_player.call("get_max_hp")) if (
+				_player != null and _player.has_method("get_max_hp")
+			) else 0,
+			"unlocked_abilities": _get_player_unlocked_ability_strings(),
+		},
+		"world_state": {
+			"scene_id": String(SCENE_ID),
+			"scene_states": {
+				String(SCENE_ID): get_local_state(),
+			},
+			"last_savepoint": last_savepoint,
+		},
+		"settings": {},
+	}
 
 
 ## Records the first high-roof arrival only for a Wall Climb-capable provider.
@@ -213,6 +310,24 @@ func get_last_signal_roof_player_hit() -> Dictionary:
 
 ## Persists the latest Story137 state when a SceneManager is available.
 func persist_signal_roof_progress() -> bool:
+	_sync_relay_spire_route()
+	_refresh_objective_text()
+	if not _is_valid_scene_manager(_scene_manager):
+		return true
+	return _persist_progress()
+
+
+## Persists the latest Story138 state when SceneManager is available.
+func persist_neon_relay_spire_progress() -> bool:
+	_sync_tower_parry_trial_route()
+	_refresh_objective_text()
+	if not _is_valid_scene_manager(_scene_manager):
+		return true
+	return _persist_progress()
+
+
+## Persists the latest Story139 trial and threshold progress.
+func persist_central_tower_parry_trial_progress() -> bool:
 	_refresh_objective_text()
 	if not _is_valid_scene_manager(_scene_manager):
 		return true
@@ -227,6 +342,36 @@ func get_signal_roof_diagnostics() -> Dictionary:
 			"controller_present": false,
 		}
 	return _signal_roof_encounter.get_diagnostics()
+
+
+## Returns the dedicated Story138 diagnostics surface.
+func get_neon_relay_spire_diagnostics() -> Dictionary:
+	if _relay_spire == null:
+		return {
+			"route_width_px": 3840,
+			"controller_present": false,
+		}
+	return _relay_spire.get_diagnostics()
+
+
+## Returns the dedicated Story139 diagnostics surface.
+func get_central_tower_parry_trial_diagnostics() -> Dictionary:
+	if _tower_parry_trial == null:
+		return {
+			"route_width_px": 5120,
+			"controller_present": false,
+		}
+	return _tower_parry_trial.get_diagnostics()
+
+
+## Captures durable rooftop progress across the no-loss death loop.
+func capture_no_loss_state() -> Dictionary:
+	return get_local_state()
+
+
+## Restores durable rooftop progress across the no-loss death loop.
+func restore_no_loss_state(snapshot: Dictionary) -> void:
+	set_local_state(snapshot)
 
 
 ## Returns to the permanent high-perch spawn in Factory Upper Altar.
@@ -277,6 +422,10 @@ func get_local_state() -> Dictionary:
 	}
 	if _signal_roof_encounter != null:
 		state.merge(_signal_roof_encounter.get_local_state(), true)
+	if _relay_spire != null:
+		state.merge(_relay_spire.get_local_state(), true)
+	if _tower_parry_trial != null:
+		state.merge(_tower_parry_trial.get_local_state(), true)
 	return state
 
 
@@ -293,6 +442,12 @@ func set_local_state(state: Dictionary) -> void:
 	if _signal_roof_encounter != null:
 		_signal_roof_encounter.set_route_unlocked(_entry_traversed)
 		_signal_roof_encounter.set_local_state(state)
+	if _relay_spire != null:
+		_relay_spire.set_route_unlocked(_is_signal_cache_claimed())
+		_relay_spire.set_local_state(state)
+	if _tower_parry_trial != null:
+		_tower_parry_trial.set_route_unlocked(_is_relay_spire_traversed())
+		_tower_parry_trial.set_local_state(state)
 	_entry_feedback_count = 0
 	_wall_contact_feedback_count = 0
 	_return_transition_requested = false
@@ -307,7 +462,7 @@ func set_local_state(state: Dictionary) -> void:
 func get_neon_rooftops_entry_diagnostics() -> Dictionary:
 	return {
 		"scene_id": String(SCENE_ID),
-		"scene_size_px": Vector2i(1280, 720),
+		"scene_size_px": Vector2i(5120, 720),
 		"background_texture_path": _get_texture_path(_background),
 		"background_expected_path": BACKGROUND_TEXTURE_PATH,
 		"magnetic_tower_texture_path": _get_texture_path(
@@ -405,6 +560,58 @@ func _setup_signal_roof_encounter() -> void:
 
 
 func _on_signal_roof_objective_changed(_objective_text: String) -> void:
+	_sync_relay_spire_route()
+	_refresh_objective_text()
+
+
+func _setup_relay_spire() -> void:
+	if _relay_spire == null:
+		return
+	if not _relay_spire.objective_changed.is_connected(
+		_on_relay_spire_objective_changed
+	):
+		_relay_spire.objective_changed.connect(
+			_on_relay_spire_objective_changed
+		)
+	_relay_spire.configure_runtime(
+		_player,
+		self,
+		get_node_or_null("/root/SaveSystem")
+	)
+	_sync_relay_spire_route()
+
+
+func _sync_relay_spire_route() -> void:
+	if _relay_spire != null:
+		_relay_spire.set_route_unlocked(_is_signal_cache_claimed())
+
+
+func _on_relay_spire_objective_changed(_objective_text: String) -> void:
+	_sync_tower_parry_trial_route()
+	_refresh_objective_text()
+
+
+func _setup_tower_parry_trial() -> void:
+	if _tower_parry_trial == null:
+		return
+	if not _tower_parry_trial.objective_changed.is_connected(
+		_on_tower_parry_trial_objective_changed
+	):
+		_tower_parry_trial.objective_changed.connect(
+			_on_tower_parry_trial_objective_changed
+		)
+	_tower_parry_trial.configure_runtime(_player, self)
+	_sync_tower_parry_trial_route()
+
+
+func _sync_tower_parry_trial_route() -> void:
+	if _tower_parry_trial != null:
+		_tower_parry_trial.set_route_unlocked(_is_relay_spire_traversed())
+
+
+func _on_tower_parry_trial_objective_changed(
+	_objective_text: String
+) -> void:
 	_refresh_objective_text()
 
 
@@ -506,6 +713,16 @@ func _refresh_objective_text() -> void:
 	if _return_transition_requested:
 		_objective_label.text = "Returning to Factory Altar"
 	elif (
+		_tower_parry_trial != null
+		and _tower_parry_trial.should_own_objective(_player)
+	):
+		_objective_label.text = _tower_parry_trial.get_objective_text()
+	elif (
+		_relay_spire != null
+		and _relay_spire.should_own_objective(_player)
+	):
+		_objective_label.text = _relay_spire.get_objective_text()
+	elif (
 		_signal_roof_encounter != null
 		and _signal_roof_encounter.should_own_objective(_player)
 	):
@@ -562,6 +779,26 @@ func _apply_current_scene_manager_spawn_point() -> void:
 		spawn_point = StringName(_scene_manager.call("get_current_spawn_point"))
 	if spawn_point in [ARRIVAL_SPAWN_POINT, &"default"]:
 		_align_player_to_arrival()
+	elif spawn_point == &"relay_spire_roost" and _relay_spire != null:
+		_relay_spire.align_player_to_roost()
+
+
+func _is_signal_cache_claimed() -> bool:
+	if _signal_roof_encounter == null:
+		return false
+	return bool(_signal_roof_encounter.get_local_state().get(
+		"neon_rooftops_signal_cache_claimed",
+		false
+	))
+
+
+func _is_relay_spire_traversed() -> bool:
+	if _relay_spire == null:
+		return false
+	return bool(_relay_spire.get_local_state().get(
+		"neon_rooftops_relay_spire_traversed",
+		false
+	))
 
 
 func _is_provider_near_proof(provider: Node) -> bool:
