@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3]
+[gd_scene load_steps=40 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/underground_passage_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/underground_passage/env_underground_passage_entry_1280x720.png" id="2_background"]
@@ -24,6 +24,8 @@
 [ext_resource type="PackedScene" path="res://src/gameplay/underground_cistern_stalker.tscn" id="22_cistern_stalker"]
 [ext_resource type="Script" path="res://src/gameplay/deep_cistern_ascender_route_controller.gd" id="23_ascender_controller"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_upper_altar/prop_deep_cistern_ascender_384x512.png" id="24_ascender_texture"]
+[ext_resource type="Script" path="res://src/presentation/combat_presentation.gd" id="25_combat_presentation"]
+[ext_resource type="Script" path="res://src/gameplay/hitstop_input_bridge.gd" id="26_hitstop_bridge"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(2560, 48)
@@ -175,6 +177,13 @@ limit_right = 5120
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
+
+[node name="CombatPresentation" type="Node2D" parent="."]
+script = ExtResource("25_combat_presentation")
+gameplay_freeze_enabled = true
+
+[node name="HitstopInputBridge" type="Node" parent="."]
+script = ExtResource("26_hitstop_bridge")
 
 [node name="FactoryReturnRoute" type="Node2D" parent="."]
 z_index = 24

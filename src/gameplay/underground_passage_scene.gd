@@ -89,6 +89,12 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 	get_node_or_null("DeepCisternAscenderRouteController")
 )
 @onready var _hud: HUDManager = get_node_or_null("HUD") as HUDManager
+@onready var _combat_presentation: CombatPresentation = (
+	get_node_or_null("CombatPresentation") as CombatPresentation
+)
+@onready var _hitstop_input_bridge: HitstopInputBridge = (
+	get_node_or_null("HitstopInputBridge") as HitstopInputBridge
+)
 
 var _scene_manager: Object = null
 var _weapon_component: WeaponComponent = null
@@ -105,6 +111,9 @@ var _corrosion_contact_cooldowns: Dictionary = {}
 var _hazard_accepted_contacts: int = 0
 var _last_hazard_damage: Dictionary = {}
 var _last_player_hit_metadata: Dictionary = {}
+var _last_enemy_hit_metadata: Dictionary = {}
+var _kill_feedback_emitted_by_entity: Dictionary = {}
+var _kill_feedback_count: int = 0
 var _last_reward: Dictionary = {}
 var _reward_audio_request_count: int = 0
 var _last_reward_audio_event: Dictionary = {}
@@ -121,6 +130,7 @@ func _ready() -> void:
 	_setup_recovery_cistern()
 	_setup_deep_cistern_ambush()
 	_setup_deep_cistern_ascender()
+	_setup_combat_presentation()
 	_sync_corrosion_slice_state()
 	_sync_return_route()
 	_request_underground_audio()
@@ -145,6 +155,7 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 	_scene_manager = scene_manager
 	if not _is_valid_scene_manager(_scene_manager):
 		return false
+	_setup_combat_presentation()
 	if (
 		_deep_cistern_ascender != null
 		and _deep_cistern_ascender.has_method(
@@ -311,7 +322,7 @@ func apply_damage(
 ## Supplies deterministic room damage through the shared CombatComponent adapter.
 func calculate_damage(
 	_attack_type: StringName,
-	_weapon_id: StringName,
+	weapon_id: StringName,
 	_hit_frame: int,
 	combo_index: int,
 	_parry_timing: int,
@@ -321,23 +332,90 @@ func calculate_damage(
 	_injected_damage_params: Dictionary = {},
 	_data_manager: Object = null
 ) -> Dictionary:
+	var final_damage: int = UNDERGROUND_PLAYER_LIGHT_DAMAGE
+	var damage_category: StringName = &"scratch"
+	if weapon_id == FactorySluiceLeech.SLUICE_LEECH_ATTACK_HITBOX_ID:
+		final_damage = FactorySluiceLeech.SLUICE_LEECH_BITE_DAMAGE
+		damage_category = &"bite"
 	return {
-		"final_damage": UNDERGROUND_PLAYER_LIGHT_DAMAGE,
-		"base_damage": UNDERGROUND_PLAYER_LIGHT_DAMAGE,
-		"attack_damage": float(UNDERGROUND_PLAYER_LIGHT_DAMAGE),
+		"final_damage": final_damage,
+		"base_damage": final_damage,
+		"attack_damage": float(final_damage),
 		"reduction_factor": 1.0,
 		"damage_multiplier": 1.0,
 		"is_crit": false,
 		"crit_type": &"none",
 		"parry_type": &"none",
 		"combo_stage": combo_index,
-		"damage_category": &"scratch",
+		"damage_category": damage_category,
 	}
 
 
 ## Returns the most recent player hit-confirm payload observed by this room.
 func get_last_player_hit_metadata() -> Dictionary:
 	return _last_player_hit_metadata.duplicate(true)
+
+
+## Returns the most recent applied Underground enemy attack payload.
+func get_last_enemy_hit_metadata() -> Dictionary:
+	return _last_enemy_hit_metadata.duplicate(true)
+
+
+## Returns the last action released from Underground hitstop.
+func get_last_buffered_input_result() -> Dictionary:
+	if _hitstop_input_bridge == null:
+		return {}
+	return _hitstop_input_bridge.get_last_buffered_input_result()
+
+
+## Returns focused runtime evidence for Underground combat impact.
+func get_underground_combat_presentation_diagnostics() -> Dictionary:
+	var bridge_diagnostics: Dictionary = {}
+	if _hitstop_input_bridge != null:
+		bridge_diagnostics = _hitstop_input_bridge.get_diagnostics()
+	var kill_feedback_entity_ids: Array = (
+		_kill_feedback_emitted_by_entity.keys()
+	)
+	kill_feedback_entity_ids.sort()
+	return {
+		"presentation_present": _combat_presentation != null,
+		"bridge_present": _hitstop_input_bridge != null,
+		"bridge": bridge_diagnostics,
+		"last_player_hit": _last_player_hit_metadata.duplicate(true),
+		"last_enemy_hit": _last_enemy_hit_metadata.duplicate(true),
+		"kill_feedback_count": _kill_feedback_count,
+		"kill_feedback_entity_ids": kill_feedback_entity_ids,
+		"hitstop_active": (
+			_combat_presentation.is_gameplay_hitstop_active()
+			if _combat_presentation != null
+			else false
+		),
+		"hitstop_frames_remaining": (
+			_combat_presentation.get_hitstop_frames_remaining()
+			if _combat_presentation != null
+			else 0
+		),
+		"last_completed_hitstop_frames": (
+			_combat_presentation.get_last_completed_hitstop_frames()
+			if _combat_presentation != null
+			else 0
+		),
+		"damage_number_count": (
+			_combat_presentation.get_active_damage_number_count()
+			if _combat_presentation != null
+			else 0
+		),
+		"spark_count": (
+			_combat_presentation.get_active_spark_count()
+			if _combat_presentation != null
+			else 0
+		),
+		"debris_count": (
+			_combat_presentation.get_active_debris_count()
+			if _combat_presentation != null
+			else 0
+		),
+	}
 
 
 ## Applies corrosive runoff damage with a deterministic per-target cooldown.
@@ -501,6 +579,9 @@ func set_local_state(state: Dictionary) -> void:
 	_hazard_accepted_contacts = 0
 	_last_hazard_damage.clear()
 	_last_player_hit_metadata.clear()
+	_last_enemy_hit_metadata.clear()
+	_kill_feedback_emitted_by_entity.clear()
+	_kill_feedback_count = 0
 	_last_reward.clear()
 	_corrosion_salvage_claimed = bool(state.get(
 		"underground_corrosion_salvage_claimed",
@@ -526,6 +607,10 @@ func set_local_state(state: Dictionary) -> void:
 	if _corrosion_channel_cleared:
 		_corrosion_left_defeated = true
 		_corrosion_right_defeated = true
+	if _corrosion_left_defeated:
+		_kill_feedback_emitted_by_entity[CORROSION_LEFT_ENTITY_ID] = true
+	if _corrosion_right_defeated:
+		_kill_feedback_emitted_by_entity[CORROSION_RIGHT_ENTITY_ID] = true
 	_corrosion_channel_activated = bool(state.get(
 		"underground_corrosion_channel_activated",
 		_corrosion_channel_cleared
@@ -540,6 +625,13 @@ func set_local_state(state: Dictionary) -> void:
 		and _deep_cistern_ambush.has_method("set_local_state")
 	):
 		_deep_cistern_ambush.call("set_local_state", state)
+	if bool(state.get(
+		"underground_deep_cistern_stalker_defeated",
+		false
+	)):
+		_kill_feedback_emitted_by_entity[
+			UndergroundDeepCisternAmbushController.STALKER_ENTITY_ID
+		] = true
 	if (
 		_deep_cistern_ascender != null
 		and _deep_cistern_ascender.has_method("set_local_state")
@@ -548,6 +640,7 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_corrosion_slice_state()
 	_setup_deep_cistern_ambush()
 	_setup_deep_cistern_ascender()
+	_setup_combat_presentation()
 	_sync_return_route()
 	_align_player_to_entry_spawn()
 
@@ -878,6 +971,8 @@ func _configure_corrosion_enemy(
 			entity_id,
 			summon_id
 		)
+	if enemy.has_method("set_damage_calculator_adapter"):
+		enemy.call("set_damage_calculator_adapter", self)
 	if enemy.has_signal("enemy_defeated"):
 		var defeated_signal: Signal = enemy.get("enemy_defeated")
 		if not defeated_signal.is_connected(defeated_callback):
@@ -1005,7 +1100,216 @@ func _process_factory_return_contact() -> void:
 
 
 func _on_player_attack_landed(metadata: Dictionary) -> void:
-	_last_player_hit_metadata = metadata.duplicate(true)
+	var presentation_data: Dictionary = metadata.duplicate(true)
+	if _hud != null and _hud.has_method("are_damage_numbers_enabled"):
+		presentation_data["show_damage_number"] = (
+			_hud.are_damage_numbers_enabled()
+		)
+	_last_player_hit_metadata = presentation_data.duplicate(true)
+	if _combat_presentation != null:
+		_combat_presentation.on_hit_event(presentation_data)
+	_dispatch_combat_audio(&"on_hit_event", presentation_data)
+	var target_id: int = int(presentation_data.get("target_id", -1))
+	if (
+		_is_underground_enemy_defeated(target_id)
+		and not _kill_feedback_emitted_by_entity.has(target_id)
+	):
+		_kill_feedback_emitted_by_entity[target_id] = true
+		_kill_feedback_count += 1
+		if _combat_presentation != null:
+			_combat_presentation.on_kill_event(
+				target_id,
+				_get_underground_enemy_impact_position(
+					target_id,
+					presentation_data
+				)
+			)
+
+
+func _setup_combat_presentation() -> void:
+	if _combat_presentation == null or _player == null:
+		return
+	if _camera != null:
+		_combat_presentation.set_camera(_camera)
+	if _hitstop_input_bridge != null:
+		_hitstop_input_bridge.configure(
+			_combat_presentation,
+			_player as PlayerController,
+			get_node_or_null("/root/InputManager")
+		)
+	if _player.has_method("get_combat_component"):
+		var player_combat: CombatComponent = _player.call(
+			"get_combat_component"
+		) as CombatComponent
+		if (
+			player_combat != null
+			and not player_combat.on_parry_resolved.is_connected(
+				_on_player_parry_resolved
+			)
+		):
+			player_combat.on_parry_resolved.connect(
+				_on_player_parry_resolved
+			)
+	_connect_enemy_presentation_signal(
+		_corrosion_leech_left,
+		_on_left_leech_attack_landed
+	)
+	_connect_enemy_presentation_signal(
+		_corrosion_leech_right,
+		_on_right_leech_attack_landed
+	)
+	var stalker: Node = get_node_or_null(
+		"DeepCisternAmbushController/CisternStalker"
+	)
+	_connect_enemy_presentation_signal(
+		stalker,
+		_on_cistern_stalker_attack_landed
+	)
+
+
+func _connect_enemy_presentation_signal(
+	enemy: Variant,
+	callback: Callable
+) -> void:
+	if not is_instance_valid(enemy):
+		return
+	var enemy_node: Node = enemy as Node
+	if enemy_node == null or not enemy_node.has_signal("enemy_attack_landed"):
+		return
+	var attack_signal: Signal = enemy_node.get("enemy_attack_landed")
+	if not attack_signal.is_connected(callback):
+		attack_signal.connect(callback)
+
+
+func _on_player_parry_resolved(parry_data: Dictionary) -> void:
+	if _combat_presentation == null or _player == null:
+		return
+	var presentation_data: Dictionary = parry_data.duplicate(true)
+	var parry_position: Vector2 = _player.global_position
+	var sprite: AnimatedSprite2D = _player.get_node_or_null(
+		"Sprite"
+	) as AnimatedSprite2D
+	if sprite != null:
+		parry_position = sprite.global_position
+		if sprite.sprite_frames != null:
+			var frame_texture: Texture2D = sprite.sprite_frames.get_frame_texture(
+				sprite.animation,
+				sprite.frame
+			)
+			if frame_texture != null:
+				presentation_data["texture"] = frame_texture
+			presentation_data["facing"] = -1.0 if sprite.flip_h else 1.0
+			presentation_data["animation"] = sprite.animation
+			presentation_data["frame"] = sprite.frame
+	if not presentation_data.has("position"):
+		presentation_data["position"] = parry_position
+	presentation_data["source"] = &"player_parry"
+	_combat_presentation.on_parry_event(presentation_data)
+	_dispatch_combat_audio(&"on_parry_event", presentation_data)
+
+
+func _on_left_leech_attack_landed(
+	damage: int,
+	hit_position: Vector2,
+	is_crit: bool
+) -> void:
+	_on_underground_enemy_attack_landed(
+		damage,
+		hit_position,
+		is_crit,
+		&"factory_sluice_leech"
+	)
+
+
+func _on_right_leech_attack_landed(
+	damage: int,
+	hit_position: Vector2,
+	is_crit: bool
+) -> void:
+	_on_underground_enemy_attack_landed(
+		damage,
+		hit_position,
+		is_crit,
+		&"factory_sluice_leech"
+	)
+
+
+func _on_cistern_stalker_attack_landed(
+	damage: int,
+	hit_position: Vector2,
+	is_crit: bool
+) -> void:
+	_on_underground_enemy_attack_landed(
+		damage,
+		hit_position,
+		is_crit,
+		&"underground_cistern_stalker"
+	)
+
+
+func _on_underground_enemy_attack_landed(
+	damage: int,
+	hit_position: Vector2,
+	is_crit: bool,
+	source: StringName
+) -> void:
+	_last_enemy_hit_metadata = {
+		"damage": damage,
+		"hit_position": hit_position,
+		"is_crit": is_crit,
+		"source": source,
+	}
+	if _hud != null and _hud.has_method("are_damage_numbers_enabled"):
+		_last_enemy_hit_metadata["show_damage_number"] = (
+			_hud.are_damage_numbers_enabled()
+		)
+	if _combat_presentation != null:
+		_combat_presentation.on_hit_event(_last_enemy_hit_metadata)
+	_dispatch_combat_audio(
+		&"on_damage_taken_event",
+		_last_enemy_hit_metadata
+	)
+
+
+func _is_underground_enemy_defeated(target_id: int) -> bool:
+	match target_id:
+		CORROSION_LEFT_ENTITY_ID:
+			return _corrosion_left_defeated
+		CORROSION_RIGHT_ENTITY_ID:
+			return _corrosion_right_defeated
+		UndergroundDeepCisternAmbushController.STALKER_ENTITY_ID:
+			return _is_deep_cistern_stalker_defeated()
+		_:
+			return false
+
+
+func _get_underground_enemy_impact_position(
+	target_id: int,
+	metadata: Dictionary
+) -> Vector2:
+	var hit_position: Variant = metadata.get("hit_position", null)
+	if hit_position is Vector2:
+		return hit_position as Vector2
+	var target: Node2D = null
+	match target_id:
+		CORROSION_LEFT_ENTITY_ID:
+			target = _corrosion_leech_left
+		CORROSION_RIGHT_ENTITY_ID:
+			target = _corrosion_leech_right
+		UndergroundDeepCisternAmbushController.STALKER_ENTITY_ID:
+			target = get_node_or_null(
+				"DeepCisternAmbushController/CisternStalker"
+			) as Node2D
+	return target.global_position if target != null else Vector2.ZERO
+
+
+func _dispatch_combat_audio(
+	method: StringName,
+	metadata: Dictionary
+) -> void:
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system != null and audio_system.has_method(method):
+		audio_system.call(method, metadata)
 
 
 func _on_player_health_changed(current_hp: int, max_hp: int) -> void:

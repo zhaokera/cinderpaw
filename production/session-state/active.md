@@ -6064,3 +6064,41 @@
   scenes, including Underground Passage, still need player-facing coverage.
   The complete-game goal remains active.
 - Blockers: None for Story026.
+
+## Session Extract -- Combat Presentation Story027 2026-07-15
+
+- Delivery checkpoint: Combat Presentation Story027 is complete for Underground
+  Passage as verified local work on top of uploaded Story026 commit `3baea7ce`;
+  report/tmp noise and the unrelated generated Story025 test UID remain excluded.
+- Story: `production/epics/combat-presentation/story-027-underground-passage-combat-impact.md`
+  -- Underground Passage Combat Impact.
+- Implementation: Mounted one shared `CombatPresentation` and
+  `HitstopInputBridge`; routed Cat Claw, both Sluice Leech, and Cistern Stalker
+  landed hits through scene presentation/audio; connected PERFECT parry frame
+  data; preserved one-shot lethal feedback; and made cached reentry ignore freed
+  enemy references. The existing Leech damage calculator adapter is now wired,
+  so its authored `11` damage lunge resolves through the real collision chain.
+- Verification: Initial RED `report_1804` had 14 expected failures across six
+  cases; initial GREEN `report_1808` passed `6/6`; review-hardening RED
+  `report_1814` reproduced missing parry feedback and a freed-instance runtime
+  error; final focused `report_1815` passed `7/7`; final corrosion/Stalker
+  related regression `report_1816` passed `6/6`. Final focused/related total is
+  `13/13`; full suite was not run.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`.
+  Both Leech lunge paths applied `11` damage with three-frame hitstop. PERFECT
+  parry used eight frames, 22 sparks, one flash and one gold afterimage with no
+  damage. Final run `r92976327-34` killed Stalker `12 -> 0` with six-frame
+  hitstop, six sparks, 18 debris and one kill event. Two `1278x718` screenshots
+  were non-empty; final game log had no error and stop restored editor `ready`.
+  Two unrelated Recovery Cistern shadow warnings remain documented.
+- Assets: No image/audio generation or import. Existing Cinderpaw, Leech,
+  Stalker, four-view Underground environment, HUD, audio and combat VFX were
+  sufficient; all visible characters remain multi-frame SpriteFrames.
+- Parallel review: Game design selected this as the smallest high-value ACT
+  gap; technical art confirmed no new assets were required and recorded later
+  character/environment polish debt; QA found the parry and freed-reference
+  lifecycle risks. The integrating agent owned implementation, tests, MCP and
+  documentation.
+- Scope: Combat Presentation remains In Progress because other independent
+  scenes still need coverage. The complete-game goal remains active.
+- Blockers: None for Story027.

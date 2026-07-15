@@ -45,6 +45,7 @@ var _spawned_nodes: Array[Node] = []
 
 
 func after_test() -> void:
+	get_tree().paused = false
 	_stop_runtime_audio_players()
 	for node: Node in _spawned_nodes:
 		if not is_instance_valid(node):
@@ -289,12 +290,24 @@ func test_player_hit_clear_and_fresh_restore_are_deterministic() -> void:
 	if player_collision == null or enemy_collision == null:
 		return
 	assert_bool(bool(player.call("request_attack"))).is_true()
+	var player_combat: CombatComponent = player.call(
+		"get_combat_component"
+	) as CombatComponent
+	assert_that(player_combat).is_not_null()
+	if player_combat == null:
+		return
+	var light_frame_data: Dictionary = player_combat.get_light_attack_frame_data(0)
+	player_combat.advance_attack_frames(int(light_frame_data.get(
+		"startup_frames",
+		0
+	)))
 	player_collision.process_detection_frame({
 		&"cat_claw_light": [enemy_collision.get_hurtbox()],
 	})
 	assert_bool(int(enemy.call("get_current_hp")) < hp_before).is_true()
 	var last_hit: Dictionary = scene.call("get_last_player_hit_metadata")
 	assert_int(int(last_hit.get("target_id", -1))).is_equal(STALKER_ENTITY_ID)
+	await _wait_for_scene_hitstop(scene)
 
 	assert_bool(bool(scene.call("apply_damage", STALKER_ENTITY_ID, 999, {
 		"source": &"story133_test_clear",
@@ -387,6 +400,14 @@ func _instantiate_scene(path: String) -> Node:
 	add_child(instance)
 	_spawned_nodes.append(instance)
 	return instance
+
+
+func _wait_for_scene_hitstop(scene: Node) -> void:
+	var presentation: CombatPresentation = scene.get_node_or_null(
+		"CombatPresentation"
+	) as CombatPresentation
+	while presentation != null and presentation.is_gameplay_hitstop_active():
+		await get_tree().process_frame
 
 
 func _assert_png_contract(
