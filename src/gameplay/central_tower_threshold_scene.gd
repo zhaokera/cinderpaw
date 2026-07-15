@@ -41,6 +41,11 @@ const APEX_CONDUIT_BACKGROUND_PATH: String = (
 const COOLING_SHAFT_SPAWN_POINT: StringName = &"cooling_shaft_roost"
 const APEX_ROOST_SPAWN_POINT: StringName = &"apex_roost"
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
+const PRESENTATION_ENEMY_PATHS: Array[NodePath] = [
+	NodePath("ThresholdGuardController/CentralTowerThresholdGuard"),
+	NodePath("InnerRelayController/CentralTowerRelayMantis"),
+	NodePath("DeepLiftController/CentralTowerCounterweightSentry"),
+]
 
 @onready var _background: Sprite2D = get_node_or_null("Background") as Sprite2D
 @onready var _service_spine_background: Sprite2D = (
@@ -97,6 +102,10 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _game_flow: GameFlowController = (
 	get_node_or_null("GameFlowController") as GameFlowController
 )
+@onready var _combat_presentation: CombatPresentation = (
+	get_node_or_null("CombatPresentation") as CombatPresentation
+)
+@onready var _hitstop_input_bridge = get_node_or_null("HitstopInputBridge")
 
 var _scene_manager: Object = null
 var _weapon_component: WeaponComponent = null
@@ -109,6 +118,7 @@ var _last_crown_warden_request: Dictionary = {}
 var _threshold_roost_activated: bool = false
 var _last_discovered_savepoint: Dictionary = {}
 var _last_player_hit_metadata: Dictionary = {}
+var _last_enemy_hit_metadata: Dictionary = {}
 var _audio_request_count: int = 0
 
 
@@ -122,6 +132,7 @@ func _ready() -> void:
 	_setup_cooling_shaft_controller()
 	_setup_deep_lift_controller()
 	_setup_apex_purge_controller()
+	_setup_combat_presentation()
 	_setup_threshold_roost()
 	_setup_game_flow()
 	_sync_return_route()
@@ -505,6 +516,16 @@ func get_last_player_hit_metadata() -> Dictionary:
 	return _last_player_hit_metadata.duplicate(true)
 
 
+func get_last_enemy_hit_metadata() -> Dictionary:
+	return _last_enemy_hit_metadata.duplicate(true)
+
+
+func get_last_buffered_input_result() -> Dictionary:
+	if _hitstop_input_bridge == null:
+		return {}
+	return _hitstop_input_bridge.get_last_buffered_input_result()
+
+
 ## Returns to the secured outer threshold in Neon Rooftops.
 func try_request_neon_rooftops_return(provider: Node = null) -> bool:
 	if _return_route == null or _return_transition_requested:
@@ -655,6 +676,7 @@ func set_local_state(state: Dictionary) -> void:
 	_last_crown_warden_rejected_reason = &""
 	_last_crown_warden_request.clear()
 	_last_player_hit_metadata.clear()
+	_last_enemy_hit_metadata.clear()
 	_sync_return_route()
 	_sync_crown_warden_route()
 	_refresh_objective_text()
@@ -1039,7 +1061,19 @@ func _bind_player_combat_to_room() -> void:
 		_player.call("set_weapon_component", _weapon_component)
 	if _weapon_component != null:
 		if _player.has_method("get_combat_component"):
-			_weapon_component.set_combat_adapter(_player.call("get_combat_component"))
+			var player_combat: CombatComponent = _player.call(
+				"get_combat_component"
+			)
+			_weapon_component.set_combat_adapter(player_combat)
+			if (
+				player_combat != null
+				and not player_combat.on_parry_resolved.is_connected(
+					_on_player_parry_resolved
+				)
+			):
+				player_combat.on_parry_resolved.connect(
+					_on_player_parry_resolved
+				)
 		if _player.has_method("get_collision_component"):
 			_weapon_component.set_collision_adapter(_player.call(
 				"get_collision_component"
@@ -1051,7 +1085,86 @@ func _bind_player_combat_to_room() -> void:
 
 
 func _on_player_attack_landed(metadata: Dictionary) -> void:
-	_last_player_hit_metadata = metadata.duplicate(true)
+	var presentation_data: Dictionary = metadata.duplicate(true)
+	if _hud != null and _hud.has_method("are_damage_numbers_enabled"):
+		presentation_data["show_damage_number"] = _hud.are_damage_numbers_enabled()
+	_last_player_hit_metadata = presentation_data.duplicate(true)
+	if _combat_presentation != null:
+		_combat_presentation.on_hit_event(presentation_data)
+	_dispatch_combat_audio(&"on_hit_event", presentation_data)
+
+
+func _setup_combat_presentation() -> void:
+	if _combat_presentation == null or _player == null:
+		return
+	if _camera != null:
+		_combat_presentation.set_camera(_camera)
+	if _hitstop_input_bridge != null:
+		_hitstop_input_bridge.configure(
+			_combat_presentation,
+			_player as PlayerController,
+			get_node_or_null("/root/InputManager")
+		)
+	for enemy_path: NodePath in PRESENTATION_ENEMY_PATHS:
+		var enemy: Node = get_node_or_null(enemy_path)
+		if enemy == null or not enemy.has_signal("enemy_attack_landed"):
+			continue
+		var attack_signal: Signal = enemy.get("enemy_attack_landed")
+		if not attack_signal.is_connected(_on_enemy_attack_landed):
+			attack_signal.connect(_on_enemy_attack_landed)
+
+
+func _on_enemy_attack_landed(
+	damage: int,
+	hit_position: Vector2,
+	is_crit: bool
+) -> void:
+	_last_enemy_hit_metadata = {
+		"damage": damage,
+		"hit_position": hit_position,
+		"is_crit": is_crit,
+		"source": &"central_tower_enemy",
+	}
+	if _hud != null and _hud.has_method("are_damage_numbers_enabled"):
+		_last_enemy_hit_metadata["show_damage_number"] = (
+			_hud.are_damage_numbers_enabled()
+		)
+	if _combat_presentation != null:
+		_combat_presentation.on_hit_event(_last_enemy_hit_metadata)
+	_dispatch_combat_audio(&"on_damage_taken_event", _last_enemy_hit_metadata)
+
+
+func _on_player_parry_resolved(parry_data: Dictionary) -> void:
+	if _combat_presentation == null or _player == null:
+		return
+	var presentation_data: Dictionary = parry_data.duplicate(true)
+	var parry_position: Vector2 = _player.global_position
+	var sprite: AnimatedSprite2D = _player.get_node_or_null(
+		"Sprite"
+	) as AnimatedSprite2D
+	if sprite != null:
+		parry_position = sprite.global_position
+		if sprite.sprite_frames != null:
+			var frame_texture: Texture2D = sprite.sprite_frames.get_frame_texture(
+				sprite.animation,
+				sprite.frame
+			)
+			if frame_texture != null:
+				presentation_data["texture"] = frame_texture
+		presentation_data["facing"] = -1.0 if sprite.flip_h else 1.0
+		presentation_data["animation"] = sprite.animation
+		presentation_data["frame"] = sprite.frame
+	if not presentation_data.has("position"):
+		presentation_data["position"] = parry_position
+	presentation_data["source"] = &"player_parry"
+	_combat_presentation.on_parry_event(presentation_data)
+	_dispatch_combat_audio(&"on_parry_event", presentation_data)
+
+
+func _dispatch_combat_audio(method: StringName, metadata: Dictionary) -> void:
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system != null and audio_system.has_method(method):
+		audio_system.call(method, metadata)
 
 
 func _setup_guard_controller() -> void:

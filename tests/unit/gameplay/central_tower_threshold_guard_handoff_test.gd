@@ -525,11 +525,25 @@ func test_guard_combat_respawn_clear_restore_and_rooftop_return() -> void:
 	assert_int(int(player.call("get_current_hp"))).is_equal(
 		hp_before - EXPECTED_GUARD_DAMAGE
 	)
+	var presentation: CombatPresentation = tower.get_node_or_null(
+		"CombatPresentation"
+	) as CombatPresentation
+	if presentation != null:
+		while presentation.is_gameplay_hitstop_active():
+			await get_tree().process_frame
+	var player_combat: CombatComponent = player.call(
+		"get_combat_component"
+	) as CombatComponent
+	assert_that(player_combat).is_not_null()
+	if player_combat == null:
+		return
+	player_combat.advance_hit_stun_frames(12)
 
 	var guard_hp_before: int = int(enemy.call("get_current_hp"))
 	player.global_position.y = 556.0
 	player.call("set_airborne", false)
 	assert_bool(bool(player.call("request_attack"))).is_true()
+	player_combat.advance_attack_frames(4)
 	player_collision.process_detection_frame({
 		&"cat_claw_light": [enemy_collision.get_hurtbox()],
 	})

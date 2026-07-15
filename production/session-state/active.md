@@ -5916,8 +5916,7 @@
 ## Session Extract -- Combat Presentation Story023 2026-07-15
 
 - Delivery checkpoint: Combat Presentation Story023 is complete for Sluice
-  Matriarch Arena as verified local work. Story020-022 were uploaded first in
-  commit `bae9aa59`; Story023 remains local and uncommitted.
+  Matriarch Arena and uploaded in commit `c027cb90`.
 - Story: `production/epics/combat-presentation/story-023-sluice-matriarch-real-hitstop-input-buffer.md`
   -- Sluice Matriarch Arena Real Hitstop + Input Buffer.
 - Implementation: Mounted one shared `CombatPresentation` and
@@ -5953,3 +5952,40 @@
   combat scenes still require the shared bridge. The complete-game goal remains
   active.
 - Blockers: None for Story023.
+
+## Session Extract -- Combat Presentation Story024 2026-07-15
+
+- Delivery checkpoint: Combat Presentation Story024 is complete for Central
+  Tower as verified local work. It follows uploaded Story023 commit `c027cb90`
+  and stays isolated from report/tmp noise.
+- Story: `production/epics/combat-presentation/story-024-central-tower-real-hitstop-input-buffer.md`
+  -- Central Tower Real Hitstop + Input Buffer.
+- Implementation: Mounted one shared `CombatPresentation` and
+  `HitstopInputBridge` in Central Tower, routed player and all three enemy
+  landed-hit signals through the scene owner, and made the shared RatMinion
+  enemy chain suppress ordinary presentation when Health rejects damage.
+  Player/Guard real damage, PERFECT parry, dodge/respawn i-frames, encounter
+  pacing, route state, rewards, and authored frame timing otherwise stay intact.
+- Verification: Initial RED `report_1774/report_1` had `2` expected failures;
+  focused GREEN `report_1779` passed `6/6`; final bounded related
+  `report_1787` passed `66/66` across nine suites; MCP warning-cleanup regression
+  `report_1788` passed `6/6`; fresh completion focused `report_1789` passed
+  `6/6` with exit `0`. No full suite or redundant broad rerun was used.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`.
+  Functional run `r81591668-24` verified Guard `48 -> 36`, Player `100 -> 86`,
+  exact three-frame hitstop, one buffered dispatch, respawn rejection, one
+  presentation/bridge, multi-frame Player/Guard/Mantis/Sentry animations, clean
+  logs and a non-empty `1278x718` screenshot. Final reload run `r82274190-25`
+  removed all editor warnings and stopped with readiness `ready`.
+- Assets: No image/audio generation or import. Existing generated Cinderpaw,
+  Central Tower enemy, environment, HUD, audio and VFX assets were reused.
+- Performance boundary: Final clean MCP sample was about `120 FPS` and `398`
+  draw calls. The route remains playable, but its existing draw-call cost is a
+  separate performance debt; Story024 does not claim that budget as passing.
+- Parallel review: Design, technical-art and QA read-only reviews selected the
+  Central Tower gap, confirmed existing assets were sufficient, and bounded
+  acceptance to real collision and shared-handler behavior. The integrating
+  agent owned edits, test correction, MCP acceptance and documentation.
+- Blockers: None for Story024. The broader complete-game goal remains active.
+- Next after this isolated checkpoint: select the next bounded player-visible
+  ACT gap without reopening the verified hitstop values.

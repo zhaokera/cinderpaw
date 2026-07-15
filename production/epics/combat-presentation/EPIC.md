@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 23 stories tracked
+> **Stories**: 24 stories tracked
 
 ## Overview
 
@@ -63,6 +63,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 021 | Main Scene Real Hitstop + Input Buffer | Feel/Runtime | Complete | ADR-0001, ADR-0002, ADR-0005 |
 | 022 | Reusable Hitstop Input Bridge + Crown Warden Arena | Integration/Feel | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005 |
 | 023 | Sluice Matriarch Arena Real Hitstop + Input Buffer | Integration/Feel | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005 |
+| 024 | Central Tower Real Hitstop + Input Buffer | Integration/Feel | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005 |
 
 ## Definition of Done
 
@@ -76,7 +77,7 @@ This epic is complete when:
 
 ## Completion Evidence
 
-Combat Presentation has all 23 tracked stories complete, but the Epic remains
+Combat Presentation has all 24 tracked stories complete, but the Epic remains
 In Progress until the Main-scene real hitstop/input handoff is extended to
 independent player-facing combat scenes. Story014 adds the
 first Rat King boss frame-animation asset slice so the MVP boss no longer exists
@@ -108,7 +109,12 @@ and suppresses ordinary feedback for rejected dodge damage. Main and Crown now
 share the same single-dispatch contract. Story023 applies that contract to
 Sluice Matriarch Arena in both real collision directions, preserves rejected
 dodge and dedicated PERFECT-parry behavior, and verifies all six existing Boss3
-animations as three-frame SpriteFrames. Other independently mounted
+animations as three-frame SpriteFrames. Story024 extends the same shared
+contract across Central Tower's Threshold Guard, Relay Mantis, and
+Counterweight Sentry encounters. It verifies real player/Guard damage in both
+directions, one buffered dispatch, dodge/respawn rejection, dedicated PERFECT
+parry, and existing three-frame character animation without changing encounter
+rules or adding assets. Other independently mounted
 player-facing combat scenes remain follow-up coverage before Epic completion.
 Evidence is recorded in
 `production/qa/evidence/rat-king-boss-frame-animation-2026-06-25.md` and
@@ -129,3 +135,5 @@ Story022 evidence is recorded in
 `production/qa/evidence/crown-warden-real-hitstop-input-buffer-2026-07-15.md`.
 Story023 evidence is recorded in
 `production/qa/evidence/sluice-matriarch-real-hitstop-input-buffer-2026-07-15.md`.
+Story024 evidence is recorded in
+`production/qa/evidence/central-tower-real-hitstop-input-buffer-2026-07-15.md`.

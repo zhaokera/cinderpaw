@@ -345,6 +345,21 @@ func test_miss_respawn_reset_and_death_window_clear_are_coherent() -> void:
 	assert_int(int(player.call("get_current_hp"))).is_equal(hp_before_miss - 8)
 	assert_int(int(missed.get("miss_count", 0))).is_equal(1)
 	assert_bool(bool(missed.get("relay_parried", true))).is_false()
+	var presentation: CombatPresentation = tower.get_node_or_null(
+		"CombatPresentation"
+	) as CombatPresentation
+	if presentation != null:
+		while presentation.is_gameplay_hitstop_active():
+			await get_tree().process_frame
+	var miss_combat: CombatComponent = player.call(
+		"get_combat_component"
+	) as CombatComponent
+	assert_that(miss_combat).is_not_null()
+	if miss_combat == null:
+		return
+	miss_combat.advance_hit_stun_frames(
+		CombatComponent.HIT_STUN_FRAMES_PER_STACK
+	)
 
 	tower.call("advance_inner_relay_time", 0.56)
 	tower.call("advance_inner_relay_time", 0.56)

@@ -20,5 +20,5 @@ Engine: Godot 4.7
 | scene-management | Feature | Scene Management | scene-management.md | 13 stories tracked | In Progress |
 | death-respawn | Feature | Death & Respawn | death-respawn.md | 8 stories | Complete |
 | hud-ui | Presentation | HUD/UI | hud-ui.md | 6 stories | Complete |
-| combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 23 stories tracked | In Progress |
+| combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 24 stories tracked | In Progress |
 | audio-system | Presentation | Audio System | audio-system.md | 10 stories tracked | In Progress |

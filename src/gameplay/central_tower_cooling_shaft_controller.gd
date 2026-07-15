@@ -739,13 +739,15 @@ func _clear_contact_spark() -> void:
 	_contact_spark_elapsed_sec = 0.0
 
 
-func _set_interaction_enabled(owner: Node, enabled: bool) -> void:
-	if owner == null:
+func _set_interaction_enabled(interaction_owner: Node, enabled: bool) -> void:
+	if interaction_owner == null:
 		return
-	var area: Area2D = owner.get_node_or_null("InteractionArea") as Area2D
+	var area: Area2D = interaction_owner.get_node_or_null(
+		"InteractionArea"
+	) as Area2D
 	if area != null:
 		_set_area_monitoring(area, enabled)
-	var shape: CollisionShape2D = owner.get_node_or_null(
+	var shape: CollisionShape2D = interaction_owner.get_node_or_null(
 		"InteractionArea/CollisionShape2D"
 	) as CollisionShape2D
 	if shape != null:
@@ -774,10 +776,12 @@ func _is_provider_near(
 	)
 
 
-func _get_child_sprite_texture_path(owner: Node, path: String) -> String:
-	if owner == null:
+func _get_child_sprite_texture_path(sprite_owner: Node, path: String) -> String:
+	if sprite_owner == null:
 		return ""
-	return _get_sprite_texture_path(owner.get_node_or_null(path) as Sprite2D)
+	return _get_sprite_texture_path(
+		sprite_owner.get_node_or_null(path) as Sprite2D
+	)
 
 
 func _get_sprite_texture_path(sprite: Sprite2D) -> String:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=75 format=3]
+[gd_scene load_steps=77 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/central_tower_threshold_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/central_tower/env_central_tower_threshold_1280x720.png" id="2_background"]
@@ -46,6 +46,8 @@
 [ext_resource type="Texture2D" path="res://assets/environment/central_tower/vfx_central_tower_apex_purge_wall_192x640.png" id="44_apex_purge"]
 [ext_resource type="Script" path="res://src/gameplay/central_tower_apex_purge_controller.gd" id="45_apex_controller"]
 [ext_resource type="Texture2D" path="res://assets/environment/central_tower/prop_central_tower_crown_gate_256x384.png" id="46_crown_gate"]
+[ext_resource type="Script" path="res://src/presentation/combat_presentation.gd" id="47_combat_presentation"]
+[ext_resource type="Script" path="res://src/gameplay/hitstop_input_bridge.gd" id="48_hitstop_bridge"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(2560, 48)
@@ -961,6 +963,13 @@ limit_right = 6400
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
+
+[node name="CombatPresentation" type="Node2D" parent="."]
+script = ExtResource("47_combat_presentation")
+gameplay_freeze_enabled = true
+
+[node name="HitstopInputBridge" type="Node" parent="."]
+script = ExtResource("48_hitstop_bridge")
 
 [node name="GameFlowController" type="Node" parent="."]
 script = ExtResource("12_game_flow")

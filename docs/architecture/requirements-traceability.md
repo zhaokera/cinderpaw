@@ -229,7 +229,7 @@
 
 | TR-ID | Requirement | ADR Coverage | Status |
 |-------|-------------|-------------|--------|
-| TR-combatfx-001~009 | 帧停/震屏/粒子/残影/伤害数字/闪白/性能/色盲/专注模式 | ADR-0001, ADR-0002, ADR-0004, ADR-0005, ADR-0016 | ⚠️ Stories 001-023 implement the tracked presentation slices. Story021 Main, Story022 Crown Warden, and [Story023 Sluice Matriarch](../../production/epics/combat-presentation/story-023-sluice-matriarch-real-hitstop-input-buffer.md) verify real hitstop/input integration; [Story023 evidence](../../production/qa/evidence/sluice-matriarch-real-hitstop-input-buffer-2026-07-15.md). Remaining independent combat scenes keep the Epic open. |
+| TR-combatfx-001~009 | 帧停/震屏/粒子/残影/伤害数字/闪白/性能/色盲/专注模式 | ADR-0001, ADR-0002, ADR-0004, ADR-0005, ADR-0016 | ⚠️ Stories 001-024 implement the tracked presentation slices. Story021 Main, Story022 Crown Warden, [Story023 Sluice Matriarch](../../production/epics/combat-presentation/story-023-sluice-matriarch-real-hitstop-input-buffer.md), and [Story024 Central Tower](../../production/epics/combat-presentation/story-024-central-tower-real-hitstop-input-buffer.md) verify real hitstop/input integration; [Story024 evidence](../../production/qa/evidence/central-tower-real-hitstop-input-buffer-2026-07-15.md). Remaining independent combat scenes keep the Epic open. |
 
 #### Audio System (audio-system.md) — ❌ No ADR (P2-#10 planned)
 

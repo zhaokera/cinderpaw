@@ -153,6 +153,7 @@ func test_factory_entrance_player_attack_damages_room_combat_object() -> void:
 	if player == null or enemy == null:
 		return
 	assert_bool(player.has_method("request_attack")).is_true()
+	assert_bool(player.has_method("get_combat_component")).is_true()
 	assert_bool(player.has_method("get_collision_component")).is_true()
 	assert_bool(enemy.has_method("get_collision_component")).is_true()
 	assert_bool(enemy.has_method("get_current_hp")).is_true()
@@ -160,6 +161,13 @@ func test_factory_entrance_player_attack_damages_room_combat_object() -> void:
 	var enemy_start_hp: int = int(enemy.call("get_current_hp"))
 	player.global_position = (enemy as Node2D).global_position + Vector2(-42, -26)
 	assert_bool(bool(player.call("request_attack"))).is_true()
+	var player_combat: CombatComponent = player.call(
+		"get_combat_component"
+	) as CombatComponent
+	assert_that(player_combat).is_not_null()
+	if player_combat == null:
+		return
+	player_combat.advance_attack_frames(4)
 	var player_collision: Node = player.call("get_collision_component") as Node
 	var enemy_collision: Node = enemy.call("get_collision_component") as Node
 	assert_that(player_collision).is_not_null()

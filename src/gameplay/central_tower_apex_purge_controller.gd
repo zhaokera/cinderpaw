@@ -661,17 +661,17 @@ func _request_savepoint_audio(
 
 func _request_purge_audio(event_id: StringName, sfx_id: StringName) -> void:
 	_audio_request_count += 1
-	var position: Vector2 = (
+	var audio_position: Vector2 = (
 		_purge_wall.global_position if _purge_wall != null else PURGE_START
 	)
 	_last_audio_event = {
 		"event_id": event_id,
 		"sfx_id": sfx_id,
-		"position": position,
+		"position": audio_position,
 	}
 	var audio_system: Node = get_node_or_null("/root/AudioSystem")
 	if audio_system != null and audio_system.has_method("play_sfx"):
-		audio_system.call("play_sfx", sfx_id, position, 0.0, 0.0, 90)
+		audio_system.call("play_sfx", sfx_id, audio_position, 0.0, 0.0, 90)
 
 
 func _persist_owner_state() -> void:
@@ -717,13 +717,15 @@ func _get_roost_vfx_snapshot() -> Dictionary:
 	return {}
 
 
-func _set_interaction_enabled(owner: Node, enabled: bool) -> void:
-	if owner == null:
+func _set_interaction_enabled(interaction_owner: Node, enabled: bool) -> void:
+	if interaction_owner == null:
 		return
-	var area: Area2D = owner.get_node_or_null("InteractionArea") as Area2D
+	var area: Area2D = interaction_owner.get_node_or_null(
+		"InteractionArea"
+	) as Area2D
 	if area != null:
 		_set_area_monitoring(area, enabled)
-	var shape: CollisionShape2D = owner.get_node_or_null(
+	var shape: CollisionShape2D = interaction_owner.get_node_or_null(
 		"InteractionArea/CollisionShape2D"
 	) as CollisionShape2D
 	if shape != null:
@@ -752,10 +754,12 @@ func _is_provider_near(
 	)
 
 
-func _get_child_sprite_texture_path(owner: Node, path: String) -> String:
-	if owner == null:
+func _get_child_sprite_texture_path(sprite_owner: Node, path: String) -> String:
+	if sprite_owner == null:
 		return ""
-	return _get_sprite_texture_path(owner.get_node_or_null(path) as Sprite2D)
+	return _get_sprite_texture_path(
+		sprite_owner.get_node_or_null(path) as Sprite2D
+	)
 
 
 func _get_sprite_texture_path(sprite: Sprite2D) -> String:
