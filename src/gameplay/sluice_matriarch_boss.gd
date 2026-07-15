@@ -454,9 +454,11 @@ func _on_core_attack_hit(metadata: Dictionary) -> void:
 	if not metadata.has("source"):
 		metadata["source"] = BOSS_ID
 	_last_enemy_attack_metadata = metadata.duplicate(true)
+	if not bool(metadata.get("damage_was_applied", true)):
+		return
 	var hit_position: Vector2 = metadata.get("hit_position", global_position)
 	enemy_attack_landed.emit(
-		int(metadata.get("final_damage", 0)),
+		int(metadata.get("damage_applied", metadata.get("final_damage", 0))),
 		hit_position,
 		bool(metadata.get("is_crit", false))
 	)

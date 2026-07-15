@@ -143,6 +143,9 @@ func test_pressure_lunge_phase_two_and_arena_defeat_restore_contract() -> void:
 		)
 		var boss_hp_before_player_hit: int = int(arena_boss.call("get_current_hp"))
 		assert_bool(bool(arena_player.call("request_attack"))).is_true()
+		var player_combat: CombatComponent = arena_player.call("get_combat_component")
+		player_combat.advance_attack_frames(4)
+		assert_bool(player_collision.is_hitbox_active(&"cat_claw_light")).is_true()
 		player_collision.process_detection_frame({
 			&"cat_claw_light": [boss_collision.get_hurtbox()],
 		})

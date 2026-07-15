@@ -5912,3 +5912,44 @@
 - Blockers: None for Story022. The broader complete-game goal remains active.
 - Next: select the next bounded player-visible ACT gap without reopening the
   verified Main/Crown hitstop values or single-dispatch contract.
+
+## Session Extract -- Combat Presentation Story023 2026-07-15
+
+- Delivery checkpoint: Combat Presentation Story023 is complete for Sluice
+  Matriarch Arena as verified local work. Story020-022 were uploaded first in
+  commit `bae9aa59`; Story023 remains local and uncommitted.
+- Story: `production/epics/combat-presentation/story-023-sluice-matriarch-real-hitstop-input-buffer.md`
+  -- Sluice Matriarch Arena Real Hitstop + Input Buffer.
+- Implementation: Mounted one shared `CombatPresentation` and
+  `HitstopInputBridge`, routed real player/Boss hits to presentation and audio,
+  suppressed ordinary feedback when Boss damage is rejected, and forwarded the
+  existing player parry event with current AnimatedSprite2D frame data. Boss3
+  phase, reward, route, damage, and timing rules remain unchanged.
+- Verification: Initial RED `report_1765`; initial GREEN `report_1767` passed
+  `3/3`; related fixture RED/GREEN `report_1768` and `report_1769`; PERFECT
+  parry RED/GREEN `report_1770` and `report_1771`; final bounded related
+  `report_1772` passed `50/50` across six suites; fresh completion focused
+  `report_1773/report_1` passed `4/4` with exit `0` and only the known GdUnit
+  exit cleanup notice. Godot 4.7 headless editor load exited `0`; no full suite
+  was run.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`,
+  final run `r74236222-21`. Real Cat Claw changed Boss HP `120 -> 108`, buffered
+  and dispatched one attack, and completed three hitstop frames. Real pressure
+  lunge changed Player HP `100 -> 84`, recorded actual damage `16`, and completed
+  the same freeze. Player and Boss AnimatedSprite2D nodes were visible; all six
+  Boss animations had three frames; two `1278x718` screenshots were non-empty;
+  final game/editor logs were clean.
+- Diagnostic note: An intermediate probe called `respawn_at()` and immediately
+  attacked into the authored `120` respawn i-frames. MCP confirmed
+  `iframe_remaining=120`; a clean vulnerable-state run then verified the real
+  Boss hit. No production respawn or damage rule was changed.
+- Assets: No image/audio generation or import. Existing Cinderpaw/Sluice
+  Matriarch SpriteFrames, arena environment, HUD and VFX were sufficient.
+- Parallel review: Design, technical-art and QA read-only reviews agreed on
+  bidirectional real collision, single dispatch, dodge rejection, PERFECT parry
+  preservation, and reuse of existing art. The integrating agent owned edits,
+  tests, runtime acceptance and documentation.
+- Scope: Combat Presentation remains In Progress because other independent
+  combat scenes still require the shared bridge. The complete-game goal remains
+  active.
+- Blockers: None for Story023.

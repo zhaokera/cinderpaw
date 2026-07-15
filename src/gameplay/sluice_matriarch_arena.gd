@@ -38,6 +38,10 @@ const BACKGROUND_TEXTURE_PATH: String = (
 @onready var _objective_label: Label = get_node_or_null("ArenaObjectiveLabel") as Label
 @onready var _boss: Node2D = get_node_or_null("SluiceMatriarchBoss") as Node2D
 @onready var _hud: HUDManager = get_node_or_null("HUD") as HUDManager
+@onready var _combat_presentation: CombatPresentation = (
+	get_node_or_null("CombatPresentation") as CombatPresentation
+)
+@onready var _hitstop_input_bridge = get_node_or_null("HitstopInputBridge")
 @onready var _aerial_attack_reward_source: Node = get_node_or_null(
 	"AerialAttackRewardSource"
 )
@@ -68,6 +72,7 @@ var _weapon_component: WeaponComponent = null
 func _ready() -> void:
 	_align_player_to_entry_spawn()
 	_setup_weapon_component()
+	_setup_hitstop_input_buffer()
 	_setup_boss3_combat()
 	_sync_boss3_combat_state()
 	_sync_aerial_attack_reward_payoff()
@@ -428,11 +433,21 @@ func _setup_boss3_combat() -> void:
 			_player.call("set_damage_calculator_adapter", self)
 		if _player.has_method("set_weapon_component"):
 			_player.call("set_weapon_component", _weapon_component)
-		if _weapon_component != null:
-			if _player.has_method("get_combat_component"):
-				_weapon_component.set_combat_adapter(
-					_player.call("get_combat_component")
-				)
+			if _weapon_component != null:
+				if _player.has_method("get_combat_component"):
+					var player_combat: CombatComponent = _player.call(
+						"get_combat_component"
+					)
+					_weapon_component.set_combat_adapter(player_combat)
+					if (
+						player_combat != null
+						and not player_combat.on_parry_resolved.is_connected(
+							_on_player_parry_resolved
+						)
+					):
+						player_combat.on_parry_resolved.connect(
+							_on_player_parry_resolved
+						)
 			if _player.has_method("get_collision_component"):
 				_weapon_component.set_collision_adapter(
 					_player.call("get_collision_component")
@@ -689,7 +704,13 @@ func _release_scene_lock() -> void:
 
 
 func _on_player_attack_landed(metadata: Dictionary) -> void:
-	_last_player_hit_metadata = metadata.duplicate(true)
+	var presentation_data: Dictionary = metadata.duplicate(true)
+	if _hud != null and _hud.has_method("are_damage_numbers_enabled"):
+		presentation_data["show_damage_number"] = _hud.are_damage_numbers_enabled()
+	_last_player_hit_metadata = presentation_data.duplicate(true)
+	if _combat_presentation != null:
+		_combat_presentation.on_hit_event(presentation_data)
+	_dispatch_combat_audio(&"on_hit_event", presentation_data)
 
 
 func _on_player_health_changed(current_hp: int, max_hp: int) -> void:
@@ -761,6 +782,64 @@ func _on_boss3_attack_landed(
 		"is_crit": is_crit,
 		"source": BOSS_ID,
 	}
+	if _hud != null and _hud.has_method("are_damage_numbers_enabled"):
+		_last_boss_attack_metadata["show_damage_number"] = (
+			_hud.are_damage_numbers_enabled()
+		)
+	if _combat_presentation != null:
+		_combat_presentation.on_hit_event(_last_boss_attack_metadata)
+	_dispatch_combat_audio(&"on_damage_taken_event", _last_boss_attack_metadata)
+
+
+func _setup_hitstop_input_buffer() -> void:
+	if _combat_presentation == null or _player == null:
+		return
+	var camera: Camera2D = _player.get_node_or_null("Camera2D") as Camera2D
+	if camera != null:
+		_combat_presentation.set_camera(camera)
+	if _hitstop_input_bridge != null:
+		_hitstop_input_bridge.configure(
+			_combat_presentation,
+			_player as PlayerController,
+			get_node_or_null("/root/InputManager")
+		)
+
+
+func get_last_buffered_input_result() -> Dictionary:
+	if _hitstop_input_bridge == null:
+		return {}
+	return _hitstop_input_bridge.get_last_buffered_input_result()
+
+
+func _dispatch_combat_audio(method: StringName, metadata: Dictionary) -> void:
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system != null and audio_system.has_method(method):
+		audio_system.call(method, metadata)
+
+
+func _on_player_parry_resolved(parry_data: Dictionary) -> void:
+	if _combat_presentation == null or _player == null:
+		return
+	var presentation_data: Dictionary = parry_data.duplicate(true)
+	var parry_position: Vector2 = _player.global_position
+	var sprite: AnimatedSprite2D = _player.get_node_or_null("Sprite") as AnimatedSprite2D
+	if sprite != null:
+		parry_position = sprite.global_position
+		if sprite.sprite_frames != null:
+			var frame_texture: Texture2D = sprite.sprite_frames.get_frame_texture(
+				sprite.animation,
+				sprite.frame
+			)
+			if frame_texture != null:
+				presentation_data["texture"] = frame_texture
+		presentation_data["facing"] = -1.0 if sprite.flip_h else 1.0
+		presentation_data["animation"] = sprite.animation
+		presentation_data["frame"] = sprite.frame
+	if not presentation_data.has("position"):
+		presentation_data["position"] = parry_position
+	presentation_data["source"] = &"player_parry"
+	_combat_presentation.on_parry_event(presentation_data)
+	_dispatch_combat_audio(&"on_parry_event", presentation_data)
 
 
 func _align_player_to_entry_spawn() -> bool:

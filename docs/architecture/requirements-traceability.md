@@ -1,6 +1,6 @@
 # Architecture Traceability Index
 
-> Last Updated: 2026-06-21
+> Last Updated: 2026-07-15
 > Engine: Godot 4.7
 > Source: /architecture-review 2026-06-21
 
@@ -225,11 +225,11 @@
 
 ### Presentation Layer
 
-#### Combat Presentation (combat-presentation.md) — ❌ No ADR
+#### Combat Presentation (combat-presentation.md) — ⚠️ Runtime integration in progress
 
 | TR-ID | Requirement | ADR Coverage | Status |
 |-------|-------------|-------------|--------|
-| TR-combatfx-001~009 | 帧停/震屏/粒子/残影/伤害数字/闪白/性能/色盲/专注模式 | — | ❌ 9 gaps |
+| TR-combatfx-001~009 | 帧停/震屏/粒子/残影/伤害数字/闪白/性能/色盲/专注模式 | ADR-0001, ADR-0002, ADR-0004, ADR-0005, ADR-0016 | ⚠️ Stories 001-023 implement the tracked presentation slices. Story021 Main, Story022 Crown Warden, and [Story023 Sluice Matriarch](../../production/epics/combat-presentation/story-023-sluice-matriarch-real-hitstop-input-buffer.md) verify real hitstop/input integration; [Story023 evidence](../../production/qa/evidence/sluice-matriarch-real-hitstop-input-buffer-2026-07-15.md). Remaining independent combat scenes keep the Epic open. |
 
 #### Audio System (audio-system.md) — ❌ No ADR (P2-#10 planned)
 
@@ -266,4 +266,5 @@
 ### Presentation Layer (P2 ADRs planned)
 - Audio: P2-#10 planned
 - HUD/UI: P2-#11 planned (HIGH priority — 4.6 dual focus)
-- Combat Presentation: add to planned ADRs
+- Combat Presentation: consolidate implemented Story coverage into a dedicated
+  Presentation ADR before closing the Epic
