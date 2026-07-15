@@ -59,6 +59,7 @@ var _spawned_nodes: Array[Node] = []
 
 
 func after_test() -> void:
+	get_tree().paused = false
 	_stop_runtime_audio_players()
 	for node: Node in _spawned_nodes:
 		if not is_instance_valid(node):
@@ -253,11 +254,24 @@ func test_story136_gate_tell_duplicate_damage_and_real_player_hit() -> void:
 	assert_int(int(player.call("get_current_hp"))).is_equal(
 		hp_before - ATTACK_DAMAGE
 	)
+	await _wait_for_scene_hitstop(scene)
+	await _wait_for_player_combat_idle(player)
 
 	player.global_position.y = 556.0
 	player.call("set_airborne", false)
 	var enemy_hp_before: int = int(enemy.call("get_current_hp"))
 	assert_bool(bool(player.call("request_attack"))).is_true()
+	var player_combat: CombatComponent = player.call(
+		"get_combat_component"
+	) as CombatComponent
+	assert_that(player_combat).is_not_null()
+	if player_combat == null:
+		return
+	var light_frame_data: Dictionary = player_combat.get_light_attack_frame_data(0)
+	player_combat.advance_attack_frames(int(light_frame_data.get(
+		"startup_frames",
+		0
+	)))
 	assert_bool(player_collision.is_hitbox_active(
 		&"cat_claw_light"
 	)).is_true()
@@ -269,6 +283,25 @@ func test_story136_gate_tell_duplicate_damage_and_real_player_hit() -> void:
 	assert_int(int(last_hit.get("target_id", -1))).is_equal(
 		SIGNAL_RAT_ENTITY_ID
 	)
+
+
+func _wait_for_scene_hitstop(scene: Node) -> void:
+	var presentation: CombatPresentation = scene.get_node_or_null(
+		"CombatPresentation"
+	) as CombatPresentation
+	while presentation != null and presentation.is_gameplay_hitstop_active():
+		await get_tree().process_frame
+
+
+func _wait_for_player_combat_idle(player: Node2D) -> void:
+	var combat: CombatComponent = player.call(
+		"get_combat_component"
+	) as CombatComponent
+	while (
+		combat != null
+		and combat.get_current_state() != CombatComponent.CombatState.IDLE
+	):
+		await get_tree().physics_frame
 
 
 func test_defeat_cache_claim_and_fresh_restore_are_deterministic() -> void:

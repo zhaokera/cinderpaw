@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 25 stories tracked
+> **Stories**: 26 stories tracked
 
 ## Overview
 
@@ -65,6 +65,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 023 | Sluice Matriarch Arena Real Hitstop + Input Buffer | Integration/Feel | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005 |
 | 024 | Central Tower Real Hitstop + Input Buffer | Integration/Feel | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005 |
 | 025 | Crown Warden Victory Death Presentation Hold | Integration/Visual | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005 |
+| 026 | Neon Rooftops Combat Impact | Integration/Feel | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005 |
 
 ## Definition of Done
 
@@ -78,7 +79,7 @@ This epic is complete when:
 
 ## Completion Evidence
 
-Combat Presentation has all 25 tracked stories complete, but the Epic remains
+Combat Presentation has all 26 tracked stories complete, but the Epic remains
 In Progress until the Main-scene real hitstop/input handoff is extended to
 independent player-facing combat scenes. Story014 adds the
 first Rat King boss frame-animation asset slice so the MVP boss no longer exists
@@ -118,7 +119,11 @@ parry, and existing three-frame character animation without changing encounter
 rules or adding assets. Story025 keeps Crown Warden's existing three-frame
 death animation visible for `2.0s`, commits durable defeat immediately, holds
 player/room/scene locks through the kill feedback, and delays Wall Climb reward
-and return-route release without replaying transient state on load. Other independently mounted
+and return-route release without replaying transient state on load. Story026
+extends the shared runtime contract to Neon Rooftops: real Cat Claw and Signal
+Rat hits, lethal feedback, Tower laser PERFECT parry, one buffered dispatch,
+and cached-scene bridge reconnection all use the scene-mounted presentation
+owner without changing encounter rules or assets. Other independently mounted
 player-facing combat scenes remain follow-up coverage before Epic completion.
 Evidence is recorded in
 `production/qa/evidence/rat-king-boss-frame-animation-2026-06-25.md` and
@@ -143,3 +148,5 @@ Story024 evidence is recorded in
 `production/qa/evidence/central-tower-real-hitstop-input-buffer-2026-07-15.md`.
 Story025 evidence is recorded in
 `production/qa/evidence/crown-warden-victory-death-presentation-hold-2026-07-15.md`.
+Story026 evidence is recorded in
+`production/qa/evidence/neon-rooftops-combat-impact-2026-07-15.md`.

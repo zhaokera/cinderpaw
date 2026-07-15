@@ -1,4 +1,4 @@
-[gd_scene load_steps=51 format=3]
+[gd_scene load_steps=53 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/neon_rooftops_entry_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/env_neon_rooftops_entry_1280x720.png" id="2_background"]
@@ -27,6 +27,8 @@
 [ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_tower_laser_gate_384x512.png" id="25_tower_gate"]
 [ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/vfx_neon_tower_laser_pulse_512x128.png" id="26_tower_pulse"]
 [ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/prop_neon_tower_threshold_beacon_256x384.png" id="27_tower_endpoint"]
+[ext_resource type="Script" path="res://src/presentation/combat_presentation.gd" id="28_combat_presentation"]
+[ext_resource type="Script" path="res://src/gameplay/hitstop_input_bridge.gd" id="29_hitstop_bridge"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lower_roof"]
 size = Vector2(858, 48)
@@ -614,6 +616,13 @@ limit_right = 5120
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
+
+[node name="CombatPresentation" type="Node2D" parent="."]
+script = ExtResource("28_combat_presentation")
+gameplay_freeze_enabled = true
+
+[node name="HitstopInputBridge" type="Node" parent="."]
+script = ExtResource("29_hitstop_bridge")
 
 [node name="FactoryReturnRoute" type="Node2D" parent="."]
 z_index = 18

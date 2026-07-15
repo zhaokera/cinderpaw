@@ -15,6 +15,7 @@ const ROOFTOP_MUSIC_ID: StringName = &"mus_rooftop"
 const ROOFTOP_AMBIENT_ID: StringName = &"amb_rooftop"
 const ROOFTOP_AUDIO_FADE_SEC: float = 1.2
 const ROOFTOP_PLAYER_LIGHT_DAMAGE: int = 12
+const SIGNAL_RAT_ENTITY_ID: int = 2601
 const WEAPON_COMPONENT_SCRIPT: Script = preload(
 	"res://src/core/weapon_component.gd"
 )
@@ -63,6 +64,10 @@ const CONTACT_GLOW_TEXTURE_PATH: String = (
 	get_node_or_null("ObjectiveLabel") as Label
 )
 @onready var _hud: HUDManager = get_node_or_null("HUD") as HUDManager
+@onready var _combat_presentation: CombatPresentation = (
+	get_node_or_null("CombatPresentation") as CombatPresentation
+)
+@onready var _hitstop_input_bridge = get_node_or_null("HitstopInputBridge")
 @onready var _signal_roof_encounter: NeonSignalRoofEncounterController = (
 	get_node_or_null("SignalRoofEncounter")
 	as NeonSignalRoofEncounterController
@@ -99,6 +104,10 @@ var _last_central_tower_rejected_reason: StringName = &""
 var _last_central_tower_request: Dictionary = {}
 var _audio_request_count: int = 0
 var _last_signal_roof_player_hit: Dictionary = {}
+var _last_signal_roof_enemy_hit: Dictionary = {}
+var _signal_roof_kill_feedback_emitted: bool = false
+var _signal_roof_kill_feedback_count: int = 0
+var _laser_parry_feedback_count: int = 0
 
 
 func _ready() -> void:
@@ -111,6 +120,7 @@ func _ready() -> void:
 	_setup_signal_roof_encounter()
 	_setup_relay_spire()
 	_setup_tower_parry_trial()
+	_setup_combat_presentation()
 	_sync_return_route()
 	_sync_central_tower_route()
 	_refresh_objective_text()
@@ -145,6 +155,7 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 		return false
 	_connect_scene_manager_failure_signal()
 	_entry_arrived = true
+	_setup_combat_presentation()
 	_apply_current_scene_manager_spawn_point()
 	return true
 
@@ -407,6 +418,83 @@ func get_last_signal_roof_player_hit() -> Dictionary:
 	return _last_signal_roof_player_hit.duplicate(true)
 
 
+## Returns the most recent applied Signal Rat lunge payload.
+func get_last_signal_roof_enemy_hit() -> Dictionary:
+	return _last_signal_roof_enemy_hit.duplicate(true)
+
+
+## Returns the last action released from Neon Rooftops hitstop.
+func get_last_buffered_input_result() -> Dictionary:
+	if _hitstop_input_bridge == null:
+		return {}
+	return _hitstop_input_bridge.get_last_buffered_input_result()
+
+
+## Returns the focused runtime evidence for Neon Rooftops combat impact.
+func get_neon_combat_presentation_diagnostics() -> Dictionary:
+	var bridge_diagnostics: Dictionary = {}
+	if (
+		_hitstop_input_bridge != null
+		and _hitstop_input_bridge.has_method("get_diagnostics")
+	):
+		bridge_diagnostics = _hitstop_input_bridge.get_diagnostics()
+	return {
+		"presentation_present": _combat_presentation != null,
+		"bridge_present": _hitstop_input_bridge != null,
+		"bridge": bridge_diagnostics,
+		"last_player_hit": _last_signal_roof_player_hit.duplicate(true),
+		"last_enemy_hit": _last_signal_roof_enemy_hit.duplicate(true),
+		"kill_feedback_emitted": _signal_roof_kill_feedback_emitted,
+		"kill_feedback_count": _signal_roof_kill_feedback_count,
+		"laser_parry_feedback_count": _laser_parry_feedback_count,
+		"hitstop_active": (
+			_combat_presentation.is_gameplay_hitstop_active()
+			if _combat_presentation != null
+			else false
+		),
+		"hitstop_frames_remaining": (
+			_combat_presentation.get_hitstop_frames_remaining()
+			if _combat_presentation != null
+			else 0
+		),
+		"last_completed_hitstop_frames": (
+			_combat_presentation.get_last_completed_hitstop_frames()
+			if _combat_presentation != null
+			else 0
+		),
+		"damage_number_count": (
+			_combat_presentation.get_active_damage_number_count()
+			if _combat_presentation != null
+			else 0
+		),
+		"spark_count": (
+			_combat_presentation.get_active_spark_count()
+			if _combat_presentation != null
+			else 0
+		),
+		"debris_count": (
+			_combat_presentation.get_active_debris_count()
+			if _combat_presentation != null
+			else 0
+		),
+		"parry_spark_count": (
+			_combat_presentation.get_active_parry_spark_count()
+			if _combat_presentation != null
+			else 0
+		),
+		"flash_count": (
+			_combat_presentation.get_active_flash_count()
+			if _combat_presentation != null
+			else 0
+		),
+		"perfect_parry_afterimage_count": (
+			_combat_presentation.get_active_perfect_parry_afterimage_count()
+			if _combat_presentation != null
+			else 0
+		),
+	}
+
+
 ## Persists the latest Story137 state when a SceneManager is available.
 func persist_signal_roof_progress() -> bool:
 	_sync_relay_spire_route()
@@ -557,6 +645,13 @@ func set_local_state(state: Dictionary) -> void:
 	_last_central_tower_rejected_reason = &""
 	_last_central_tower_request.clear()
 	_last_signal_roof_player_hit.clear()
+	_last_signal_roof_enemy_hit.clear()
+	_signal_roof_kill_feedback_emitted = bool(state.get(
+		"neon_rooftops_signal_rat_defeated",
+		false
+	))
+	_signal_roof_kill_feedback_count = 0
+	_laser_parry_feedback_count = 0
 	_sync_return_route()
 	_sync_central_tower_route()
 	_refresh_objective_text()
@@ -656,7 +751,145 @@ func _bind_player_combat_to_room() -> void:
 
 
 func _on_player_attack_landed(metadata: Dictionary) -> void:
-	_last_signal_roof_player_hit = metadata.duplicate(true)
+	var presentation_data: Dictionary = metadata.duplicate(true)
+	if _hud != null and _hud.has_method("are_damage_numbers_enabled"):
+		presentation_data["show_damage_number"] = (
+			_hud.are_damage_numbers_enabled()
+		)
+	_last_signal_roof_player_hit = presentation_data.duplicate(true)
+	if _combat_presentation != null:
+		_combat_presentation.on_hit_event(presentation_data)
+	_dispatch_combat_audio(&"on_hit_event", presentation_data)
+	if (
+		int(presentation_data.get("target_id", -1)) == SIGNAL_RAT_ENTITY_ID
+		and _is_signal_rat_defeated()
+		and not _signal_roof_kill_feedback_emitted
+	):
+		_signal_roof_kill_feedback_emitted = true
+		_signal_roof_kill_feedback_count += 1
+		if _combat_presentation != null:
+			_combat_presentation.on_kill_event(
+				SIGNAL_RAT_ENTITY_ID,
+				_get_signal_rat_impact_position(presentation_data)
+			)
+
+
+func _setup_combat_presentation() -> void:
+	if _combat_presentation == null or _player == null:
+		return
+	if _camera != null:
+		_combat_presentation.set_camera(_camera)
+	if _hitstop_input_bridge != null:
+		_hitstop_input_bridge.configure(
+			_combat_presentation,
+			_player as PlayerController,
+			get_node_or_null("/root/InputManager")
+		)
+	var signal_rat: Node = get_node_or_null(
+		"SignalRoofEncounter/NeonSignalRat"
+	)
+	if signal_rat != null and signal_rat.has_signal("enemy_attack_landed"):
+		var attack_signal: Signal = signal_rat.get("enemy_attack_landed")
+		if not attack_signal.is_connected(_on_signal_rat_attack_landed):
+			attack_signal.connect(_on_signal_rat_attack_landed)
+	if (
+		_tower_parry_trial != null
+		and not _tower_parry_trial.parry_reflected.is_connected(
+			_on_tower_parry_reflected
+		)
+	):
+		_tower_parry_trial.parry_reflected.connect(_on_tower_parry_reflected)
+
+
+func _on_signal_rat_attack_landed(
+	damage: int,
+	hit_position: Vector2,
+	is_crit: bool
+) -> void:
+	_last_signal_roof_enemy_hit = {
+		"damage": damage,
+		"hit_position": hit_position,
+		"is_crit": is_crit,
+		"source": &"neon_signal_rat",
+	}
+	if _hud != null and _hud.has_method("are_damage_numbers_enabled"):
+		_last_signal_roof_enemy_hit["show_damage_number"] = (
+			_hud.are_damage_numbers_enabled()
+		)
+	if _combat_presentation != null:
+		_combat_presentation.on_hit_event(_last_signal_roof_enemy_hit)
+	_dispatch_combat_audio(
+		&"on_damage_taken_event",
+		_last_signal_roof_enemy_hit
+	)
+
+
+func _on_tower_parry_reflected(_successful_parries: int) -> void:
+	if _combat_presentation == null or _tower_parry_trial == null:
+		return
+	var trial: Dictionary = _tower_parry_trial.get_diagnostics()
+	var parry_data: Dictionary = Dictionary(
+		trial.get("last_parry_event", {})
+	).duplicate(true)
+	if parry_data.is_empty():
+		return
+	_laser_parry_feedback_count += 1
+	_combat_presentation.on_parry_event(
+		_enrich_parry_presentation_data(parry_data)
+	)
+
+
+func _enrich_parry_presentation_data(parry_data: Dictionary) -> Dictionary:
+	var presentation_data: Dictionary = parry_data.duplicate(true)
+	var parry_position: Vector2 = (
+		_player.global_position if _player != null else Vector2.ZERO
+	)
+	var sprite: AnimatedSprite2D = (
+		_player.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _player != null
+		else null
+	)
+	if sprite != null:
+		parry_position = sprite.global_position
+		if sprite.sprite_frames != null:
+			var texture: Texture2D = sprite.sprite_frames.get_frame_texture(
+				sprite.animation,
+				sprite.frame
+			)
+			if texture != null:
+				presentation_data["texture"] = texture
+		presentation_data["facing"] = -1.0 if sprite.flip_h else 1.0
+		presentation_data["animation"] = sprite.animation
+		presentation_data["frame"] = sprite.frame
+	if not presentation_data.has("position"):
+		presentation_data["position"] = presentation_data.get(
+			"world_position",
+			parry_position
+		)
+	return presentation_data
+
+
+func _is_signal_rat_defeated() -> bool:
+	return bool(get_signal_roof_diagnostics().get(
+		"signal_rat_defeated",
+		false
+	))
+
+
+func _get_signal_rat_impact_position(metadata: Dictionary) -> Vector2:
+	var hit_position: Variant = metadata.get("hit_position", null)
+	if hit_position is Vector2:
+		return hit_position as Vector2
+	var signal_rat: Node2D = get_node_or_null(
+		"SignalRoofEncounter/NeonSignalRat"
+	) as Node2D
+	return signal_rat.global_position if signal_rat != null else Vector2.ZERO
+
+
+func _dispatch_combat_audio(method: StringName, metadata: Dictionary) -> void:
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system != null and audio_system.has_method(method):
+		audio_system.call(method, metadata)
 
 
 func _setup_signal_roof_encounter() -> void:

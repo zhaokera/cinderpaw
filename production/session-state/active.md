@@ -6026,3 +6026,41 @@
 - Blockers: None for Story025.
 - Next after this isolated checkpoint: prioritize the next player-visible ACT
   gap, with Neon Rooftops and Underground Passage as bounded candidates.
+
+## Session Extract -- Combat Presentation Story026 2026-07-15
+
+- Delivery checkpoint: Combat Presentation Story026 is complete as verified
+  local work on top of uploaded Story025 commit `3eec7f2d`; report/tmp noise and
+  the unrelated generated Story025 test UID remain excluded.
+- Story: `production/epics/combat-presentation/story-026-neon-rooftops-combat-impact.md`
+  -- Neon Rooftops Combat Impact.
+- Implementation: Mounted one shared `CombatPresentation` and
+  `HitstopInputBridge`, routed real Cat Claw and Signal Rat landed hits through
+  scene presentation/audio, added one-shot lethal feedback, forwarded Tower
+  laser PERFECT parry frame data, exposed focused diagnostics, and reconfigured
+  the bridge when a cached scene instance is reattached.
+- Verification: Initial RED `report_1796` had 11 expected failures across six
+  cases; focused GREEN `report_1798` passed `6/6`; Tower laser and shared
+  hitstop passed `3/3` each in `report_1801`; corrected Signal Rat timing passed
+  `3/3` in `report_1802`; fresh Godot 4.7 completion gate `report_1803`
+  passed Story026 `6/6` with exit `0`. Full suite was not run.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`.
+  Real Cat Claw changed Signal Rat HP `36 -> 24` with three hitstop frames, six
+  sparks, one damage number and buffering input. Tower laser PERFECT parry used
+  eight frames, 22 sparks, one flash and one gold afterimage with no damage
+  number. Both `1278x718` screenshots were non-empty and showed Cinderpaw,
+  authored Neon environments/HUD, and the target combat feedback. Final run
+  `r90548920-30` had clean game logs; two unrelated Relay Spire shadow warnings
+  remain documented in QA evidence.
+- Assets: No image/audio generation or import. Existing Cinderpaw, six
+  three-frame Signal Rat animations, Neon environment, HUD, audio and combat
+  VFX were sufficient; no placeholder character art was added.
+- Parallel review: Game design selected the rooftop impact gap, technical-art
+  confirmed the existing Signal Rat assets were production-usable, and QA
+  identified cached-scene reconnection as the highest hidden risk. The
+  integrating agent owned all edits, runtime probes, test corrections and final
+  verification.
+- Scope: Combat Presentation remains In Progress because other independent
+  scenes, including Underground Passage, still need player-facing coverage.
+  The complete-game goal remains active.
+- Blockers: None for Story026.

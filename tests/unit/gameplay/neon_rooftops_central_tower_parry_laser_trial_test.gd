@@ -43,6 +43,7 @@ var _spawned_nodes: Array[Node] = []
 
 
 func after_test() -> void:
+	get_tree().paused = false
 	_stop_runtime_audio_players()
 	for node: Node in _spawned_nodes:
 		if not is_instance_valid(node):
@@ -291,6 +292,7 @@ func test_three_real_parries_unlock_threshold_and_restore_without_replay() -> vo
 		assert_int(int(reflected.get("successful_parries", 0))).is_equal(
 			parry_index + 1
 		)
+		await _wait_for_scene_hitstop(rooftops)
 		for _frame: int in range(20):
 			await get_tree().physics_frame
 		if parry_index < EXPECTED_PARRY_COUNT - 1:
@@ -362,6 +364,14 @@ func test_three_real_parries_unlock_threshold_and_restore_without_replay() -> vo
 	assert_str(String(restored_state.get("objective_text", ""))).is_equal(
 		"Central Tower Gate Secured"
 	)
+
+
+func _wait_for_scene_hitstop(scene: Node) -> void:
+	var presentation: CombatPresentation = scene.get_node_or_null(
+		"CombatPresentation"
+	) as CombatPresentation
+	while presentation != null and presentation.is_gameplay_hitstop_active():
+		await get_tree().process_frame
 
 
 func _prerequisite_state(route_complete: bool) -> Dictionary:
