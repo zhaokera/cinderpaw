@@ -3,8 +3,8 @@
 > **Layer**: Presentation
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
-> **Status**: Complete
-> **Stories**: 19 stories tracked
+> **Status**: In Progress
+> **Stories**: 22 stories tracked
 
 ## Overview
 
@@ -59,6 +59,9 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 017 | Rat King Victory Death Presentation Hold | Integration/Visual | Complete | ADR-0001, ADR-0002, ADR-0005 |
 | 018 | Echo Guardian Death Presentation Hold | Integration/Visual | Complete | ADR-0002, ADR-0005, ADR-0007, ADR-0018 |
 | 019 | Boss Phase Overlay Readability | Visual/Feel | Complete | ADR-0001, ADR-0002 |
+| 020 | Cat Claw Combo Finisher Impact Feedback | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0016 |
+| 021 | Main Scene Real Hitstop + Input Buffer | Feel/Runtime | Complete | ADR-0001, ADR-0002, ADR-0005 |
+| 022 | Reusable Hitstop Input Bridge + Crown Warden Arena | Integration/Feel | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005 |
 
 ## Definition of Done
 
@@ -72,7 +75,9 @@ This epic is complete when:
 
 ## Completion Evidence
 
-Combat Presentation has all 19 tracked stories complete. Story014 adds the
+Combat Presentation has all 22 tracked stories complete, but the Epic remains
+In Progress until the Main-scene real hitstop/input handoff is extended to
+independent player-facing combat scenes. Story014 adds the
 first Rat King boss frame-animation asset slice so the MVP boss no longer exists
 only as data. Story015 adds data-aligned specialized Rat King attack animations
 for `charge`, `claw_swipe`, `summon_minion`, `slam`, and `berserk_combo`.
@@ -89,6 +94,18 @@ edge frame, fades the single overlay in `0.40s`, keeps the existing 32 debris
 pieces for `1.50s`, and preserves the HUD above the effect without changing Boss
 phase logic. Its repaired full-rect layout uses zero offsets, so the runtime
 rect, texture and viewport all remain `1280x720` without edge cropping.
+Story020 consumes the already-authored Cat Claw third-hit metadata to produce
+the GDD finisher profile: five feedback frames, `4px/5-frame` shake, one gold
+`28px` damage number, one gold `终结` label, and existing hit sparks at `1.5x`
+scale while preserving damage, cat energy, combo timing and critical priority.
+Story021 turns Main's hitstop counter into an exact gameplay pause, keeps
+InputManager alive to buffer one trigger action, restores the prior pause/input
+state, and advances the real Core attack chain exactly once after the freeze.
+Story022 extracts that handoff into a reusable scene node, integrates Crown
+Warden Arena in both real collision directions, records actual applied damage,
+and suppresses ordinary feedback for rejected dodge damage. Main and Crown now
+share the same single-dispatch contract; other independently mounted
+player-facing combat scenes remain follow-up coverage before Epic completion.
 Evidence is recorded in
 `production/qa/evidence/rat-king-boss-frame-animation-2026-06-25.md` and
 `production/qa/evidence/rat-king-specialized-attack-animation-2026-06-25.md`,
@@ -100,3 +117,9 @@ Story018 evidence is recorded in
 `production/qa/evidence/echo-guardian-death-presentation-hold-2026-07-14.md`.
 Story019 evidence is recorded in
 `production/qa/evidence/boss-phase-overlay-readability-2026-07-14.md`.
+Story020 evidence is recorded in
+`production/qa/evidence/cat-claw-combo-finisher-impact-feedback-2026-07-15.md`.
+Story021 evidence is recorded in
+`production/qa/evidence/main-scene-real-hitstop-input-buffer-2026-07-15.md`.
+Story022 evidence is recorded in
+`production/qa/evidence/crown-warden-real-hitstop-input-buffer-2026-07-15.md`.

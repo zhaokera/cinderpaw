@@ -66,11 +66,36 @@ var _combat_input_locked: bool = false
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	register_input_tuning_knobs(_find_data_manager())
 
 
 func _process(_delta: float) -> void:
 	_update_action_durations(Time.get_ticks_msec())
+
+
+func _input(event: InputEvent) -> void:
+	if _input_state != InputState.BUFFERING:
+		return
+	if event is InputEventKey and (event as InputEventKey).echo:
+		return
+	var now_ms: int = Time.get_ticks_msec()
+	var source_device: StringName = classify_input_event(event)
+	if source_device == &"":
+		source_device = _current_device
+	else:
+		_try_switch_device(source_device, now_ms)
+	var candidates: Array[StringName] = []
+	for action: StringName in get_supported_actions():
+		if _is_bufferable_action(action) and event.is_action_pressed(action):
+			candidates.append(action)
+	if candidates.is_empty():
+		return
+	if accept_actions(candidates, now_ms, source_device) <= 0:
+		return
+	var viewport: Viewport = get_viewport()
+	if viewport != null:
+		viewport.set_input_as_handled()
 
 
 ## Returns all game actions normalized by InputManager.

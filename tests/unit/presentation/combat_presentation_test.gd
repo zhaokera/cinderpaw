@@ -47,6 +47,31 @@ func test_crit_hit_uses_larger_gold_feedback() -> void:
 	assert_str(presentation.get_last_damage_number_color().to_html(false)).is_equal("ecc94b")
 
 
+func test_cat_claw_combo_finisher_does_not_downgrade_critical_feedback() -> void:
+	presentation.on_hit_event({
+		"final_damage": 36,
+		"hit_position": Vector2(120, 80),
+		"is_crit": true,
+		"weapon_id": &"cat_claw",
+		"attack_type": &"light",
+		"combo_index": 2,
+		"combo_stage": 2,
+	})
+
+	assert_int(presentation.get_hitstop_frames_remaining()).is_equal(6)
+	assert_float(presentation.get_screen_shake_intensity()).is_equal_approx(5.0, 0.001)
+	assert_int(presentation.get_screen_shake_frames_remaining()).is_equal(6)
+	assert_int(presentation.get_active_spark_count()).is_equal(12)
+	assert_str(presentation.get_last_damage_number_color().to_html(false)).is_equal("ecc94b")
+	assert_int(presentation.get_last_damage_number_font_size()).is_equal(28)
+	var finisher_snapshot: Dictionary = presentation.get_last_combo_finisher_snapshot()
+	assert_int(int(finisher_snapshot.get("active_count", 0))).is_equal(1)
+	assert_float(float(finisher_snapshot.get("spark_scale_multiplier", 0.0))).is_equal_approx(
+		1.5,
+		0.001
+	)
+
+
 func test_damage_number_tiers_match_gdd_size_color_and_outline() -> void:
 	var cases: Array[Dictionary] = [
 		{"damage": 1, "font_size": 12, "color": "ffffff", "outline": 0},

@@ -40,12 +40,12 @@
 | TR-ID | Requirement | ADR Coverage | Status |
 |-------|-------------|-------------|--------|
 | TR-input-001 | 统一输入抽象层，12核心动作 | ADR-0001 | ✅ |
-| TR-input-002 | 输入缓冲 150ms/3深度/50ms预输入 | ADR-0001 | ⚠️ Interface only |
+| TR-input-002 | 输入缓冲 150ms/3深度/50ms预输入 | ADR-0001 | ✅ Queue + Main/Crown runtime |
 | TR-input-003 | 连招链管理 combo_counter | ADR-0001 | ⚠️ |
 | TR-input-004 | Coyote Time 5-8帧 + Jump Buffer | — | ❌ |
 | TR-input-005 | 平台检测 500ms防抖 | ADR-0001 | ⚠️ |
 | TR-input-006 | 输入冲突解决（优先级互斥） | ADR-0001 | ⚠️ |
-| TR-input-007 | 三状态 FSM (DIRECT/BUFFERING/TRANSITIONING) | — | ❌ |
+| TR-input-007 | 三状态 FSM (DIRECT/BUFFERING/TRANSITIONING) | — | ✅ |
 | TR-input-008 | action_triggered 信号 + metadata | ADR-0001, ADR-0002 | ✅ |
 | TR-input-009 | device_changed 信号 | ADR-0001, ADR-0002 | ✅ |
 | TR-input-010 | 键位映射存储 user://input_bindings.cfg | ADR-0001 | ⚠️ |

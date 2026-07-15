@@ -7,6 +7,7 @@ extends Node2D
 @onready var _boss2_reward_source: Node = get_node_or_null("Boss2DoubleJumpRewardSource")
 @onready var _hud = $HUD
 @onready var _combat_presentation = $CombatPresentation
+@onready var _hitstop_input_bridge = $HitstopInputBridge
 @onready var _game_flow = $GameFlowController
 
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
@@ -238,8 +239,6 @@ var _boss2_room_seal_reason: StringName = &"not_initialized"
 var _boss2_death_presentation_pending: bool = false
 var _boss2_death_presentation_remaining_sec: float = 0.0
 var _crown_warden_hub_return_notification_pending: bool = false
-
-
 func _ready() -> void:
 	_setup_skill_tree_manager()
 	_setup_weapon_component()
@@ -291,6 +290,7 @@ func _ready() -> void:
 	_enemy.enemy_defeated.connect(_on_enemy_defeated)
 	_register_enemy_boss_phase_source()
 	_combat_presentation.set_camera($Player/Camera2D)
+	_setup_hitstop_input_buffer()
 	_capture_arena_camera_default_state()
 	_sync_combat_presentation_accessibility_settings()
 
@@ -359,6 +359,23 @@ func _on_player_attack_landed(hit_data: Dictionary) -> void:
 	_last_player_hit_metadata = enriched_hit_data.duplicate(true)
 	_combat_presentation.on_hit_event(enriched_hit_data)
 	_dispatch_audio_event(&"on_hit_event", [enriched_hit_data])
+
+
+func _setup_hitstop_input_buffer() -> void:
+	_hitstop_input_bridge.configure(
+		_combat_presentation,
+		_player,
+		get_node_or_null("/root/InputManager"),
+		_should_restore_pause_after_hitstop
+	)
+
+
+func _should_restore_pause_after_hitstop() -> bool:
+	return _pause_menu_active
+
+
+func get_last_buffered_input_result() -> Dictionary:
+	return _hitstop_input_bridge.get_last_buffered_input_result()
 
 
 func _on_player_attack_started(attack_data: Dictionary) -> void:

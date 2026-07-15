@@ -2,10 +2,19 @@
 extends Node2D
 class_name CombatPresentation
 
+signal hitstop_started(frames: int)
+signal hitstop_finished(consume_buffered_input: bool)
+
+@export var gameplay_freeze_enabled: bool = false
+
 const NORMAL_HITSTOP_FRAMES: int = 3
+const COMBO_FINISHER_HITSTOP_FRAMES: int = 5
+const COMBO_FINISHER_INDEX: int = 2
 const CRIT_HITSTOP_FRAMES: int = 6
 const KILL_HITSTOP_FRAMES: int = 6
 const NORMAL_SHAKE_INTENSITY: float = 2.0
+const COMBO_FINISHER_SHAKE_INTENSITY: float = 4.0
+const COMBO_FINISHER_SHAKE_FRAMES: int = 5
 const CRIT_SHAKE_INTENSITY: float = 5.0
 const KILL_SHAKE_INTENSITY: float = 5.0
 const HEAVY_ATTACK_SHAKE_INTENSITY: float = 4.0
@@ -62,6 +71,12 @@ const NORMAL_DAMAGE_COLOR: Color = Color.WHITE
 const MID_DAMAGE_COLOR: Color = Color("#FACC15")
 const HEAVY_DAMAGE_COLOR: Color = Color("#F59E0B")
 const CRIT_DAMAGE_COLOR: Color = Color("#ECC94B")
+const COMBO_FINISHER_TEXT: String = "终结"
+const COMBO_FINISHER_DAMAGE_FONT_SIZE: int = 28
+const COMBO_FINISHER_TEXT_FONT_SIZE: int = 24
+const COMBO_FINISHER_TEXT_LIFETIME_SEC: float = 0.65
+const COMBO_FINISHER_TEXT_FLOAT_DISTANCE_PX: float = 18.0
+const COMBO_FINISHER_SPARK_SCALE_MULTIPLIER: float = 1.5
 const LEGENDARY_DAMAGE_OUTLINE_COLOR: Color = Color.WHITE
 const LEGENDARY_DAMAGE_OUTLINE_SIZE: int = 2
 const DAMAGE_NUMBER_SHADOW_COLOR: Color = Color(0.0, 0.0, 0.0, 0.82)
@@ -165,11 +180,17 @@ const BOSS_PHASE_DEBRIS_SPRITE_SCALE: Vector2 = Vector2(0.14, 0.14)
 const DODGE_AFTERIMAGE_OFFSET_PX: float = 14.0
 
 var _hitstop_frames_remaining: int = 0
+var _gameplay_hitstop_active: bool = false
+var _tree_was_paused_before_hitstop: bool = false
+var _skip_current_physics_tick: bool = false
+var _active_hitstop_elapsed_frames: int = 0
+var _last_completed_hitstop_frames: int = 0
 var _screen_shake_intensity: float = 0.0
 var _screen_shake_frames_remaining: int = 0
 var _camera: Camera2D
 var _camera_base_offset: Vector2 = Vector2.ZERO
 var _damage_numbers: Array[Dictionary] = []
+var _combo_finishers: Array[Dictionary] = []
 var _sparks: Array[Dictionary] = []
 var _debris: Array[Dictionary] = []
 var _parry_sparks: Array[Dictionary] = []
@@ -242,13 +263,31 @@ var _last_weapon_vfx_lifetime_by_weapon: Dictionary = {}
 var _last_weapon_vfx_texture_path_by_weapon: Dictionary = {}
 
 
+func _ready() -> void:
+	set_gameplay_freeze_enabled(gameplay_freeze_enabled)
+
+
+func _exit_tree() -> void:
+	if _gameplay_hitstop_active:
+		_finish_gameplay_hitstop(false)
+
+
 func _process(delta: float) -> void:
 	advance_time(delta)
 	_apply_camera_shake()
 
 
 func _physics_process(_delta: float) -> void:
-	_hitstop_frames_remaining = maxi(_hitstop_frames_remaining - 1, 0)
+	if _gameplay_hitstop_active:
+		if _skip_current_physics_tick:
+			_skip_current_physics_tick = false
+		else:
+			_hitstop_frames_remaining = maxi(_hitstop_frames_remaining - 1, 0)
+			_active_hitstop_elapsed_frames += 1
+			if _hitstop_frames_remaining <= 0:
+				_finish_gameplay_hitstop(true)
+	else:
+		_hitstop_frames_remaining = maxi(_hitstop_frames_remaining - 1, 0)
 	_screen_shake_frames_remaining = maxi(_screen_shake_frames_remaining - 1, 0)
 	if _screen_shake_frames_remaining <= 0:
 		_screen_shake_intensity = 0.0
@@ -317,18 +356,37 @@ func on_hit_event(hit_data: Dictionary) -> void:
 	var damage: int = maxi(1, int(hit_data.get("final_damage", hit_data.get("damage", 1))))
 	var hit_position: Vector2 = _read_vector2(hit_data.get("hit_position", Vector2.ZERO))
 	var is_crit: bool = bool(hit_data.get("is_crit", false))
+	var is_combo_finisher: bool = _is_cat_claw_combo_finisher(hit_data)
 	var hitstop_frames: int = CRIT_HITSTOP_FRAMES if is_crit else NORMAL_HITSTOP_FRAMES
 	var shake_intensity: float = CRIT_SHAKE_INTENSITY if is_crit else NORMAL_SHAKE_INTENSITY
+	var shake_frames: int = hitstop_frames
 	var spark_count: int = CRIT_SPARK_COUNT if is_crit else NORMAL_SPARK_COUNT
 	var damage_color: Color = CRIT_DAMAGE_COLOR if is_crit else _damage_color_for_amount(damage)
 	var spark_color: Color = _spark_color_for_hit(is_crit)
+	var damage_font_size_override: int = -1
+	var spark_scale_multiplier: float = 1.0
 	var show_damage_number: bool = bool(hit_data.get("show_damage_number", true))
+	if is_combo_finisher:
+		hitstop_frames = maxi(hitstop_frames, COMBO_FINISHER_HITSTOP_FRAMES)
+		shake_intensity = maxf(shake_intensity, COMBO_FINISHER_SHAKE_INTENSITY)
+		shake_frames = maxi(shake_frames, COMBO_FINISHER_SHAKE_FRAMES)
+		spark_scale_multiplier = COMBO_FINISHER_SPARK_SCALE_MULTIPLIER
+		if not is_crit:
+			damage_color = HEAVY_DAMAGE_COLOR
+			damage_font_size_override = COMBO_FINISHER_DAMAGE_FONT_SIZE
 
 	play_hitstop(hitstop_frames)
-	play_screen_shake(shake_intensity, hitstop_frames)
+	play_screen_shake(shake_intensity, shake_frames)
 	if show_damage_number:
-		_spawn_damage_number(hit_position, damage, damage_color)
-	_spawn_sparks(hit_position, spark_count, spark_color)
+		_spawn_damage_number(
+			hit_position,
+			damage,
+			damage_color,
+			damage_font_size_override
+		)
+	_spawn_sparks(hit_position, spark_count, spark_color, spark_scale_multiplier)
+	if is_combo_finisher:
+		_spawn_combo_finisher_text(hit_position)
 	if (
 		StringName(String(hit_data.get("weapon_id", ""))) == &"fish_bone"
 		and bool(hit_data.get("knockback_applied", false))
@@ -339,6 +397,17 @@ func on_hit_event(hit_data: Dictionary) -> void:
 		and bool(hit_data.get("slow_pulse_applied", false))
 	):
 		_spawn_electro_bell_pulse(hit_position)
+
+
+func _is_cat_claw_combo_finisher(hit_data: Dictionary) -> bool:
+	if StringName(String(hit_data.get("weapon_id", &""))) != &"cat_claw":
+		return false
+	if StringName(String(hit_data.get("attack_type", &""))) != &"light":
+		return false
+	return (
+		int(hit_data.get("combo_index", -1)) == COMBO_FINISHER_INDEX
+		or int(hit_data.get("combo_stage", -1)) == COMBO_FINISHER_INDEX
+	)
 
 
 func on_kill_event(_target_id: int, world_position: Vector2) -> void:
@@ -407,7 +476,56 @@ func on_double_jump_event(_texture: Texture2D, world_position: Vector2, facing: 
 
 
 func play_hitstop(frames: int) -> void:
-	_hitstop_frames_remaining = maxi(_hitstop_frames_remaining, maxi(0, frames))
+	var requested_frames: int = maxi(0, frames)
+	if requested_frames <= 0:
+		return
+	var previous_frames: int = _hitstop_frames_remaining
+	_hitstop_frames_remaining = maxi(previous_frames, requested_frames)
+	if not gameplay_freeze_enabled or get_tree() == null:
+		return
+	if not _gameplay_hitstop_active:
+		_start_gameplay_hitstop()
+	elif _hitstop_frames_remaining > previous_frames:
+		hitstop_started.emit(_hitstop_frames_remaining)
+
+
+func set_gameplay_freeze_enabled(enabled: bool) -> void:
+	gameplay_freeze_enabled = enabled
+	process_mode = (
+		Node.PROCESS_MODE_ALWAYS
+		if gameplay_freeze_enabled
+		else Node.PROCESS_MODE_INHERIT
+	)
+	process_physics_priority = 1000 if gameplay_freeze_enabled else 0
+
+
+func is_gameplay_hitstop_active() -> bool:
+	return _gameplay_hitstop_active
+
+
+func get_last_completed_hitstop_frames() -> int:
+	return _last_completed_hitstop_frames
+
+
+func _start_gameplay_hitstop() -> void:
+	_gameplay_hitstop_active = true
+	_active_hitstop_elapsed_frames = 0
+	_tree_was_paused_before_hitstop = get_tree().paused
+	_skip_current_physics_tick = Engine.is_in_physics_frame()
+	get_tree().paused = true
+	hitstop_started.emit(_hitstop_frames_remaining)
+
+
+func _finish_gameplay_hitstop(consume_buffered_input: bool) -> void:
+	_gameplay_hitstop_active = false
+	_skip_current_physics_tick = false
+	_hitstop_frames_remaining = 0
+	_last_completed_hitstop_frames = _active_hitstop_elapsed_frames
+	_active_hitstop_elapsed_frames = 0
+	if get_tree() != null:
+		get_tree().paused = _tree_was_paused_before_hitstop
+	_tree_was_paused_before_hitstop = false
+	hitstop_finished.emit(consume_buffered_input)
 
 
 func play_screen_shake(intensity: float, duration_frames: int, _direction: Vector2 = Vector2.ZERO) -> void:
@@ -422,6 +540,7 @@ func play_screen_shake(intensity: float, duration_frames: int, _direction: Vecto
 func advance_time(delta_sec: float) -> void:
 	var safe_delta: float = maxf(0.0, delta_sec)
 	_tick_effects(_damage_numbers, safe_delta)
+	_tick_effects(_combo_finishers, safe_delta)
 	_tick_effects(_sparks, safe_delta)
 	_tick_effects(_debris, safe_delta)
 	_tick_effects(_parry_sparks, safe_delta)
@@ -731,6 +850,20 @@ func get_last_damage_number_snapshot() -> Dictionary:
 	}
 
 
+func get_last_combo_finisher_snapshot() -> Dictionary:
+	var label := _latest_active_combo_finisher_label()
+	return {
+		"text": COMBO_FINISHER_TEXT,
+		"color": HEAVY_DAMAGE_COLOR,
+		"font_size": COMBO_FINISHER_TEXT_FONT_SIZE,
+		"active_count": _combo_finishers.size(),
+		"visible": label != null and label.visible and label.modulate.a > 0.0,
+		"position": label.position if label != null else Vector2.ZERO,
+		"z_index": label.z_index if label != null else 0,
+		"spark_scale_multiplier": _active_hit_spark_scale_multiplier(),
+	}
+
+
 func get_last_flash_alpha() -> float:
 	return _last_flash_alpha
 
@@ -810,10 +943,17 @@ func get_boss_phase_debris_lifetime_sec() -> float:
 	return BOSS_PHASE_DEBRIS_LIFETIME_SEC
 
 
-func _spawn_damage_number(world_position: Vector2, damage: int, color: Color) -> void:
+func _spawn_damage_number(
+	world_position: Vector2,
+	damage: int,
+	color: Color,
+	font_size_override: int = -1
+) -> void:
 	_last_damage_number_text = str(damage)
 	_last_damage_number_color = color
-	_last_damage_number_font_size = _damage_font_size(damage)
+	_last_damage_number_font_size = (
+		font_size_override if font_size_override > 0 else _damage_font_size(damage)
+	)
 	_last_damage_number_outline_size = _damage_outline_size(damage)
 	_last_damage_number_float_distance = DAMAGE_NUMBER_FLOAT_DISTANCE_PX
 	_last_damage_number_lifetime_sec = DAMAGE_NUMBER_LIFETIME_SEC
@@ -848,10 +988,55 @@ func _spawn_damage_number(world_position: Vector2, damage: int, color: Color) ->
 	})
 
 
-func _spawn_sparks(world_position: Vector2, count: int, color: Color) -> void:
+func _spawn_combo_finisher_text(world_position: Vector2) -> void:
+	var label := Label.new()
+	label.name = "ComboFinisherText"
+	label.text = COMBO_FINISHER_TEXT
+	label.position = world_position + Vector2(-24.0, -72.0)
+	label.scale = Vector2(1.15, 1.15)
+	label.add_theme_color_override("font_color", HEAVY_DAMAGE_COLOR)
+	label.add_theme_font_size_override("font_size", COMBO_FINISHER_TEXT_FONT_SIZE)
+	label.add_theme_color_override("font_shadow_color", DAMAGE_NUMBER_SHADOW_COLOR)
+	label.add_theme_constant_override("shadow_offset_x", DAMAGE_NUMBER_SHADOW_OFFSET.x)
+	label.add_theme_constant_override("shadow_offset_y", DAMAGE_NUMBER_SHADOW_OFFSET.y)
+	label.z_index = 91
+	add_child(label)
+
+	var tween: Tween = create_tween()
+	tween.tween_property(label, "scale", Vector2.ONE, 0.12)
+	tween.parallel().tween_property(
+		label,
+		"position",
+		label.position + Vector2(0.0, -COMBO_FINISHER_TEXT_FLOAT_DISTANCE_PX),
+		COMBO_FINISHER_TEXT_LIFETIME_SEC
+	)
+	tween.parallel().tween_property(
+		label,
+		"modulate:a",
+		0.0,
+		COMBO_FINISHER_TEXT_LIFETIME_SEC
+	)
+	tween.tween_callback(label.queue_free)
+	_combo_finishers.append({
+		"node": label,
+		"remaining": COMBO_FINISHER_TEXT_LIFETIME_SEC,
+		"tween": tween,
+	})
+
+
+func _spawn_sparks(
+	world_position: Vector2,
+	count: int,
+	color: Color,
+	scale_multiplier: float = 1.0
+) -> void:
 	_last_spark_color = color
 	for index: int in range(maxi(0, count)):
-		var spark := _create_vfx_sprite(_hit_spark_texture, color, SPARK_SPRITE_SCALE)
+		var spark := _create_vfx_sprite(
+			_hit_spark_texture,
+			color,
+			SPARK_SPRITE_SCALE * maxf(0.0, scale_multiplier)
+		)
 		spark.position = world_position + Vector2(float((index % 4) * 8 - 12), float(floori(float(index) / 4.0) * 7 - 10))
 		spark.rotation = float(index) * 0.5
 		spark.z_index = 80
@@ -1612,6 +1797,33 @@ func _latest_active_damage_number_label() -> Label:
 			return node as Label
 		index -= 1
 	return null
+
+
+func _latest_active_combo_finisher_label() -> Label:
+	var index: int = _combo_finishers.size() - 1
+	while index >= 0:
+		var effect: Dictionary = _combo_finishers[index]
+		var node: Node = effect.get("node", null)
+		if node != null and is_instance_valid(node) and node is Label:
+			return node as Label
+		index -= 1
+	return null
+
+
+func _active_hit_spark_scale_multiplier() -> float:
+	var largest_multiplier: float = 0.0
+	for effect: Dictionary in _sparks:
+		var node: Node = effect.get("node", null)
+		if node == null or not is_instance_valid(node) or not node is Sprite2D:
+			continue
+		var spark := node as Sprite2D
+		if is_zero_approx(SPARK_SPRITE_SCALE.x):
+			continue
+		largest_multiplier = maxf(
+			largest_multiplier,
+			spark.scale.x / SPARK_SPRITE_SCALE.x
+		)
+	return largest_multiplier
 
 
 func _remember_weapon_vfx(

@@ -5818,3 +5818,97 @@
 - Blockers: None for Story167. The broader complete-game goal remains active.
 - Next: select the next bounded player-visible ACT gap; preserve Story167's
   verified phase-driven light timing unless new runtime evidence requires change.
+
+## Session Extract -- Combat Presentation Story020 2026-07-15
+
+- Delivery checkpoint: Combat Presentation Story020 is complete as verified
+  local work. No follow-up commit or push was performed after the requested
+  pre-Story upload.
+- Story: `production/epics/combat-presentation/story-020-cat-claw-combo-finisher-impact-feedback.md`
+  -- Cat Claw Combo Finisher Impact Feedback.
+- Implementation: `CombatPresentation` now consumes confirmed Cat Claw light
+  `combo_index/combo_stage=2` metadata. A non-critical third hit requests five
+  feedback frames, `4px/5-frame` shake, one gold `28px` damage number, one gold
+  `终结` Label and existing hit sparks at `1.5x`; critical feedback keeps higher
+  priority. Damage, cat energy, hitbox timing, animation and input are unchanged.
+- Verification: expected RED `report_1732`; focused GREEN `report_1733` passed
+  `1/1`; Presentation and critical-priority GREEN `report_1734` passed `35/35`;
+  bounded authored-timing/real-input/Main regression `report_1735` passed `9/9`.
+  No full suite or redundant post-documentation test was used.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r62054889-14`. The live Main chain produced combo `2`, damage `18`, Enemy HP
+  `300 -> 282`, Cat Energy `0 -> 12`, `attack_3` frame `1`, feedback `5 / 4.0/5`,
+  gold `28px` damage, visible gold `终结`, and actual spark scale `1.5`. The
+  `1278x718` screenshot is non-empty and visually inspected; game logs are three
+  info rows, editor logs are empty, and stop returned readiness `ready`.
+- Assets: No new image/audio generation or import. Existing hit spark and
+  Story166 `attack_3` frames were reused; both new texts are runtime Labels.
+- Blockers: None for Story020. The broader complete-game goal remains active.
+- Next: implement real gameplay-wide hitstop freezing with buffered input as a
+  separate architecture-bounded Story; do not reopen Story167 timing or Story020
+  visual values while doing so.
+
+## Session Extract -- Combat Presentation Story021 2026-07-15
+
+- Delivery checkpoint: Combat Presentation Story021 is complete for the Main
+  playable scene as verified local work. No follow-up commit or push was
+  performed after the requested pre-Story upload.
+- Story: `production/epics/combat-presentation/story-021-main-scene-real-hitstop-input-buffer.md`
+  -- Main Scene Real Hitstop + Input Buffer.
+- Implementation: CombatPresentation can now freeze pausable gameplay for an
+  exact physics-frame count while processing in ALWAYS mode and restoring the
+  prior pause state. Main places InputManager into BUFFERING, captures trigger
+  actions during the freeze, releases at most one action through
+  PlayerController, and disconnects the duplicate direct CombatComponent route
+  so Core and presentation advance exactly once.
+- Verification: clean expected RED `report_1737`; focused GREEN `report_1746`
+  passed `1/1`; bounded related `report_1747` passed `68/68` across nine
+  executed suites; corrected parry regression `report_1748` passed `5/5`.
+  No full suite or redundant post-documentation test was used.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`,
+  final valid run `r65195448-16`. A real Main collision changed Enemy HP
+  `300 -> 290`, froze gameplay for three completed frames, buffered one attack
+  for `36ms`, dispatched it once, advanced the combo to stage `1`, restored
+  DIRECT input and left game/editor logs clean. The `1278x718` screenshot is
+  non-empty and shows the existing Cinderpaw/Rat King game art.
+- Assets: No new visual/audio asset or image generation was needed. Existing
+  Cinderpaw SpriteFrames and combat feedback resources were reused.
+- Scope: Story021 is Main-only. Combat Presentation is now In Progress rather
+  than globally Complete because Crown Warden Arena and any other independent
+  player-facing CombatPresentation owner still need the same runtime handoff.
+- Blockers: None for Story021. The broader complete-game goal remains active.
+- Next: implement Story022 as reusable or Crown Warden-specific hitstop/input
+  integration, with thin TDD and one MCP runtime acceptance in that arena.
+
+## Session Extract -- Combat Presentation Story022 2026-07-15
+
+- Delivery checkpoint: Combat Presentation Story022 is complete for Main and
+  Crown Warden Arena as verified local work. No commit or push was performed.
+- Story: `production/epics/combat-presentation/story-022-reusable-hitstop-input-bridge-crown-warden.md`
+  -- Reusable Hitstop Input Bridge + Crown Warden Arena.
+- Implementation: Extracted Main's freeze/input handoff into
+  `HitstopInputBridge`, integrated Crown Warden Arena, and made
+  CombatComponent carry `damage_applied/damage_was_applied`. Player and Crown
+  now emit ordinary hit presentation only when damage actually applies, so
+  dodge/parry/phase rejection cannot create false damage feedback.
+- Verification: Initial RED `report_1750`; review-hardening RED `report_1759`;
+  focused GREEN `report_1761` passed `3/3`; bounded related `report_1762`
+  passed `93/93` across fourteen suites; final focused `report_1763` passed
+  `3/3`. `report_1760` is rejected because its dodge setup had not entered the
+  authored i-frame. No full suite was run.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r68236156-17`. Player hit changed Boss HP `160 -> 148`, buffered one attack,
+  dispatched once and advanced to the second hit (`136` HP). Real wing sweep
+  changed Player HP `100 -> 86`. Both paths completed exactly three hitstop
+  frames, restored DIRECT input, used visible three-frame AnimatedSprite2D
+  characters, produced non-empty `1278x718` screenshots and clean logs.
+- Assets: No image/audio generation or import. Existing Cinderpaw/Crown Warden
+  SpriteFrames, Crown Observatory environment, HUD and VFX were reused.
+- Parallel review: Design and QA required true bidirectional collision and
+  rejection-path coverage; art review confirmed existing generated assets were
+  sufficient. The integrating agent owned all edits, tests and MCP acceptance.
+- Scope: Combat Presentation remains In Progress because independent combat
+  scenes outside Main and Crown Warden still need the reusable bridge.
+- Blockers: None for Story022. The broader complete-game goal remains active.
+- Next: select the next bounded player-visible ACT gap without reopening the
+  verified Main/Crown hitstop values or single-dispatch contract.

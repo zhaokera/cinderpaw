@@ -738,16 +738,31 @@ func _merge_damage_result_metadata(metadata: Dictionary, damage_result: Variant)
 
 
 func _apply_health_damage(metadata: Dictionary) -> void:
+	metadata["damage_applied"] = 0
+	metadata["damage_was_applied"] = false
 	if _health_adapter == null or not _health_adapter.has_method("apply_damage"):
 		return
 	var final_damage: int = int(metadata.get("final_damage", 0))
 	if final_damage <= 0:
 		return
 	var payload: Dictionary = metadata.duplicate(true)
+	var result: Variant
 	if _method_argument_count(_health_adapter, "apply_damage") >= 3:
-		_health_adapter.call("apply_damage", int(metadata.get("target_id", -1)), final_damage, payload)
+		result = _health_adapter.call(
+			"apply_damage",
+			int(metadata.get("target_id", -1)),
+			final_damage,
+			payload
+		)
 	else:
-		_health_adapter.call("apply_damage", final_damage, payload)
+		result = _health_adapter.call("apply_damage", final_damage, payload)
+	var damage_applied: int = final_damage
+	if result is bool:
+		damage_applied = final_damage if bool(result) else 0
+	elif result is int or result is float:
+		damage_applied = clampi(int(result), 0, final_damage)
+	metadata["damage_applied"] = damage_applied
+	metadata["damage_was_applied"] = damage_applied > 0
 
 
 func _grant_cat_energy_for_hit(metadata: Dictionary) -> void:

@@ -75,6 +75,7 @@ const BACKGROUND_TEXTURE_PATH: String = (
 @onready var _combat_presentation: CombatPresentation = (
 	get_node_or_null("CombatPresentation") as CombatPresentation
 )
+@onready var _hitstop_input_bridge = get_node_or_null("HitstopInputBridge")
 @onready var _boss_config_component: BossConfigComponent = (
 	get_node_or_null("BossConfigComponent") as BossConfigComponent
 )
@@ -107,6 +108,7 @@ func _ready() -> void:
 	_align_player_to_entry_spawn()
 	_setup_weapon_component()
 	_setup_boss4_parry_runtime()
+	_setup_hitstop_input_buffer()
 	_setup_boss4_combat()
 	_sync_boss4_combat_state()
 	var root_scene_manager: Node = get_node_or_null("/root/SceneManager")
@@ -999,7 +1001,13 @@ func _release_scene_lock() -> void:
 
 
 func _on_player_attack_landed(metadata: Dictionary) -> void:
-	_last_player_hit_metadata = metadata.duplicate(true)
+	var presentation_data: Dictionary = metadata.duplicate(true)
+	if _hud != null and _hud.has_method("are_damage_numbers_enabled"):
+		presentation_data["show_damage_number"] = _hud.are_damage_numbers_enabled()
+	_last_player_hit_metadata = presentation_data.duplicate(true)
+	if _combat_presentation != null:
+		_combat_presentation.on_hit_event(presentation_data)
+	_dispatch_combat_audio(&"on_hit_event", presentation_data)
 
 
 func _on_player_health_changed(current_hp: int, max_hp: int) -> void:
@@ -1097,6 +1105,39 @@ func _on_boss4_attack_landed(
 		"is_crit": is_crit,
 		"source": BOSS_ID,
 	}
+	if _hud != null and _hud.has_method("are_damage_numbers_enabled"):
+		_last_boss_attack_metadata["show_damage_number"] = (
+			_hud.are_damage_numbers_enabled()
+		)
+	if _combat_presentation != null:
+		_combat_presentation.on_hit_event(_last_boss_attack_metadata)
+	_dispatch_combat_audio(&"on_damage_taken_event", _last_boss_attack_metadata)
+
+
+func _setup_hitstop_input_buffer() -> void:
+	if _combat_presentation == null or _player == null:
+		return
+	var camera: Camera2D = _player.get_node_or_null("Camera2D") as Camera2D
+	if camera != null:
+		_combat_presentation.set_camera(camera)
+	if _hitstop_input_bridge != null:
+		_hitstop_input_bridge.configure(
+			_combat_presentation,
+			_player as PlayerController,
+			get_node_or_null("/root/InputManager")
+		)
+
+
+func get_last_buffered_input_result() -> Dictionary:
+	if _hitstop_input_bridge == null:
+		return {}
+	return _hitstop_input_bridge.get_last_buffered_input_result()
+
+
+func _dispatch_combat_audio(method: StringName, metadata: Dictionary) -> void:
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system != null and audio_system.has_method(method):
+		audio_system.call(method, metadata)
 
 
 func _on_player_parry_resolved(parry_data: Dictionary) -> void:

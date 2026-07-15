@@ -296,7 +296,7 @@ func _handle_input() -> void:
 
 	# Jump buffer
 	if Input.is_action_just_pressed("jump"):
-		_jump_buffer_timer = JUMP_BUFFER_FRAMES
+		request_jump()
 	else:
 		_jump_buffer_timer = maxi(_jump_buffer_timer - 1, 0)
 
@@ -415,6 +415,35 @@ func request_attack() -> bool:
 			return false
 		return _request_light_attack_stage(_combat.get_combo_index(), true)
 	return false
+
+
+## Queues a jump request so hitstop-released input follows the normal jump path.
+func request_jump() -> bool:
+	if _control_locked:
+		return false
+	_jump_buffer_timer = JUMP_BUFFER_FRAMES
+	return true
+
+
+## Routes one released InputManager action through the existing gameplay APIs.
+func request_buffered_action(action_id: StringName) -> bool:
+	match action_id:
+		&"jump":
+			return request_jump()
+		&"attack":
+			return request_attack()
+		&"heavy_attack":
+			if not request_heavy_attack_press():
+				return false
+			return request_heavy_attack_release()
+		&"dodge":
+			return request_dodge()
+		&"dash":
+			return request_dash()
+		&"parry":
+			return request_parry()
+		_:
+			return false
 
 
 ## Starts a grounded heavy charge through the existing Core combat state machine.
@@ -1148,25 +1177,31 @@ func take_damage() -> void:
 
 
 ## Applies resolved combat damage from Core enemy hit confirmations.
-func apply_damage(final_damage: int, metadata: Dictionary = {}) -> void:
+func apply_damage(final_damage: int, metadata: Dictionary = {}) -> int:
 	if _control_locked:
-		return
+		return 0
 	if _state == State.DASHING or is_dodge_iframe_active():
-		return  # Dash and Core dodge i-frames ignore incoming damage.
+		return 0  # Dash and Core dodge i-frames ignore incoming damage.
 	if final_damage <= 0:
-		return
+		return 0
 	if _try_resolve_incoming_parry(metadata):
-		return
+		return 0
 	_stop_wall_climb()
 	_sprite.modulate = DAMAGE_MODULATE
 	var hp_before: int = _health.get_current_hp()
+	var shield_before: int = _health.get_shield()
 	_health.apply_damage(final_damage, metadata)
 	var hp_after: int = _health.get_current_hp()
+	var damage_applied: int = (
+		maxi(0, hp_before - hp_after)
+		+ maxi(0, shield_before - _health.get_shield())
+	)
 	if hp_after > 0 and hp_after < hp_before:
 		if _combat != null:
 			_combat.on_damage_taken(hp_before - hp_after)
 		_reset_heavy_charge_presentation()
 		_play_timed_character_animation(ANIMATION_HURT, HURT_ANIMATION_LOCK_FRAMES)
+	return damage_applied
 
 
 func _try_resolve_incoming_parry(metadata: Dictionary) -> bool:
@@ -1438,6 +1473,8 @@ func _setup_core_combat_chain() -> void:
 
 
 func _on_core_attack_hit(metadata: Dictionary) -> void:
+	if not bool(metadata.get("damage_was_applied", true)):
+		return
 	if (
 		StringName(metadata.get("attack_type", &"")) == &"aerial"
 		and not _aerial_bounce_consumed

@@ -348,6 +348,7 @@ func test_grounded_cat_claw_attack_reaches_crown_warden_hurtbox() -> void:
 	assert_bool(bool(player.call("request_attack"))).is_true()
 	for _frame: int in range(4):
 		await get_tree().physics_frame
+	await get_tree().process_frame
 	assert_int(int(boss.call("get_current_hp"))).is_equal(hp_before - 12)
 	var landed: Dictionary = arena.call("get_boss4_combat_diagnostics")
 	var hit_metadata: Dictionary = Dictionary(landed.get("last_player_hit_metadata", {}))

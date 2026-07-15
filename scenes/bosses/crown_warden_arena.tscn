@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/crown_warden_arena.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/crown_warden_arena/env_crown_warden_observatory_1280x720.png" id="2_background"]
@@ -12,6 +12,7 @@
 [ext_resource type="Texture2D" path="res://assets/environment/crown_warden_victory_recall/prop_crown_warden_victory_recall_256x384.png" id="10_recall_texture"]
 [ext_resource type="Script" path="res://src/core/boss_config_component.gd" id="11_boss_config"]
 [ext_resource type="Script" path="res://src/presentation/combat_presentation.gd" id="12_combat_presentation"]
+[ext_resource type="Script" path="res://src/gameplay/hitstop_input_bridge.gd" id="13_hitstop_bridge"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 48)
@@ -86,6 +87,10 @@ script = ExtResource("11_boss_config")
 
 [node name="CombatPresentation" type="Node2D" parent="."]
 script = ExtResource("12_combat_presentation")
+gameplay_freeze_enabled = true
+
+[node name="HitstopInputBridge" type="Node" parent="."]
+script = ExtResource("13_hitstop_bridge")
 
 [node name="WallClimbRewardSource" type="Node2D" parent="."]
 visible = false
