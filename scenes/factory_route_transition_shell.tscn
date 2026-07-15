@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3]
+[gd_scene load_steps=56 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -43,6 +43,8 @@
 [ext_resource type="Script" path="res://src/feature/route_transition_shell.gd" id="41_route_shell"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_lower_deck_deep_bulkhead/env_old_factory_lower_deck_deep_bulkhead_closed_256.png" id="42_matriarch_gate"]
 [ext_resource type="Texture2D" path="res://assets/environment/underground_passage/prop_factory_aerial_breach_floor_384x160.png" id="43_underground_breach"]
+[ext_resource type="Script" path="res://src/presentation/combat_presentation.gd" id="44_combat_presentation"]
+[ext_resource type="Script" path="res://src/gameplay/hitstop_input_bridge.gd" id="45_hitstop_bridge"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(30080, 40)
@@ -611,6 +613,13 @@ limit_right = 18140
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
+
+[node name="CombatPresentation" type="Node2D" parent="."]
+script = ExtResource("44_combat_presentation")
+gameplay_freeze_enabled = true
+
+[node name="HitstopInputBridge" type="Node" parent="."]
+script = ExtResource("45_hitstop_bridge")
 
 [node name="FactoryRatMinion" parent="." instance=ExtResource("5_rat_minion")]
 z_index = 20

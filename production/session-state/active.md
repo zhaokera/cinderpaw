@@ -6102,3 +6102,40 @@
 - Scope: Combat Presentation remains In Progress because other independent
   scenes still need coverage. The complete-game goal remains active.
 - Blockers: None for Story027.
+
+## Session Extract -- Combat Presentation Story028 2026-07-15
+
+- Delivery checkpoint: Combat Presentation Story028 is complete for Old Factory
+  Spark Rat combat impact as verified local work on top of uploaded Story027
+  commit `9f481632`; report/tmp noise and the unrelated generated Story025 test
+  UID remain excluded.
+- Story: `production/epics/combat-presentation/story-028-old-factory-spark-rat-combat-impact.md`
+  -- Old Factory Spark Rat Combat Impact.
+- Implementation: Mounted one shared `CombatPresentation` and
+  `HitstopInputBridge`; routed real Cat Claw, Spark Rat, and other existing
+  Factory enemy landed-hit signals through the scene presentation/audio owner;
+  suppressed ordinary feedback when HP does not decrease; connected PERFECT
+  parry frame data; added one-shot lethal feedback and focused diagnostics.
+- Verification: Initial RED `report_1817` failed on the missing presentation
+  and bridge; final focused `report_1822` passed `3/3`; Spark Rat readability,
+  pacing, and Factory route roundtrip related regression `report_1823` passed
+  `11/11`; fresh completion gate `report_1824` passed all four suites `14/14`
+  with exit `0`. No full suite was run.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r94929878-35`. Real Spark Rat collision changed Player HP `100 -> 91`,
+  recorded damage `9`, entered three-frame hitstop, and spawned six sparks plus
+  one damage number. A second hit queued one attack during BUFFERING, dispatched
+  once, cleared the queue, and restored DIRECT input; existing hurt state
+  rejected that runtime dispatch, while focused dodge-counter acceptance passed.
+  Player/Spark Rat were visible AnimatedSprite2D characters; the `960x539`
+  screenshot was non-empty; game/editor logs were clean; stop restored `ready`.
+- Assets: No image/audio generation or import. Existing Cinderpaw, Factory
+  enemies, generated Old Factory environment, HUD, audio and combat VFX were
+  reused; no placeholder character art was added.
+- Parallel review: Game design and QA independently selected Old Factory as the
+  remaining high-value combat presentation gap; technical art deferred a
+  separate Cinderpaw jump/fall/wall-climb/dash consistency pass. The integrating
+  agent owned implementation, focused tests, MCP acceptance and documentation.
+- Scope: Combat Presentation remains In Progress because other independent
+  combat scenes still need coverage. The complete-game goal remains active.
+- Blockers: None for Story028.

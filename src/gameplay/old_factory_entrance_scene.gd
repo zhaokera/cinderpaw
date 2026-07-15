@@ -710,6 +710,13 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 
 @onready var _spawn: Marker2D = $FactoryGateEntrySpawn
 @onready var _player: Node2D = $Player
+@onready var _camera: Camera2D = get_node_or_null("Player/Camera2D") as Camera2D
+@onready var _combat_presentation: CombatPresentation = (
+	get_node_or_null("CombatPresentation") as CombatPresentation
+)
+@onready var _hitstop_input_bridge: HitstopInputBridge = (
+	get_node_or_null("HitstopInputBridge") as HitstopInputBridge
+)
 @onready var _enemy: Node2D = $FactoryRatMinion
 @onready var _deep_guard: Node2D = get_node_or_null("FactoryDeepGuardRatMinion") as Node2D
 @onready var _spark_rat: Node2D = get_node_or_null("FactorySparkRat") as Node2D
@@ -1194,6 +1201,9 @@ var _last_lower_deck_forward_conduit_clear_feedback_position: Vector2 = Vector2.
 var _last_hazard_damage: Dictionary = {}
 var _last_spark_rat_counter_diagnostics: Dictionary = {}
 var _last_spark_rat_bite_sequence_id_resolved: int = -1
+var _last_enemy_hit_metadata: Dictionary = {}
+var _kill_feedback_emitted_by_entity: Dictionary = {}
+var _kill_feedback_count: int = 0
 var _encounter_cleared: bool = false
 var _cache_claimed: bool = false
 var _deep_guard_activated: bool = false
@@ -1456,6 +1466,7 @@ func _ready() -> void:
 	_setup_factory_service_lift()
 	_setup_factory_respawn_flow()
 	_bind_player_combat_to_room()
+	_setup_combat_presentation()
 	_refresh_factory_route_objective()
 	_request_factory_audio()
 
@@ -1529,7 +1540,7 @@ func _process(_delta: float) -> void:
 
 func calculate_damage(
 	_attack_type: StringName,
-	_weapon_id: StringName,
+	weapon_id: StringName,
 	_hit_frame: int,
 	combo_index: int,
 	_parry_timing: int,
@@ -1539,17 +1550,32 @@ func calculate_damage(
 	_injected_damage_params: Dictionary = {},
 	_data_manager: Object = null
 ) -> Dictionary:
+	var final_damage: int = FACTORY_PLAYER_LIGHT_DAMAGE
+	var damage_category: StringName = &"scratch"
+	match weapon_id:
+		&"rat_minion_bite":
+			final_damage = 8
+			damage_category = &"bite"
+		&"factory_spark_rat_bite":
+			final_damage = 9
+			damage_category = &"bite"
+		&"factory_coil_rat_bite":
+			final_damage = 10
+			damage_category = &"bite"
+		&"factory_sluice_leech_lunge":
+			final_damage = 11
+			damage_category = &"bite"
 	return {
-		"final_damage": FACTORY_PLAYER_LIGHT_DAMAGE,
-		"base_damage": FACTORY_PLAYER_LIGHT_DAMAGE,
-		"attack_damage": float(FACTORY_PLAYER_LIGHT_DAMAGE),
+		"final_damage": final_damage,
+		"base_damage": final_damage,
+		"attack_damage": float(final_damage),
 		"reduction_factor": 1.0,
 		"damage_multiplier": 1.0,
 		"is_crit": false,
 		"crit_type": &"none",
 		"parry_type": &"none",
 		"combo_stage": combo_index,
-		"damage_category": &"scratch",
+		"damage_category": damage_category,
 	}
 
 
@@ -1564,6 +1590,64 @@ func apply_damage(target_id: int, final_damage: int, metadata: Dictionary = {}) 
 
 func get_last_player_hit_metadata() -> Dictionary:
 	return _last_player_hit_metadata.duplicate(true)
+
+
+func get_last_enemy_hit_metadata() -> Dictionary:
+	return _last_enemy_hit_metadata.duplicate(true)
+
+
+func get_last_buffered_input_result() -> Dictionary:
+	if _hitstop_input_bridge == null:
+		return {}
+	return _hitstop_input_bridge.get_last_buffered_input_result()
+
+
+## Returns focused runtime evidence for Old Factory shared combat impact.
+func get_factory_combat_presentation_diagnostics() -> Dictionary:
+	var bridge_diagnostics: Dictionary = {}
+	if _hitstop_input_bridge != null:
+		bridge_diagnostics = _hitstop_input_bridge.get_diagnostics()
+	var kill_feedback_entity_ids: Array = _kill_feedback_emitted_by_entity.keys()
+	kill_feedback_entity_ids.sort()
+	return {
+		"presentation_present": _combat_presentation != null,
+		"bridge_present": _hitstop_input_bridge != null,
+		"bridge": bridge_diagnostics,
+		"last_player_hit": _last_player_hit_metadata.duplicate(true),
+		"last_enemy_hit": _last_enemy_hit_metadata.duplicate(true),
+		"kill_feedback_count": _kill_feedback_count,
+		"kill_feedback_entity_ids": kill_feedback_entity_ids,
+		"hitstop_active": (
+			_combat_presentation.is_gameplay_hitstop_active()
+			if _combat_presentation != null
+			else false
+		),
+		"hitstop_frames_remaining": (
+			_combat_presentation.get_hitstop_frames_remaining()
+			if _combat_presentation != null
+			else 0
+		),
+		"last_completed_hitstop_frames": (
+			_combat_presentation.get_last_completed_hitstop_frames()
+			if _combat_presentation != null
+			else 0
+		),
+		"damage_number_count": (
+			_combat_presentation.get_active_damage_number_count()
+			if _combat_presentation != null
+			else 0
+		),
+		"spark_count": (
+			_combat_presentation.get_active_spark_count()
+			if _combat_presentation != null
+			else 0
+		),
+		"debris_count": (
+			_combat_presentation.get_active_debris_count()
+			if _combat_presentation != null
+			else 0
+		),
+	}
 
 
 ## Returns whether the Factory entrance combat encounter has been cleared.
@@ -1992,6 +2076,7 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 	_scene_manager = scene_manager
 	var valid_scene_manager: bool = _is_valid_scene_manager(_scene_manager)
 	_configure_factory_respawn_scene_transition()
+	_setup_combat_presentation()
 	if valid_scene_manager:
 		_apply_current_scene_manager_spawn_point()
 	return valid_scene_manager
@@ -2065,6 +2150,14 @@ func resolve_factory_spark_rat_bite_against_player() -> Dictionary:
 	if not dodged and _player.has_method("apply_damage"):
 		_player.call("apply_damage", bite_damage, bite_metadata)
 		hp_after = _get_player_hp()
+		if hp_after < hp_before:
+			_present_factory_enemy_hit(
+				bite_damage,
+				bite_metadata.get("hit_position", Vector2.ZERO) as Vector2,
+				false,
+				_spark_rat,
+				bite_metadata
+			)
 
 	result = {
 		"resolved": true,
@@ -14226,7 +14319,153 @@ func _bind_player_combat_to_room() -> void:
 
 
 func _on_player_attack_landed(metadata: Dictionary) -> void:
-	_last_player_hit_metadata = metadata.duplicate(true)
+	var presentation_data: Dictionary = metadata.duplicate(true)
+	presentation_data["show_damage_number"] = true
+	_last_player_hit_metadata = presentation_data.duplicate(true)
+	if _combat_presentation != null:
+		_combat_presentation.on_hit_event(presentation_data)
+	_dispatch_factory_combat_audio(&"on_hit_event", presentation_data)
+	var target_id: int = int(presentation_data.get("target_id", -1))
+	if (
+		target_id > 0
+		and _is_factory_presentation_target_defeated(target_id)
+		and not _kill_feedback_emitted_by_entity.has(target_id)
+	):
+		_kill_feedback_emitted_by_entity[target_id] = true
+		_kill_feedback_count += 1
+		if _combat_presentation != null:
+			_combat_presentation.on_kill_event(
+				target_id,
+				_get_factory_enemy_impact_position(target_id, presentation_data)
+			)
+
+
+func _setup_combat_presentation() -> void:
+	if _combat_presentation == null or _player == null:
+		return
+	if _camera != null:
+		_combat_presentation.set_camera(_camera)
+	if _hitstop_input_bridge != null:
+		_hitstop_input_bridge.configure(
+			_combat_presentation,
+			_player as PlayerController,
+			get_node_or_null("/root/InputManager")
+		)
+	var player_combat: CombatComponent = _get_player_combat_component()
+	if (
+		player_combat != null
+		and not player_combat.on_parry_resolved.is_connected(
+			_on_player_parry_resolved
+		)
+	):
+		player_combat.on_parry_resolved.connect(_on_player_parry_resolved)
+	_connect_factory_enemy_presentation_signals()
+
+
+func _connect_factory_enemy_presentation_signals() -> void:
+	for enemy: Node in find_children("*", "", true, false):
+		if not enemy.has_signal("enemy_attack_landed"):
+			continue
+		if enemy.has_method("set_damage_calculator_adapter"):
+			enemy.call("set_damage_calculator_adapter", self)
+		var callback: Callable = Callable(
+			self,
+			"_on_factory_enemy_attack_landed"
+		).bind(enemy)
+		var attack_signal: Signal = enemy.get("enemy_attack_landed")
+		if not attack_signal.is_connected(callback):
+			attack_signal.connect(callback)
+
+
+func _on_player_parry_resolved(parry_data: Dictionary) -> void:
+	if _combat_presentation == null or _player == null:
+		return
+	var presentation_data: Dictionary = parry_data.duplicate(true)
+	var parry_position: Vector2 = _player.global_position
+	var sprite: AnimatedSprite2D = _player.get_node_or_null(
+		"Sprite"
+	) as AnimatedSprite2D
+	if sprite != null:
+		parry_position = sprite.global_position
+		if sprite.sprite_frames != null:
+			var frame_texture: Texture2D = sprite.sprite_frames.get_frame_texture(
+				sprite.animation,
+				sprite.frame
+			)
+			if frame_texture != null:
+				presentation_data["texture"] = frame_texture
+			presentation_data["facing"] = -1.0 if sprite.flip_h else 1.0
+			presentation_data["animation"] = sprite.animation
+			presentation_data["frame"] = sprite.frame
+	if not presentation_data.has("position"):
+		presentation_data["position"] = parry_position
+	presentation_data["source"] = &"player_parry"
+	_combat_presentation.on_parry_event(presentation_data)
+	_dispatch_factory_combat_audio(&"on_parry_event", presentation_data)
+
+
+func _on_factory_enemy_attack_landed(
+	damage: int,
+	hit_position: Vector2,
+	is_crit: bool,
+	enemy: Node
+) -> void:
+	_present_factory_enemy_hit(damage, hit_position, is_crit, enemy)
+
+
+func _present_factory_enemy_hit(
+	damage: int,
+	hit_position: Vector2,
+	is_crit: bool,
+	enemy: Variant,
+	metadata_override: Dictionary = {}
+) -> void:
+	_last_enemy_hit_metadata = metadata_override.duplicate(true)
+	_last_enemy_hit_metadata["damage"] = damage
+	_last_enemy_hit_metadata["final_damage"] = damage
+	_last_enemy_hit_metadata["hit_position"] = hit_position
+	_last_enemy_hit_metadata["is_crit"] = is_crit
+	_last_enemy_hit_metadata["show_damage_number"] = true
+	if not _last_enemy_hit_metadata.has("source"):
+		_last_enemy_hit_metadata["source"] = StringName(_get_enemy_family_id(enemy))
+	if _combat_presentation != null:
+		_combat_presentation.on_hit_event(_last_enemy_hit_metadata)
+	_dispatch_factory_combat_audio(
+		&"on_damage_taken_event",
+		_last_enemy_hit_metadata
+	)
+
+
+func _is_factory_presentation_target_defeated(target_id: int) -> bool:
+	var target: Node = _get_factory_enemy_by_entity_id(target_id)
+	return (
+		target != null
+		and is_instance_valid(target)
+		and target.has_method("get_current_hp")
+		and int(target.call("get_current_hp")) <= 0
+	)
+
+
+func _get_factory_enemy_impact_position(
+	target_id: int,
+	metadata: Dictionary
+) -> Vector2:
+	var hit_position: Variant = metadata.get("hit_position", null)
+	if hit_position is Vector2:
+		return hit_position as Vector2
+	var target: Node = _get_factory_enemy_by_entity_id(target_id)
+	if target != null and is_instance_valid(target) and target is Node2D:
+		return (target as Node2D).global_position
+	return Vector2.ZERO
+
+
+func _dispatch_factory_combat_audio(
+	method: StringName,
+	metadata: Dictionary
+) -> void:
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system != null and audio_system.has_method(method):
+		audio_system.call(method, metadata)
 
 
 func _on_factory_enemy_defeated() -> void:
