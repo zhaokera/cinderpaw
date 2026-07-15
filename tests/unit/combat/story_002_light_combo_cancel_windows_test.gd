@@ -29,16 +29,22 @@ func after_test() -> void:
 func test_light_attack_stage_frame_data_matches_gdd() -> void:
 	assert_dict(combat.get_light_attack_frame_data(0)).is_equal({
 		"startup_frames": 4,
+		"active_frames": 4,
+		"post_active_recovery_frames": 4,
 		"recovery_frames": 8,
 		"total_frames": 12,
 	})
 	assert_dict(combat.get_light_attack_frame_data(1)).is_equal({
 		"startup_frames": 6,
+		"active_frames": 6,
+		"post_active_recovery_frames": 6,
 		"recovery_frames": 12,
 		"total_frames": 18,
 	})
 	assert_dict(combat.get_light_attack_frame_data(2)).is_equal({
 		"startup_frames": 10,
+		"active_frames": 10,
+		"post_active_recovery_frames": 10,
 		"recovery_frames": 20,
 		"total_frames": 30,
 	})

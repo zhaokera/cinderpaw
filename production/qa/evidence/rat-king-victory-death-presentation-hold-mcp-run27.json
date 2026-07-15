@@ -1,0 +1,77 @@
+{
+  "story": "combat-presentation-017",
+  "date": "2026-07-14",
+  "engine": "Godot 4.7-stable (official)",
+  "mcp": {
+    "session": "cinderpaw@d40a",
+    "plugin_version": "2.9.2",
+    "server_version": "2.9.2",
+    "run_id": "r21623823-27",
+    "current_run_errors": []
+  },
+  "death_hold": {
+    "hp_before": 300,
+    "hp_after": 0,
+    "animation": "death",
+    "death_frames": 3,
+    "active_hitboxes": 0,
+    "hurtbox_state": "gone",
+    "flow_state": "victory_pending",
+    "control_locked": true,
+    "remaining_sec": 3.0,
+    "menu_visible": false,
+    "boss_hud_visible": false,
+    "currency": 50,
+    "skill_points": 5,
+    "abilities": ["dash"]
+  },
+  "timing_boundary": {
+    "advance_before_expiry_sec": 2.99,
+    "state_before_expiry": "victory_pending",
+    "remaining_before_expiry_sec": 0.01,
+    "menu_visible_before_expiry": false,
+    "boss_hud_visible_before_expiry": false,
+    "duplicate_defeat_requested": true,
+    "player_death_requested": true,
+    "final_advance_sec": 0.02,
+    "final_state": "victory",
+    "final_remaining_sec": 0.0,
+    "menu_visible": true,
+    "boss_hud_visible": false,
+    "menu_title": "Rat King defeated",
+    "menu_subtitle": "Rewards claimed: Dash unlocked +50 Gears +5 SP. Retry the encounter or stay with your prize."
+  },
+  "screenshots": [
+    {
+      "path": "reports/visual/cinderpaw-mcp-rat-king-victory-death-hold-20260714.png",
+      "sha256": "53fde162983e50fbfcf8c60bbdf3116d1d9a78e0f73d6d1c28920e80eca25478",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    },
+    {
+      "path": "reports/visual/cinderpaw-mcp-rat-king-victory-reward-menu-20260714.png",
+      "sha256": "45a281522197eb7a9ac61d7cfc31f300eaa2a99d604028e818323d98df2a7d94",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    }
+  ],
+  "final_logs": {
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0,
+    "clean_stop_readiness": "ready"
+  },
+  "discarded_exploratory_run": {
+    "run_id": "r21159675-25",
+    "scope": "MCP temporary helper only",
+    "issue": "Probe called nonexistent HUD diagnostic is_boss_hp_visible",
+    "project_file_affected": false,
+    "logs_cleared_before_final_run": true
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "story": "player-abilities-162",
+  "date": "2026-07-14",
+  "engine": "Godot 4.7-stable (official)",
+  "mcp": {
+    "session": "cinderpaw@3736",
+    "plugin_version": "3.0.2",
+    "server_version": "3.0.2",
+    "transport": "streamable-http",
+    "run_id": "r13362848-6",
+    "current_run_errors": [],
+    "helper_live": true
+  },
+  "baseline": {
+    "requested": true,
+    "weapon_id": "fish_bone",
+    "crit_type": "perfect",
+    "hit_frame": 2,
+    "hp_before": 300,
+    "hp_after": 200,
+    "base_damage": 40,
+    "attack_damage": 100.0,
+    "final_damage": 100,
+    "damage_number": "100"
+  },
+  "menu_unlock": {
+    "source": "SkillUnlockButton.pressed",
+    "menu_mode": "skill_tree",
+    "active_skill_id": "fish_bone_t1b",
+    "skill_points": 0,
+    "has_skill": true,
+    "stat_bonus_damage": 0.08,
+    "button_found": true,
+    "button_text": "Honed Fishbone learned",
+    "button_disabled": true,
+    "subtitle": "SP 0 | Node 6/7\nFish Bone T1 - Honed Fishbone\nCost 1 SP | Learned\nFish Bone attacks deal 8% more damage."
+  },
+  "upgraded_hit": {
+    "requested": true,
+    "menu_mode": "none",
+    "weapon_id": "fish_bone",
+    "weapon_hud": "鱼骨大剑\nSpecial 0%",
+    "crit_type": "perfect",
+    "hit_frame": 2,
+    "hp_before": 300,
+    "hp_after": 192,
+    "skill_damage_bonus": 0.08,
+    "skill_weapon_bonus": 0.0,
+    "base_damage": 40,
+    "attack_damage": 108.0,
+    "final_damage": 108,
+    "damage_number": "108",
+    "vfx_count": 1,
+    "vfx_lifetime_sec": 0.3,
+    "vfx_texture_path": "res://assets/generated/combat_fish_bone_wave_runtime.png"
+  },
+  "wrong_weapon_control": {
+    "weapon_id": "cat_claw",
+    "skill_damage_bonus": 0.0,
+    "final_damage": 25,
+    "source": "reports/report_1685/results.xml"
+  },
+  "screenshots": [
+    {
+      "state": "skill_tree_learned",
+      "path": "reports/visual/cinderpaw-mcp-skill-tree-fish-bone-t1b-20260714.png",
+      "sha256": "97ce4ce23b50e62fbb2465118dfb31a6a3ea5cadb15ea7065924aff1d779950b",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    },
+    {
+      "state": "upgraded_hit",
+      "path": "reports/visual/cinderpaw-mcp-fish-bone-t1b-damage-20260714.png",
+      "sha256": "4bafb04f886c2c0642031f7f1faf9804fe7c3f60e682f024b2d5d753b8a9cb7e",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    }
+  ],
+  "final_logs": {
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0,
+    "clean_stop_readiness": "ready"
+  }
+}

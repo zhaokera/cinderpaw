@@ -35,7 +35,10 @@ func test_player_light_attack_damages_enemy_through_core_chain_once() -> void:
 
 	assert_int(combat_presentation.get_active_damage_number_count()).is_equal(0)
 	assert_bool(player.request_attack()).is_true()
-	assert_bool(player_collision.is_hitbox_active(&"cat_claw_light")).is_true()
+	assert_bool(await _wait_for_light_hitbox_active(
+		player_collision,
+		&"cat_claw_light"
+	)).is_true()
 	assert_int(combat_presentation.get_active_trail_count()).is_equal(3)
 
 	player_collision.process_detection_frame({
@@ -88,7 +91,10 @@ func test_main_scene_dispatches_long_tail_attack_started_to_blade_arc_vfx() -> v
 	scene.set_current_weapon_id(&"long_tail")
 
 	assert_bool(player.request_attack()).is_true()
-	assert_bool(player_collision.is_hitbox_active(&"long_tail_light")).is_true()
+	assert_bool(await _wait_for_light_hitbox_active(
+		player_collision,
+		&"long_tail_light"
+	)).is_true()
 
 	var snapshot: Dictionary = combat_presentation.get_weapon_vfx_snapshot(&"long_tail")
 	assert_int(int(snapshot.get("count", 0))).is_equal(1)
@@ -107,7 +113,10 @@ func test_main_scene_dispatches_fish_bone_attack_started_to_shockwave_vfx() -> v
 	scene.set_current_weapon_id(&"fish_bone")
 
 	assert_bool(player.request_attack()).is_true()
-	assert_bool(player_collision.is_hitbox_active(&"fish_bone_light")).is_true()
+	assert_bool(await _wait_for_light_hitbox_active(
+		player_collision,
+		&"fish_bone_light"
+	)).is_true()
 
 	var snapshot: Dictionary = combat_presentation.get_weapon_vfx_snapshot(&"fish_bone")
 	assert_int(int(snapshot.get("count", 0))).is_equal(1)
@@ -128,7 +137,10 @@ func test_electro_bell_runtime_hit_applies_slow_to_enemy_status_component() -> v
 	scene.set_current_weapon_id(&"electro_bell")
 
 	assert_bool(player.request_attack()).is_true()
-	assert_bool(player_collision.is_hitbox_active(&"electro_bell_light")).is_true()
+	assert_bool(await _wait_for_light_hitbox_active(
+		player_collision,
+		&"electro_bell_light"
+	)).is_true()
 	var snapshot: Dictionary = combat_presentation.get_weapon_vfx_snapshot(&"electro_bell")
 	assert_int(int(snapshot.get("count", 0))).is_between(5, 8)
 	assert_str(String(snapshot.get("texture_path", ""))).is_equal(
@@ -167,6 +179,18 @@ func _assert_runtime_attack_contract() -> bool:
 	)
 	assert_bool(has_contract).is_true()
 	return has_contract
+
+
+func _wait_for_light_hitbox_active(
+	player_collision: CollisionComponent,
+	hitbox_id: StringName,
+	max_frames: int = 20
+) -> bool:
+	for _frame: int in range(max_frames):
+		if player_collision.is_hitbox_active(hitbox_id):
+			return true
+		await get_tree().physics_frame
+	return false
 
 
 func _stop_runtime_audio_players() -> void:

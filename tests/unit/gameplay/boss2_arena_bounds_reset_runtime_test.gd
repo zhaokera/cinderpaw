@@ -7,6 +7,7 @@ const BOSS2_ENTITY_ID: int = 2200
 const RUN_ANIMATION: StringName = &"run"
 const IDLE_ANIMATION: StringName = &"idle"
 const BOSS2_MAX_HP: int = 36
+const RAT_KING_DEFEATED_FLAG: StringName = &"boss_rat_king_defeated"
 
 var scene: Node2D
 
@@ -14,6 +15,7 @@ var scene: Node2D
 func before_test() -> void:
 	scene = MAIN_SCENE.instantiate() as Node2D
 	add_child(scene)
+	scene.call("set_world_progress_flag", RAT_KING_DEFEATED_FLAG, true)
 
 
 func after_test() -> void:
@@ -206,10 +208,11 @@ func test_boss2_defeated_progress_is_not_revived_by_arena_reset() -> void:
 
 	scene.call("reset_boss_arena_to_snapshot", entry_snapshot)
 	var diagnostics: Dictionary = boss.call("get_auto_pressure_diagnostics")
-	var label: String = String(hud.call("get_boss_label_text"))
 	assert_bool(bool(diagnostics.get("defeated", false))).is_true()
 	assert_str(String(diagnostics.get("behavior_phase", ""))).is_equal("defeated")
 	assert_bool(bool(diagnostics.get("is_chasing", true))).is_false()
 	assert_bool(boss.visible).is_false()
-	assert_bool(label.contains("Echo Guardian")).is_false()
-	assert_str(label).contains("垃圾桶鼠王")
+	assert_bool(bool(Dictionary(hud.call("get_boss_portrait_diagnostics")).get(
+		"panel_visible",
+		true
+	))).is_false()

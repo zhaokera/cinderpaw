@@ -6,6 +6,7 @@ const BOSS_NODE_NAME: String = "Boss2EchoGuardian"
 const REWARD_NODE_NAME: String = "Boss2DoubleJumpRewardSource"
 const BOSS2_HITBOX_ID: StringName = &"boss2_echo_swipe"
 const EXPECTED_ATTACK_DAMAGE: int = 14
+const RAT_KING_DEFEATED_FLAG: StringName = &"boss_rat_king_defeated"
 
 var scene: Node2D
 
@@ -13,6 +14,7 @@ var scene: Node2D
 func before_test() -> void:
 	scene = MAIN_SCENE.instantiate() as Node2D
 	add_child(scene)
+	scene.call("set_world_progress_flag", RAT_KING_DEFEATED_FLAG, true)
 
 
 func after_test() -> void:
@@ -54,7 +56,7 @@ func test_boss2_echo_swipe_startup_then_active_hitbox_damages_player_once() -> v
 	var start_hp: int = int(player.call("get_current_hp"))
 	assert_bool(bool(boss.call("request_attack"))).is_true()
 	assert_str(String(boss.call("get_attack_phase"))).is_equal("startup")
-	assert_str(String(boss.get_node("Sprite").get("animation"))).is_equal("attack")
+	assert_str(String(boss.get_node("Sprite").get("animation"))).is_equal("attack_tell")
 
 	var boss_collision: CollisionComponent = boss.call("get_collision_component") as CollisionComponent
 	var player_collision: CollisionComponent = player.call("get_collision_component") as CollisionComponent
@@ -67,6 +69,7 @@ func test_boss2_echo_swipe_startup_then_active_hitbox_damages_player_once() -> v
 	boss.call("advance_attack_frames", int(boss.call("get_current_attack_startup_frames")))
 	assert_bool(bool(boss.call("is_enemy_attack_active"))).is_true()
 	assert_str(String(boss.call("get_attack_phase"))).is_equal("active")
+	assert_str(String(boss.get_node("Sprite").get("animation"))).is_equal("attack")
 	assert_bool(boss_collision.is_hitbox_active(BOSS2_HITBOX_ID)).is_true()
 
 	boss_collision.process_detection_frame({
@@ -123,6 +126,7 @@ func test_boss2_echo_swipe_recovers_and_defeat_preserves_reward_path() -> void:
 	boss.call("apply_damage", int(boss.call("get_current_hp")), {
 		"source": &"unit_test_boss2_defeat",
 	})
+	assert_bool(bool(scene.call("advance_boss2_death_presentation", 2.0))).is_true()
 	assert_bool(bool(boss.call("is_defeated"))).is_true()
 	assert_bool(bool(boss.call("request_attack"))).is_false()
 	if collision != null:

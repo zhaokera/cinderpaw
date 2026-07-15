@@ -62,6 +62,14 @@
 			"preload": false,
 			"default_spawn": "neon_rooftops_threshold_arrival",
 			"display_name": "Central Tower Threshold"
+		},
+		"boss_04_crown_warden_arena": {
+			"scene_id": "boss_04_crown_warden_arena",
+			"path": "res://scenes/bosses/crown_warden_arena.tscn",
+			"type": "boss_arena",
+			"preload": false,
+			"default_spawn": "boss_entry",
+			"display_name": "Crown Observatory"
 		}
 	}
 }

@@ -737,7 +737,7 @@ func _physics_process(delta: float) -> void:
 ### 手动验证（非自动化）
 
 - [ ] **AC-9b** 低 HP 视觉状态：HP 条颜色/攻击预兆闪烁（Presentation 层验证）
-- [ ] **AC-23** 低 HP 受伤音效：低频混响效果（Audio 层验证）
+- [ ] **AC-23** 低 HP 受伤音效：Audio Story010 技术实现、客观频谱/衰减与 MCP 路由已通过；主观真人试听签收待完成
 - [ ] **AC-31** 专注模式激活信号：猫眼金色闪光 + 提示音（Presentation 层验证）
 
 ## Related Decisions

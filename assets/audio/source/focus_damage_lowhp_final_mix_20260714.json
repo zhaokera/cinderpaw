@@ -1,0 +1,34 @@
+{
+  "generated_on": "2026-07-14",
+  "story_id": "audio-system-story-010",
+  "status": "story_final_mix",
+  "purpose": "Low-HP focus damage cue with a short, dark, low-frequency damped reverb tail for Health Rule8.",
+  "source_dry_path": "res://assets/audio/sfx/sfx_damage_taken.wav",
+  "source_dry_sha256": "f4e53e7601a27965ea3d1cca92027746126152f2fe88940d61ac75071cf991f1",
+  "output_path": "res://assets/audio/sfx/sfx_damage_taken_lowhp.wav",
+  "output_sha256": "75b307218c47308f8720beb8c472464dffe8a5d46b998146d30896afe527548d",
+  "replaces_sha256": "4c4ad0579a6edb60402ae91ca1c59ef257b69a2c0936cfe1e5779c6e615d1397",
+  "generator_script": "res://assets/audio/source/generate_focus_damage_lowhp_final_mix.py",
+  "recipe": "Low-pass the normal damage body at 2.1 kHz, reinforce 42-180 Hz, add three mono damped reflections at 72/111/158 ms, add decaying 86/129 Hz resonance, soft-saturate the transient, fade from 310-380 ms, and normalize to -4.3 dBFS peak.",
+  "generation_command": "python3 assets/audio/source/generate_focus_damage_lowhp_final_mix.py assets/audio/sfx/sfx_damage_taken.wav assets/audio/sfx/sfx_damage_taken_lowhp.wav",
+  "format": {
+    "codec": "PCM signed 16-bit little-endian WAV",
+    "sample_rate_hz": 44100,
+    "channels": 1,
+    "duration_sec": 0.38
+  },
+  "objective_metrics": {
+    "peak_dbfs": -4.3,
+    "rms_dbfs": -13.03,
+    "tail_after_160ms_rms_dbfs": -19.39,
+    "final_10ms_rms_dbfs": -71.09,
+    "spectral_centroid_hz": 112.75,
+    "normal_spectral_centroid_hz": 293.7,
+    "rms_matched_20_80hz_delta_db_vs_normal": 6.59,
+    "rms_matched_2_6khz_delta_db_vs_normal": -4.06,
+    "rms_matched_6_16khz_delta_db_vs_normal": -11.43,
+    "low_20_160hz_to_high_2_6khz_ratio_db": 25.43
+  },
+  "acceptance_scope": "Project Story010 final mix. Objective metrics prove a distinct darker, lower, decaying cue; they do not claim commercial mastering or physical room-reverb simulation.",
+  "image_generation": "not_applicable_audio_only"
+}

@@ -1,0 +1,30 @@
+{
+  "asset_id": "boss2_echo_guardian_attack_tell_frames",
+  "date": "2026-07-14",
+  "generator": "built-in image generation",
+  "use_case": "stylized-concept",
+  "reference": "res://assets/characters/boss2_echo_guardian/source/boss2_echo_guardian_sprite_sheet_imagegen_20260626.png",
+  "source": "res://assets/characters/boss2_echo_guardian/source/boss2_echo_guardian_attack_tell_sheet_imagegen_20260714.png",
+  "alpha_source": "res://assets/characters/boss2_echo_guardian/source/boss2_echo_guardian_attack_tell_sheet_alpha_20260714.png",
+  "runtime_frames": [
+    "res://assets/characters/boss2_echo_guardian/attack_tell/boss2_echo_guardian_attack_tell_000.png",
+    "res://assets/characters/boss2_echo_guardian/attack_tell/boss2_echo_guardian_attack_tell_001.png",
+    "res://assets/characters/boss2_echo_guardian/attack_tell/boss2_echo_guardian_attack_tell_002.png"
+  ],
+  "prompt": "Create exactly three sequential attack-windup frames for the existing side-view Echo Guardian cyber-feline boss. Preserve its gunmetal armor, brass trim, violet cat-eye core, proportions and crisp pixel-art rendering. Arrange exactly three equal cells on a flat #00ff00 chroma-key background with consistent scale, ground baseline and anchor: crouched anticipation; deeper coiled windup with a compact violet echo ring; maximum stored tension immediately before release. This is a tell only: no strike, slash, projectile, lunge, shadow, text, watermark or frame border.",
+  "processing": {
+    "chroma_key": "remove_chroma_key.py --auto-key border --soft-matte --transparent-threshold 12 --opaque-threshold 220 --despill",
+    "detected_key": "#09ed13",
+    "source_size": [2172, 724],
+    "cell_size": [724, 724],
+    "normalization": "Each equal cell was point-resized to 150x150 and composited at +5,+2 on a transparent 160x128 canvas, preserving the shared source baseline and anchor."
+  },
+  "constraints": {
+    "animation": "attack_tell",
+    "frame_count": 3,
+    "frame_size": [160, 128],
+    "transparent_background": true,
+    "continuous_naming": true,
+    "gameplay_role": "Boss2 startup visual only; active attack remains the existing attack animation"
+  }
+}

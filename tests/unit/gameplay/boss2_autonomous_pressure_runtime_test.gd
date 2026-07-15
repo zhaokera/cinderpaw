@@ -6,7 +6,8 @@ const BOSS_NODE_NAME: String = "Boss2EchoGuardian"
 const BOSS2_HITBOX_ID: StringName = &"boss2_echo_swipe"
 const EXPECTED_ATTACK_DAMAGE: int = 14
 const RUN_ANIMATION: StringName = &"run"
-const ATTACK_ANIMATION: StringName = &"attack"
+const ATTACK_TELL_ANIMATION: StringName = &"attack_tell"
+const RAT_KING_DEFEATED_FLAG: StringName = &"boss_rat_king_defeated"
 
 var scene: Node2D
 
@@ -14,6 +15,7 @@ var scene: Node2D
 func before_test() -> void:
 	scene = MAIN_SCENE.instantiate() as Node2D
 	add_child(scene)
+	scene.call("set_world_progress_flag", RAT_KING_DEFEATED_FLAG, true)
 
 
 func after_test() -> void:
@@ -74,12 +76,16 @@ func test_boss2_sustained_chase_allows_run_animation_to_advance() -> void:
 	assert_str(String(sprite.animation)).is_equal(String(RUN_ANIMATION))
 	assert_int(sprite.frame).is_equal(0)
 
+	var observed_advanced_frame: bool = false
 	for _index: int in range(25):
 		boss.call("advance_behavior_frames", 1)
 		await get_tree().physics_frame
+		observed_advanced_frame = observed_advanced_frame or sprite.frame >= 1
 
 	assert_str(String(sprite.animation)).is_equal(String(RUN_ANIMATION))
-	assert_int(sprite.frame).is_greater_equal(1)
+	assert_bool(observed_advanced_frame).override_failure_message(
+		"Run animation must advance at least once without being restarted every behavior frame"
+	).is_true()
 
 
 func test_boss2_auto_pressure_enters_startup_without_direct_request_attack() -> void:
@@ -97,7 +103,7 @@ func test_boss2_auto_pressure_enters_startup_without_direct_request_attack() -> 
 	assert_bool(_advance_until_attack_phase(boss, &"startup", 96)).is_true()
 	assert_str(String(boss.call("get_attack_phase"))).is_equal("startup")
 	var sprite := boss.get_node("Sprite") as AnimatedSprite2D
-	assert_str(String(sprite.animation)).is_equal(String(ATTACK_ANIMATION))
+	assert_str(String(sprite.animation)).is_equal(String(ATTACK_TELL_ANIMATION))
 	var collision: CollisionComponent = boss.call("get_collision_component") as CollisionComponent
 	assert_that(collision).is_not_null()
 	if collision != null:

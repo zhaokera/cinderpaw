@@ -1,0 +1,89 @@
+{
+  "story": "player-abilities-158",
+  "date": "2026-07-14",
+  "engine": "Godot 4.7-stable (official)",
+  "mcp": {
+    "session": "cinderpaw@d40a",
+    "plugin_version": "2.9.2",
+    "cli_version": "2.9.2",
+    "transport": "streamable-http",
+    "run_id": "r27682351-33",
+    "current_run_errors": [],
+    "helper_live": true
+  },
+  "focus_attack_start": {
+    "player_hp": 25,
+    "player_focus_active": true,
+    "rat_king": {
+      "attack_started": true,
+      "attack_phase": "startup",
+      "pattern_id": "claw_swipe",
+      "startup_frames": 21,
+      "animation": "claw_swipe",
+      "animation_frame": 1,
+      "animation_frame_count": 3,
+      "tell": {
+        "node_name": "FocusAttackTell",
+        "node_type": "Sprite2D",
+        "texture_path": "res://assets/generated/combat_focus_mode_boss_attack_tell.png",
+        "visible": true,
+        "area_multiplier": 1.25,
+        "duration_multiplier": 1.1,
+        "base_duration_frames": 15,
+        "total_duration_frames": 17,
+        "remaining_frames": 17,
+        "base_scale": [0.95, 0.95],
+        "focus_scale": [1.1875, 1.1875]
+      }
+    },
+    "echo_guardian": {
+      "attack_started": true,
+      "attack_phase": "startup",
+      "attack_sequence_id": 1,
+      "startup_frames": 14,
+      "animation": "attack",
+      "animation_frame": 1,
+      "animation_frame_count": 3,
+      "tell": {
+        "node_name": "FocusAttackTell",
+        "node_type": "Sprite2D",
+        "texture_path": "res://assets/generated/combat_focus_mode_boss_attack_tell.png",
+        "visible": true,
+        "area_multiplier": 1.25,
+        "duration_multiplier": 1.1,
+        "base_duration_frames": 8,
+        "total_duration_frames": 9,
+        "remaining_frames": 9,
+        "base_scale": [0.68, 0.68],
+        "focus_scale": [0.85, 0.85]
+      }
+    }
+  },
+  "tell_lifecycle_end": {
+    "rat_phase": "startup",
+    "rat_visible": false,
+    "rat_remaining_frames": 0,
+    "rat_alpha": 0.0,
+    "rat_scale": [0.95, 0.95],
+    "echo_phase": "startup",
+    "echo_visible": false,
+    "echo_remaining_frames": 0,
+    "echo_alpha": 0.0,
+    "echo_scale": [0.68, 0.68]
+  },
+  "screenshot": {
+    "path": "reports/visual/cinderpaw-mcp-focus-boss-attack-tell-20260714.png",
+    "sha256": "48be79bc9d11692ce701ce24d8d480b786406821aa8efad6bcd729de96e5632a",
+    "width": 1278,
+    "height": 718,
+    "format": "png",
+    "non_empty": true,
+    "visually_inspected": true
+  },
+  "final_logs": {
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0,
+    "clean_stop_readiness": "ready"
+  }
+}

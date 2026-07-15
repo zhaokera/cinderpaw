@@ -96,8 +96,8 @@
 | TR-health-004 | Boss阶段转换 while 循环 | — | ❌ |
 | TR-health-005 | HP里程碑阈值 4档 | ADR-0002 | ⚠️ |
 | TR-health-006 | 专注模式（HP≤25%+active_enemies） | ADR-0006 | ⚠️ |
-| TR-health-007 | 专注模式激活视觉/音效 | — | ❌ |
-| TR-health-008 | 专注模式4项感知变化 | ADR-0006 | ⚠️ |
+| TR-health-007 | 专注模式激活视觉/音效 | ADR-0002, ADR-0010, ADR-0019 | ✅ |
+| TR-health-008 | 专注模式4项感知变化 | ADR-0006, ADR-0010, ADR-0019 | ✅ Complete implementation: Story154/157/158/159 cover activation, Boss windup, attack-tell amplification and environment-particle reduction; Audio Story010 adds the traced low-frequency damped hurt mix. Subjective listening sign-off remains manual review. |
 | TR-health-009 | i-frame管理 max不叠加 | — | ❌ |
 | TR-health-010 | on_death 扩展元数据 | ADR-0002 | ✅ |
 | TR-health-011 | 信号发射顺序 5级 | ADR-0002 | ✅ |
@@ -179,11 +179,17 @@
 | TR-save-001 | ISerializable 接口模式 | ADR-0001 | ⚠️ Interface defined |
 | TR-save-002~007 | 数据结构/槽位/备份/迁移/触发/异步 | — | ❌ 6 gaps |
 
-#### Death & Respawn (death-respawn.md) — ❌ No ADR
+#### Death & Respawn (death-respawn.md) — ✅ Implemented
 
 | TR-ID | Requirement | ADR Coverage | Status |
 |-------|-------------|-------------|--------|
-| TR-respawn-001~007 | 10步流程/重生点/Boss重置/学费/无惩罚/时间预算/无敌 | ADR-0007(部分) | ⚠️ |
+| TR-respawn-001 | 死亡延迟、重生、复活与控制恢复流程 | ADR-0001, ADR-0002, ADR-0019 | ✅ Story001/002/008 |
+| TR-respawn-002 | 存档点、聚落、Boss入口重生优先级 | ADR-0007 | ✅ Story003/004/007 |
+| TR-respawn-003 | Boss死亡重置竞技场状态与Boss HP | ADR-0007 | ✅ Story003 |
+| TR-respawn-004 | 可选猎人教学战斗总结 | ADR-0002, ADR-0019 | ✅ Story005 |
+| TR-respawn-005 | 金钱、物品与进度无损失 | ADR-0007 | ✅ Story006 |
+| TR-respawn-006 | 死亡到恢复控制总预算小于5.5秒 | ADR-0001 | ✅ Story001/008 |
+| TR-respawn-007 | 复活后2秒无敌与可见反馈 | ADR-0019 | ✅ Story002/008 |
 
 #### Skill Tree (skill-tree.md) — ❌ No ADR (P2-#9 planned)
 

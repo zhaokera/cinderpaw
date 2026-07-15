@@ -1,0 +1,91 @@
+{
+  "story": "combat-presentation-019",
+  "date": "2026-07-14",
+  "evidence_status": "superseded_for_layout",
+  "superseded_by": "production/qa/evidence/boss-phase-overlay-readability-mcp-run2.json",
+  "engine": "Godot 4.7-stable (official)",
+  "mcp": {
+    "session": "cinderpaw@af5f",
+    "plugin_version": "3.0.2",
+    "server_version": "3.0.2",
+    "server_launch_mode": "uvx",
+    "run_id": "r22854-1",
+    "current_run_errors": [],
+    "helper_live": true
+  },
+  "phase_transition_peak": {
+    "attack_id": "wing_sweep",
+    "attack_requested": true,
+    "threshold_damage": 80,
+    "threshold_damage_accepted": true,
+    "phase": 2,
+    "hp": 80,
+    "attack_phase": "phase_transition",
+    "boss_animation": "hurt",
+    "boss_frame_count": 3,
+    "player_animation": "idle",
+    "player_frame_count": 3,
+    "overlay_count": 1,
+    "debris_count": 32,
+    "texture_path": "res://assets/generated/combat_boss_phase_overlay_readable.png",
+    "texture_loaded": true,
+    "overlay_canvas_layer": 0,
+    "hud_canvas_layer": 1,
+    "mouse_filter": 2,
+    "lifetime_sec": 0.4,
+    "remaining_sec": 0.4,
+    "center_safe_rect": "Rect2(0.25, 0.25, 0.5, 0.5)",
+    "boss_hud_label": "Crown Warden  Phase II  80/160"
+  },
+  "deterministic_boundaries": {
+    "at_0_39_sec": {
+      "overlay_count": 1,
+      "debris_count": 32,
+      "remaining_sec": 0.01,
+      "overlay_alpha": 0.0205000005662441
+    },
+    "at_0_41_sec": {
+      "overlay_count": 0,
+      "debris_count": 32,
+      "overlay_node_queued_for_deletion": true
+    },
+    "at_1_51_sec": {
+      "debris_count": 0
+    }
+  },
+  "asset": {
+    "width": 1280,
+    "height": 720,
+    "center_rect": [320, 180, 640, 360],
+    "center_alpha_min": 0,
+    "center_alpha_max": 0,
+    "center_alpha_mean": 0,
+    "sha256": "e0bff6b66f8ff3ace83b03a068d79ebef49ff3b20543d8827d49b398d69f6dbf"
+  },
+  "screenshots": [
+    {
+      "state": "phase_two_overlay_peak",
+      "path": "reports/visual/cinderpaw-mcp-boss-phase-overlay-readability-20260714.png",
+      "sha256": "c8b9b22a12acad14fdbf4b9a1d4bcc0e663b15535d0d8799d5f4b8769fa365f3",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true,
+      "layout_accepted": false,
+      "layout_issue": "Full-rect anchors plus positive right/bottom offsets produced a 2560x1440 rect and cropped the right/bottom frame"
+    }
+  ],
+  "final_logs": {
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0,
+    "clean_stop_readiness": "ready"
+  },
+  "rejected_evidence": [
+    {
+      "report": "reports/report_1691/results.xml",
+      "reason": "ResourceLoader emitted an error before the new PNG completed Godot import"
+    }
+  ]
+}

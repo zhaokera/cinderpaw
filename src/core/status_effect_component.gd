@@ -158,17 +158,27 @@ func get_effect_priority(effect_id: StringName) -> int:
 
 ## Applies or refreshes a status effect on this component's owning entity.
 func apply_status(target_id: int, effect_id: StringName, source_id: int = 0) -> bool:
+	return apply_status_profile(target_id, effect_id, source_id, {})
+
+
+## Applies or refreshes one effect with an optional duration/intensity envelope.
+func apply_status_profile(
+	target_id: int,
+	effect_id: StringName,
+	source_id: int = 0,
+	profile: Dictionary = {}
+) -> bool:
 	if _entity_id != 0 and target_id != _entity_id:
 		return false
 	if not EFFECT_CONFIG.has(effect_id) or _is_immune_to_effect(effect_id):
 		return false
 	var existing_index: int = _find_effect_index(effect_id)
 	if existing_index >= 0:
-		_refresh_existing_effect(existing_index, effect_id)
+		_refresh_existing_effect(existing_index, effect_id, profile)
 		return true
 	if _active_effects.size() >= _max_effects:
 		_evict_oldest_effect()
-	_active_effects.append(_make_effect_instance(target_id, effect_id, source_id))
+	_active_effects.append(_make_effect_instance(target_id, effect_id, source_id, profile))
 	status_applied.emit(target_id, effect_id)
 	if effect_id == EFFECT_INVINCIBLE:
 		_grant_invincible_iframes()
@@ -198,6 +208,10 @@ func advance_time(delta_seconds: float) -> void:
 		effect["remaining_duration_sec"] = (
 			float(effect.get("remaining_duration_sec", 0.0)) - delta_seconds
 		)
+		effect["pulse_remaining_duration_sec"] = maxf(
+			0.0,
+			float(effect.get("pulse_remaining_duration_sec", 0.0)) - delta_seconds
+		)
 		_process_dot_ticks(effect, delta_seconds)
 		_active_effects[index] = effect
 		if float(effect["remaining_duration_sec"]) <= 0.0:
@@ -209,7 +223,10 @@ func advance_time(delta_seconds: float) -> void:
 func get_movement_modifier() -> float:
 	var modifier: float = 1.0
 	for effect: Dictionary in _active_effects:
-		modifier *= float(effect.get("movement_modifier", 1.0))
+		var effect_modifier: float = float(effect.get("movement_modifier", 1.0))
+		if float(effect.get("pulse_remaining_duration_sec", 0.0)) > 0.0:
+			effect_modifier = float(effect.get("pulse_movement_modifier", effect_modifier))
+		modifier *= effect_modifier
 	return modifier
 
 
@@ -280,29 +297,70 @@ func _is_target_invulnerable() -> bool:
 	return false
 
 
-func _refresh_existing_effect(effect_index: int, effect_id: StringName) -> void:
+func _refresh_existing_effect(
+	effect_index: int,
+	effect_id: StringName,
+	profile: Dictionary = {}
+) -> void:
 	var config: Dictionary = EFFECT_CONFIG[effect_id]
 	var effect: Dictionary = _active_effects[effect_index]
-	var base_duration_sec: float = float(config["base_duration_sec"])
+	var base_duration_sec: float = maxf(
+		0.0,
+		float(profile.get("duration_sec", config["base_duration_sec"]))
+	)
 	var current_duration_sec: float = float(effect.get("remaining_duration_sec", 0.0))
 	effect["remaining_duration_sec"] = maxf(current_duration_sec, base_duration_sec)
+	effect["base_duration_sec"] = base_duration_sec
+	if profile.has("movement_modifier"):
+		effect["movement_modifier"] = maxf(0.0, float(profile["movement_modifier"]))
+	var pulse_duration_sec: float = maxf(0.0, float(profile.get("pulse_duration_sec", 0.0)))
+	if pulse_duration_sec > 0.0:
+		effect["pulse_remaining_duration_sec"] = maxf(
+			float(effect.get("pulse_remaining_duration_sec", 0.0)),
+			pulse_duration_sec
+		)
+		effect["pulse_duration_sec"] = pulse_duration_sec
+		effect["pulse_movement_modifier"] = maxf(
+			0.0,
+			float(profile.get("pulse_movement_modifier", effect["movement_modifier"]))
+		)
 	effect["tick_elapsed_sec"] = 0.0
 	_active_effects[effect_index] = effect
 
 
-func _make_effect_instance(target_id: int, effect_id: StringName, source_id: int) -> Dictionary:
+func _make_effect_instance(
+	target_id: int,
+	effect_id: StringName,
+	source_id: int,
+	profile: Dictionary = {}
+) -> Dictionary:
 	var config: Dictionary = EFFECT_CONFIG[effect_id]
+	var base_duration_sec: float = maxf(
+		0.0,
+		float(profile.get("duration_sec", config["base_duration_sec"]))
+	)
+	var movement_modifier: float = maxf(
+		0.0,
+		float(profile.get("movement_modifier", config["movement_modifier"]))
+	)
+	var pulse_duration_sec: float = maxf(0.0, float(profile.get("pulse_duration_sec", 0.0)))
 	return {
 		"effect_id": effect_id,
 		"target_id": target_id,
 		"source_id": source_id,
-		"remaining_duration_sec": float(config["base_duration_sec"]),
-		"base_duration_sec": float(config["base_duration_sec"]),
+		"remaining_duration_sec": base_duration_sec,
+		"base_duration_sec": base_duration_sec,
+		"pulse_remaining_duration_sec": pulse_duration_sec,
+		"pulse_duration_sec": pulse_duration_sec,
 		"tick_elapsed_sec": 0.0,
 		"category": int(config["category"]),
 		"priority": int(config["priority"]),
 		"dot_damage": int(config["dot_damage"]),
-		"movement_modifier": float(config["movement_modifier"]),
+		"movement_modifier": movement_modifier,
+		"pulse_movement_modifier": maxf(
+			0.0,
+			float(profile.get("pulse_movement_modifier", movement_modifier))
+		),
 		"damage_modifier": float(config["damage_modifier"]),
 	}
 

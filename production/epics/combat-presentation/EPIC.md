@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: Complete
-> **Stories**: 15 stories tracked
+> **Stories**: 19 stories tracked
 
 ## Overview
 
@@ -28,7 +28,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | TR-combatfx-001 | Hitstop durations are selected by event type, and same-frame events take the maximum duration. | ADR-0002 partial |
 | TR-combatfx-002 | Screen shake intensity and duration are selected by event type, and same-frame events take the maximum intensity. | ADR-0002 partial |
 | TR-combatfx-003 | Particle system supports GDD particle types with a 200-particle performance cap. | ADR-0002, Story012 cap, Story013 weapon family variants |
-| TR-combatfx-004 | Dodge, dash, and perfect parry support afterimage feedback modes. | ADR-0002 partial |
+| TR-combatfx-004 | Dodge, dash, and perfect parry support afterimage feedback modes. | ADR-0002, Story004, Story016 |
 | TR-combatfx-005 | Damage number size, color, and animation communicate damage tier. | ADR-0002 partial |
 | TR-combatfx-006 | Perfect parry, character hit, and enemy crit flash effects use authored durations and alpha. | ADR-0002 partial |
 | TR-combatfx-007 | Combat presentation work stays within the 3ms frame budget. | ADR-0002, Story012 |
@@ -55,6 +55,10 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 013 | Weapon Style VFX Variants | Visual/Feel | Complete | ADR-0002, ADR-0016 |
 | 014 | Rat King Boss Frame Animation Slice | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
 | 015 | Rat King Specialized Attack Animation Expansion | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
+| 016 | Perfect Parry Gold Afterimage Feedback | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
+| 017 | Rat King Victory Death Presentation Hold | Integration/Visual | Complete | ADR-0001, ADR-0002, ADR-0005 |
+| 018 | Echo Guardian Death Presentation Hold | Integration/Visual | Complete | ADR-0002, ADR-0005, ADR-0007, ADR-0018 |
+| 019 | Boss Phase Overlay Readability | Visual/Feel | Complete | ADR-0001, ADR-0002 |
 
 ## Definition of Done
 
@@ -68,10 +72,31 @@ This epic is complete when:
 
 ## Completion Evidence
 
-Combat Presentation has all 15 tracked stories complete. Story014 adds the
+Combat Presentation has all 19 tracked stories complete. Story014 adds the
 first Rat King boss frame-animation asset slice so the MVP boss no longer exists
 only as data. Story015 adds data-aligned specialized Rat King attack animations
 for `charge`, `claw_swipe`, `summon_minion`, `slam`, and `berserk_combo`.
+Story016 closes the remaining GDD perfect-parry afterimage gap with one
+current-frame cat-eye-gold silhouette driven by the real Main parry event.
+Story017 preserves the Rat King's existing three-frame death payoff for the
+Boss GDD's `3.0s` presentation window before revealing the reward menu, while
+keeping reward persistence immediate and duplicate defeat/death requests inert.
+Story018 keeps Echo Guardian's existing three-frame `death` animation visible
+for `2.0s`, holds its camera and room seals, and delays the Double Jump payoff
+until the presentation completes without replaying the transient hold on load.
+Story019 replaces the runtime Boss phase image with a center-clear generated
+edge frame, fades the single overlay in `0.40s`, keeps the existing 32 debris
+pieces for `1.50s`, and preserves the HUD above the effect without changing Boss
+phase logic. Its repaired full-rect layout uses zero offsets, so the runtime
+rect, texture and viewport all remain `1280x720` without edge cropping.
 Evidence is recorded in
 `production/qa/evidence/rat-king-boss-frame-animation-2026-06-25.md` and
-`production/qa/evidence/rat-king-specialized-attack-animation-2026-06-25.md`.
+`production/qa/evidence/rat-king-specialized-attack-animation-2026-06-25.md`,
+plus Story016 evidence in
+`production/qa/evidence/main-scene-perfect-parry-gold-afterimage-2026-07-14.md`
+and
+`production/qa/evidence/rat-king-victory-death-presentation-hold-2026-07-14.md`.
+Story018 evidence is recorded in
+`production/qa/evidence/echo-guardian-death-presentation-hold-2026-07-14.md`.
+Story019 evidence is recorded in
+`production/qa/evidence/boss-phase-overlay-readability-2026-07-14.md`.

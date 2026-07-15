@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-06-30
+> **Last Updated**: 2026-07-14
 
 ## Context
 
@@ -28,8 +28,9 @@ the player.
 
 This story adds the smallest player-visible animation polish for that behavior:
 generated Boss2 `run` frames, a looped `run` SpriteFrames animation, and runtime
-logic that plays `run` while `behavior_phase="chase"` and returns to `attack`
-when startup begins.
+logic that plays `run` while `behavior_phase="chase"` and returns to the
+dedicated `attack_tell` when startup begins. Story165 supersedes the original
+startup-to-`attack` presentation mapping while preserving Story025's run loop.
 
 ## Acceptance Criteria
 
@@ -46,9 +47,9 @@ when startup begins.
 - [x] From the current `res://scenes/main.tscn` placement, Boss2's chase
   behavior keeps `behavior_phase="chase"` and plays the `run` animation while it
   closes distance.
-- [x] Once Boss2 reaches startup, the sprite switches back to the existing
-  `attack` animation and `boss2_echo_swipe` remains inactive until active
-  frames.
+- [x] Once Boss2 reaches startup, the sprite switches to `attack_tell` and
+  `boss2_echo_swipe` remains inactive until active frames; active frames then
+  use the existing `attack` animation. This mapping is owned by Story165.
 - [x] Defeated, restored-defeated, and stale-target paths do not leave Boss2
   stuck in `run`.
 - [x] Update asset manifest, entity inventory, QA evidence, and Story/Epic
@@ -63,7 +64,8 @@ when startup begins.
   wall avoidance, or final balancing.
 - Boss portrait, HP-bar art polish, cutscene/camera polish, authored music/SFX,
   shaders, or new UI.
-- Replacing existing Boss2 `idle`, `attack`, `hurt`, or `death` frames.
+- Replacing existing Boss2 `idle`, `attack`, `hurt`, or `death` frames. Story165
+  adds a separate startup animation and does not replace these frame sets.
 
 ## Implementation Notes
 
@@ -97,7 +99,7 @@ when startup begins.
 | Source and alpha source preserved | QA evidence; `assets/characters/boss2_echo_guardian/source/` | PASS |
 | SpriteFrames looped `run` animation with old animations intact | `boss2_double_jump_payoff_runtime_test`; MCP probe | PASS |
 | Main-scene chase plays `run` while closing distance | `boss2_autonomous_pressure_runtime_test`; MCP probe | PASS |
-| Startup returns to `attack` with inactive hitbox | `boss2_autonomous_pressure_runtime_test`; Story022 regression; MCP probe | PASS |
+| Startup returns to `attack_tell` with inactive hitbox, then active uses `attack` | Story165 regression; MCP probe | PASS |
 | Defeated/stale-target paths do not remain in `run` | `boss2_autonomous_pressure_runtime_test`; MCP probe | PASS |
 | Manifest, inventory, QA evidence, Story/Epic tracking updated | Documentation diff | PASS |
 | Focused/related tests, import, smoke, MCP evidence recorded | QA evidence | PASS |
@@ -115,9 +117,10 @@ and sliced into transparent 160x128 runtime frames under
 `boss2_echo_guardian_sprite_frames.tres` now includes a looped `run` animation
 at speed `9.0` without changing the existing `idle`, `attack`, `hurt`, or
 `death` frame sets. `Boss2EchoGuardian` plays `run` while
-`behavior_phase="chase"` and keeps `attack` for startup/active/recovery. The
-animation helper no longer restarts an already-playing animation every frame, so
-the run loop can advance during sustained chase.
+`behavior_phase="chase"`; Story165 now uses `attack_tell` for startup and keeps
+`attack` for active/recovery. The animation helper does not restart an
+already-playing loop every frame, so the run loop can advance during sustained
+chase.
 
 ## Verification Summary
 
@@ -138,14 +141,15 @@ the run loop can advance during sustained chase.
   `reports/boss2_run_frame_animation_runtime_main_scene_smoke.log`
   exited `0`; keyword scan found no script, parse, invalid-call, missing
   resource, or resource-load errors.
-- Godot MCP runtime with `autosave=false` confirmed
+- The original Godot MCP runtime with `autosave=false` confirmed
   `/Main/Boss2EchoGuardian/Sprite` is an `AnimatedSprite2D`, SpriteFrames path
   is `res://assets/characters/boss2_echo_guardian/boss2_echo_guardian_sprite_frames.tres`,
   `run` has 3 frames from `assets/characters/boss2_echo_guardian/run/` at
   `160x128`, chase changes distance by `-3px` and plays `run`, an already
   advanced run frame (`frame=1`, `frame_progress=0.25`) is preserved through 25
-  deterministic chase frames instead of being reset to frame `0`, startup
-  returns to `attack` with inactive `boss2_echo_swipe`, active hit damages
+  deterministic chase frames instead of being reset to frame `0`. Its original
+  startup-to-`attack` observation is superseded by Story165; current startup
+  uses `attack_tell` with inactive `boss2_echo_swipe`, and active hit damages
   Player `100 -> 86` once, defeated flag hides Boss2 and leaves `death` rather
   than `run`, game log has only helper/DataManager info, editor log is empty,
   and screenshot

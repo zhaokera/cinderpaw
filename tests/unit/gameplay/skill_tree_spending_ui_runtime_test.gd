@@ -82,6 +82,9 @@ func test_cat_claw_t1a_persists_and_lunges_second_light_attack_forward() -> void
 	assert_bool(bool(player.call("request_attack"))).is_true()
 	combat.call("advance_attack_frames", 4)
 	assert_bool(bool(player.call("request_attack"))).is_true()
+	combat.call("advance_attack_frames", 4)
+	assert_int(int(combat.call("get_combo_index"))).is_equal(1)
+	combat.call("advance_attack_frames", 6)
 
 	var hitbox: Area2D = player_collision.call("get_hitbox", &"cat_claw_light") as Area2D
 	var metadata: Dictionary = hitbox.call("get_attack_metadata")

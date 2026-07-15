@@ -20,6 +20,147 @@
 					"condition": {"weapon": "cat_claw"}
 				}
 			]
+		},
+		"cat_claw_t1b": {
+			"skill_id": "cat_claw_t1b",
+			"display_name": "Honed Claws",
+			"branch": "cat_claw",
+			"tier": "T1",
+			"node_type": "passive",
+			"cost": 1,
+			"prerequisites": [],
+			"effect_summary": "Cat Claw attacks deal 5% more damage.",
+			"modifiers": [
+				{
+					"type": "damage_bonus",
+					"target_action": "",
+					"stat_key": "damage",
+					"operation": "ADD",
+					"value": 0.05,
+					"condition": {"weapon": "cat_claw"}
+				}
+			]
+		},
+		"long_tail_t1a": {
+			"skill_id": "long_tail_t1a",
+			"display_name": "Extended Sweep",
+			"branch": "long_tail",
+			"tier": "T1",
+			"node_type": "modifier",
+			"cost": 1,
+			"prerequisites": [],
+			"effect_summary": "Long Tail light attack 1 increases range by 0.3 tile.",
+			"modifiers": [
+				{
+					"type": "range_modifier",
+					"target_action": "light_attack_1",
+					"stat_key": "attack_range",
+					"operation": "ADD",
+					"value": 0.3,
+					"condition": {"weapon": "long_tail"}
+				}
+			]
+		},
+		"long_tail_t1b": {
+			"skill_id": "long_tail_t1b",
+			"display_name": "Honed Tailblade",
+			"branch": "long_tail",
+			"tier": "T1",
+			"node_type": "passive",
+			"cost": 1,
+			"prerequisites": [],
+			"effect_summary": "Long Tail attacks deal 5% more damage.",
+			"modifiers": [
+				{
+					"type": "damage_bonus",
+					"target_action": "",
+					"stat_key": "damage",
+					"operation": "ADD",
+					"value": 0.05,
+					"condition": {"weapon": "long_tail"}
+				}
+			]
+		},
+		"fish_bone_t1a": {
+			"skill_id": "fish_bone_t1a",
+			"display_name": "Heavy Shock",
+			"branch": "fish_bone",
+			"tier": "T1",
+			"node_type": "modifier",
+			"cost": 1,
+			"prerequisites": [],
+			"effect_summary": "Fish Bone heavy attack hits knock targets back by 8px.",
+			"modifiers": [
+				{
+					"type": "hit_reaction_modifier",
+					"target_action": "heavy_attack",
+					"stat_key": "knockback_distance",
+					"operation": "ADD",
+					"value": 8.0,
+					"condition": {"weapon": "fish_bone"}
+				}
+			]
+		},
+		"fish_bone_t1b": {
+			"skill_id": "fish_bone_t1b",
+			"display_name": "Honed Fishbone",
+			"branch": "fish_bone",
+			"tier": "T1",
+			"node_type": "passive",
+			"cost": 1,
+			"prerequisites": [],
+			"effect_summary": "Fish Bone attacks deal 8% more damage.",
+			"modifiers": [
+				{
+					"type": "damage_bonus",
+					"target_action": "",
+					"stat_key": "damage",
+					"operation": "ADD",
+					"value": 0.08,
+					"condition": {"weapon": "fish_bone"}
+				}
+			]
+		},
+		"electro_bell_t1a": {
+			"skill_id": "electro_bell_t1a",
+			"display_name": "Pulse Touch",
+			"branch": "electro_bell",
+			"tier": "T1",
+			"node_type": "modifier",
+			"cost": 1,
+			"prerequisites": [],
+			"effect_summary": "Electro Bell light attack 1 slows by 45% for 0.5s, then 30% until 2s.",
+			"modifiers": [
+				{
+					"type": "status_effect_modifier",
+					"target_action": "light_attack_1",
+					"stat_key": "slow_percentage",
+					"operation": "ADD",
+					"value": 0.15,
+					"duration_sec": 0.5,
+					"condition": {"weapon": "electro_bell"}
+				}
+			]
+		},
+		"electro_bell_t1b": {
+			"skill_id": "electro_bell_t1b",
+			"display_name": "Honed Bell",
+			"branch": "electro_bell",
+			"tier": "T1",
+			"node_type": "passive",
+			"cost": 1,
+			"prerequisites": [],
+			"effect_summary": "Electro Bell attacks deal 5% more damage.",
+			"modifiers": [
+				{
+					"type": "damage_bonus",
+					"target_action": "",
+					"stat_key": "damage",
+					"operation": "ADD",
+					"value": 0.05,
+					"condition": {"weapon": "electro_bell"}
+				}
+			]
 		}
 	}
 }

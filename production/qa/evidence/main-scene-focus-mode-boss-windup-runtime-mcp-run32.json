@@ -1,0 +1,67 @@
+{
+  "story": "player-abilities-157",
+  "date": "2026-07-14",
+  "engine": "Godot 4.7-stable (official)",
+  "mcp": {
+    "session": "cinderpaw@d40a",
+    "plugin_version": "2.9.2",
+    "server_version": "2.9.2",
+    "run_id": "r26343036-32",
+    "autosave": false,
+    "current_run_errors": []
+  },
+  "focus_entry": {
+    "player_hp": 25,
+    "player_focus_active": true,
+    "focus_overlay_count": 1,
+    "focus_overlay_visible": true,
+    "focus_overlay_alpha": 1.0,
+    "focus_overlay_size": [1280, 720],
+    "focus_overlay_texture": "res://assets/generated/combat_focus_mode_edge_flash_overlay.png",
+    "rat_king": {
+      "attack_started": true,
+      "attack_phase": "startup",
+      "pattern_id": "claw_swipe",
+      "base_startup_frames": 15,
+      "windup_extension_frames": 6,
+      "current_attack_startup_frames": 21,
+      "animation": "claw_swipe",
+      "animation_frame": 1,
+      "animation_frame_count": 3
+    },
+    "echo_guardian": {
+      "attack_started": true,
+      "attack_phase": "startup",
+      "attack_sequence_id": 1,
+      "base_startup_frames": 8,
+      "windup_extension_frames": 6,
+      "current_attack_startup_frames": 14,
+      "animation": "attack",
+      "animation_frame": 1,
+      "animation_frame_count": 3
+    }
+  },
+  "focus_exit_during_startup": {
+    "player_hp": 35,
+    "player_focus_active": false,
+    "rat_future_extension_frames": 0,
+    "rat_current_attack_startup_frames": 21,
+    "echo_future_extension_frames": 0,
+    "echo_current_attack_startup_frames": 14
+  },
+  "screenshot": {
+    "path": "reports/visual/cinderpaw-mcp-focus-boss-windup-20260714.png",
+    "sha256": "c461b11e6e8a64c9adb1780113020cef2d39a7f7b99ee61fadef7976bdfea5a5",
+    "width": 1278,
+    "height": 718,
+    "format": "png",
+    "non_empty": true,
+    "visually_inspected": true
+  },
+  "final_logs": {
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0,
+    "clean_stop_readiness": "ready"
+  }
+}

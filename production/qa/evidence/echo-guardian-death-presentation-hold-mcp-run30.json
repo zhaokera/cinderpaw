@@ -1,0 +1,55 @@
+{
+  "story": "Combat Presentation Story018",
+  "date": "2026-07-14",
+  "engine": "4.7-stable",
+  "mcp_version": "2.9.2",
+  "session_id": "cinderpaw@d40a",
+  "run_id": "r24878458-30",
+  "run_token": 30,
+  "scene": "res://scenes/main.tscn",
+  "autosave": false,
+  "holding": {
+    "pending": true,
+    "remaining_sec": 2.0,
+    "animation": "death",
+    "death_frame_count": 3,
+    "boss_visible": true,
+    "active_hitbox_count": 0,
+    "reward_available": false,
+    "player_control_locked": true,
+    "camera_lock_enabled": true,
+    "camera_zoom": 1.15,
+    "room_seals_enabled": true
+  },
+  "completed": {
+    "pending": false,
+    "remaining_sec": 0.0,
+    "boss_visible": false,
+    "reward_available": true,
+    "reward_claim_available": true,
+    "reward_prompt_text": "Claim Double Jump",
+    "player_control_locked": false,
+    "camera_lock_enabled": false,
+    "camera_zoom": 1.0,
+    "camera_limit_right": 1280,
+    "room_seals_enabled": false
+  },
+  "screenshot": {
+    "path": "reports/visual/cinderpaw-mcp-echo-guardian-death-hold-20260714.png",
+    "width": 1278,
+    "height": 718,
+    "sha256": "0996a09be24e1d4f0a65a1051b33c9f5e215de9989911d62494a28016cdfadbc",
+    "nonblank": true,
+    "target_visible": true
+  },
+  "logs": {
+    "game_info": 3,
+    "game_warning": 0,
+    "game_error": 0,
+    "editor_lines": 0
+  },
+  "stop": {
+    "stopped": true,
+    "readiness_after": "ready"
+  }
+}

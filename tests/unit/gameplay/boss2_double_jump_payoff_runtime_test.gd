@@ -18,7 +18,15 @@ const BOSS2_ENTITY_ID: int = 2200
 const REWARD_ID: StringName = &"boss_02_double_jump"
 const CLAIMED_FLAG: String = "boss_02_double_jump_claimed"
 const HIDDEN_CLAIMED_FLAG: String = "hidden_boss_echo_double_jump_claimed"
-const REQUIRED_ANIMATIONS: Array[StringName] = [&"idle", &"run", &"attack", &"hurt", &"death"]
+const RAT_KING_DEFEATED_FLAG: StringName = &"boss_rat_king_defeated"
+const REQUIRED_ANIMATIONS: Array[StringName] = [
+	&"idle",
+	&"run",
+	&"attack_tell",
+	&"attack",
+	&"hurt",
+	&"death",
+]
 const MIN_ANIMATION_FRAMES: int = 3
 const BOSS2_RUN_FRAME_PREFIX: String = "res://assets/characters/boss2_echo_guardian/run/"
 const STATE_LOCKED: StringName = &"locked"
@@ -104,6 +112,7 @@ func test_boss2_defeat_opens_double_jump_reward_and_syncs_gate_save_state() -> v
 	assert_bool(scene.call("apply_damage", BOSS2_ENTITY_ID, int(boss.call("get_current_hp")), {
 		"source": &"unit_test_boss2_defeat",
 	})).is_true()
+	assert_bool(bool(scene.call("advance_boss2_death_presentation", 2.0))).is_true()
 	await get_tree().process_frame
 
 	var diagnostics: Dictionary = scene.call("get_boss2_double_jump_payoff_diagnostics")
@@ -145,6 +154,7 @@ func test_boss2_payoff_is_idempotent_with_hidden_double_jump_path_and_restore() 
 	assert_bool(scene.call("apply_damage", BOSS2_ENTITY_ID, int(boss.call("get_current_hp")), {
 		"source": &"unit_test_boss2_after_hidden_path",
 	})).is_true()
+	assert_bool(bool(scene.call("advance_boss2_death_presentation", 2.0))).is_true()
 	await get_tree().process_frame
 	player.global_position = boss2_source.global_position
 	assert_bool(bool(scene.call("claim_boss2_double_jump_reward_source", player))).is_true()
@@ -178,6 +188,7 @@ func _instantiate_main_scene() -> Node2D:
 	var scene := MAIN_SCENE.instantiate() as Node2D
 	add_child(scene)
 	_spawned_nodes.append(scene)
+	scene.call("set_world_progress_flag", RAT_KING_DEFEATED_FLAG, true)
 	return scene
 
 

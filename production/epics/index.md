@@ -1,6 +1,6 @@
 # Epics Index
 
-Last Updated: 2026-07-11
+Last Updated: 2026-07-15
 Engine: Godot 4.7
 
 | Epic | Layer | System | GDD | Stories | Status |
@@ -15,10 +15,10 @@ Engine: Godot 4.7
 | boss-config | Core | Boss Configuration | boss-config.md | 10 stories | Complete |
 | status-effects | Core | Status Effects | status-effects.md | 6 stories | Complete |
 | weapon-styles | Core | Weapon Styles | weapon-styles.md | 8 stories | Complete |
-| player-abilities | Core / Feature | Player Abilities | player-abilities.md | 144 stories tracked | In Progress |
+| player-abilities | Core / Feature | Player Abilities | player-abilities.md | 167 stories tracked | In Progress |
 | save-system | Feature | Save System | save-system.md | 5 stories | Complete |
 | scene-management | Feature | Scene Management | scene-management.md | 13 stories tracked | In Progress |
-| death-respawn | Feature | Death & Respawn | death-respawn.md | 7 stories | Complete |
+| death-respawn | Feature | Death & Respawn | death-respawn.md | 8 stories | Complete |
 | hud-ui | Presentation | HUD/UI | hud-ui.md | 6 stories | Complete |
-| combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 15 stories tracked | Complete |
-| audio-system | Presentation | Audio System | audio-system.md | 9 stories tracked | In Progress |
+| combat-presentation | Presentation | Combat Presentation | combat-presentation.md | 19 stories tracked | Complete |
+| audio-system | Presentation | Audio System | audio-system.md | 10 stories tracked | In Progress |

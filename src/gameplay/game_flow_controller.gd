@@ -6,6 +6,7 @@ signal respawn_requested(position: Vector2, revive_hp_percentage: float)
 signal victory_reached
 
 const DEATH_ANIMATION_DURATION_SEC: float = 1.5
+const BOSS_DEFEAT_PRESENTATION_DURATION_SEC: float = 3.0
 const RESPAWN_INVINCIBILITY_SEC: float = 2.0
 const REVIVE_HP_PERCENTAGE: float = 0.5
 const DEFAULT_CLAN_BASE_SCENE_ID: StringName = &"hub"
@@ -17,12 +18,14 @@ enum FlowState {
 	PLAYING,
 	DYING,
 	REVIVED,
+	VICTORY_PENDING,
 	VICTORY,
 }
 
 var _state: FlowState = FlowState.PLAYING
 var _respawn_position: Vector2 = Vector2.ZERO
 var _death_remaining_sec: float = 0.0
+var _victory_presentation_remaining_sec: float = 0.0
 var _invincibility_remaining_sec: float = 0.0
 var _player_control_locked: bool = false
 var _is_boss_encounter_active: bool = false
@@ -51,6 +54,7 @@ func start_encounter(respawn_position: Vector2) -> void:
 	_clan_base_position = respawn_position
 	_state = FlowState.PLAYING
 	_death_remaining_sec = 0.0
+	_victory_presentation_remaining_sec = 0.0
 	_invincibility_remaining_sec = 0.0
 	_player_control_locked = false
 	_last_selected_respawn_point.clear()
@@ -116,11 +120,11 @@ func handle_player_death() -> void:
 
 
 func handle_enemy_defeated() -> void:
-	if _state == FlowState.VICTORY:
+	if _state == FlowState.VICTORY_PENDING or _state == FlowState.VICTORY:
 		return
-	_state = FlowState.VICTORY
+	_state = FlowState.VICTORY_PENDING
+	_victory_presentation_remaining_sec = BOSS_DEFEAT_PRESENTATION_DURATION_SEC
 	_player_control_locked = true
-	victory_reached.emit()
 
 
 func advance_time(delta_sec: float) -> void:
@@ -130,6 +134,8 @@ func advance_time(delta_sec: float) -> void:
 			_advance_death_timer(safe_delta)
 		FlowState.REVIVED:
 			_advance_revived_timer(safe_delta)
+		FlowState.VICTORY_PENDING:
+			_advance_victory_presentation(safe_delta)
 
 
 func get_flow_state() -> StringName:
@@ -138,6 +144,8 @@ func get_flow_state() -> StringName:
 			return &"dying"
 		FlowState.REVIVED:
 			return &"revived"
+		FlowState.VICTORY_PENDING:
+			return &"victory_pending"
 		FlowState.VICTORY:
 			return &"victory"
 		_:
@@ -150,6 +158,11 @@ func is_player_control_locked() -> bool:
 
 func get_invincibility_remaining() -> float:
 	return _invincibility_remaining_sec
+
+
+## Returns the remaining unobscured Boss death-presentation hold.
+func get_victory_presentation_remaining_sec() -> float:
+	return _victory_presentation_remaining_sec
 
 
 func select_respawn_point() -> Dictionary:
@@ -195,6 +208,17 @@ func _advance_revived_timer(delta_sec: float) -> void:
 		return
 	_state = FlowState.PLAYING
 	_player_control_locked = false
+
+
+func _advance_victory_presentation(delta_sec: float) -> void:
+	_victory_presentation_remaining_sec = maxf(
+		0.0,
+		_victory_presentation_remaining_sec - delta_sec
+	)
+	if _victory_presentation_remaining_sec > 0.0:
+		return
+	_state = FlowState.VICTORY
+	victory_reached.emit()
 
 
 func _capture_boss_arena_snapshot() -> Dictionary:

@@ -5,6 +5,7 @@ const MAIN_SCENE: PackedScene = preload("res://scenes/main.tscn")
 const BOSS2_ENTITY_ID: int = 2200
 const PHASE_TWO_TRIGGER_DAMAGE: int = 18
 const BOSS2_HITBOX_ID: StringName = &"boss2_echo_swipe"
+const RAT_KING_DEFEATED_FLAG: StringName = &"boss_rat_king_defeated"
 
 var scene: Node2D
 
@@ -33,6 +34,7 @@ class FakeAudioSystem:
 func before_test() -> void:
 	scene = MAIN_SCENE.instantiate() as Node2D
 	add_child(scene)
+	scene.call("set_world_progress_flag", RAT_KING_DEFEATED_FLAG, true)
 
 
 func after_test() -> void:

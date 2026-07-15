@@ -1,0 +1,58 @@
+{
+  "date": "2026-07-14",
+  "story": "audio-system-story-010",
+  "session_id": "cinderpaw@3736",
+  "godot_version": "4.7-stable (official)",
+  "plugin_version": "3.0.2",
+  "server_version": "3.0.2",
+  "run_id": "r3451721-2",
+  "scene": "res://scenes/main.tscn",
+  "launch": {
+    "helper_live": true,
+    "session_active": true,
+    "current_run_errors": []
+  },
+  "focus_damage": {
+    "health": 25,
+    "focus_active": true,
+    "audio_focus_active": true,
+    "audio_state": "LOW_HP",
+    "normal_sfx_id": "sfx_damage_taken",
+    "normal_stream_found": true,
+    "low_hp_sfx_id": "sfx_damage_taken_lowhp",
+    "low_hp_stream_found": true,
+    "low_hp_stream_path": "res://assets/audio/sfx/sfx_damage_taken_lowhp.wav",
+    "low_hp_duration_sec": 0.38,
+    "last_event_id": "damage_taken",
+    "metadata_focus_active": true,
+    "player_index": 2,
+    "player_bus": "SFX",
+    "player_playing": true
+  },
+  "restored_damage": {
+    "health": 35,
+    "focus_active": false,
+    "audio_focus_active": false,
+    "audio_state": "NORMAL",
+    "sfx_id": "sfx_damage_taken",
+    "stream_found": true
+  },
+  "logs": {
+    "game_info_count": 3,
+    "game_error_count": 0,
+    "editor_error_count": 0,
+    "dropped_count": 0
+  },
+  "screenshot": {
+    "path": "res://reports/visual/cinderpaw-mcp-focus-damage-lowhp-final-mix-20260714.png",
+    "width": 1278,
+    "height": 718,
+    "bytes": 1206068,
+    "sha256": "bdf78c151f0b3736f4b92426b6498d0d6b44ca273edf4e3e74b388c2589aacd0",
+    "empty": false
+  },
+  "stop": {
+    "stopped": true,
+    "readiness_after": "ready"
+  }
+}

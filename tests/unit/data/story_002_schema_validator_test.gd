@@ -155,6 +155,43 @@ func test_enum_violation_fails_validation() -> void:
 	assert_str(result.errors[0]).contains("not in enum")
 
 
+func test_array_items_validate_nested_required_fields() -> void:
+	var schema: Dictionary = {
+		"entries": {
+			"boss": {
+				"required": ["attack_patterns"],
+				"fields": {
+					"attack_patterns": {
+						"type": "Array",
+						"items": {
+							"type": "Dictionary",
+							"required": ["pattern_id", "damage"],
+							"fields": {
+								"pattern_id": {"type": "String"},
+								"damage": {"type": "int", "min": 1},
+							},
+						},
+					},
+				},
+			}
+		}
+	}
+	var data: Dictionary = {
+		"entries": {
+			"boss": {
+				"attack_patterns": [
+					{"pattern_id": "talon_dive"},
+				]
+			}
+		}
+	}
+
+	var result: ValidationResult = SchemaValidator.validate("enemy_stats", data, schema)
+
+	assert_bool(result.is_valid).is_false()
+	assert_str(" ".join(result.errors)).contains("attack_patterns[0].damage")
+
+
 func test_first_load_validation_failure_empty_cache_and_ready() -> void:
 	_create_valid_manifest()
 	_write_file(DAMAGE_PATH, """{

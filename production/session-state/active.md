@@ -22,7 +22,8 @@
   Story004 Rat King boss music state transitions、AudioSystem Story005 core
   combat SFX asset import baseline、AudioSystem Story006 weapon-style SFX asset
   expansion、AudioSystem Story007 UI menu audio + same-SFX merge、AudioSystem
-  Story008 music + ambience asset import baseline、BossConfig Story010 Rat King
+  Story008 music + ambience asset import baseline、AudioSystem Story010 low-HP
+  focus damage final mix、BossConfig Story010 Rat King
   defeat reward runtime consumption、Player Abilities Story002
   ExplorationGate dash 门控、Player Abilities Story011 Old Factory deep guard
   activation pacing、Player Abilities Story017 Old Factory Spark Rat pacing
@@ -136,24 +137,299 @@
 	  Aftershock Condenser Overflow Pump Runoff Outlet Service Sluice Exit Hatch
 	  Handoff、Player Abilities Story117-139 的 Factory tailrace、Boss3、
 	  Underground、Factory Upper Altar 与 Neon Rooftops 连续切片、Player
-	  Abilities Story140 Central Tower Threshold Guard Handoff 与 Story141
-	  Central Tower Inner Relay Skirmish 已完成；下一步先定义中央塔更深处的
-	  bounded route contract，再推进 Story142。
-	  Boss4 的身份、竞技场、数据、奖励和遭遇合同未批准前不得自行补写；
-	  minimap、其他 ExplorationGate、skill-tree branches、Boss polish、final
-	  audio replacement 与玩家可见帧动画审计继续保留在后续队列。
+	  Abilities Story140-148 的 Central Tower 连续切片、Crown Observatory、
+	  Crown Warden Boss4 core、`wall_climb` reward payoff 与 Scrap Roost
+	  victory recall，以及 Story149-151 的 Long Tail、Fish Bone、Electro Bell
+	  T1-A Skill Tree 选择已完成，连同既有 Cat Claw 形成四武器首层 Build
+	  选择；Story152 已完成 Main 本地小地图、真实 Dash 门揭示与 world flag
+	  恢复；Story153 已完成 Main 自动存档猫爪印、`1.5s` 淡出与 `ui_save`
+	  路由；Story154 已完成 Main 低血专注激活猫眼金边缘闪光、`0.3s`
+	  淡出与既有 `sfx_focus_mode_activate` 路由；Death & Respawn Story008
+	  已完成 Main 死亡灰度、8 个猫眼金灵魂光点、真实 `1.5s` 复活、
+	  `0.5s` 灰度淡出与 `1.0s` 金色复活光环，并修复 MCP 发现的 VFX
+	  freed-instance 生命周期竞态；Combat Presentation Story016 已完成真实 Main
+	  PERFECT 弹反猫眼金纯色残影，复用当前三帧 `parry` 纹理、反向偏移
+	  `12px`、持续 `0.35s`，并通过 ShaderMaterial 保持剪影可读；Player
+	  Abilities Story155 已完成 Crown Warden 真实攻击接触的弹反反击，玩家
+	  `100 -> 100 HP`、Boss `160 -> 110 HP`，以当前武器基础伤害应用一次
+	  `5.0x` 反击且不进入 STUN；Combat Presentation Story017 已完成 Rat King
+	  真实死亡后三秒演出等待，奖励即时结算但全屏奖励菜单延迟到演出结束，并修复
+	  致死跨阶段时 deferred phase animation 覆盖 `death` 的竞态；Player Abilities
+	  Story156 已按 GDD 的 Rat King→Dash、Boss2→Double Jump 顺序收敛 Main
+	  双 Boss 同时激活问题，Rat King 奖励交接前不启用 Echo Guardian、其
+	  HUD/竞技场/房门/镜头/奖励，载入鼠王击败进度后再原子启用 Boss2；Scene
+	  Management Story014 已完成 Rat King 阶段镜头编排，Phase I/II/III 分别
+	  使用 `1.08`/`1.12`/`1.16` zoom，死亡后恢复默认 `1.0` zoom 与 `1280`
+	  右边界，同时保持 CombatPresentation 的 camera offset 所有权并让 Boss2
+	  竞技场镜头拥有优先级；Combat Presentation Story018 已让 Echo Guardian
+	  真实死亡后三帧 `death` 保持可见 `2.0s`，期间锁定玩家并保留 Boss2 镜头/
+	  房门，演出结束后再隐藏 Boss、释放竞技场并开放 Double Jump 奖励；Combat
+	  Presentation Story019 已把 Boss 阶段覆盖层替换为 image-generated
+	  边缘构图，中心 `50% x 50%` 完全透明，单层在 `0.40s` 淡出，既有 32 个
+	  金属碎片继续到 `1.50s`，HUD 保持在上层且不改 Boss 阶段逻辑；Player
+	  Abilities Story157 已把真实低血 focus 信号接入 Rat King 与 Echo Guardian，
+	  focus 内新攻击 startup 分别从 `15 -> 21`、`8 -> 14` 帧；Story158 继续
+	  落地规则8的攻击预警增强，两名 Boss 共用 image-generated 信号红开放中心
+	  VFX，focus 内面积为 `1.25x`、持续时间为 `1.10x`，不改变角色缩放、hitbox、
+	  damage 或 startup；Story159 新增 image-generated 稀疏废土尘粒
+	  `CPUParticles2D`，真实 focus 只把该环境层 alpha 从 `1.0` 降到 `0.30`，
+	  退出后恢复，并保持 camera/viewport 不变；AudioSystem Story010 已把
+	  `sfx_damage_taken_lowhp` 替换为 0.38s 可追溯低频阻尼混响最终混音，
+	  真实 25/100 focus 受击走 LOW_HP/SFX，35/100 后恢复普通 cue。规则8
+	  四项实现已闭环，主观真人试听仍作为音频评审签收。
+	  其他场景 minimap、其他 ExplorationGate、skill-tree branches、Boss polish、ending、
+	  final audio replacement 与玩家可见帧动画审计继续保留在后续队列。
   继续执行 TDD + Godot MCP 运行态验证，
   玩家可见动作角色必须遵守 `AnimatedSprite2D + SpriteFrames` 规则。
 
 ## Technical Maintenance
 - Godot AI MCP current baseline — the project-local plugin reports version
-  `2.9.1`, Godot 4.7 editor settings use managed server version `2.9.1`,
-	  and live MCP session `cinderpaw@e40d` reports plugin/server `2.9.1` with
+  `3.0.2`, Godot 4.7 editor settings use managed server version `3.0.2`, and
+  live MCP session `cinderpaw@3736` reports plugin/server `3.0.2` with
   readiness `ready`. Current runtime validation should use Godot `4.7-stable`
-  and Godot AI MCP `2.9.1`; older 2.8.x entries below are historical evidence
-  from the stories validated at that time.
+  and Godot AI MCP `3.0.2`; older 2.8.x/2.9.x entries below are historical
+  evidence from the stories validated at that time.
 
 ## Last Completed Task
+- Audio System Story 010: Focus Damage Low-HP Final Mix -- 保持既有 cue id/
+  path 与 Main/AudioSystem 接线不变，将 Story005 0.34s replaceable baseline
+  替换为 0.38s 44.1kHz mono PCM16 最终混音；相对普通受击音 20-80Hz
+  `+6.59dB`、2-6kHz `-4.06dB`、160ms 后尾音 `-19.39dBFS`、末 10ms
+  `-71.09dBFS`。RED `report_1668`；focused GREEN `report_1669` `1/1`；
+  bounded related GREEN `report_1670` `36/36`；final focused `report_1671`
+  `1/1`；target smoke 通过。Godot
+  `4.7-stable` / MCP `3.0.2` run `r3451721-2` 验证 normal -> 25/100
+  LOW_HP -> 35/100 normal 路由、0.38s import、SFX bus 播放、1278x718 非空
+  截图、3 条 info-only game log、0 条 editor log 与 clean stop `ready`。
+  自动化不声明真人主观试听或商业母带完成。
+
+- Player Abilities Story 159: Main Scene Focus Mode Environment Particle
+  Clarity -- Main 新增 24 个 fixed-seed image-generated 废土尘粒；真实
+  low-HP combat focus 将 `FocusEnvironmentParticles` alpha 从 `1.0` 降为
+  `0.30`，治疗退出后恢复 `1.0`，Camera2D zoom/limits 始终不变且未添加
+  vignette。Initial RED `report_1664`；focused GREEN `report_1665` `1/1`；
+  bounded related GREEN `report_1666` `15/15`；MCP 3.0.2 升级后 focused
+  `report_1667` `1/1` 与 target smoke 复验通过。Godot
+  `4.7-stable` / MCP plugin `2.9.2` clean run `r29075015-35` 验证
+  normal/focus/restored 生命周期、两张 `1278x718` 非空截图、3 条 info-only
+  game log、0 条 editor log 与 clean stop `ready`。Story 完成后项目 MCP
+  baseline 已升级并另行验证为 `3.0.2`。
+
+- Godot AI MCP 3.0.2 Upgrade -- project-local `addons/godot_ai/` now exactly
+  matches the supplied `godot-ai-3.0.2` plugin package; managed server process
+  pins `uvx --from godot-ai==3.0.2`, executable `--version` returns `3.0.2`,
+  editor settings record managed version `3.0.2`, and live session
+  `cinderpaw@3736` reports plugin/server `3.0.2`. MCP run `r233874-1` launched
+  Main with helper live, no current-run errors, three info-only game lines,
+  zero editor lines and clean stop `ready`. Evidence:
+  `production/qa/evidence/godot-ai-3-0-2-upgrade-2026-07-14.md`.
+
+- Player Abilities Story 158: Main Scene Focus Mode Boss Attack Tell
+  Amplification -- Rat King 与 Echo Guardian 新增共享 image-generated
+  `FocusAttackTell` `Sprite2D`；focus 内面积 `1.25x`，持续时间分别为
+  `15->17` 与 `8->9` 帧，结束后隐藏并恢复原始缩放，Story157 startup 仍为
+  `21`/`14`。Initial RED `report_1660`；refinement RED `report_1661`；focused
+  GREEN `report_1662` `1/1`；bounded related GREEN `report_1663` `12/12`，
+  target smoke 通过。Godot `4.7-stable` / MCP plugin `2.9.2` run
+  `r27682351-33` 验证两只三帧 Boss、两处预警、`1278x718` 非空截图、3 条
+  info-only game log、0 条 editor log 与 clean stop `ready`。
+
+- Player Abilities Story 157: Main Scene Focus Mode Boss Windup Runtime --
+  Main 将 Player Health 的真实 focus transition 同步给 Rat King 与 Echo
+  Guardian；focus 内新攻击 startup 为 `15+6=21` 与 `8+6=14`，focus 退出后
+  future extension 归零，但当前 startup 保持不变。RED `report_1656`；focused
+  GREEN `report_1657` `1/1`；final bounded related GREEN `report_1659`
+  `28/28`，target smoke 通过。Godot `4.7-stable` / MCP `2.9.2` run
+  `r26343036-32` 验证真实信号、两个三帧 attack、现有 image-generated focus
+  overlay、`1278x718` 非空截图、3 条 info-only game log、0 条 editor log 与
+  clean stop `ready`。
+
+- Combat Presentation Story 018: Echo Guardian Death Presentation Hold --
+  Main 在 durable Boss2 defeat flag 即时提交后保留 Echo Guardian 的三帧
+  `death` `2.0s`；期间 hitbox 为 `0`、奖励不可领、玩家锁定、Boss2 镜头和
+  双侧房门保持，结束后统一隐藏 Boss、恢复默认镜头、打开房门并开放 Double
+  Jump 奖励。RED `report_1652`；focused GREEN `report_1653` `1/1`；
+  final bounded related GREEN `report_1655` `17/17`，target smoke 通过。
+  Godot `4.7-stable` / MCP
+  `2.9.2` run `r24878458-30` 验证 exact timing、现有 image-generated
+  death 帧、奖励/竞技场时序、`1278x718` 非空截图、3 条 info-only game
+  log、0 条 editor log 与 clean stop `ready`。
+
+- Scene Management Story 014: Rat King Arena Camera Choreography -- Main
+  Rat King 战斗现在按 Phase I/II/III 应用 `1.08`/`1.12`/`1.16` zoom 与
+  `1120` 右边界；死亡、奖励等待和非激活状态恢复共享默认镜头，Boss2 激活时
+  保持其竞技场镜头优先级，且不覆盖 CombatPresentation 使用的 camera
+  offset。RED `report_1646`；focused GREEN `report_1650` `1/1`；bounded
+  related GREEN `report_1651` `12/12`，target smoke 通过。Godot
+  `4.7-stable` / MCP `2.9.2` run `r23858246-29` 验证三个阶段、三帧
+  `phase_3_overload`、致死释放、Boss2 隔离、`1278x718` 非空截图、3 条
+  info-only game log、0 条 editor log 与 clean stop `ready`。
+
+- Player Abilities Story 156: Main Rat King to Echo Guardian Sequential
+  Encounter Handoff -- Fresh Main 现在只启用 Rat King；Echo Guardian
+  无目标、无碰撞、不运行 AI，且其竞技场框、HUD、镜头锁和房门封锁关闭。
+  隐藏二段跳路径不提前启用主线 Boss2；Rat King `victory_pending` 演出期间
+  仍保持隔离，载入 `boss_rat_king_defeated=true` 的 playing Main 后才统一
+  启用 Echo Guardian。RED `report_1640`，focused GREEN `report_1641`
+  `1/1`；bounded related GREEN `report_1644` `21/21` 与 `report_1645`
+  `28/28`，target smoke 通过。Godot `4.7-stable` / MCP `2.9.2` run
+  `r22661784-28` 验证 fresh/交接两种可见状态、Boss2 三帧 `run`、两张
+  `1278x718` 非空截图、3 条 info-only game log、0 条 editor log 与 clean
+  stop `ready`。
+
+- Combat Presentation Story 017: Rat King Victory Death Presentation Hold --
+  真实 Main 击杀 Rat King 后先进入 `victory_pending` `3.0s`，锁定玩家并保持
+  奖励菜单隐藏；现有 Dash/+50 Gears/+5 SP 奖励、defeat flag 与 autosave 仍
+  即时提交。Rat King 致死跨阶段的 deferred phase callback 不再覆盖三帧
+  `death` 动画。RED `report_1631` 与 refinement RED `report_1634`；原 related
+  GREEN `report_1636` 通过 `47/47`。MCP 视觉检查暴露死亡等待错误显示 Boss2
+  HUD，RED `report_1637`、最终 focused GREEN `report_1638` `1/1`、HUD/reward
+  related GREEN `report_1639` `6/6`，target smoke 通过。Godot `4.7-stable` /
+  MCP `2.9.2` 最终 run `r21623823-27` 验证 exact timing、collision shutdown、
+  Boss HUD 隐藏、奖励与 delayed menu；两张 `1278x718` 截图非空，game log
+  仅 3 条 info、editor log 0 行并 clean stop。
+
+- Player Abilities Story 155: Crown Warden Parry Counter Runtime -- 真实
+  `talon_dive` / `wing_sweep` 接触现在先由 Player 的 CombatComponent 消费
+  PARRYING 窗口，阻止玩家伤害，再由 Crown Warden arena 按当前武器有效
+  基础伤害执行一次 `5.0x` 反击；BossConfig 已统一为 no-STUN。初始 RED
+  `report_1627`、runtime refinement RED `report_1628`；focused GREEN
+  `report_1629` 通过 `2/2`，final bounded related `report_1630` 通过
+  `24/24`，target smoke 通过。Godot `4.7-stable` / MCP `2.9.2` 最终 run
+  `r19802568-24` 验证玩家 `100 -> 100 HP`、Boss `160 -> 110 HP`、一次
+  `50` damage counter、无 STUN、三帧角色、现有金色残影与 clean logs。
+
+- Combat Presentation Story 016: Perfect Parry Gold Afterimage Feedback --
+  真实 Main PERFECT 弹反继续由 CombatComponent 判定；Main 只补充当前
+  `AnimatedSprite2D` 帧、位置与朝向元数据，CombatPresentation 生成一个稳定
+  `PerfectParryGoldAfterimage`，使用代码内 ShaderMaterial 输出 `#ECC94B`
+  纯色猫形剪影，沿朝向反向偏移 `12px`，alpha `0.82`，`0.35s` 后释放。
+  初始 RED `report_1621`；MCP 视觉修正 RED `report_1624`；focused GREEN
+  `report_1625` 通过 `1/1`；final related `report_1626` 通过 `51/51`；target
+  smoke 通过。Godot `4.7-stable` / MCP `2.9.2` 最终 run
+  `r18602105-22` 验证三帧 parry、同帧纹理、ShaderMaterial、位置偏移、生命周期、
+  非空 `1278x718` 截图、3 条 info-only game log、0 条 editor log 和 clean stop。
+
+- Death & Respawn Story 008: Main Scene Death Greyout + Revive Halo Feedback --
+  真实 Main lethal damage 继续由 GameFlowController 持有 `1.5s` 死亡计时，
+  CombatPresentation 增加 `0.5s` 全屏灰度淡入、8 个 image-generated 猫眼金
+  灵魂光点、复活后 `0.5s` 灰度淡出和 `1.0s` 金色光环；既有三帧
+  `death/revive`、`50% HP` 与 2 秒无敌不变。RED `report_1611` 锁定合同；
+  MCP 生命周期竞态 RED `report_1614`、保色层级 RED `report_1617` 均已修复；
+  最终 bounded related `report_1620` 通过 `47/47`，target smoke 通过。
+  Godot `4.7-stable` / MCP `2.9.2` 最终 run `r17306475-20` 重放
+  `death_hold -> revive_fade_out -> revive_halo -> idle`，game log 仅 3 条
+  info、editor log 0 行；两张 `1278x718` 截图可见灰色世界上的金色光点
+  与复活光环。
+
+- Player Abilities Story 154: Main Scene Low-HP Focus Activation Feedback --
+  真实 Main 在 active enemy 存在且 Player 降至 `25/100 HP` 时显示 image-generated
+  `FocusModeActivationOverlay`，读取 Health metadata 的 `#ECC94B` 与 `0.3s`，
+  同时路由既有 `sfx_focus_mode_activate`。RED `report_1604` 产生 `2` 个预期
+  failure；focused GREEN `report_1607` 通过 `1/1`，bounded related
+  `report_1610` 通过 `75/75`，target smoke 通过。Godot `4.7-stable` / MCP
+  `2.9.2` 最终 run `r15524895-16` 验证生成纹理、稳定 TextureRect、
+  `1.0 -> 0.5 -> 0.0` alpha 生命周期、非空 `1278x718` 截图以及 clean logs。
+
+- Player Abilities Story 153: Main Scene Autosave Paw Stamp Feedback -- Main
+  接受 savepoint、Boss 或 ability autosave 后，在右上小地图下方显示稳定
+  `AutosavePawStamp`；它通过 `AtlasTexture` 复用既有 image-generated 猫爪，
+  前 `1.0s` 常亮、最后 `0.5s` 淡出，并只在保存成功时路由一次 `ui_save`。
+  RED `report_1597` 产生 `3` 个预期失败；最终 focused GREEN `report_1603`
+  通过 `2/2`，bounded related `report_1602` 通过 `41/41`，target smoke 通过。
+  Godot `4.7-stable` / MCP `2.9.2` 最终 run `r14231021-14` 以临时存档目录
+  验证真实 Main autosave、音效 metadata、稳定 TextureRect/AtlasTexture、
+  `1.0 -> 0.5 -> 0.0` alpha 生命周期、最大 HUD 缩放不遮挡、非空
+  `1278x718` 截图、3 条 info-only game log、0 条 editor log 和 clean stop。
+
+- Player Abilities Story 152: Main Scene Local Minimap Discovery Runtime --
+  added a stable `120x120` code-drawn route map below currency, with filled vs
+  hollow region shapes, current diamond and player triangle. Main supplies four
+  authored regions, clamps the player marker to `1280x720`, reveals the real
+  Dash gate destination over exactly `1.0s`, emits `Sewer Access discovered`,
+  and restores from existing world flags without duplicate save state or
+  replay. RED `report_1592` captured `6` expected failures; clean focused GREEN
+  `report_1595` passed `2/2`; bounded related `report_1596` passed `45/45`;
+  target smoke passed. Godot `4.7-stable` / MCP `2.9.2` final run
+  `r12582583-12` verified `0.0 -> 0.5 -> 1.0`, persisted sewer flag, duplicate
+  suppression, four live regions, the real HUD nodes, a non-empty `1278x718`
+  capture, three info-only game rows, zero editor rows and clean stop to ready.
+
+- Player Abilities Story 151: Skill Tree Electro Bell T1-A Pulse Touch -- added
+  the fourth 1 SP weapon Build node while preserving Bell's one-instance,
+  refresh-only slow rule. Light attack 1 now front-loads one effect to `45%`
+  for `0.5s`, then returns to the `30%` baseline for the rest of its `2s` total;
+  other stages refresh without duplicating or cancelling an active pulse. The
+  existing generated Bell arc supplies three brighter hit arcs. Complete RED
+  `report_1588` captured `7` expected failures across `3/3` cases; focused
+  GREEN `report_1589` passed `3/3`; bounded related GREEN `report_1590` passed
+  `73/73`; SchemaValidator `report_1591` passed `13/13`; target smoke passed.
+  Godot `4.7-stable` / MCP `2.9.2` final run `r10990678-10` returned `ok=true`,
+  verified exact `0.45 -> 0.30` timing, one slow, nine VFX, three-frame player
+  `attack` and enemy `hurt`, target HP `288`, a non-empty `1278x718` capture,
+  three info-only game rows and zero editor rows.
+
+- Player Abilities Story 150: Skill Tree Fish Bone T1-A Heavy Shock -- added
+  the approved third 1 SP Build node and carries a data-driven `8px` reaction
+  through grounded Fish Bone heavy metadata into the target's collision-safe
+  movement. Duplicate detection applies it once, walls clip the distance, hit
+  metadata reports requested/applied movement, and the existing generated Fish
+  Bone wave provides the contact pulse. RED `report_1579` captured `16`
+  expected failures; bounded related GREEN `report_1582` passed `60/60`; final
+  focused GREEN `report_1585` passed `4/4`; SchemaValidator `report_1586`
+  passed `13/13`; target smoke passed with exact `8px` displacement and a
+  clean exit. Godot `4.7-stable` / MCP `2.9.2` final
+  run `r8347138-8` returned `ok=true`, verified three-frame `heavy_charge`,
+  `heavy_attack` and target `hurt`, exact once-only `8px` movement, two VFX and
+  target HP `52`; both `1278x718` captures are non-empty, game logs contain
+  three info rows and editor logs contain zero rows.
+
+- Player Abilities Story 149: Skill Tree Long Tail T1-A Choice -- added the
+  approved `long_tail_t1a` 1 SP node, two-node HUD navigation with persistent
+  selection, and a data-driven `0.3 tile / 9.6px` Long Tail first-stage range
+  bonus that reaches the live Core hitbox without changing later stages or Cat
+  Claw. RED `report_1568` reproduced the missing HUD contract; focused GREEN
+  `report_1569` passed `3/3`; related GREEN `report_1570` passed `8/8`; fresh
+  post-warning-fix `report_1571` passed `3/3`. Godot
+  `4.7-stable` / MCP `2.9.2` selected and learned the node in `main`, measured
+  `2.3 tiles / 73.6px`, captured a non-empty `1278x718` frame, and the final
+  post-warning-fix restart returned info-only game logs plus zero editor rows.
+
+- Player Abilities Story 148: Crown Warden Victory Recall To Scrap Roost --
+  added one generated optional recall route after the Crown Core claim, durable
+  proof with rollback, and an exact `main / scrap_roost` runtime handoff. Main
+  recognizes only complete Boss4 proof, discovers the existing savepoint and
+  records one secured-return flag/notification. Persistent Main restoration now
+  also keeps defeated Rat King/Echo Guardian actors, collisions and Boss HUD
+  inactive. Original `report_1564` passed `16/16`; correction RED `report_1565`
+  and related GREEN `report_1567` passed `13/13`; target smoke passed. Godot
+  `4.7-stable` / MCP `2.9.1` Run `r21750636-14` used physical `E`, captured two
+  non-empty `1278x718` frames, returned three info-only game rows and added no
+  editor errors after cursor `4`.
+
+- Player Abilities Story 147: Crown Warden Wall Climb Reward Payoff -- added
+  one generated Crown Core through shared `AbilityRewardSource`; Boss4 death
+  reveals it once, grounded contact unlocks missing `wall_climb` or confirms
+  the Story135 alternate path, exact `1.5s` feedback restores control, and
+  arena/Tower/Main persistence retains unrelated state. Final focused
+  `report_1559` passed `3/3`; bounded Story146/135 `report_1558` passed `9/9`;
+  grounded-contact smoke passed. Godot `4.7-stable` / MCP `2.9.1` Run
+  `r7762730-6` used real movement `(220,551.99) -> (633.33,551.99)`, captured
+  two non-empty `1278x718` screenshots, returned helper/data-only current logs
+  and added no editor row after cursor `4`.
+
+- Player Abilities Story 146: Crown Warden Playable Boss4 Core -- added entity
+  `2400` with data/schema-backed `160` HP, two exact real-hitbox attacks,
+  chain-safe Phase II, Boss HUD, room seals, SceneManager lock, retry and
+  persistent defeat/open return. Twenty-four generated transparent `192x192`
+  frames provide eight three-frame `AnimatedSprite2D + SpriteFrames` states.
+  Final focused `report_1551` passed `6/6`; shared collision `report_1552`
+  passed `6/6`; bounded related `report_1553` passed `34/34`; target smoke
+  passed. Godot `4.7-stable` / MCP `2.9.1` Run `r3362590-4` used real input and
+  real overlaps for exact `12/18/14` damage, verified phase/retry/defeat/restore,
+  captured two non-empty `1278x718` screenshots, returned only helper/data game
+  logs and added no editor rows after cursor `4`.
+
 - Player Abilities Story 141: Central Tower Inner Relay Skirmish -- expanded
   `area_05_central_tower` to `2560x720` with a generated Service Spine,
   deterministic `0.55/0.18/0.55s` relay pulse, one real strike-window parry,
@@ -5155,3 +5431,390 @@
 - Review: Integrator review found and closed the missing direct fall assertion. Two requested full-review agents failed before project access because the backend supplied unsupported effort `max`; no independent-agent approval is claimed.
 - Tech debt logged: None. Boss4 and any later upper-Tower continuation remain blocked on an authored contract. The broader complete-game goal remains active.
 - Next recommended: author the Boss4 approach/handoff or another bounded upper-Tower continuation contract before Story145 implementation.
+
+## Session Extract -- /story-done 2026-07-12
+
+- Delivery checkpoint: Story141-144 were committed and pushed as `a17399f2` (`feat: extend Central Tower through Apex Conduit`). Story145 is a complete verified local change; no additional commit or push was performed without a new repository-history instruction.
+- Story: `production/epics/player-abilities/story-145-central-tower-crown-warden-arena-handoff.md` -- Central Tower Crown Warden Arena Handoff.
+- Design: Authored Boss4 as `boss_04_crown_warden` / Crown Warden, a mechanical owl crown-defense sentinel. Story145 implements only the generated-art Crown Observatory and exact Tower round trip; it does not show a static Boss placeholder or pre-empt Story146's frame-animation/combat contract.
+- Implementation: Registered `boss_04_crown_warden_arena`; added the Story144-gated Tower crown route, `apex_approach_return` at `(6200,296)`, and a bounded `1280x720` arena with existing animated Cinderpaw, floor, side walls, Camera2D, objective and return route. Retryable SceneManager failures, one-shot requests, durable state and exact ability transfer are covered.
+- Asset pipeline: Built-in image generation produced a retained `1672x941` RGB observatory source and `1024x1536` keyed crown gate. Exact prompts, full gate alpha intermediate, normalized RGB `1280x720` background and transparent sRGBA `256x384` gate are imported and recorded in spec, manifest, inventory and QA evidence.
+- Verification: Expected RED `report_1530`; intermediate `report_1531` was rejected because resource-loader errors remained; clean focused GREEN `report_1532` and post-MCP-visual-fix `report_1534` passed `2/2`; review hardening `report_1535` exposed and corrected a GdUnit autoload test assumption; final focused `report_1536` passed `2/2`; final Story144-145 related `report_1537` passed `5/5`; target smoke passed and exited without cleanup errors. No full suite was run.
+- MCP: Session `cinderpaw@e40d`, Godot `4.7-stable`, MCP `2.9.1`. Final Run77 exposed `25` authored and `29` runtime nodes, live `Player/Sprite: AnimatedSprite2D`, no Crown Warden node, real movement x `220 -> 291.667`, generated background/gate and complete objective/return text in a non-empty `1278x718` frame. `current_run_errors=[]`, game log was helper-only, editor cursor stayed `8 -> 8`, and the run stopped cleanly.
+- Review: The integrating agent fixed both a false-positive GREEN caused by stale imports and one MCP-visible clipped return prompt before closure. Parallel agents were not retried because the backend previously rejected their rewritten unsupported effort setting.
+- Blockers: None for Story145. The broader complete-game goal remains active.
+- Next: Story146 Crown Warden playable Boss4 core, with mandatory multi-frame character states, data-backed combat, Boss HUD, room seals, death/retry and MCP gameplay evidence. Keep reward/ending as separate authored slices.
+
+## Session Extract -- /story-done 2026-07-13
+
+- Delivery checkpoint: Story141-144 remain pushed as `a17399f2`; Stories145-146
+  are complete verified local changes. No additional commit or push was
+  performed without a new repository-history instruction.
+- Story: `production/epics/player-abilities/story-146-crown-warden-playable-boss4-core.md`
+  -- Crown Warden Playable Boss4 Core.
+- Implementation: Added Boss4 data/schema, entity `2400`, generated eight-state
+  frame animation, shared combat components, exact dive/sweep hitboxes,
+  chain-safe Phase II, Boss HUD, room seals, scene lock, death retry, persistent
+  victory and fresh restore. Shared `CollisionComponent` now resolves same-frame
+  deferred hurtbox restoration correctly.
+- Verification: RED `report_1547/1549`; focused GREEN `report_1551` passed
+  `6/6`; shared collision GREEN `report_1552` passed `6/6`; bounded related
+  `report_1553` passed `34/34`; target smoke marker
+  `crown_warden_playable_boss4_core_smoke=passed`. No full suite was run.
+- MCP: Session `cinderpaw@13e3`, Godot `4.7-stable`, MCP `2.9.1`. Final Run
+  `r3362590-4` used real attack input and real Boss overlaps for exact
+  `12/18/14` damage, verified pending/complete Phase II, collidable retry,
+  defeat and fresh restore, captured two non-empty `1278x718` frames, returned
+  helper/DataManager-only game logs and added no editor rows after cursor `4`.
+- Review: Three read-only acceptance, asset and QA agents completed bounded
+  reviews; the integrating agent fixed all blocking findings and owned final
+  test/MCP acceptance.
+- Blockers: None for Story146. The broader complete-game goal remains active.
+- Next: Story147 Crown Warden `wall_climb` reward payoff. Keep ending, credits,
+  cinematic transition, Boss parry reaction and arena mutation in separately
+  approved bounded stories.
+
+## Session Extract -- /story-done 2026-07-13
+
+- Delivery checkpoint: Story141-144 remain pushed as `a17399f2`; Stories145-147
+  are complete verified local changes. No additional commit or push was
+  performed without a new repository-history instruction.
+- Story: `production/epics/player-abilities/story-147-crown-warden-wall-climb-reward-payoff.md`
+  -- Crown Warden Wall Climb Reward Payoff.
+- Implementation: Boss4 death reveals a generated Crown Core through the
+  shared reward source. Grounded contact consumes it once, unlocks missing
+  `wall_climb` or safely confirms Story135's alternate path, presents an exact
+  `1.5s` control/HUD beat, and merges abilities into arena/Tower/Main state.
+- Runtime fixes: MCP exposed an unreachable 100px grounded claim and the final
+  scene uses a matching 128px interaction/claim radius. Bounded regression also
+  exposed `RouteTransitionShell` changing Area2D monitor state inside a physics
+  signal; physics-frame changes are now deferred.
+- Verification: RED `report_1554`; final focused `report_1559` passed `3/3`;
+  final Story146/Story135 related `report_1558` passed `9/9`; grounded target
+  smoke passed. No full suite was run.
+- MCP: Session `cinderpaw@13e3`, Godot `4.7-stable`, MCP `2.9.1`, Run
+  `r7762730-6`. Real `move_right` input claimed the core from the ground,
+  runtime diagnostics reported `wall_climb=true` and one exact feedback beat,
+  two non-empty `1278x718` captures were retained, current game logs were
+  helper/DataManager-only and editor cursor stayed `4 -> 4`.
+- Parallel review: Three requested read-only sidecars failed before project
+  access because the backend rewrote effort to invalid `max`; bounded design,
+  art and QA review was completed locally by the integrating agent.
+- Blockers: None for Story147. The broader complete-game goal remains active.
+- Next: author Story148 as a bounded post-Boss4 continuation contract before
+  implementing ending, credits or cinematic presentation.
+
+## Session Extract -- /story-done 2026-07-13
+
+- Delivery checkpoint: Story141-144 remain pushed as `a17399f2`; Stories145-148
+  are complete verified local changes. No additional commit or push was
+  performed without a new repository-history instruction.
+- Story: `production/epics/player-abilities/story-148-crown-warden-victory-recall-to-scrap-roost.md`
+  -- Crown Warden Victory Recall To Scrap Roost.
+- Implementation: Added one generated right-side recall transmitter after
+  Boss4 defeat/reward while preserving the left Apex return. Arena persistence
+  records and rolls back exact recall proof around SceneManager requests;
+  MainScene accepts only complete proof at `main / scrap_roost`, moves
+  Cinderpaw to the existing savepoint and records one secured return.
+- Verification: Expected RED `report_1560`; final bounded GREEN `report_1564`
+  passed `16/16`; target smoke printed
+  `crown_warden_victory_recall_to_scrap_roost_smoke=passed`. No full suite was
+  run. A realistic Main persistence fixture then reproduced the Rat King return
+  in RED `report_1565`; related GREEN `report_1567` passed `13/13` after the
+  restoration fix.
+- MCP: Session `cinderpaw@13e3`, Godot `4.7-stable`, MCP `2.9.1`, final Run
+  `r21750636-14`. Physical `E` triggered the runtime swap to
+  `main / scrap_roost`; both defeated MainScene bosses, Rat King collisions and
+  Boss HUD stayed inactive. Both screenshots were non-empty `1278x718`, game
+  logs were helper/DataManager info only and editor cursor remained `4 -> 4`.
+- Blockers: None for Story148. The broader complete-game goal remains active.
+- Next: do not infer Boss5 from the current five-Boss full-concept line because
+  Tier 4 defines a four-Boss degraded complete scope. Select a bounded hub
+  polish/content gap or resolve that scope conflict before Story149.
+
+## Session Extract -- /story-done 2026-07-14
+
+- Delivery checkpoint: Story160 is complete as verified local work. No commit
+  or push was performed without a repository-history instruction.
+- Story: `production/epics/player-abilities/story-160-skill-tree-cat-claw-t1b-damage-choice.md`
+  -- Skill Tree Cat Claw T1-B Damage Choice.
+- Implementation: Added the 1 SP `Honed Claws` node, persisted unlock, current-
+  weapon modifier filtering, one capped floating damage modifier across shared
+  attack paths, and final-floor DamageCalculator consumption. The GDD now makes
+  the T1-B F7/F9 boundary explicit and forbids registering one node on both
+  tracks.
+- Verification: RED `report_1672`; focused GREEN `report_1676` and final fresh
+  focused `report_1679` each passed `1/1`;
+  bounded related GREEN `report_1678` passed `23/23`; both skill-tree JSON files
+  parse. No full suite was run.
+- MCP: Session `cinderpaw@3736`, Godot `4.7-stable`, plugin/server `3.0.2`, run
+  `r6401979-3`. A real `SkillUnlockButton.pressed` spent SP `1 -> 0`; real
+  collision damage changed `25 -> 26`; both `1278x718` captures were non-empty,
+  game logs were three info rows, editor logs were empty, and stop returned the
+  editor to `ready`.
+- Assets: No new visual/audio asset was needed; the slice reuses existing
+  image-generated runtime art.
+- Blockers: None for Story160. The broader complete-game goal remains active.
+- Next: continue an approved bounded skill-tree node or another directly
+  playable ACT gap; do not expand Story160 into a broad F9/weapon-upgrade
+  migration.
+
+## Session Extract -- /story-done 2026-07-14
+
+- Delivery checkpoint: Story161 is complete as verified local work. No commit
+  or push was performed without a repository-history instruction.
+- Story: `production/epics/player-abilities/story-161-skill-tree-long-tail-t1b-damage-choice.md`
+  -- Skill Tree Long Tail T1-B Damage Choice.
+- Implementation: Added the 1 SP `Honed Tailblade` data/schema node and reused
+  Story160's weapon-conditioned F7 damage path. No shared gameplay controller,
+  DamageCalculator, scene, animation or asset file was changed for this slice.
+- Verification: RED `report_1680`; focused GREEN `report_1681` passed `1/1`;
+  bounded related GREEN `report_1683` passed `22/22`; both skill-tree JSON files
+  parse. `report_1682` only exposed stale menu-index assertions and is not pass
+  evidence. No full suite or redundant post-documentation focused run was used.
+- MCP: Session `cinderpaw@3736`, Godot `4.7-stable`, plugin/server `3.0.2`, final
+  run `r10362250-5`. A real `SkillUnlockButton.pressed` spent SP `1 -> 0`;
+  the real Long Tail collision chain changed damage `37 -> 39`; both corrected
+  `1278x718` captures were non-empty and visually inspected, game logs were
+  three info rows, editor logs were empty, and stop returned readiness `ready`.
+- Assets: No new visual/audio asset or image generation was needed. Existing
+  generated Long Tail arc and runtime art were reused.
+- Blockers: None for Story161. The broader complete-game goal remains active.
+- Next: continue one approved bounded skill-tree node or another directly
+  playable ACT gap without broad F9 or weapon-base migration.
+
+## Session Extract -- /story-done 2026-07-14
+
+- Delivery checkpoint: Story162 is complete as verified local work. No commit
+  or push was performed without a repository-history instruction.
+- Story: `production/epics/player-abilities/story-162-skill-tree-fish-bone-t1b-damage-choice.md`
+  -- Skill Tree Fish Bone T1-B Damage Choice.
+- Implementation: Added the 1 SP `Honed Fishbone` data/schema node and reused
+  Story160's weapon-conditioned F7 damage path. No shared gameplay controller,
+  DamageCalculator, scene, animation or asset file was changed for this slice.
+- Verification: RED `report_1684`; focused GREEN `report_1685` passed `1/1`;
+  bounded related GREEN `report_1686` passed `16/16`; both skill-tree JSON files
+  parse. No full suite or redundant post-documentation focused run was used.
+- MCP: Session `cinderpaw@3736`, Godot `4.7-stable`, plugin/server `3.0.2`, final
+  run `r13362848-6`. A real `SkillUnlockButton.pressed` spent SP `1 -> 0`;
+  the real Fish Bone collision chain changed damage `100 -> 108`; both
+  `1278x718` captures were non-empty and visually inspected, game logs were
+  three info rows, editor logs were empty, and stop returned readiness `ready`.
+- Assets: No new visual/audio asset or image generation was needed. Existing
+  generated Fish Bone wave and runtime art were reused.
+- Blockers: None for Story162. The broader complete-game goal remains active.
+- Next: continue one approved bounded skill-tree node or another directly
+  playable ACT gap without broad F9 or weapon-base migration.
+
+## Session Extract -- /story-done 2026-07-14
+
+- Delivery checkpoint: Story163 is complete as verified local work. No commit
+  or push was performed without a repository-history instruction.
+- Story: `production/epics/player-abilities/story-163-crown-warden-phase-two-transition-readability.md`
+  -- Crown Warden Phase II Transition Readability.
+- Implementation: Crown Warden now waits for the active attack chain to finish,
+  then runs one 2.5-second Phase II transition with movement/attacks paused,
+  `hurt` animation, `gone` Hurtbox, rejected damage, Phase II HUD, existing
+  overlay/debris and `sfx_boss_phase`. The exact 2.50-second boundary restores
+  normal collision and combat.
+- Verification: RED `report_1687`; focused GREEN `report_1688` passed `1/1`;
+  bounded Boss4 related GREEN `report_1689` passed `15/15`; target smoke printed
+  `crown_warden_phase_two_transition_feedback_smoke=passed`. No full suite or
+  redundant post-documentation focused run was used.
+- MCP: Session `cinderpaw@3736`, Godot `4.7-stable`, plugin/server `3.0.2`, final
+  run `r18107187-8`. Runtime diagnostics proved the 2.5-second invulnerable
+  window, one transition signal, 32 debris pieces, HUD/audio routing and exact
+  recovery boundary. The `1278x718` capture was non-empty and visually checked;
+  game logs were three info rows, editor logs were empty, and stop returned
+  readiness `ready`.
+- Assets: No new image or audio asset was needed. Existing generated phase
+  overlay/debris, Crown Warden `hurt` frames and phase SFX were reused.
+- Parallel review: Read-only design, QA and technical-art review informed slice
+  selection and acceptance. The integrating agent rejected an undefined final
+  route expansion, owned all edits/tests/MCP validation, and retained the
+  technical-art finding that the existing full-screen phase overlay obscures
+  the combat center too long.
+- Blockers: None for Story163. The broader complete-game goal remains active.
+- Next: isolate the Boss phase overlay center-clear/short-fade correction in
+  Combat Presentation without reopening the verified phase-state logic.
+
+## Session Extract -- /story-done 2026-07-14
+
+- Delivery checkpoint: Combat Presentation Story019 is complete as verified
+  local work. No commit or push was performed without a repository-history
+  instruction.
+- Story: `production/epics/combat-presentation/story-019-boss-phase-overlay-readability.md`
+  -- Boss Phase Overlay Readability.
+- Implementation: Replaced the runtime phase image with a generated steel-blue
+  edge frame whose center `640x360` pixels are hard-cleared to alpha zero. One
+  CanvasLayer/TextureRect fades linearly and exits at `0.40s`; 32 existing metal
+  debris pieces continue independently to `1.50s`; HUD remains on layer `1`
+  above the effect's layer `0`.
+- Verification: Clean RED `report_1690`; focused GREEN `report_1692` passed
+  `1/1`; bounded related GREEN `report_1693` passed `40/40`; target Crown Warden
+  smoke printed `crown_warden_phase_two_transition_feedback_smoke=passed`.
+  `report_1691` is rejected because it emitted a pre-import ResourceLoader
+  error. No full suite or redundant post-documentation test was used.
+- MCP: Fresh session `cinderpaw@af5f`, Godot `4.7-stable`, plugin/server
+  `3.0.2`, run `r22854-1`. Runtime diagnostics proved Phase II `80/160`, one
+  loaded overlay, 32 debris, `0.39/0.41/1.51s` boundaries, HUD ordering, and
+  three-frame player/Boss animation states. The `1278x718` screenshot is
+  non-empty and visually inspected; game logs are three info rows, editor logs
+  are empty, and stop returned readiness `ready`.
+- Assets: Retained keyed source, alpha intermediate, runtime PNG and exact
+  generation/processing spec. Godot imported all three PNGs; final center alpha
+  min/max/mean are zero.
+- Parallel review: Independent read-only design and QA reviews selected the
+  bounded Presentation correction and validation scope. The integrating agent
+  owned image processing, code, tests, MCP acceptance and final evidence.
+- Blockers: None for Story019. The broader complete-game goal remains active.
+- Next: select the next bounded player-visible ACT gap from current GDD/Story
+  state; do not reopen the verified Boss phase transition or overlay timing
+  without new evidence.
+
+## Session Extract -- /story-done 2026-07-14
+
+- Delivery checkpoint: Story164 is complete as verified local work. No commit
+  or push was performed without a repository-history instruction.
+- Story: `production/epics/player-abilities/story-164-skill-tree-electro-bell-t1b-damage-choice.md`
+  -- Skill Tree Electro Bell T1-B Damage Choice.
+- Implementation: Added the 1 SP `Honed Bell` data/schema node and reused
+  Story160's weapon-conditioned F7 damage path. No shared gameplay controller,
+  DamageCalculator, scene, animation or asset file changed for this slice.
+- Verification: RED `report_1694`; focused GREEN `report_1696` passed `1/1`;
+  bounded related GREEN `report_1697` passed `13/13`; both skill-tree JSON files
+  parse. No full suite or redundant post-documentation focused run was used.
+- MCP: Session `cinderpaw@af5f`, Godot `4.7-stable`, plugin/server `3.0.2`, final
+  run `r3330877-4`. A real `SkillUnlockButton.pressed` spent SP `1 -> 0`; the
+  real Electro Bell collision chain changed damage `30 -> 31`; both corrected
+  `1278x718` captures are non-empty and visually inspected, game logs are three
+  info rows, editor logs are empty, and stop returned readiness `ready`.
+- Assets: No new visual/audio asset or image generation was needed. Existing
+  generated Electro Bell arc and runtime art were reused.
+- Parallel review: Read-only design review selected this bounded gap. QA review
+  also reproduced a Story019 overlay crop; that visible defect is the next
+  repair and supersedes the old "do not reopen without evidence" note.
+- Blockers: None for Story164. The broader complete-game goal remains active.
+- Next: reopen only Story019's runtime layout acceptance, fix the doubled
+  full-rect offsets, and preserve its verified 0.40/1.50-second timing.
+
+## Session Extract -- Story019 layout repair 2026-07-14
+
+- Correction checkpoint: Combat Presentation Story019 was reopened only for a
+  reproduced runtime layout defect; no commit or push was performed.
+- Root cause: `PRESET_FULL_RECT` anchors plus positive right/bottom offsets
+  `1280/720` doubled `BossPhaseOverlay` to `2560x1440` and cropped its right and
+  bottom edge. Run1 remains timing/transition evidence, but its screenshot is
+  explicitly superseded for layout acceptance.
+- Implementation: Kept full-rect anchors and changed all four offsets to `0`.
+  Overlay fade `0.40s`, debris `1.50s`, phase state, assets and layer ordering
+  were unchanged.
+- Verification: Repair RED `report_1698` reproduced `2560x1440`; focused GREEN
+  `report_1699` passed `1/1`; related GREEN `report_1700` passed `39/39`.
+- MCP: Godot `4.7-stable`, MCP plugin/server `3.0.2`, session
+  `cinderpaw@af5f`, final run `r7097860-5`. Real Main Rat King Phase II produced
+  position `(0,0)`, rect/texture/viewport `1280x720`, anchors `[0,0,1,1]`, four
+  zero offsets and overlay/debris `1/32`. The repaired `1278x718` screenshot
+  shows all four edges and a readable combat center; logs were three info rows,
+  editor logs were empty, and stop returned `ready`.
+- Blockers: None. The broader complete-game goal remains active.
+- Next: select the next bounded player-visible ACT gap from current GDD/Story
+  evidence; preserve the repaired phase overlay layout and timing.
+
+## Session Extract -- Story165 2026-07-14
+
+- Delivery checkpoint: Player Abilities Story165 is complete as verified local
+  work. No commit or push was performed without a repository-history
+  instruction.
+- Story: `production/epics/player-abilities/story-165-boss2-echo-guardian-attack-tell-frame-animation-runtime.md`
+  -- Echo Guardian Attack Tell Frame Animation Runtime.
+- Implementation: Added a generated non-looping three-frame `attack_tell` to
+  the existing Echo Guardian `AnimatedSprite2D + SpriteFrames`. Startup now
+  uses the coil-up tell and holds its last frame through Focus-extended startup;
+  active frames keep the existing `attack` and unchanged hitbox/gameplay data.
+- Verification: RED `report_1701`; hold regression RED `report_1704`; focused
+  GREEN `report_1705` passed `1/1`; bounded related GREEN `report_1708` passed
+  `16/16`. `report_1706` was rejected as loop-sampling-sensitive and isolated
+  `report_1707` passed `6/6` before the assertion was corrected. No full suite
+  or redundant post-documentation test was used.
+- MCP: Godot `4.7-stable`, MCP plugin/server `3.0.2`, session
+  `cinderpaw@af5f`, final run `r12850599-8`. Real Main handoff proved Focus
+  startup `14`, `attack_tell` frame `2` hold with inactive hitbox, then active
+  `attack` with active hitbox. Both `1278x718` screenshots are non-empty and
+  visually distinct; game logs are three info rows, editor logs are empty, and
+  stop returned `ready`.
+- Assets: Retained generated source, alpha source, JSON prompt/processing
+  metadata and three transparent `160x128` runtime frames under the required
+  character animation path. Godot imported all new PNGs.
+- Parallel review: Design and QA read-only reviews constrained the slice to
+  presentation-only state mapping and thin verification. Technical-art review
+  confirmed exact canvas size, alpha and shared foot baseline, while recording
+  the existing project-level pixel-filter/resource-budget debt. The integrating
+  agent accepted the authored 12px visible centroid change after reviewing the
+  fixed pivot and final runtime captures, and owned all edits and acceptance.
+- Blockers: None for Story165. The broader complete-game goal remains active.
+- Next: select the next bounded player-visible ACT gap; preserve Echo Guardian
+  combat timing, hitbox, phase, audio, save and reward contracts.
+
+## Session Extract -- Story166 2026-07-14
+
+- Delivery checkpoint: Player Abilities Story166 is complete as verified local
+  work. No commit or push was performed without a repository-history
+  instruction.
+- Story: `production/epics/player-abilities/story-166-cinderpaw-real-input-three-stage-light-combo-runtime.md`
+  -- Cinderpaw Real-Input Three-Stage Light Combo Runtime.
+- Implementation: Real `attack` InputMap presses now enter Core recovery-window
+  chaining and drive stages `0/1/2`. Player presentation follows Core totals
+  `12/18/30` and maps to generated `attack/attack_2/attack_3`; hold input does
+  not auto-chain, stage 3 cannot restart a fourth stage, and a completed chain
+  starts again at stage 0. Existing light-hitbox timing remains unchanged.
+- Verification: RED `report_1709`; final focused GREEN `report_1713` passed
+  `2/2`; bounded related GREEN `report_1714` passed `20/20` across six directly
+  related suites. No full suite or redundant post-documentation test was used.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r55211566-9`. Real Main input reached `attack_2` and `attack_3`; a fourth
+  press advanced Core frame `12 -> 13` without restart; post-chain input reset
+  to `combo 0`. Both `1278x718` captures were non-empty and visually checked;
+  game logs were three info rows, editor logs were empty, and stop returned
+  readiness `ready`.
+- Assets: Retained generated `1254x1254` RGB source, RGBA alpha intermediate,
+  prompt/processing metadata, and nine transparent `96x96` runtime frames. All
+  alpha bounds share `y=88`; Godot imported the new files; Cinderpaw now uses
+  Nearest filtering.
+- Parallel review: Design, QA, and technical-art read-only reviews identified
+  the unreachable real-input combo and constrained the slice. The integrating
+  agent owned code, asset processing, tests, MCP acceptance, and final evidence.
+- Blockers: None for Story166. The broader complete-game goal remains active.
+- Next: select the next bounded player-visible ACT gap. Keep authored
+  animation-frame hitbox timing as a separate collision/balance Story rather
+  than silently changing Story166's preserved combat contract.
+
+## Session Extract -- Story167 2026-07-15
+
+- Delivery checkpoint: Player Abilities Story167 is complete as verified local
+  work. No commit or push was performed without a repository-history instruction.
+- Story: `production/epics/player-abilities/story-167-cinderpaw-authored-three-stage-light-hitbox-timing.md`
+  -- Cinderpaw Authored Three-Stage Light Hitbox Timing.
+- Implementation: Replaced the immediate fixed six-frame light hitbox with
+  authored `4/4/4`, `6/6/6`, and `10/10/10` startup/active/pure-recovery
+  windows. Core frame signals now schedule activation; active-period presses
+  queue until contact ends; light animation frames `0/1/2` are driven by the
+  same phases. Baseline damage `10`, cat energy `+5`, duplicate suppression,
+  skill metadata and other action states remain unchanged.
+- Verification: Initial timing RED `report_1715`; MCP-driven visual-sync RED
+  `report_1725`; final focused GREEN `report_1730` passed `3/3`; bounded related
+  GREEN `report_1731` passed `34/34` across nine suites. No full suite or
+  redundant post-documentation test was used.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, final
+  run `r59179809-12`. Stage boundaries proved sprite/hitbox `0/false -> 1/true`
+  at Core frames `4`, `6`, and `10`; active inputs queued successfully. The
+  `1278x718` screenshot is non-empty and visually inspected; game logs contain
+  three info rows, editor logs are empty, and stop returned readiness `ready`.
+- Assets: No new generation or import was needed; Story166's existing generated
+  `attack`, `attack_2`, and `attack_3` character frames were reused.
+- Parallel review: Read-only design, technical-art and QA reviews established
+  the phase windows, asset reuse and bounded validation scope. The integrating
+  agent owned code, tests, MCP acceptance and final evidence.
+- Blockers: None for Story167. The broader complete-game goal remains active.
+- Next: select the next bounded player-visible ACT gap; preserve Story167's
+  verified phase-driven light timing unless new runtime evidence requires change.

@@ -81,6 +81,110 @@
 					}
 				}
 			}
+		},
+		"boss_04_crown_warden": {
+			"required": [
+				"boss_id",
+				"display_name",
+				"max_hp",
+				"phases",
+				"summon_rules",
+				"desperation_rules",
+				"parry_rules",
+				"defeat_rewards",
+				"arena_bounds"
+			],
+			"fields": {
+				"boss_id": {"type": "String"},
+				"display_name": {"type": "String"},
+				"max_hp": {"type": "int", "min": 1, "max": 9999},
+				"phases": {
+					"type": "Array",
+					"items": {
+						"type": "Dictionary",
+						"required": [
+							"phase_id",
+							"hp_threshold",
+							"attack_patterns",
+							"attack_speed_modifier",
+							"transition_animation"
+						],
+						"fields": {
+							"phase_id": {"type": "int", "min": 1, "max": 2},
+							"hp_threshold": {"type": "float", "min": 0.01, "max": 1.0},
+							"attack_patterns": {
+								"type": "Array",
+								"items": {"type": "String"}
+							},
+							"attack_speed_modifier": {"type": "float", "min": 0.01},
+							"transition_animation": {"type": "String"}
+						}
+					}
+				},
+				"summon_rules": {
+					"type": "Dictionary",
+					"required": [
+						"phase_id",
+						"summon_id",
+						"summon_interval_sec",
+						"summon_max_count"
+					],
+					"fields": {
+						"phase_id": {"type": "int", "min": 1, "max": 99},
+						"summon_id": {"type": "String"},
+						"summon_interval_sec": {"type": "float", "min": 0.01},
+						"summon_max_count": {"type": "int", "min": 1, "max": 99}
+					}
+				},
+				"desperation_rules": {
+					"type": "Dictionary",
+					"required": ["phase_id", "hp_threshold", "defense_modifier"],
+					"fields": {
+						"phase_id": {"type": "int", "min": 1, "max": 99},
+						"hp_threshold": {"type": "float", "min": 0.01, "max": 1.0},
+						"defense_modifier": {"type": "float", "min": 0.01}
+					}
+				},
+				"parry_rules": {
+					"type": "Dictionary",
+					"required": ["damage_multiplier", "enter_stun"],
+					"fields": {
+						"damage_multiplier": {"type": "float", "min": 1.0},
+						"enter_stun": {"type": "bool"}
+					}
+				},
+				"defeat_rewards": {
+					"type": "Dictionary",
+					"required": ["ability_unlock", "currency", "skill_points"],
+					"fields": {
+						"ability_unlock": {"type": "String"},
+						"currency": {"type": "int", "min": 0, "max": 9999},
+						"skill_points": {"type": "int", "min": 0, "max": 999}
+					}
+				},
+				"arena_bounds": {
+					"type": "Dictionary",
+					"required": ["position", "size"],
+					"fields": {
+						"position": {
+							"type": "Dictionary",
+							"required": ["x", "y"],
+							"fields": {
+								"x": {"type": "float"},
+								"y": {"type": "float"}
+							}
+						},
+						"size": {
+							"type": "Dictionary",
+							"required": ["x", "y"],
+							"fields": {
+								"x": {"type": "float", "min": 1.0},
+								"y": {"type": "float", "min": 1.0}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }

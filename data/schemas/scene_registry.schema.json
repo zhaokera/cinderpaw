@@ -85,6 +85,17 @@
 				"default_spawn": {"type": "String"},
 				"display_name": {"type": "String"}
 			}
+		},
+		"boss_04_crown_warden_arena": {
+			"required": ["scene_id", "path", "type", "preload", "default_spawn", "display_name"],
+			"fields": {
+				"scene_id": {"type": "String", "enum": ["boss_04_crown_warden_arena"]},
+				"path": {"type": "String"},
+				"type": {"type": "String", "enum": ["boss_arena"]},
+				"preload": {"type": "bool"},
+				"default_spawn": {"type": "String"},
+				"display_name": {"type": "String"}
+			}
 		}
 	}
 }

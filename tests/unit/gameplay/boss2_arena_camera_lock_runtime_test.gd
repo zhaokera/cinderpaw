@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 
 const MAIN_SCENE: PackedScene = preload("res://scenes/main.tscn")
 const BOSS2_DEFEATED_FLAG: StringName = &"boss_02_echo_guardian_defeated"
+const RAT_KING_DEFEATED_FLAG: StringName = &"boss_rat_king_defeated"
 
 var scene: Node2D
 
@@ -10,6 +11,7 @@ var scene: Node2D
 func before_test() -> void:
 	scene = MAIN_SCENE.instantiate() as Node2D
 	add_child(scene)
+	scene.call("set_world_progress_flag", RAT_KING_DEFEATED_FLAG, true)
 
 
 func after_test() -> void:

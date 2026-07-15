@@ -1,0 +1,58 @@
+{
+  "story_id": 145,
+  "session_id": "cinderpaw@e40d",
+  "godot_version": "4.7-stable (official)",
+  "plugin_version": "2.9.1",
+  "server_version": "2.9.1",
+  "run_id": "r456423025-77",
+  "run_token": 77,
+  "scene": "res://scenes/bosses/crown_warden_arena.tscn",
+  "edited_scene_node_count": 25,
+  "runtime_node_count": 29,
+  "required_runtime_nodes": [
+    "/CrownWardenArenaScene/Background",
+    "/CrownWardenArenaScene/Player",
+    "/CrownWardenArenaScene/Player/Sprite",
+    "/CrownWardenArenaScene/CentralTowerReturnRoute",
+    "/CrownWardenArenaScene/CentralTowerReturnRoute/Visual",
+    "/CrownWardenArenaScene/ArenaObjectiveLabel"
+  ],
+  "forbidden_runtime_nodes": [
+    "/CrownWardenArenaScene/CrownWarden",
+    "/CrownWardenArenaScene/BossHud"
+  ],
+  "player_sprite_type": "AnimatedSprite2D",
+  "real_input": {
+    "action": "move_right",
+    "start_x": 220.0,
+    "end_x": 291.6667
+  },
+  "ui": {
+    "objective": "Crown Warden Signal Detected",
+    "return_prompt": "Return to Apex Approach",
+    "return_prompt_global_rect": {
+      "x": 16.0,
+      "y": 236.0,
+      "width": 300.0,
+      "height": 36.0
+    }
+  },
+  "screenshot": {
+    "transport": "inline MCP ImageContent",
+    "format": "png",
+    "width": 1278,
+    "height": 718,
+    "non_empty": true,
+    "visual_review": "generated observatory, crown gate, animated player and both labels visible without clipping"
+  },
+  "logs": {
+    "current_run_errors": [],
+    "game_error_count": 0,
+    "game_warning_count": 0,
+    "editor_cursor_before": 8,
+    "editor_cursor_after": 8,
+    "new_editor_rows": 0
+  },
+  "stopped_cleanly": true,
+  "result": "PASS"
+}

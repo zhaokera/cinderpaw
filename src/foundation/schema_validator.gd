@@ -111,6 +111,10 @@ static func _validate_entry(
 			if field_schema.has("fields") and value is Dictionary:
 				_validate_nested_fields(value as Dictionary, field_schema, path, result)
 
+			# 6. Array 元素约束
+			if field_schema.has("items") and value is Array:
+				_validate_array_items(value as Array, field_schema, path, result)
+
 
 static func _validate_nested_fields(
 	entry_data: Dictionary,
@@ -154,6 +158,21 @@ static func _validate_field(
 				path, _format_value(value), str(allowed)])
 	if field_schema.has("fields") and value is Dictionary:
 		_validate_nested_fields(value as Dictionary, field_schema, path, result)
+	if field_schema.has("items") and value is Array:
+		_validate_array_items(value as Array, field_schema, path, result)
+
+
+static func _validate_array_items(
+	values: Array,
+	array_schema: Dictionary,
+	path: String,
+	result: ValidationResult
+) -> void:
+	var item_schema: Dictionary = array_schema.get("items", {})
+	if item_schema.is_empty():
+		return
+	for index: int in range(values.size()):
+		_validate_field(values[index], item_schema, "%s[%d]" % [path, index], result)
 
 
 ## 检查值是否匹配指定类型名称。

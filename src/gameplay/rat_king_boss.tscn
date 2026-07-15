@@ -1,7 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://ratkingboss001"]
+[gd_scene load_steps=8 format=3 uid="uid://ratkingboss001"]
 
 [ext_resource type="Script" path="res://src/gameplay/rat_king_boss.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/characters/rat_king.tscn" id="2_sprite"]
+[ext_resource type="Script" path="res://src/presentation/focus_attack_tell.gd" id="3_tell_script"]
+[ext_resource type="Texture2D" path="res://assets/generated/combat_focus_mode_boss_attack_tell.png" id="4_tell_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(70, 82)
@@ -21,6 +23,14 @@ shape = SubResource("RectangleShape2D_body")
 [node name="Sprite" parent="." instance=ExtResource("2_sprite")]
 position = Vector2(0, -82)
 scale = Vector2(1.45, 1.45)
+
+[node name="FocusAttackTell" type="Sprite2D" parent="."]
+z_index = -1
+position = Vector2(0, -68)
+scale = Vector2(0.95, 0.95)
+texture = ExtResource("4_tell_texture")
+visible = false
+script = ExtResource("3_tell_script")
 
 [node name="HurtboxArea" type="Area2D" parent="."]
 collision_layer = 2

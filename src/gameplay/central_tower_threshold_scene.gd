@@ -6,6 +6,9 @@ const SCENE_ID: StringName = &"area_05_central_tower"
 const ENTRY_SPAWN_POINT: StringName = &"neon_rooftops_threshold_arrival"
 const ROOFTOPS_SCENE_ID: StringName = &"area_05_neon_rooftops"
 const ROOFTOPS_RETURN_SPAWN: StringName = &"central_tower_threshold_return"
+const CROWN_WARDEN_ARENA_SCENE_ID: StringName = &"boss_04_crown_warden_arena"
+const CROWN_WARDEN_ENTRY_SPAWN: StringName = &"boss_entry"
+const APEX_APPROACH_RETURN_SPAWN: StringName = &"apex_approach_return"
 const THRESHOLD_ROOST_ID: StringName = &"central_tower_threshold_roost"
 const PLAYER_LIGHT_DAMAGE: int = 12
 const TOWER_MUSIC_ID: StringName = &"mus_rooftop"
@@ -66,6 +69,12 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 @onready var _return_prompt: Label = (
 	get_node_or_null("NeonRooftopsReturnRoute/PromptLabel") as Label
 )
+@onready var _crown_warden_route: Node2D = (
+	get_node_or_null("CrownWardenArenaRoute") as Node2D
+)
+@onready var _apex_approach_return_spawn: Marker2D = (
+	get_node_or_null("ApexApproachReturnSpawn") as Marker2D
+)
 @onready var _objective_label: Label = get_node_or_null("ObjectiveLabel") as Label
 @onready var _hud: HUDManager = get_node_or_null("HUD") as HUDManager
 @onready var _guard_controller: CentralTowerThresholdGuardController = (
@@ -94,6 +103,9 @@ var _weapon_component: WeaponComponent = null
 var _return_transition_requested: bool = false
 var _last_return_rejected_reason: StringName = &""
 var _last_return_request: Dictionary = {}
+var _crown_warden_transition_requested: bool = false
+var _last_crown_warden_rejected_reason: StringName = &""
+var _last_crown_warden_request: Dictionary = {}
 var _threshold_roost_activated: bool = false
 var _last_discovered_savepoint: Dictionary = {}
 var _last_player_hit_metadata: Dictionary = {}
@@ -113,6 +125,7 @@ func _ready() -> void:
 	_setup_threshold_roost()
 	_setup_game_flow()
 	_sync_return_route()
+	_sync_crown_warden_route()
 	_refresh_objective_text()
 	_sync_objective_position()
 	_request_threshold_audio()
@@ -163,6 +176,11 @@ func _process(delta: float) -> void:
 		):
 			_refresh_objective_text()
 		elif (
+			not _crown_warden_transition_requested
+			and _is_provider_near_crown_warden_route(_player)
+		):
+			try_request_crown_warden_arena(_player)
+		elif (
 			not _return_transition_requested
 			and _is_provider_near_return(_player)
 		):
@@ -176,6 +194,7 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 		return false
 	_connect_scene_manager_failure_signal()
 	_apply_current_scene_manager_spawn_point()
+	_sync_crown_warden_route()
 	return true
 
 
@@ -200,6 +219,18 @@ func _disconnect_scene_manager_failure_signal() -> void:
 
 
 func _on_scene_load_failed(scene_id: StringName, reason: StringName) -> void:
+	if (
+		scene_id == CROWN_WARDEN_ARENA_SCENE_ID
+		and _crown_warden_transition_requested
+	):
+		_crown_warden_transition_requested = false
+		_record_crown_warden_rejection(
+			reason if reason != &"" else &"load_failed"
+		)
+		_last_crown_warden_request["load_failed_reason"] = String(reason)
+		_sync_crown_warden_route()
+		_refresh_objective_text()
+		return
 	if scene_id != ROOFTOPS_SCENE_ID or not _return_transition_requested:
 		return
 	_return_transition_requested = false
@@ -510,6 +541,57 @@ func try_request_neon_rooftops_return(provider: Node = null) -> bool:
 	return true
 
 
+## Enters the Crown Observatory only after Story144 secures the Apex Approach.
+func try_request_crown_warden_arena(provider: Node = null) -> bool:
+	if _crown_warden_route == null or _crown_warden_transition_requested:
+		_record_crown_warden_rejection(&"transition_already_requested")
+		return false
+	_sync_crown_warden_route()
+	var request_provider: Node = _player if provider == null else provider
+	if (
+		not _crown_warden_route.has_method("can_request_transition")
+		or not bool(_crown_warden_route.call(
+			"can_request_transition",
+			request_provider
+		))
+	):
+		_record_crown_warden_rejection(
+			&"provider_out_of_range"
+			if _is_apex_approach_secured()
+			else &"apex_approach_unsecured"
+		)
+		return false
+	var manager_rejection: StringName = _scene_manager_rejection_for(
+		CROWN_WARDEN_ARENA_SCENE_ID
+	)
+	if manager_rejection != &"":
+		_record_crown_warden_rejection(manager_rejection)
+		return false
+	if not _ensure_runtime_scene_root():
+		_record_crown_warden_rejection(&"runtime_root_unavailable")
+		return false
+	if not _persist_progress(CROWN_WARDEN_ARENA_SCENE_ID):
+		_record_crown_warden_rejection(&"state_persist_failed")
+		return false
+	if not _request_scene_change(
+		CROWN_WARDEN_ARENA_SCENE_ID,
+		CROWN_WARDEN_ENTRY_SPAWN
+	):
+		_record_crown_warden_rejection(&"request_rejected")
+		return false
+	_crown_warden_transition_requested = true
+	_last_crown_warden_rejected_reason = &""
+	_last_crown_warden_request = {
+		"scene_id": String(CROWN_WARDEN_ARENA_SCENE_ID),
+		"spawn_point": String(CROWN_WARDEN_ENTRY_SPAWN),
+		"pending_scene": _get_pending_scene(),
+		"pending_spawn_point": _get_pending_spawn_point(),
+	}
+	_sync_crown_warden_route()
+	_refresh_objective_text()
+	return true
+
+
 ## Called by the guard controller after activation, reset, or defeat.
 func persist_central_tower_threshold_progress() -> bool:
 	if not _is_valid_scene_manager(_scene_manager):
@@ -569,8 +651,12 @@ func set_local_state(state: Dictionary) -> void:
 	_return_transition_requested = false
 	_last_return_rejected_reason = &""
 	_last_return_request.clear()
+	_crown_warden_transition_requested = false
+	_last_crown_warden_rejected_reason = &""
+	_last_crown_warden_request.clear()
 	_last_player_hit_metadata.clear()
 	_sync_return_route()
+	_sync_crown_warden_route()
 	_refresh_objective_text()
 	_apply_current_scene_manager_spawn_point()
 
@@ -900,6 +986,37 @@ func get_central_tower_apex_diagnostics() -> Dictionary:
 	return diagnostics
 
 
+## Returns Story145's gate, spawn, request, and generated-art evidence.
+func get_crown_warden_route_diagnostics() -> Dictionary:
+	return {
+		"scene_id": String(SCENE_ID),
+		"target_scene_id": String(CROWN_WARDEN_ARENA_SCENE_ID),
+		"target_spawn_point": String(CROWN_WARDEN_ENTRY_SPAWN),
+		"return_spawn_point": String(APEX_APPROACH_RETURN_SPAWN),
+		"available": (
+			bool(_crown_warden_route.call("is_route_available"))
+			if _crown_warden_route != null
+			and _crown_warden_route.has_method("is_route_available")
+			else false
+		),
+		"prompt_text": (
+			String(_crown_warden_route.call("get_prompt_text"))
+			if _crown_warden_route != null
+			and _crown_warden_route.has_method("get_prompt_text")
+			else ""
+		),
+		"transition_requested": _crown_warden_transition_requested,
+		"last_rejected_reason": String(_last_crown_warden_rejected_reason),
+		"last_request": _last_crown_warden_request.duplicate(true),
+		"apex_approach_secured": _is_apex_approach_secured(),
+		"return_position": (
+			_apex_approach_return_spawn.global_position
+			if _apex_approach_return_spawn != null
+			else Vector2.ZERO
+		),
+	}
+
+
 func _setup_weapon_component() -> void:
 	_weapon_component = get_node_or_null("WeaponComponent") as WeaponComponent
 	if _weapon_component == null:
@@ -1076,6 +1193,7 @@ func _setup_apex_purge_controller() -> void:
 
 
 func _on_apex_purge_objective_changed(_objective_text: String) -> void:
+	_sync_crown_warden_route()
 	_refresh_objective_text()
 
 
@@ -1214,6 +1332,21 @@ func _sync_return_route() -> void:
 	_sync_return_prompt_visibility()
 
 
+func _sync_crown_warden_route() -> void:
+	if _crown_warden_route == null:
+		return
+	if _crown_warden_route.has_method("set_route_available"):
+		_crown_warden_route.call(
+			"set_route_available",
+			_is_apex_approach_secured()
+		)
+	if _crown_warden_route.has_method("set_transition_requested"):
+		_crown_warden_route.call(
+			"set_transition_requested",
+			_crown_warden_transition_requested
+		)
+
+
 func _sync_return_prompt_visibility() -> void:
 	if _return_prompt != null:
 		_return_prompt.visible = (
@@ -1225,7 +1358,9 @@ func _sync_return_prompt_visibility() -> void:
 func _refresh_objective_text() -> void:
 	if _objective_label == null:
 		return
-	if _return_transition_requested:
+	if _crown_warden_transition_requested:
+		_objective_label.text = "Entering Crown Observatory"
+	elif _return_transition_requested:
 		_objective_label.text = "Returning to Neon Rooftops"
 	elif (
 		_apex_purge_controller != null
@@ -1305,6 +1440,14 @@ func _apply_current_scene_manager_spawn_point() -> void:
 		and _apex_purge_controller != null
 	):
 		_apex_purge_controller.align_player_to_roost()
+	elif (
+		spawn_point == APEX_APPROACH_RETURN_SPAWN
+		and _apex_approach_return_spawn != null
+		and _player != null
+	):
+		_player.global_position = _apex_approach_return_spawn.global_position
+		if _player is CharacterBody2D:
+			(_player as CharacterBody2D).velocity = Vector2.ZERO
 
 
 func _build_threshold_roost_state() -> Dictionary:
@@ -1331,7 +1474,33 @@ func _is_provider_near_return(provider: Node) -> bool:
 	)
 
 
-func _persist_progress() -> bool:
+func _is_provider_near_crown_warden_route(provider: Node) -> bool:
+	return (
+		_crown_warden_route != null
+		and provider != null
+		and _crown_warden_route.has_method(
+			"is_provider_in_transition_range"
+		)
+		and bool(_crown_warden_route.call(
+			"is_provider_in_transition_range",
+			provider
+		))
+	)
+
+
+func _is_apex_approach_secured() -> bool:
+	return (
+		_apex_purge_controller != null
+		and bool(_apex_purge_controller.get_local_state().get(
+			"central_tower_apex_approach_secured",
+			false
+		))
+	)
+
+
+func _persist_progress(
+	target_scene_id: StringName = ROOFTOPS_SCENE_ID
+) -> bool:
 	if (
 		not _is_valid_scene_manager(_scene_manager)
 		or not _scene_manager.has_method("set_scene_state")
@@ -1342,7 +1511,25 @@ func _persist_progress() -> bool:
 		SCENE_ID,
 		get_local_state()
 	))
-	return _merge_player_abilities_into_scene_state(ROOFTOPS_SCENE_ID) and persisted
+	return _merge_player_abilities_into_scene_state(target_scene_id) and persisted
+
+
+func _scene_manager_rejection_for(scene_id: StringName) -> StringName:
+	if not _is_valid_scene_manager(_scene_manager):
+		return &"scene_manager_missing"
+	if _scene_manager.has_method("is_loading") and bool(
+		_scene_manager.call("is_loading")
+	):
+		return &"scene_manager_loading"
+	if _scene_manager.has_method("is_scene_locked") and bool(
+		_scene_manager.call("is_scene_locked")
+	):
+		return &"scene_locked"
+	if _scene_manager.has_method("has_scene") and not bool(
+		_scene_manager.call("has_scene", scene_id)
+	):
+		return &"unknown_scene"
+	return &""
 
 
 func _merge_player_abilities_into_scene_state(scene_id: StringName) -> bool:
@@ -1454,6 +1641,11 @@ func _texture_path(sprite: Sprite2D) -> String:
 
 func _record_return_rejection(reason: StringName) -> void:
 	_last_return_rejected_reason = reason
+
+
+func _record_crown_warden_rejection(reason: StringName) -> void:
+	_last_crown_warden_rejected_reason = reason
+	_last_crown_warden_request.clear()
 
 
 func _get_pending_scene() -> String:

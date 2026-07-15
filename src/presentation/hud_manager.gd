@@ -53,7 +53,10 @@ const PLAYER_PANEL_BASE_SIZE: Vector2 = Vector2(250, 56)
 const WEAPON_PANEL_BASE_SIZE: Vector2 = Vector2(194, 66)
 const CURRENCY_PANEL_BASE_SIZE: Vector2 = Vector2(160, 38)
 const BOSS_PANEL_BASE_SIZE: Vector2 = Vector2(480, 64)
+const HEAVY_CHARGE_PANEL_BASE_SIZE: Vector2 = Vector2(300, 58)
 const BOSS_PORTRAIT_BASE_SIZE: Vector2 = Vector2(48, 48)
+const HEAVY_CHARGE_COLOR: Color = Color("#F59E0B")
+const HEAVY_CHARGE_READY_COLOR: Color = Color("#FDE047")
 const BOSS_HIT_FLASH_DURATION_SEC: float = 0.22
 const BOSS_HIT_FLASH_COLOR: Color = Color.WHITE
 const BOSS_HIT_FLASH_MAX_ALPHA: float = 0.42
@@ -70,6 +73,14 @@ const SCENE_TRANSITION_BACKGROUND_TEXTURE: Texture2D = preload("res://assets/gen
 const SCENE_TRANSITION_SPINNER_TEXTURE: Texture2D = preload("res://assets/generated/scene_transition_paw_spinner.png")
 const SCENE_TRANSITION_SPINNER_SIZE: Vector2 = Vector2(96, 96)
 const SCENE_TRANSITION_SPINNER_ROTATION_SPEED: float = TAU * 0.75
+const AUTOSAVE_PAW_STAMP_TEXTURE_PATH: String = "res://assets/generated/scene_transition_paw_spinner.png"
+const AUTOSAVE_PAW_STAMP_SOURCE_REGION: Rect2 = Rect2(88, 16, 80, 80)
+const AUTOSAVE_PAW_STAMP_BASE_SIZE: Vector2 = Vector2(64, 64)
+const AUTOSAVE_PAW_STAMP_DURATION_SEC: float = 1.5
+const AUTOSAVE_PAW_STAMP_FADE_DURATION_SEC: float = 0.5
+const MINIMAP_WIDGET_SCRIPT: Script = preload("res://src/presentation/minimap_widget.gd")
+const MINIMAP_PANEL_BASE_SIZE: Vector2 = Vector2(120, 120)
+const MINIMAP_PANEL_GAP: float = 10.0
 
 var _hp_ratio: float = 1.0
 var _hp_color: Color = HP_HEALTHY_COLOR
@@ -88,8 +99,11 @@ var _boss_hit_flash_remaining_sec: float = 0.0
 var _boss_hit_flash_color: Color = BOSS_HIT_FLASH_COLOR
 var _scene_transition_scene_id: StringName = &""
 var _scene_transition_label_text: String = ""
+var _autosave_stamp_remaining_sec: float = 0.0
+var _autosave_stamp_duration_sec: float = AUTOSAVE_PAW_STAMP_DURATION_SEC
 var _skill_tree_entries: Array[Dictionary] = []
 var _active_skill_tree_entry_id: StringName = &""
+var _skill_tree_points: int = 0
 
 var _root: Control
 var _player_panel: PanelContainer
@@ -104,6 +118,9 @@ var _weapon_panel: PanelContainer
 var _weapon_label: Label
 var _currency_panel: PanelContainer
 var _currency_label: Label
+var _heavy_charge_panel: PanelContainer
+var _heavy_charge_bar: ProgressBar
+var _heavy_charge_label: Label
 var _notification_label: Label
 var _menu_overlay: ColorRect
 var _menu_panel: PanelContainer
@@ -117,6 +134,8 @@ var _continue_button: Button
 var _load_game_button: Button
 var _save_game_button: Button
 var _skill_tree_button: Button
+var _skill_previous_button: Button
+var _skill_next_button: Button
 var _skill_unlock_button: Button
 var _settings_button: Button
 var _main_menu_button: Button
@@ -132,6 +151,9 @@ var _scene_transition_overlay: Control
 var _scene_transition_background: TextureRect
 var _scene_transition_spinner: TextureRect
 var _scene_transition_label: Label
+var _minimap_panel: PanelContainer
+var _minimap_widget: Control
+var _autosave_paw_stamp: TextureRect
 
 
 func _ready() -> void:
@@ -139,6 +161,7 @@ func _ready() -> void:
 	_build_layout()
 	update_hp(100, 100)
 	update_weapon(&"Cat Claw", 0.0)
+	update_heavy_charge(false, 0.0, 0.0, false)
 	update_currency(0)
 	hide_boss_hp()
 	show_notification("", 0.0)
@@ -149,6 +172,15 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_menu_visible() and _menu_mode == MENU_SKILL_TREE:
+		if event.is_action_pressed("ui_left"):
+			select_previous_skill_tree_entry()
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("ui_right"):
+			select_next_skill_tree_entry()
+			get_viewport().set_input_as_handled()
+			return
 	if event.is_action_pressed("pause"):
 		if is_menu_visible():
 			menu_resume_requested.emit()
@@ -212,7 +244,39 @@ func update_weapon(display_name: StringName, cooldown_ratio: float) -> void:
 	_weapon_label.text = "%s\nSpecial %.0f%%" % [
 		String(display_name),
 		normalized_cooldown * 100.0,
-	]
+		]
+
+
+## Updates the grounded heavy-charge readout shown only while charging.
+func update_heavy_charge(
+	active: bool,
+	charge_ratio: float,
+	charge_seconds: float,
+	charge_ready: bool
+) -> void:
+	var safe_ratio: float = clampf(charge_ratio, 0.0, 1.0)
+	if _heavy_charge_panel != null:
+		_heavy_charge_panel.visible = active
+	if _heavy_charge_bar != null:
+		_heavy_charge_bar.value = safe_ratio * 100.0
+		_apply_progress_color(
+			_heavy_charge_bar,
+			HEAVY_CHARGE_READY_COLOR if charge_ready else HEAVY_CHARGE_COLOR
+		)
+	if _heavy_charge_label != null:
+		_heavy_charge_label.text = (
+			"FULL CHARGE"
+			if charge_ready and safe_ratio >= 1.0
+			else "HEAVY %d%%  %.1fs" % [roundi(safe_ratio * 100.0), maxf(0.0, charge_seconds)]
+		)
+
+
+func get_heavy_charge_snapshot() -> Dictionary:
+	return {
+		"visible": _heavy_charge_panel != null and _heavy_charge_panel.visible,
+		"value": _heavy_charge_bar.value if _heavy_charge_bar != null else 0.0,
+		"label": _heavy_charge_label.text if _heavy_charge_label != null else "",
+	}
 
 
 func update_currency(amount: int) -> void:
@@ -226,6 +290,63 @@ func show_notification(text: String, duration_sec: float = 2.0) -> void:
 		return
 	_notification_label.text = text
 	_notification_label.visible = text.strip_edges() != "" and _notification_remaining_sec > 0.0
+
+
+## Shows deterministic autosave confirmation without owning save state.
+func show_autosave_stamp(duration_sec: float = AUTOSAVE_PAW_STAMP_DURATION_SEC) -> void:
+	_autosave_stamp_duration_sec = maxf(0.0, duration_sec)
+	_autosave_stamp_remaining_sec = _autosave_stamp_duration_sec
+	_sync_autosave_stamp()
+
+
+func get_autosave_stamp_diagnostics() -> Dictionary:
+	return {
+		"found": _autosave_paw_stamp != null,
+		"visible": _autosave_paw_stamp != null and _autosave_paw_stamp.visible,
+		"source_texture_path": AUTOSAVE_PAW_STAMP_TEXTURE_PATH,
+		"source_region": AUTOSAVE_PAW_STAMP_SOURCE_REGION,
+		"remaining_sec": _autosave_stamp_remaining_sec,
+		"duration_sec": _autosave_stamp_duration_sec,
+		"alpha": _autosave_paw_stamp.modulate.a if _autosave_paw_stamp != null else 0.0,
+		"position": _autosave_paw_stamp.position if _autosave_paw_stamp != null else Vector2.ZERO,
+		"size": _autosave_paw_stamp.size if _autosave_paw_stamp != null else Vector2.ZERO,
+	}
+
+
+## Configures the presentation-only minimap model supplied by the active scene.
+func configure_minimap(region_definitions: Array, current_area_id: StringName) -> void:
+	if _minimap_widget == null:
+		return
+	_minimap_widget.call("configure_regions", region_definitions, current_area_id)
+	_minimap_panel.visible = not region_definitions.is_empty()
+	_apply_hud_scale_layout()
+
+
+func reveal_minimap_region(region_id: StringName, duration_sec: float = 1.0) -> bool:
+	if _minimap_widget == null:
+		return false
+	return bool(_minimap_widget.call("reveal_region", region_id, duration_sec))
+
+
+func set_minimap_region_discovered(region_id: StringName, discovered: bool) -> bool:
+	if _minimap_widget == null:
+		return false
+	return bool(_minimap_widget.call("set_region_discovered", region_id, discovered))
+
+
+func update_minimap_player_position(world_position: Vector2, world_bounds: Rect2) -> void:
+	if _minimap_widget != null:
+		_minimap_widget.call("set_player_world_position", world_position, world_bounds)
+
+
+func get_minimap_diagnostics() -> Dictionary:
+	var diagnostics: Dictionary = {}
+	if _minimap_widget != null:
+		diagnostics = Dictionary(_minimap_widget.call("get_diagnostics"))
+	diagnostics["visible"] = _minimap_panel != null and _minimap_panel.visible
+	diagnostics["panel_position"] = _minimap_panel.position if _minimap_panel != null else Vector2.ZERO
+	diagnostics["panel_size"] = _minimap_panel.size if _minimap_panel != null else Vector2.ZERO
+	return diagnostics
 
 
 ## Displays the pause menu and gives keyboard/gamepad focus to Resume.
@@ -318,32 +439,38 @@ func show_skill_tree_menu(skill_points: int, skill_entries: Array = []) -> void:
 	if _menu_overlay == null:
 		return
 	_settings_return_menu = MENU_NONE
+	_skill_tree_points = maxi(0, skill_points)
 	_skill_tree_entries = _duplicate_skill_entries(skill_entries)
-	var entry: Dictionary = _first_skill_tree_entry()
-	_active_skill_tree_entry_id = StringName(String(entry.get("skill_id", "")))
-	var display_name: String = String(entry.get("display_name", "Quickstep Claws"))
-	var cost: int = maxi(0, int(entry.get("cost", 1)))
-	var unlocked: bool = bool(entry.get("unlocked", false))
-	var can_unlock: bool = not unlocked and maxi(0, skill_points) >= cost
+	if _skill_tree_entry_index(_active_skill_tree_entry_id) < 0:
+		var first_entry: Dictionary = _first_skill_tree_entry()
+		_active_skill_tree_entry_id = StringName(String(first_entry.get("skill_id", "")))
 	if _settings_box != null:
 		_settings_box.visible = false
 	_menu_title_label.text = "Skill Tree"
-	_menu_subtitle_label.text = _format_skill_tree_summary(maxi(0, skill_points), entry)
 	_hide_menu_buttons()
 	_set_button_state(_resume_button, true, "Back")
-	_set_button_state(
-		_skill_unlock_button,
-		true,
-		"%s learned" % display_name if unlocked else "Learn %s" % display_name,
-		not can_unlock,
-		"Already learned" if unlocked else "Need %d SP" % cost
-	)
+	_refresh_skill_tree_selection()
 	_resize_menu_panel(false)
 	_menu_overlay.visible = true
-	if can_unlock and _skill_unlock_button != null:
+	if _skill_unlock_button != null and not _skill_unlock_button.disabled:
 		_skill_unlock_button.grab_focus()
 	else:
 		_resume_button.grab_focus()
+
+
+## Returns the node currently targeted by the skill purchase action.
+func get_active_skill_tree_entry_id() -> StringName:
+	return _active_skill_tree_entry_id
+
+
+## Selects the previous skill node, wrapping across the available node list.
+func select_previous_skill_tree_entry() -> bool:
+	return _select_skill_tree_entry_offset(-1)
+
+
+## Selects the next skill node, wrapping across the available node list.
+func select_next_skill_tree_entry() -> bool:
+	return _select_skill_tree_entry_offset(1)
 
 
 ## Displays settings controls grouped by audio, display, controls, and gameplay.
@@ -388,6 +515,7 @@ func hide_menu() -> void:
 	_main_menu_slot_infos.clear()
 	_skill_tree_entries.clear()
 	_active_skill_tree_entry_id = &""
+	_skill_tree_points = 0
 	if _menu_overlay != null:
 		_menu_overlay.visible = false
 	if _settings_box != null:
@@ -399,6 +527,9 @@ func hide_menu() -> void:
 func advance_time(delta_sec: float) -> void:
 	_advance_scene_transition(delta_sec)
 	_advance_boss_hit_flash(delta_sec)
+	_advance_autosave_stamp(delta_sec)
+	if _minimap_widget != null:
+		_minimap_widget.call("advance_time", delta_sec)
 	if _notification_remaining_sec <= 0.0:
 		return
 	_notification_remaining_sec = maxf(0.0, _notification_remaining_sec - maxf(0.0, delta_sec))
@@ -754,9 +885,18 @@ func has_core_hud_overlap() -> bool:
 
 func get_core_hud_rects() -> Array[Rect2]:
 	var rects: Array[Rect2] = []
-	for panel: PanelContainer in [_player_panel, _weapon_panel, _currency_panel, _boss_panel]:
+	for panel: PanelContainer in [
+		_player_panel,
+		_weapon_panel,
+		_currency_panel,
+		_minimap_panel,
+		_boss_panel,
+		_heavy_charge_panel,
+	]:
 		if panel != null and panel.visible:
 			rects.append(Rect2(panel.position, panel.size))
+	if _autosave_paw_stamp != null and _autosave_paw_stamp.visible:
+		rects.append(Rect2(_autosave_paw_stamp.position, _autosave_paw_stamp.size))
 	return rects
 
 
@@ -783,7 +923,10 @@ func _build_layout() -> void:
 
 	_build_player_hp_panel()
 	_build_weapon_panel()
+	_build_heavy_charge_panel()
 	_build_currency_panel()
+	_build_minimap_panel()
+	_build_autosave_paw_stamp()
 	_build_boss_panel()
 	_build_notification_label()
 	_build_menu_overlay()
@@ -831,6 +974,29 @@ func _build_weapon_panel() -> void:
 	panel.add_child(_weapon_label)
 
 
+func _build_heavy_charge_panel() -> void:
+	_heavy_charge_panel = _new_panel("HeavyChargeHudPanel")
+	_heavy_charge_panel.size = HEAVY_CHARGE_PANEL_BASE_SIZE
+	_heavy_charge_panel.visible = false
+	_root.add_child(_heavy_charge_panel)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 4)
+	_heavy_charge_panel.add_child(box)
+
+	_heavy_charge_label = Label.new()
+	_heavy_charge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_heavy_charge_label.add_theme_color_override("font_color", TEXT_COLOR)
+	box.add_child(_heavy_charge_label)
+
+	_heavy_charge_bar = ProgressBar.new()
+	_heavy_charge_bar.min_value = 0.0
+	_heavy_charge_bar.max_value = 100.0
+	_heavy_charge_bar.custom_minimum_size = Vector2(260, 14)
+	_heavy_charge_bar.show_percentage = false
+	box.add_child(_heavy_charge_bar)
+
+
 func _build_currency_panel() -> void:
 	var panel := _new_panel("CurrencyHudPanel")
 	_currency_panel = panel
@@ -843,6 +1009,38 @@ func _build_currency_panel() -> void:
 	_currency_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_currency_label.add_theme_color_override("font_color", TEXT_COLOR)
 	panel.add_child(_currency_label)
+
+
+func _build_minimap_panel() -> void:
+	_minimap_panel = _new_panel("MinimapHudPanel")
+	_minimap_panel.size = MINIMAP_PANEL_BASE_SIZE
+	_minimap_panel.visible = false
+	_minimap_panel.clip_contents = true
+	_minimap_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(_minimap_panel)
+
+	_minimap_widget = MINIMAP_WIDGET_SCRIPT.new() as Control
+	_minimap_widget.name = "MinimapWidget"
+	_minimap_widget.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_minimap_panel.add_child(_minimap_widget)
+
+
+func _build_autosave_paw_stamp() -> void:
+	var stamp_texture := AtlasTexture.new()
+	stamp_texture.atlas = SCENE_TRANSITION_SPINNER_TEXTURE
+	stamp_texture.region = AUTOSAVE_PAW_STAMP_SOURCE_REGION
+
+	_autosave_paw_stamp = TextureRect.new()
+	_autosave_paw_stamp.name = "AutosavePawStamp"
+	_autosave_paw_stamp.texture = stamp_texture
+	_autosave_paw_stamp.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_autosave_paw_stamp.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_autosave_paw_stamp.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_autosave_paw_stamp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_autosave_paw_stamp.visible = false
+	_autosave_paw_stamp.modulate = Color(1, 1, 1, 0)
+	_autosave_paw_stamp.z_index = 8
+	_root.add_child(_autosave_paw_stamp)
 
 
 func _build_boss_panel() -> void:
@@ -979,6 +1177,16 @@ func _build_menu_overlay() -> void:
 	_skill_tree_button = _new_menu_button("SkillTreeButton", "Skill Tree")
 	_skill_tree_button.pressed.connect(_on_skill_tree_button_pressed)
 	button_box.add_child(_skill_tree_button)
+
+	_skill_previous_button = _new_menu_button("SkillPreviousButton", "<")
+	_skill_previous_button.tooltip_text = "Previous skill node"
+	_skill_previous_button.pressed.connect(_on_skill_previous_button_pressed)
+	button_box.add_child(_skill_previous_button)
+
+	_skill_next_button = _new_menu_button("SkillNextButton", ">")
+	_skill_next_button.tooltip_text = "Next skill node"
+	_skill_next_button.pressed.connect(_on_skill_next_button_pressed)
+	button_box.add_child(_skill_next_button)
 
 	_skill_unlock_button = _new_menu_button("SkillUnlockButton", "Learn Skill")
 	_skill_unlock_button.pressed.connect(_on_skill_unlock_button_pressed)
@@ -1221,6 +1429,8 @@ func _ordered_menu_buttons() -> Array[Button]:
 		_load_game_button,
 		_save_game_button,
 		_skill_tree_button,
+		_skill_previous_button,
+		_skill_next_button,
 		_skill_unlock_button,
 		_settings_button,
 		_main_menu_button,
@@ -1310,15 +1520,79 @@ func _first_skill_tree_entry() -> Dictionary:
 	}
 
 
-func _format_skill_tree_summary(skill_points: int, entry: Dictionary) -> String:
+func _active_skill_tree_entry() -> Dictionary:
+	var index: int = _skill_tree_entry_index(_active_skill_tree_entry_id)
+	if index < 0:
+		return _first_skill_tree_entry()
+	return _skill_tree_entries[index].duplicate(true)
+
+
+func _skill_tree_entry_index(skill_id: StringName) -> int:
+	for index: int in range(_skill_tree_entries.size()):
+		if StringName(String(_skill_tree_entries[index].get("skill_id", ""))) == skill_id:
+			return index
+	return -1
+
+
+func _select_skill_tree_entry_offset(entry_offset: int) -> bool:
+	if _skill_tree_entries.size() <= 1:
+		return false
+	var current_index: int = _skill_tree_entry_index(_active_skill_tree_entry_id)
+	if current_index < 0:
+		current_index = 0
+	var next_index: int = posmod(current_index + entry_offset, _skill_tree_entries.size())
+	_active_skill_tree_entry_id = StringName(String(
+		_skill_tree_entries[next_index].get("skill_id", "")
+	))
+	_refresh_skill_tree_selection()
+	return true
+
+
+func _refresh_skill_tree_selection() -> void:
+	var entry: Dictionary = _active_skill_tree_entry()
+	var display_name: String = String(entry.get("display_name", "Quickstep Claws"))
+	var cost: int = maxi(0, int(entry.get("cost", 1)))
+	var unlocked: bool = bool(entry.get("unlocked", false))
+	var can_unlock: bool = not unlocked and _skill_tree_points >= cost
+	var active_index: int = maxi(0, _skill_tree_entry_index(_active_skill_tree_entry_id))
+	_menu_subtitle_label.text = _format_skill_tree_summary(
+		_skill_tree_points,
+		entry,
+		active_index,
+		_skill_tree_entries.size()
+	)
+	var has_multiple_entries: bool = _skill_tree_entries.size() > 1
+	_set_button_state(_skill_previous_button, has_multiple_entries, "<")
+	_set_button_state(_skill_next_button, has_multiple_entries, ">")
+	if _skill_previous_button != null:
+		_skill_previous_button.tooltip_text = "Previous skill node"
+	if _skill_next_button != null:
+		_skill_next_button.tooltip_text = "Next skill node"
+	_set_button_state(
+		_skill_unlock_button,
+		true,
+		"%s learned" % display_name if unlocked else "Learn %s" % display_name,
+		not can_unlock,
+		"Already learned" if unlocked else "Need %d SP" % cost
+	)
+
+
+func _format_skill_tree_summary(
+	skill_points: int,
+	entry: Dictionary,
+	entry_index: int = 0,
+	entry_count: int = 1
+) -> String:
 	var branch: String = String(entry.get("branch", "cat_claw")).replace("_", " ").capitalize()
 	var tier: String = String(entry.get("tier", "T1"))
 	var display_name: String = String(entry.get("display_name", "Quickstep Claws"))
 	var cost: int = maxi(0, int(entry.get("cost", 1)))
 	var state: String = "Learned" if bool(entry.get("unlocked", false)) else "Available"
 	var effect_summary: String = String(entry.get("effect_summary", ""))
-	return "SP %d\n%s %s - %s\nCost %d SP | %s\n%s" % [
+	return "SP %d | Node %d/%d\n%s %s - %s\nCost %d SP | %s\n%s" % [
 		skill_points,
+		entry_index + 1,
+		maxi(1, entry_count),
 		branch,
 		tier,
 		display_name,
@@ -1390,6 +1664,34 @@ func _advance_scene_transition(delta_sec: float) -> void:
 	if _scene_transition_spinner == null or not is_scene_transition_visible():
 		return
 	_scene_transition_spinner.rotation += maxf(0.0, delta_sec) * SCENE_TRANSITION_SPINNER_ROTATION_SPEED
+
+
+func _advance_autosave_stamp(delta_sec: float) -> void:
+	if _autosave_stamp_remaining_sec <= 0.0:
+		return
+	_autosave_stamp_remaining_sec = maxf(
+		0.0,
+		_autosave_stamp_remaining_sec - maxf(0.0, delta_sec)
+	)
+	_sync_autosave_stamp()
+
+
+func _sync_autosave_stamp() -> void:
+	if _autosave_paw_stamp == null:
+		return
+	var stamp_visible: bool = _autosave_stamp_remaining_sec > 0.0
+	_autosave_paw_stamp.visible = stamp_visible
+	if not stamp_visible:
+		_autosave_paw_stamp.modulate = Color(1, 1, 1, 0)
+		return
+	var fade_duration_sec: float = minf(
+		AUTOSAVE_PAW_STAMP_FADE_DURATION_SEC,
+		_autosave_stamp_duration_sec
+	)
+	var alpha: float = 1.0
+	if fade_duration_sec > 0.0 and _autosave_stamp_remaining_sec < fade_duration_sec:
+		alpha = _autosave_stamp_remaining_sec / fade_duration_sec
+	_autosave_paw_stamp.modulate = Color(1, 1, 1, clampf(alpha, 0.0, 1.0))
 
 
 func _display_name_for_scene_id(scene_id: StringName) -> String:
@@ -1464,7 +1766,10 @@ func _apply_hud_scale_layout() -> void:
 	var player_size: Vector2 = PLAYER_PANEL_BASE_SIZE * hud_scale_value
 	var weapon_size: Vector2 = WEAPON_PANEL_BASE_SIZE * hud_scale_value
 	var currency_size: Vector2 = CURRENCY_PANEL_BASE_SIZE * hud_scale_value
+	var minimap_size: Vector2 = MINIMAP_PANEL_BASE_SIZE * hud_scale_value
+	var autosave_stamp_size: Vector2 = AUTOSAVE_PAW_STAMP_BASE_SIZE * hud_scale_value
 	var boss_size: Vector2 = BOSS_PANEL_BASE_SIZE * hud_scale_value
+	var heavy_charge_size: Vector2 = HEAVY_CHARGE_PANEL_BASE_SIZE * hud_scale_value
 
 	_player_panel.size = player_size
 	_player_panel.position = Vector2(HUD_SIDE_MARGIN, HUD_VIEWPORT_SIZE.y - HUD_BOTTOM_MARGIN - player_size.y)
@@ -1472,14 +1777,32 @@ func _apply_hud_scale_layout() -> void:
 	_weapon_panel.position = Vector2(HUD_VIEWPORT_SIZE.x - HUD_SIDE_MARGIN - weapon_size.x, HUD_VIEWPORT_SIZE.y - HUD_BOTTOM_MARGIN - weapon_size.y)
 	_currency_panel.size = currency_size
 	_currency_panel.position = Vector2(HUD_VIEWPORT_SIZE.x - HUD_SIDE_MARGIN - currency_size.x, HUD_TOP_MARGIN)
+	_minimap_panel.size = minimap_size
+	_minimap_panel.position = Vector2(
+		HUD_VIEWPORT_SIZE.x - HUD_SIDE_MARGIN - minimap_size.x,
+		HUD_TOP_MARGIN + currency_size.y + MINIMAP_PANEL_GAP * hud_scale_value
+	)
+	if _autosave_paw_stamp != null:
+		_autosave_paw_stamp.size = autosave_stamp_size
+		_autosave_paw_stamp.position = Vector2(
+			HUD_VIEWPORT_SIZE.x - HUD_SIDE_MARGIN - autosave_stamp_size.x,
+			_minimap_panel.position.y + minimap_size.y + MINIMAP_PANEL_GAP * hud_scale_value
+		)
 	_boss_panel.size = boss_size
 	_boss_panel.position = Vector2((HUD_VIEWPORT_SIZE.x - boss_size.x) * 0.5, 26.0)
+	_heavy_charge_panel.size = heavy_charge_size
+	_heavy_charge_panel.position = Vector2(
+		(HUD_VIEWPORT_SIZE.x - heavy_charge_size.x) * 0.5,
+		HUD_VIEWPORT_SIZE.y - HUD_BOTTOM_MARGIN - heavy_charge_size.y
+	)
 	_sync_boss_hit_flash_overlay()
 
 	if _hp_bar != null:
 		_hp_bar.custom_minimum_size = Vector2(210, 16) * hud_scale_value
 	if _boss_bar != null:
 		_boss_bar.custom_minimum_size = Vector2(380, 14) * hud_scale_value
+	if _heavy_charge_bar != null:
+		_heavy_charge_bar.custom_minimum_size = Vector2(260, 14) * hud_scale_value
 	if _boss_portrait_rect != null:
 		_boss_portrait_rect.custom_minimum_size = BOSS_PORTRAIT_BASE_SIZE * hud_scale_value
 	if _notification_label != null:
@@ -1718,6 +2041,14 @@ func _on_save_game_button_pressed() -> void:
 
 func _on_skill_tree_button_pressed() -> void:
 	menu_skill_tree_requested.emit()
+
+
+func _on_skill_previous_button_pressed() -> void:
+	select_previous_skill_tree_entry()
+
+
+func _on_skill_next_button_pressed() -> void:
+	select_next_skill_tree_entry()
 
 
 func _on_skill_unlock_button_pressed() -> void:

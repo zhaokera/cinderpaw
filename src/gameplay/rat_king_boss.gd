@@ -82,6 +82,7 @@ var _boss_config_component_script: Script = load(BOSS_CONFIG_COMPONENT_SCRIPT_PA
 var _ai_component_script: Script = load(AI_COMPONENT_SCRIPT_PATH) as Script
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
+@onready var _focus_attack_tell: Node = $FocusAttackTell
 
 
 func _ready() -> void:
@@ -127,6 +128,7 @@ func request_attack() -> bool:
 	_state = State.ATTACK_TELL
 	_attack_timer = ATTACK_TELL_FRAMES
 	_play_character_animation(ANIMATION_ATTACK_TELL, true)
+	_begin_focus_attack_tell(ATTACK_TELL_FRAMES)
 	return true
 
 
@@ -141,6 +143,7 @@ func request_attack_pattern(pattern_id: StringName) -> bool:
 	_state = State.ATTACK_TELL
 	_attack_timer = _ai.get_effective_attack_startup_frames()
 	_play_character_animation(get_attack_animation_for_pattern(pattern_id), true)
+	_begin_focus_attack_tell(_ai.get_current_attack_base_startup_frames())
 	return true
 
 
@@ -149,7 +152,7 @@ func advance_attack_frames(frames: int) -> void:
 		_attack_cooldown_timer = maxi(_attack_cooldown_timer - 1, 0)
 		match _state:
 			State.ATTACK_TELL:
-				_process_ai_attack(1.0 / 60.0)
+				_process_attack_tell(1.0 / 60.0)
 			State.ATTACK_ACTIVE:
 				_process_ai_attack(1.0 / 60.0)
 			State.ATTACK_RECOVERY:
@@ -348,6 +351,38 @@ func get_current_attack_startup_frames() -> int:
 	return _ai.get_effective_attack_startup_frames()
 
 
+func set_target_focus_mode(active: bool, metadata: Dictionary = {}) -> bool:
+	if _ai == null:
+		return false
+	_ai.set_target_focus_mode(active, metadata)
+	return true
+
+
+func get_focus_windup_diagnostics() -> Dictionary:
+	if _ai == null:
+		return {
+			"focus_mode_active": false,
+			"base_startup_frames": ATTACK_TELL_FRAMES,
+			"windup_extension_frames": 0,
+			"current_attack_startup_frames": ATTACK_TELL_FRAMES,
+			"attack_phase": String(get_attack_phase()),
+		}
+	return {
+		"focus_mode_active": _ai.is_target_focus_mode_active(),
+		"base_startup_frames": _ai.get_current_attack_base_startup_frames(),
+		"windup_extension_frames": _ai.get_focus_windup_extension_frames(),
+		"current_attack_startup_frames": get_current_attack_startup_frames(),
+		"attack_phase": String(get_attack_phase()),
+		"pattern_id": String(get_current_attack_pattern_id()),
+	}
+
+
+func get_focus_attack_tell_diagnostics() -> Dictionary:
+	if _focus_attack_tell == null:
+		return {}
+	return Dictionary(_focus_attack_tell.call("get_diagnostics"))
+
+
 ## Returns the SpriteFrames animation that presents one AI attack pattern.
 func get_attack_animation_for_pattern(pattern_id: StringName) -> StringName:
 	var animation_name: StringName = StringName(ATTACK_PATTERN_TO_ANIMATION.get(
@@ -394,6 +429,7 @@ func capture_respawn_snapshot() -> Dictionary:
 func restore_respawn_snapshot(snapshot: Dictionary) -> void:
 	global_position = _read_vector2(snapshot.get("global_position", global_position), global_position)
 	_state = State.IDLE
+	_stop_focus_attack_tell()
 	_facing = _read_float(snapshot.get("facing", _facing), _facing)
 	_hit_timer = 0
 	_attack_timer = 0
@@ -422,6 +458,32 @@ func restore_respawn_snapshot(snapshot: Dictionary) -> void:
 	enemy_health_changed.emit(get_current_hp(), get_max_hp())
 
 
+func mark_defeated_from_progress() -> void:
+	_state = State.DEAD
+	_stop_focus_attack_tell()
+	_hit_timer = 0
+	_attack_timer = 0
+	_attack_cooldown_timer = 0
+	_contact_damage_timer = 0
+	_last_enemy_attack_metadata.clear()
+	_active_attack_metadata.clear()
+	velocity = Vector2.ZERO
+	if _collision != null:
+		_collision.deactivate_all_hitboxes()
+		_collision.set_hurtbox_state(CollisionComponent.HURTBOX_STATE_GONE)
+	if _status_effects != null:
+		_status_effects.clear_all_effects()
+	if _sprite != null:
+		_sprite.modulate = NORMAL_MODULATE
+	_play_character_animation(ANIMATION_DEATH, true)
+	collision_layer = 0
+	collision_mask = 0
+
+
+func is_defeated() -> bool:
+	return _state == State.DEAD
+
+
 func _process_idle(delta: float) -> void:
 	if _can_auto_attack_target():
 		request_attack()
@@ -448,10 +510,12 @@ func _process_attack_tell(_delta: float) -> void:
 	velocity.x = 0.0
 	_update_sprite_facing()
 	_play_character_animation(_current_attack_animation())
+	_advance_focus_attack_tell()
 	_process_ai_attack(_delta)
 
 
 func _enter_attack_active() -> void:
+	_stop_focus_attack_tell()
 	_state = State.ATTACK_ACTIVE
 	_attack_timer = ATTACK_ACTIVE_FRAMES
 	_play_character_animation(ANIMATION_ATTACK, true)
@@ -514,10 +578,30 @@ func _finish_ai_attack_if_needed() -> void:
 	if _state != State.ATTACK_TELL and _state != State.ATTACK_ACTIVE and _state != State.ATTACK_RECOVERY:
 		return
 	_state = State.IDLE
+	_stop_focus_attack_tell()
 	_attack_timer = 0
 	_attack_cooldown_timer = ATTACK_COOLDOWN_FRAMES
 	_sprite.modulate = NORMAL_MODULATE
 	_play_character_animation(ANIMATION_IDLE, true)
+
+
+func _begin_focus_attack_tell(base_duration_frames: int) -> void:
+	if _focus_attack_tell == null:
+		return
+	var focus_active: bool = (
+		_ai != null and _ai.is_target_focus_mode_active()
+	)
+	_focus_attack_tell.call("begin", base_duration_frames, focus_active)
+
+
+func _advance_focus_attack_tell() -> void:
+	if _focus_attack_tell != null:
+		_focus_attack_tell.call("advance_frames")
+
+
+func _stop_focus_attack_tell() -> void:
+	if _focus_attack_tell != null:
+		_focus_attack_tell.call("stop")
 
 
 func _process_phase_transition(_delta: float) -> void:
@@ -654,6 +738,7 @@ func _on_core_death(_entity_id: int, _metadata: Dictionary) -> void:
 	if _state == State.DEAD:
 		return
 	_state = State.DEAD
+	_stop_focus_attack_tell()
 	if _collision != null:
 		_collision.deactivate_all_hitboxes()
 		_collision.set_hurtbox_state(&"gone")
@@ -669,11 +754,14 @@ func _on_boss_phase_transition_started(
 	_phase: int,
 	metadata: Dictionary
 ) -> void:
+	if _state == State.DEAD:
+		return
 	var animation_name: StringName = StringName(String(metadata.get("transition_animation", "")))
 	if animation_name == &"" or _sprite.sprite_frames == null:
 		return
 	if _sprite.sprite_frames.has_animation(animation_name):
 		_state = State.PHASE_TRANSITION
+		_stop_focus_attack_tell()
 		_sprite.modulate = NORMAL_MODULATE
 		_play_character_animation(animation_name, true)
 

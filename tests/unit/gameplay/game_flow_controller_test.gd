@@ -57,15 +57,25 @@ func after_test() -> void:
 	_victory_count = 0
 
 
-func test_enemy_defeat_enters_victory_once() -> void:
+func test_enemy_defeat_holds_then_enters_victory_once() -> void:
 	flow.start_encounter(Vector2(300, 456))
 
 	flow.handle_enemy_defeated()
 	flow.handle_enemy_defeated()
 
+	assert_str(String(flow.get_flow_state())).is_equal("victory_pending")
+	assert_float(flow.get_victory_presentation_remaining_sec()).is_equal_approx(3.0, 0.001)
+	assert_int(_victory_count).is_equal(0)
+	assert_bool(flow.is_player_control_locked()).is_true()
+
+	flow.advance_time(2.99)
+	assert_str(String(flow.get_flow_state())).is_equal("victory_pending")
+	assert_int(_victory_count).is_equal(0)
+
+	flow.advance_time(0.02)
+	flow.handle_enemy_defeated()
 	assert_str(String(flow.get_flow_state())).is_equal("victory")
 	assert_int(_victory_count).is_equal(1)
-	assert_bool(flow.is_player_control_locked()).is_true()
 
 
 func test_player_death_delays_respawn_until_animation_time() -> void:
@@ -128,7 +138,7 @@ func test_boss_victory_does_not_reset_arena_or_emit_second_reward_path() -> void
 
 	flow.handle_enemy_defeated()
 	flow.handle_player_death()
-	flow.advance_time(2.0)
+	flow.advance_time(3.01)
 
 	assert_str(String(flow.get_flow_state())).is_equal("victory")
 	assert_int(_victory_count).is_equal(1)

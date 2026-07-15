@@ -39,8 +39,8 @@ Implement `HealthComponent` as a Core entity component for player, enemy, and bo
 | TR-health-004 | Boss阶段转换使用while循环确保跨跳场景触发所有经过的阈值 | ADR-0019 ⚠️ Proposed reference |
 | TR-health-005 | HP里程碑阈值每次仅触发一次，复活后重置 | ADR-0002, ADR-0019 ⚠️ |
 | TR-health-006 | 专注模式：HP≤25%且active_enemies_count>0时激活，>28%退出 | ADR-0006, ADR-0019 ⚠️ |
-| TR-health-007 | 专注模式激活瞬间触发猫眼金闪光与低频提示音 | ADR-0002, ADR-0019 ⚠️ |
-| TR-health-008 | 专注模式感知变化接口 | ADR-0006, ADR-0019 ⚠️ |
+| TR-health-007 | 专注模式激活瞬间触发猫眼金闪光与低频提示音 | ADR-0002, ADR-0010, ADR-0019 ✅ Story154 |
+| TR-health-008 | 专注模式感知变化接口 | ADR-0006, ADR-0010, ADR-0019 ✅ Story154 activation, Story157 Boss windup, Story158 attack tell, Story159 environment particles, Audio Story010 low-frequency/damped hurt mix |
 | TR-health-009 | i-frame管理使用 max(current,new) 不叠加取最长 | ADR-0019 ⚠️ Proposed reference |
 | TR-health-010 | on_death 信号携带扩展元数据 | ADR-0002, ADR-0019 ⚠️ |
 | TR-health-011 | apply_damage 信号顺序：HP→milestone→phase→focus→death | ADR-0002 ✅ |

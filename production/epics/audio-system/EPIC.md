@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/audio-system.md
 > **Architecture Module**: AudioSystem
 > **Status**: In Progress
-> **Stories**: 9 stories tracked
+> **Stories**: 10 stories tracked
 
 ## Overview
 
@@ -48,6 +48,7 @@ calls without pushing logic back into Core.
 | 007 | UI Menu Audio + Same-SFX Merge | Integration | Complete | ADR-0010, ADR-0011 |
 | 008 | Music + Ambience Asset Import Baseline | Integration | Complete | ADR-0010 |
 | 009 | Boss2 Authored Audio Feedback Runtime | Integration + Audio/Feel | Complete | ADR-0010, ADR-0002 |
+| 010 | Focus Damage Low-HP Final Mix | Integration + Audio/Feel + Config/Data | Complete | ADR-0010, ADR-0019, ADR-0002 |
 
 ## Definition of Done
 
@@ -71,6 +72,9 @@ This epic is complete when:
 - Boss2 authored SFX cue streams are imported through Godot, loaded by
   AudioSystem by default, and routed from chase/startup/active/hurt/defeat/
   reward runtime events without blocking gameplay.
+- The low-HP focus damage cue uses a traced, objectively darker 0.38s final mix
+  with reinforced low frequency, a damped tail, stable cue routing, and Godot
+  runtime import evidence.
 - Same-SFX requests within 100ms merge into the active voice with a 20% linear
   volume boost.
 - Combat, health, scene, UI, and boss event adapters are wired and covered.
@@ -79,6 +83,7 @@ This epic is complete when:
 
 ## Next Step
 
-Audio System Story 009 is complete. Next recommended work is final mastered
-audio replacement, Boss2 music/phase mix, DEATH/CUTSCENE state completion,
-area cue expansion, and broader mix polish.
+Audio System Story 010 is complete. Next recommended work is replacing the
+remaining generic baselines, Boss2 music/phase mix, DEATH/CUTSCENE state
+completion, area cue expansion, human listening sign-off, and broader mix
+polish.

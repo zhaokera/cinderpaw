@@ -4,6 +4,7 @@
 [ext_resource type="SpriteFrames" path="res://assets/characters/cinderpaw/cinderpaw_sprite_frames.tres" id="2_frames"]
 
 [node name="Cinderpaw" type="AnimatedSprite2D"]
+texture_filter = 1
 sprite_frames = ExtResource("2_frames")
 animation = &"idle"
 autoplay = "idle"

@@ -1,0 +1,51 @@
+{
+  "date": "2026-07-13",
+  "session": "cinderpaw@13e3",
+  "godot_version": "4.7-stable",
+  "mcp_version": "2.9.1",
+  "scene": "res://scenes/bosses/crown_warden_arena.tscn",
+  "run_id": "r7762730-6",
+  "authored_node_count": 42,
+  "runtime_node_count": 84,
+  "current_run_errors": [],
+  "editor_cursor": {
+    "before": 4,
+    "after": 4,
+    "new_rows": 0
+  },
+  "before_defeat": {
+    "reward_present": true,
+    "reward_visible": false,
+    "reward_available": false,
+    "ability_unlocked": false
+  },
+  "revealed": {
+    "reward_visible": true,
+    "reward_available": true,
+    "reveal_vfx_spawn_count": 1,
+    "objective": "Claim Wall Climb"
+  },
+  "real_input_claim": {
+    "action": "move_right",
+    "player_from": [220.0, 551.9896],
+    "player_to": [633.3334, 551.9896],
+    "reward_position": [700.0, 444.0],
+    "reward_claimed": true,
+    "ability_unlocked": true,
+    "feedback_count": 1,
+    "feedback_duration_sec": 1.5,
+    "hud_notification": "Wall Climb Unlocked",
+    "objective": "Wall Climb Unlocked"
+  },
+  "player_animation": {
+    "node_type": "AnimatedSprite2D",
+    "animation": "idle",
+    "frame": 2,
+    "sprite_frames": "res://assets/characters/cinderpaw/cinderpaw_sprite_frames.tres"
+  },
+  "reward_texture": "res://assets/environment/crown_warden_reward/prop_crown_warden_wall_climb_core_256x256.png",
+  "screenshots": [
+    "production/qa/evidence/crown-warden-wall-climb-reward-revealed-mcp.png",
+    "production/qa/evidence/crown-warden-wall-climb-reward-claimed-mcp.png"
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "story": "player-abilities-160",
+  "date": "2026-07-14",
+  "engine": "Godot 4.7-stable (official)",
+  "mcp": {
+    "session": "cinderpaw@3736",
+    "plugin_version": "3.0.2",
+    "server_version": "3.0.2",
+    "transport": "streamable-http",
+    "run_id": "r6401979-3",
+    "current_run_errors": [],
+    "helper_live": true
+  },
+  "baseline": {
+    "requested": true,
+    "weapon_id": "cat_claw",
+    "hit_frame": 2,
+    "hp_before": 300,
+    "hp_after": 275,
+    "attack_damage": 25.0,
+    "final_damage": 25,
+    "damage_number": "25"
+  },
+  "menu_before_unlock": {
+    "menu_mode": "skill_tree",
+    "active_skill_id": "cat_claw_t1b",
+    "skill_points": 1,
+    "button_text": "Learn Honed Claws",
+    "button_disabled": false,
+    "subtitle": "SP 1 | Node 2/5\nCat Claw T1 - Honed Claws\nCost 1 SP | Available\nCat Claw attacks deal 5% more damage."
+  },
+  "unlock": {
+    "source": "SkillUnlockButton.pressed",
+    "button_found": true,
+    "has_skill": true,
+    "skill_points": 0,
+    "stat_bonus_damage": 0.05,
+    "button_text": "Honed Claws learned",
+    "button_disabled": true
+  },
+  "upgraded_hit": {
+    "requested": true,
+    "weapon_id": "cat_claw",
+    "hit_frame": 2,
+    "hp_before": 300,
+    "hp_after": 274,
+    "skill_damage_bonus": 0.05,
+    "base_damage": 10,
+    "attack_damage": 26.25,
+    "final_damage": 26,
+    "damage_number": "26"
+  },
+  "screenshots": [
+    {
+      "state": "skill_tree",
+      "path": "reports/visual/cinderpaw-mcp-skill-tree-cat-claw-t1b-20260714.png",
+      "sha256": "cc1efbdfd18ca8fe76a29c507b2d4d8baa7778d376d38c85a22b83f660721efb",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    },
+    {
+      "state": "upgraded_hit",
+      "path": "reports/visual/cinderpaw-mcp-cat-claw-t1b-damage-20260714.png",
+      "sha256": "40e4e238e02f700b2160626ba356fe36e89bded02b22b34eaa4525a4959cc031",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    }
+  ],
+  "final_logs": {
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0,
+    "clean_stop_readiness": "ready"
+  }
+}

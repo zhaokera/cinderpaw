@@ -1,0 +1,89 @@
+{
+  "date": "2026-07-13",
+  "session": "cinderpaw@13e3",
+  "godot_version": "4.7-stable",
+  "mcp_version": "2.9.1",
+  "scene": "res://scenes/bosses/crown_warden_arena.tscn",
+  "run_id": "r21750636-14",
+  "current_run_errors": [],
+  "editor_cursor": {
+    "before": 4,
+    "after": 4,
+    "new_rows": 0
+  },
+  "progress_fixture": {
+    "unlocked_abilities": [
+      "basic_attack",
+      "jump",
+      "dodge",
+      "dash",
+      "double_jump",
+      "aerial_attack",
+      "parry",
+      "wall_climb"
+    ],
+    "defeated_boss_flags": [
+      "boss_rat_king_defeated",
+      "boss_02_echo_guardian_defeated",
+      "boss_02_double_jump_claimed"
+    ]
+  },
+  "available_state": {
+    "route_id": "crown_warden_victory_recall",
+    "route_visible": true,
+    "route_available": true,
+    "tower_return_available": true,
+    "target_scene": "main",
+    "spawn_point": "scrap_roost",
+    "objective": "Choose Scrap Roost Recall or Apex Return",
+    "texture": "res://assets/environment/crown_warden_victory_recall/prop_crown_warden_victory_recall_256x384.png"
+  },
+  "real_input": {
+    "interaction_key": "E",
+    "interaction_action": "interact",
+    "player_position": [
+      1122.0,
+      536.0
+    ],
+    "route_position": [
+      1180.0,
+      536.0
+    ],
+    "distance_to_route": 58.0,
+    "interaction_radius": 104.0
+  },
+  "arrival": {
+    "current_scene": "main",
+    "current_spawn_point": "scrap_roost",
+    "runtime_scene": "res://scenes/main.tscn",
+    "valid_recall_proof": true,
+    "secured": true,
+    "savepoint_id": "scrap_roost",
+    "rat_king_visible": false,
+    "rat_king_collision_layer": 0,
+    "rat_king_collision_mask": 0,
+    "echo_guardian_visible": false,
+    "boss_hud_visible": false,
+    "notification": "Crown secured - returned to Scrap Roost"
+  },
+  "screenshot_presentation": {
+    "player_position": [
+      420.0,
+      456.0
+    ],
+    "note": "Player moved beside the savepoint after arrival assertions so the captured frame shows Cinderpaw."
+  },
+  "game_logs": {
+    "total_count": 3,
+    "levels": [
+      "info",
+      "info",
+      "info"
+    ],
+    "editor_errors_count": 0
+  },
+  "screenshots": [
+    "production/qa/evidence/crown-warden-victory-recall-available-mcp.png",
+    "production/qa/evidence/crown-warden-victory-recall-scrap-roost-arrival-mcp.png"
+  ]
+}

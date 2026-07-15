@@ -1,0 +1,58 @@
+{
+  "date": "2026-07-13",
+  "session": "cinderpaw@13e3",
+  "godot_version": "4.7-stable",
+  "mcp_version": "2.9.1",
+  "scene": "res://scenes/bosses/crown_warden_arena.tscn",
+  "run_id": "r14872731-9",
+  "authored_node_count": 47,
+  "runtime_arena_node_count": 67,
+  "current_run_errors": [],
+  "editor_cursor": {
+    "before": 4,
+    "after": 4,
+    "new_rows": 0
+  },
+  "animated_sprites": [
+    "/CrownWardenArenaScene/Player/Sprite",
+    "/CrownWardenArenaScene/CrownWardenBoss/Sprite"
+  ],
+  "available_state": {
+    "route_id": "crown_warden_victory_recall",
+    "route_visible": true,
+    "route_available": true,
+    "tower_return_available": true,
+    "target_scene": "main",
+    "spawn_point": "scrap_roost",
+    "objective": "Choose Scrap Roost Recall or Apex Return",
+    "texture": "res://assets/environment/crown_warden_victory_recall/prop_crown_warden_victory_recall_256x384.png"
+  },
+  "real_input": {
+    "movement_action": "move_right",
+    "interaction_key": "E",
+    "interaction_action": "interact",
+    "player_from": [950.0, 536.0],
+    "player_to": [1121.66735839844, 551.925170898438],
+    "route_position": [1180.0, 536.0],
+    "distance_to_route": 60.467414855957,
+    "interaction_radius": 104.0
+  },
+  "arrival": {
+    "current_scene": "main",
+    "current_spawn_point": "scrap_roost",
+    "runtime_scene": "res://scenes/main.tscn",
+    "valid_recall_proof": true,
+    "secured": true,
+    "savepoint_id": "scrap_roost",
+    "savepoint_position": [210.0, 432.0],
+    "notification": "Crown secured - returned to Scrap Roost"
+  },
+  "game_logs": {
+    "total_count": 3,
+    "levels": ["info", "info", "info"]
+  },
+  "screenshots": [
+    "production/qa/evidence/crown-warden-victory-recall-available-mcp.png",
+    "production/qa/evidence/crown-warden-victory-recall-scrap-roost-arrival-mcp.png"
+  ]
+}

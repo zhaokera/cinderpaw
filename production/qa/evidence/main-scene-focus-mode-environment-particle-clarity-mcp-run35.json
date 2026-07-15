@@ -1,0 +1,77 @@
+{
+  "story": "player-abilities-159",
+  "date": "2026-07-14",
+  "engine": "Godot 4.7-stable (official)",
+  "mcp": {
+    "session": "cinderpaw@d40a",
+    "plugin_version": "2.9.2",
+    "server_version": "2.9.2",
+    "transport": "streamable-http",
+    "run_id": "r29075015-35",
+    "current_run_errors": [],
+    "helper_live": true
+  },
+  "normal": {
+    "player_hp": 100,
+    "focus_active": false,
+    "particles": {
+      "node_name": "FocusEnvironmentParticles",
+      "node_type": "CPUParticles2D",
+      "texture_path": "res://assets/generated/combat_focus_environment_dust_mote.png",
+      "current_alpha": 1.0,
+      "normal_alpha": 1.0,
+      "focus_alpha": 0.3,
+      "emitting": true,
+      "amount": 24,
+      "fixed_seed": true,
+      "seed": 159,
+      "z_index": -90,
+      "persistent_screen_overlay": false
+    },
+    "camera_zoom": [1.08, 1.08],
+    "camera_limits": [0, 0, 1120, 720]
+  },
+  "focus": {
+    "player_hp": 25,
+    "focus_active": true,
+    "particle_alpha": 0.300000011920929,
+    "camera_zoom": [1.08, 1.08],
+    "camera_limits": [0, 0, 1120, 720]
+  },
+  "restored": {
+    "player_hp": 35,
+    "focus_active": false,
+    "particle_alpha": 1.0,
+    "camera_zoom": [1.08, 1.08],
+    "camera_limits": [0, 0, 1120, 720]
+  },
+  "screenshots": [
+    {
+      "state": "normal",
+      "path": "reports/visual/cinderpaw-mcp-focus-environment-normal-20260714.png",
+      "sha256": "b9a319162b6752de40b5f936f10b4c5368920332313453ce9a52a4df4657a0f6",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    },
+    {
+      "state": "focus",
+      "path": "reports/visual/cinderpaw-mcp-focus-environment-clarity-20260714.png",
+      "sha256": "c9240a9cc59803c936c2a51f35a66991a4dfae1bfb424eb413de343e5489f82d",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    }
+  ],
+  "final_logs": {
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0,
+    "clean_stop_readiness": "ready"
+  },
+  "subsequent_project_mcp_baseline": "3.0.2"
+}

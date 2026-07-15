@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/characters/crown_warden.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://assets/characters/crown_warden/crown_warden_sprite_frames.tres" id="2_frames"]
+
+[node name="CrownWarden" type="AnimatedSprite2D"]
+texture_filter = 1
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+autoplay = "idle"
+script = ExtResource("1_script")
+metadata/asset_source = "image_generation"
+metadata/frame_contract = "story146_3x8_24_frames"

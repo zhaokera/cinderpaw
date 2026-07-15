@@ -38,6 +38,7 @@ const MAIN_SCENE_ID: String = "main"
 const DEFAULT_NEW_GAME_SPAWN_POINT: StringName = &"default"
 const RAT_KING_BOSS_ID: String = "boss_01_rat_king"
 const RAT_KING_BOSS_DISPLAY_NAME: String = "垃圾桶鼠王"
+const RAT_KING_DEFEATED_FLAG: StringName = &"boss_rat_king_defeated"
 const RAT_KING_ATTACK_SOURCE: StringName = &"rat_king_claw"
 const RAT_MINION_ATTACK_SOURCE: StringName = &"rat_minion_bite"
 const BOSS2_ATTACK_SOURCE: StringName = &"boss2_echo_swipe"
@@ -60,6 +61,15 @@ const BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG: StringName = &"boss_02_echo_guardian_de
 const BOSS2_ECHO_GUARDIAN_BOSS_ID: StringName = &"boss_02_echo_guardian"
 const BOSS2_DOUBLE_JUMP_REWARD_NOTIFICATION: String = "Double Jump unlocked"
 const BOSS2_ECHO_GUARDIAN_DISPLAY_NAME: String = "Echo Guardian"
+const BOSS2_DEATH_PRESENTATION_HOLD_SEC: float = 2.0
+const RAT_KING_CAMERA_LOCK_LIMIT_LEFT: int = 0
+const RAT_KING_CAMERA_LOCK_LIMIT_TOP: int = 0
+const RAT_KING_CAMERA_LOCK_LIMIT_RIGHT: int = 1120
+const RAT_KING_CAMERA_LOCK_LIMIT_BOTTOM: int = 720
+const RAT_KING_CAMERA_PHASE_ONE_ZOOM: Vector2 = Vector2(1.08, 1.08)
+const RAT_KING_CAMERA_PHASE_TWO_ZOOM: Vector2 = Vector2(1.12, 1.12)
+const RAT_KING_CAMERA_PHASE_THREE_ZOOM: Vector2 = Vector2(1.16, 1.16)
+const RAT_KING_CAMERA_LOCK_SMOOTHING_SPEED: float = 10.0
 const BOSS2_CAMERA_PATH: NodePath = ^"Player/Camera2D"
 const BOSS2_CAMERA_LOCK_LIMIT_LEFT: int = 0
 const BOSS2_CAMERA_LOCK_LIMIT_TOP: int = 0
@@ -73,17 +83,54 @@ const BOSS2_ROOM_SEAL_TEXTURE_PATH: String = (
 	"res://assets/environment/boss2_arena/boss2_echo_guardian_room_seal.png"
 )
 const SAVEPOINT_NOTIFICATION_SUFFIX: String = " saved"
+const AUTOSAVE_FEEDBACK_DURATION_SEC: float = 1.5
 const CAT_CLAW_T1A_SKILL_ID: StringName = &"cat_claw_t1a"
 const FACTORY_ROUTE_SHELL_NODE_PATH: NodePath = ^"FactoryRouteTransitionShell"
 const SCRAP_ROOST_SAVEPOINT_NODE_PATH: NodePath = ^"ScrapRoostSavepoint"
 const SCRAP_ROOST_SAVEPOINT_ID: StringName = &"scrap_roost"
 const SCRAP_ROOST_RETURN_HUB_FLAG: StringName = &"scrap_roost_return_hub_secured"
 const SCRAP_ROOST_RETURN_HUB_NOTIFICATION: String = "Returned to Scrap Roost"
+const CROWN_WARDEN_ARENA_SCENE_ID: StringName = &"boss_04_crown_warden_arena"
+const CROWN_WARDEN_DEFEATED_STATE_KEY: String = "boss_04_crown_warden_defeated"
+const CROWN_WARDEN_REWARD_STATE_KEY: String = "boss_04_wall_climb_reward_claimed"
+const CROWN_WARDEN_RECALL_STATE_KEY: String = "boss_04_victory_recall_requested"
+const CROWN_WARDEN_HUB_RETURN_FLAG: StringName = &"boss_04_victory_hub_return_secured"
+const CROWN_WARDEN_HUB_RETURN_NOTIFICATION: String = (
+	"Crown secured - returned to Scrap Roost"
+)
 const FACTORY_ROUTE_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_ROUTE_SPAWN_POINT: StringName = &"factory_gate_entry"
 const FACTORY_ROUTE_UNLOCKED_FLAG: StringName = &"area_03_factory_unlocked"
 const FACTORY_ROUTE_ENTRY_PROMPT: String = "Enter Factory Route"
 const FACTORY_ROUTE_RETURN_PROMPT: String = "Return to Factory Route"
+const MAIN_MINIMAP_WORLD_BOUNDS: Rect2 = Rect2(0, 0, 1280, 720)
+const MAIN_MINIMAP_REVEAL_DURATION_SEC: float = 1.0
+const MAIN_MINIMAP_REGIONS: Array[Dictionary] = [
+	{
+		"id": &"main",
+		"display_name": "Scrap Roost",
+		"position": Vector2(0.14, 0.76),
+		"connects_to": [&"area_02_sewer"],
+	},
+	{
+		"id": &"area_02_sewer",
+		"display_name": "Sewer Access",
+		"position": Vector2(0.40, 0.67),
+		"connects_to": [&"area_03_factory"],
+	},
+	{
+		"id": &"area_03_factory",
+		"display_name": "Factory Route",
+		"position": Vector2(0.66, 0.45),
+		"connects_to": [&"area_05_central_tower"],
+	},
+	{
+		"id": &"area_05_central_tower",
+		"display_name": "Central Tower",
+		"position": Vector2(0.87, 0.22),
+		"connects_to": [],
+	},
+]
 const ARENA_OBSTACLE_LAYER: int = 16
 const ARENA_DAMAGE_ZONE_LAYER: int = CollisionComponent.COLLISION_LAYER_ENVIRONMENT
 const ARENA_DAMAGE_ZONE_MASK: int = CollisionComponent.COLLISION_MASK_ENVIRONMENT
@@ -181,11 +228,16 @@ var _arena_hazard_contact_cooldowns: Dictionary = {}
 var _boss_scene_locked: bool = false
 var _boss_reward_collection_active: bool = false
 var _last_boss_reward_summary: Dictionary = {}
-var _boss2_camera_default_state: Dictionary = {}
+var _arena_camera_default_state: Dictionary = {}
+var _rat_king_camera_choreography_enabled: bool = false
+var _rat_king_camera_choreography_reason: StringName = &"not_initialized"
 var _boss2_camera_lock_enabled: bool = false
 var _boss2_camera_lock_reason: StringName = &"not_initialized"
 var _boss2_room_seals_enabled: bool = false
 var _boss2_room_seal_reason: StringName = &"not_initialized"
+var _boss2_death_presentation_pending: bool = false
+var _boss2_death_presentation_remaining_sec: float = 0.0
+var _crown_warden_hub_return_notification_pending: bool = false
 
 
 func _ready() -> void:
@@ -226,6 +278,8 @@ func _ready() -> void:
 	_player.player_died.connect(_on_player_died)
 	_player.attack_landed.connect(_on_player_attack_landed)
 	_player.attack_started.connect(_on_player_attack_started)
+	if _player.has_signal("heavy_charge_changed"):
+		_player.heavy_charge_changed.connect(_on_player_heavy_charge_changed)
 	_player.dodge_started.connect(_on_player_dodge_started)
 	_connect_player_parry_signal()
 	if _player.has_signal("dash_started"):
@@ -237,16 +291,18 @@ func _ready() -> void:
 	_enemy.enemy_defeated.connect(_on_enemy_defeated)
 	_register_enemy_boss_phase_source()
 	_combat_presentation.set_camera($Player/Camera2D)
-	_capture_boss2_camera_default_state()
+	_capture_arena_camera_default_state()
 	_sync_combat_presentation_accessibility_settings()
 
 	_hud.update_hp(_player.get_current_hp(), _player.get_max_hp())
 	_hud.update_currency(_currency_amount)
 	_sync_player_unlocked_abilities()
 	_sync_exploration_gates()
+	_setup_main_minimap()
 	_sync_hidden_double_jump_reward_source()
 	_setup_boss2_double_jump_payoff()
 	refresh_boss2_camera_lock()
+	refresh_rat_king_camera_choreography()
 	refresh_boss2_room_seals()
 	_refresh_boss_hud()
 	_sync_factory_route_transition_shell()
@@ -256,6 +312,7 @@ func _ready() -> void:
 	configure_audio_system_runtime(get_node_or_null("/root/AudioSystem"))
 	_hud.show_notification("Hunt the Rat King", 2.0)
 	_sync_scrap_roost_return_hub()
+	_sync_crown_warden_victory_return_hub()
 
 
 func _exit_tree() -> void:
@@ -267,11 +324,15 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
-	_player.set_control_locked(_game_flow.is_player_control_locked())
+	_player.set_control_locked(
+		_game_flow.is_player_control_locked() or _boss2_death_presentation_pending
+	)
 	advance_arena_hazard_time(delta)
 	_process_hidden_double_jump_reward_source_contact()
 	_process_boss2_double_jump_reward_source_contact()
 	_process_factory_route_transition_shell_contact()
+	_update_main_minimap_player_marker()
+	advance_boss2_death_presentation(delta)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -285,6 +346,7 @@ func _on_player_health_changed(current_hp: int, max_hp: int) -> void:
 
 
 func _on_player_died(death_metadata: Dictionary) -> void:
+	_combat_presentation.on_player_death(_player.global_position, death_metadata)
 	_game_flow.handle_player_death()
 	if _hud.is_battle_summary_enabled():
 		_hud.show_battle_summary(_battle_summary_from_death_metadata(death_metadata))
@@ -302,6 +364,15 @@ func _on_player_attack_landed(hit_data: Dictionary) -> void:
 func _on_player_attack_started(attack_data: Dictionary) -> void:
 	_combat_presentation.on_weapon_attack_event(attack_data)
 	_dispatch_audio_event(&"on_weapon_attack_event", [attack_data])
+
+
+func _on_player_heavy_charge_changed(
+	active: bool,
+	charge_ratio: float,
+	charge_seconds: float,
+	charge_ready: bool
+) -> void:
+	_hud.update_heavy_charge(active, charge_ratio, charge_seconds, charge_ready)
 
 
 func _on_player_dodge_started(texture: Texture2D, world_position: Vector2, facing: float) -> void:
@@ -322,9 +393,18 @@ func _on_player_double_jump_started(texture: Texture2D, world_position: Vector2,
 func _on_player_parry_resolved(parry_data: Dictionary) -> void:
 	var enriched_parry_data: Dictionary = parry_data.duplicate(true)
 	var parry_position: Vector2 = _player.global_position
-	var sprite: Node2D = _player.get_node_or_null("Sprite") as Node2D
+	var sprite: AnimatedSprite2D = _player.get_node_or_null("Sprite") as AnimatedSprite2D
 	if sprite != null:
 		parry_position = sprite.global_position
+		var frame_texture: Texture2D = sprite.sprite_frames.get_frame_texture(
+			sprite.animation,
+			sprite.frame
+		)
+		if frame_texture != null:
+			enriched_parry_data["texture"] = frame_texture
+		enriched_parry_data["facing"] = -1.0 if sprite.flip_h else 1.0
+		enriched_parry_data["animation"] = sprite.animation
+		enriched_parry_data["frame"] = sprite.frame
 	if not enriched_parry_data.has("position"):
 		enriched_parry_data["position"] = parry_position
 	enriched_parry_data["source"] = &"player_parry"
@@ -394,6 +474,7 @@ func _on_enemy_defeated() -> void:
 	])
 	_combat_presentation.on_kill_event(2, _enemy.global_position + Vector2(0, -24))
 	_game_flow.handle_enemy_defeated()
+	_hud.hide_boss_hp()
 	set_world_progress_flag(&"boss_rat_king_defeated", true)
 	_trigger_runtime_autosave(&"boss_defeat", {
 		"boss_id": RAT_KING_BOSS_ID,
@@ -402,6 +483,7 @@ func _on_enemy_defeated() -> void:
 
 func _on_respawn_requested(respawn_position: Vector2, revive_hp_percentage: float) -> void:
 	_player.respawn_at(respawn_position, revive_hp_percentage)
+	_combat_presentation.on_player_respawn(_player.global_position)
 	_hud.update_hp(_player.get_current_hp(), _player.get_max_hp())
 	_hud.show_notification("Nine lives remain", 2.0)
 
@@ -412,7 +494,7 @@ func _on_victory_reached() -> void:
 
 
 func _on_menu_pause_requested() -> void:
-	if _game_flow.get_flow_state() == &"victory":
+	if _game_flow.get_flow_state() in [&"victory_pending", &"victory"]:
 		return
 	_pause_menu_active = true
 	get_tree().paused = true
@@ -643,8 +725,10 @@ func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
 			var boss2_snapshot: Dictionary = Dictionary(snapshot.get("boss2_echo_guardian", {}))
 			if not boss2_snapshot.is_empty():
 				boss2.call("restore_respawn_snapshot", boss2_snapshot)
+	_sync_boss2_encounter_handoff()
 	_sync_boss2_double_jump_payoff_state()
 	refresh_boss2_camera_lock()
+	refresh_rat_king_camera_choreography()
 	refresh_boss2_room_seals()
 	_refresh_boss_hud()
 
@@ -724,6 +808,9 @@ func apply_damage(target_id: int, final_damage: int, metadata: Dictionary = {}) 
 		and _boss2_echo_guardian.has_method("get_entity_id")
 		and int(_boss2_echo_guardian.call("get_entity_id")) == target_id
 	):
+		if _boss2_echo_guardian.has_method("is_encounter_active") \
+				and not bool(_boss2_echo_guardian.call("is_encounter_active")):
+			return false
 		_boss2_echo_guardian.call("apply_damage", final_damage, metadata)
 		return true
 	var minion: Node = _find_live_summon_by_entity_id(target_id)
@@ -896,7 +983,9 @@ func is_boss_scene_locked() -> bool:
 func clear_arena_locks() -> void:
 	_boss_scene_locked = false
 	cleanup_arena_mutations()
-	_restore_boss2_camera_default_state(_get_boss2_camera())
+	_restore_arena_camera_default_state(_get_boss2_camera())
+	_rat_king_camera_choreography_enabled = false
+	_rat_king_camera_choreography_reason = &"arena_locks_cleared"
 	_boss2_camera_lock_enabled = false
 	_boss2_camera_lock_reason = &"arena_locks_cleared"
 	var left_room_seal := _get_boss2_room_seal(BOSS2_LEFT_ROOM_SEAL_PATH)
@@ -960,10 +1049,16 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 		_hud.restore_settings_state(Dictionary(snapshot.get("settings", {})))
 	_sync_combat_presentation_accessibility_settings()
 	_sync_hidden_double_jump_reward_source()
+	_sync_rat_king_defeated_state()
+	_sync_boss2_encounter_handoff()
 	_sync_boss2_double_jump_payoff_state()
 	refresh_boss2_camera_lock()
+	refresh_rat_king_camera_choreography()
 	refresh_boss2_room_seals()
 	_sync_factory_route_transition_shell()
+	_sync_crown_warden_victory_return_hub()
+	_sync_main_minimap_from_world_flags()
+	_update_main_minimap_player_marker()
 
 
 func set_local_state(snapshot: Dictionary) -> void:
@@ -1039,6 +1134,7 @@ func claim_boss2_double_jump_reward_source(provider: Node = null) -> bool:
 	set_world_progress_flag(BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG, true)
 	set_world_progress_flag(BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG, true)
 	refresh_boss2_camera_lock()
+	refresh_rat_king_camera_choreography()
 	refresh_boss2_room_seals()
 	unlock_ability(BOSS2_DOUBLE_JUMP_REWARD_ABILITY_ID)
 	_dispatch_boss2_audio_event(&"reward_claimed", {
@@ -1055,20 +1151,70 @@ func claim_boss2_double_jump_reward_source(provider: Node = null) -> bool:
 	return true
 
 
+func refresh_rat_king_camera_choreography(phase_override: int = 0) -> bool:
+	var camera: Camera2D = _get_boss2_camera()
+	if camera == null:
+		_rat_king_camera_choreography_enabled = false
+		_rat_king_camera_choreography_reason = &"camera_missing"
+		return false
+	if _arena_camera_default_state.is_empty():
+		_capture_arena_camera_default_state()
+	if _should_enable_boss2_camera_lock():
+		_rat_king_camera_choreography_enabled = false
+		_rat_king_camera_choreography_reason = &"boss2_active"
+		return false
+	if _should_enable_rat_king_camera_choreography():
+		var phase: int = phase_override if phase_override > 0 else _get_enemy_phase()
+		_apply_rat_king_camera_profile(camera, phase)
+		_rat_king_camera_choreography_enabled = true
+		_rat_king_camera_choreography_reason = StringName("rat_king_phase_%d" % phase)
+		return true
+	_restore_arena_camera_default_state(camera)
+	_rat_king_camera_choreography_enabled = false
+	_rat_king_camera_choreography_reason = _rat_king_camera_release_reason()
+	return false
+
+
+func get_rat_king_camera_choreography_diagnostics() -> Dictionary:
+	var camera: Camera2D = _get_boss2_camera()
+	return {
+		"camera_found": camera != null,
+		"camera_path": String(BOSS2_CAMERA_PATH),
+		"enabled": _rat_king_camera_choreography_enabled,
+		"reason": String(_rat_king_camera_choreography_reason),
+		"phase": _get_enemy_phase() if is_instance_valid(_enemy) else 0,
+		"limit_left": camera.limit_left if camera != null else 0,
+		"limit_top": camera.limit_top if camera != null else 0,
+		"limit_right": camera.limit_right if camera != null else 0,
+		"limit_bottom": camera.limit_bottom if camera != null else 0,
+		"zoom": camera.zoom if camera != null else Vector2.ONE,
+		"position_smoothing_enabled": (
+			camera.position_smoothing_enabled if camera != null else false
+		),
+		"position_smoothing_speed": (
+			camera.position_smoothing_speed if camera != null else 0.0
+		),
+		"offset": camera.offset if camera != null else Vector2.ZERO,
+		"default_state": _arena_camera_default_state.duplicate(true),
+		"rat_king_visible": _enemy.visible if is_instance_valid(_enemy) else false,
+		"boss2_priority_active": _should_enable_boss2_camera_lock(),
+	}
+
+
 func refresh_boss2_camera_lock() -> bool:
 	var camera: Camera2D = _get_boss2_camera()
 	if camera == null:
 		_boss2_camera_lock_enabled = false
 		_boss2_camera_lock_reason = &"camera_missing"
 		return false
-	if _boss2_camera_default_state.is_empty():
-		_capture_boss2_camera_default_state()
+	if _arena_camera_default_state.is_empty():
+		_capture_arena_camera_default_state()
 	if _should_enable_boss2_camera_lock():
 		_apply_boss2_camera_lock(camera)
 		_boss2_camera_lock_enabled = true
 		_boss2_camera_lock_reason = &"boss2_active"
 		return true
-	_restore_boss2_camera_default_state(camera)
+	_restore_arena_camera_default_state(camera)
 	_boss2_camera_lock_enabled = false
 	_boss2_camera_lock_reason = _boss2_camera_release_reason()
 	return false
@@ -1099,7 +1245,7 @@ func get_boss2_camera_lock_diagnostics() -> Dictionary:
 			camera.position_smoothing_speed if camera != null else 0.0
 		),
 		"offset": camera.offset if camera != null else Vector2.ZERO,
-		"default_state": _boss2_camera_default_state.duplicate(true),
+		"default_state": _arena_camera_default_state.duplicate(true),
 		"focus_position": focus_position,
 		"boss_visible": boss.visible if boss != null else false,
 		"arena_frame_visible": _is_boss2_arena_frame_visible(),
@@ -1386,10 +1532,18 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 	_world_progress_flags[String(flag_id)] = enabled
 	if flag_id == HIDDEN_DOUBLE_JUMP_REWARD_CLAIMED_FLAG:
 		_sync_hidden_double_jump_reward_source()
+	if flag_id == RAT_KING_DEFEATED_FLAG:
+		_sync_rat_king_defeated_state()
+		_sync_boss2_encounter_handoff()
+		refresh_boss2_camera_lock()
+		refresh_rat_king_camera_choreography()
+		refresh_boss2_room_seals()
 	if flag_id == BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG \
 			or flag_id == BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG:
+		_sync_boss2_encounter_handoff()
 		_sync_boss2_double_jump_payoff_state()
 		refresh_boss2_camera_lock()
+		refresh_rat_king_camera_choreography()
 		refresh_boss2_room_seals()
 	if flag_id == FACTORY_ROUTE_UNLOCKED_FLAG:
 		_sync_factory_route_transition_shell()
@@ -1409,6 +1563,7 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 	if valid_scene_manager:
 		_apply_current_scene_manager_spawn_point()
 		_sync_scrap_roost_return_hub()
+		_sync_crown_warden_victory_return_hub()
 	return valid_scene_manager
 
 
@@ -1648,6 +1803,7 @@ func _on_scene_manager_changed(old_scene: StringName, new_scene: StringName) -> 
 		_dispatch_audio_event(&"on_scene_changed", [old_scene, new_scene])
 	_apply_scene_manager_spawn_point(new_scene)
 	_sync_scrap_roost_return_hub()
+	_sync_crown_warden_victory_return_hub()
 	_hud.hide_scene_transition()
 
 
@@ -1691,7 +1847,15 @@ func activate_runtime_savepoint(
 	save_context["spawn_point"] = String(spawn_point)
 	save_context["position"] = _vector2_to_dictionary(world_position)
 	var display_name: String = String(save_context.get("display_name", "")).strip_edges()
-	if not display_name.is_empty():
+	if (
+		_crown_warden_hub_return_notification_pending
+		and savepoint_id == SCRAP_ROOST_SAVEPOINT_ID
+		and String(scene_id) == MAIN_SCENE_ID
+		and spawn_point == SCRAP_ROOST_SAVEPOINT_ID
+	):
+		_crown_warden_hub_return_notification_pending = false
+		_hud.show_notification(CROWN_WARDEN_HUB_RETURN_NOTIFICATION, 2.5)
+	elif not display_name.is_empty():
 		_hud.show_notification("%s%s" % [display_name, SAVEPOINT_NOTIFICATION_SUFFIX], 1.5)
 	return _trigger_runtime_autosave(&"savepoint", save_context)
 
@@ -1994,6 +2158,8 @@ func _handle_boss_phase_transition_started(entity_id: int, phase: int, metadata:
 			phase,
 			String(enriched_metadata.get("display_name", _get_enemy_display_name()))
 		)
+	if not is_boss2_phase:
+		refresh_rat_king_camera_choreography(phase)
 	_combat_presentation.on_boss_phase_transition_started(entity_id, phase, enriched_metadata)
 	_dispatch_audio_event(&"on_boss_phase_transition_started", [entity_id, phase, enriched_metadata])
 
@@ -2133,7 +2299,17 @@ func _restore_arena_mutations_from_world_state(world_state: Dictionary) -> void:
 func _trigger_runtime_autosave(reason: StringName, context: Dictionary) -> bool:
 	if _save_trigger_adapter == null:
 		return false
-	return _save_trigger_adapter.trigger_auto_save(reason, context)
+	var saved: bool = _save_trigger_adapter.trigger_auto_save(reason, context)
+	if not saved:
+		return false
+	_hud.show_autosave_stamp(AUTOSAVE_FEEDBACK_DURATION_SEC)
+	_dispatch_audio_event(&"on_ui_save", [{
+		"slot": 0,
+		"source": &"autosave",
+		"reason": reason,
+		"context": context.duplicate(true),
+	}])
+	return true
 
 
 func _setup_main_scene_savepoints() -> void:
@@ -2233,6 +2409,7 @@ func _setup_boss2_double_jump_payoff() -> void:
 		var health_signal: Signal = _boss2_echo_guardian.get("boss_health_changed")
 		if not health_signal.is_connected(_on_boss2_health_changed):
 			health_signal.connect(_on_boss2_health_changed)
+	_sync_boss2_encounter_handoff()
 	_sync_boss2_double_jump_payoff_state()
 
 
@@ -2242,8 +2419,6 @@ func _setup_boss2_attack_core_chain() -> void:
 		return
 	if _boss2_echo_guardian.has_method("set_damage_calculator_adapter"):
 		_boss2_echo_guardian.call("set_damage_calculator_adapter", _damage_calculator_adapter)
-	if _boss2_echo_guardian.has_method("set_attack_target"):
-		_boss2_echo_guardian.call("set_attack_target", _player)
 	if _boss2_echo_guardian.has_signal("enemy_attack_landed"):
 		var attack_signal: Signal = _boss2_echo_guardian.get("enemy_attack_landed")
 		if not attack_signal.is_connected(_on_boss2_attack_landed):
@@ -2269,12 +2444,12 @@ func _get_boss2_camera() -> Camera2D:
 	return get_node_or_null(BOSS2_CAMERA_PATH) as Camera2D
 
 
-func _capture_boss2_camera_default_state() -> void:
+func _capture_arena_camera_default_state() -> void:
 	var camera: Camera2D = _get_boss2_camera()
 	if camera == null:
-		_boss2_camera_default_state.clear()
+		_arena_camera_default_state.clear()
 		return
-	_boss2_camera_default_state = {
+	_arena_camera_default_state = {
 		"limit_left": camera.limit_left,
 		"limit_top": camera.limit_top,
 		"limit_right": camera.limit_right,
@@ -2283,6 +2458,54 @@ func _capture_boss2_camera_default_state() -> void:
 		"position_smoothing_enabled": camera.position_smoothing_enabled,
 		"position_smoothing_speed": camera.position_smoothing_speed,
 	}
+
+
+func _apply_rat_king_camera_profile(camera: Camera2D, phase: int) -> void:
+	camera.limit_left = RAT_KING_CAMERA_LOCK_LIMIT_LEFT
+	camera.limit_top = RAT_KING_CAMERA_LOCK_LIMIT_TOP
+	camera.limit_right = RAT_KING_CAMERA_LOCK_LIMIT_RIGHT
+	camera.limit_bottom = RAT_KING_CAMERA_LOCK_LIMIT_BOTTOM
+	camera.zoom = _rat_king_camera_zoom_for_phase(phase)
+	camera.position_smoothing_enabled = true
+	camera.position_smoothing_speed = RAT_KING_CAMERA_LOCK_SMOOTHING_SPEED
+	if not camera.is_current():
+		camera.make_current()
+
+
+func _rat_king_camera_zoom_for_phase(phase: int) -> Vector2:
+	match clampi(phase, 1, 3):
+		2:
+			return RAT_KING_CAMERA_PHASE_TWO_ZOOM
+		3:
+			return RAT_KING_CAMERA_PHASE_THREE_ZOOM
+		_:
+			return RAT_KING_CAMERA_PHASE_ONE_ZOOM
+
+
+func _should_enable_rat_king_camera_choreography() -> bool:
+	if not is_instance_valid(_enemy):
+		return false
+	if bool(_world_progress_flags.get(String(RAT_KING_DEFEATED_FLAG), false)):
+		return false
+	if not _enemy.visible or _enemy.get_current_hp() <= 0:
+		return false
+	if _game_flow != null and _game_flow.get_flow_state() in [&"victory_pending", &"victory"]:
+		return false
+	return true
+
+
+func _rat_king_camera_release_reason() -> StringName:
+	if bool(_world_progress_flags.get(String(RAT_KING_DEFEATED_FLAG), false)):
+		return &"rat_king_defeated"
+	if not is_instance_valid(_enemy):
+		return &"rat_king_missing"
+	if _enemy.get_current_hp() <= 0:
+		return &"rat_king_defeated"
+	if not _enemy.visible:
+		return &"rat_king_hidden"
+	if _game_flow != null and _game_flow.get_flow_state() in [&"victory_pending", &"victory"]:
+		return &"victory_hold"
+	return &"rat_king_inactive"
 
 
 func _apply_boss2_camera_lock(camera: Camera2D) -> void:
@@ -2297,25 +2520,28 @@ func _apply_boss2_camera_lock(camera: Camera2D) -> void:
 		camera.make_current()
 
 
-func _restore_boss2_camera_default_state(camera: Camera2D) -> void:
-	if camera == null or _boss2_camera_default_state.is_empty():
+func _restore_arena_camera_default_state(camera: Camera2D) -> void:
+	if camera == null or _arena_camera_default_state.is_empty():
 		return
-	camera.limit_left = int(_boss2_camera_default_state.get("limit_left", 0))
-	camera.limit_top = int(_boss2_camera_default_state.get("limit_top", 0))
-	camera.limit_right = int(_boss2_camera_default_state.get("limit_right", 1280))
-	camera.limit_bottom = int(_boss2_camera_default_state.get("limit_bottom", 720))
-	camera.zoom = _boss2_camera_default_state.get("zoom", Vector2.ONE)
-	camera.position_smoothing_enabled = bool(_boss2_camera_default_state.get(
+	camera.limit_left = int(_arena_camera_default_state.get("limit_left", 0))
+	camera.limit_top = int(_arena_camera_default_state.get("limit_top", 0))
+	camera.limit_right = int(_arena_camera_default_state.get("limit_right", 1280))
+	camera.limit_bottom = int(_arena_camera_default_state.get("limit_bottom", 720))
+	camera.zoom = _arena_camera_default_state.get("zoom", Vector2.ONE)
+	camera.position_smoothing_enabled = bool(_arena_camera_default_state.get(
 		"position_smoothing_enabled",
 		true
 	))
-	camera.position_smoothing_speed = float(_boss2_camera_default_state.get(
+	camera.position_smoothing_speed = float(_arena_camera_default_state.get(
 		"position_smoothing_speed",
 		8.0
 	))
 
 
 func _should_enable_boss2_camera_lock() -> bool:
+	if _boss2_death_presentation_pending:
+		var pending_boss: Node = _get_boss2_echo_guardian()
+		return pending_boss != null and pending_boss.visible
 	return _should_show_boss2_hud(_get_boss2_echo_guardian())
 
 
@@ -2333,6 +2559,12 @@ func _boss2_camera_release_reason() -> StringName:
 func _is_boss2_arena_frame_visible() -> bool:
 	var frame := get_node_or_null("Boss2ArenaFrame") as CanvasItem
 	return frame != null and frame.visible
+
+
+func _set_boss2_arena_frame_visible(visible_value: bool) -> void:
+	var frame := get_node_or_null("Boss2ArenaFrame") as CanvasItem
+	if frame != null:
+		frame.visible = visible_value
 
 
 func _get_boss2_room_seal(path: NodePath) -> StaticBody2D:
@@ -2354,6 +2586,9 @@ func _set_boss2_room_seal_enabled(seal: StaticBody2D, enabled: bool) -> void:
 
 
 func _should_enable_boss2_room_seals() -> bool:
+	if _boss2_death_presentation_pending:
+		var pending_boss: Node = _get_boss2_echo_guardian()
+		return pending_boss != null and pending_boss.visible
 	return _should_show_boss2_hud(_get_boss2_echo_guardian())
 
 
@@ -2420,6 +2655,9 @@ func _refresh_boss_hud(enemy_current_hp: int = -1, enemy_max_hp: int = -1) -> vo
 	if not is_instance_valid(_enemy):
 		_hud.hide_boss_hp()
 		return
+	if bool(_world_progress_flags.get(String(RAT_KING_DEFEATED_FLAG), false)):
+		_hud.hide_boss_hp()
+		return
 	var current_hp: int = _enemy.get_current_hp() if enemy_current_hp < 0 else enemy_current_hp
 	var max_hp: int = _enemy.get_max_hp() if enemy_max_hp < 0 else enemy_max_hp
 	if current_hp <= 0:
@@ -2428,10 +2666,103 @@ func _refresh_boss_hud(enemy_current_hp: int = -1, enemy_max_hp: int = -1) -> vo
 	_hud.update_boss_hp(current_hp, max_hp, _get_enemy_phase(), _get_enemy_display_name())
 
 
+func _sync_rat_king_defeated_state() -> void:
+	if not bool(_world_progress_flags.get(String(RAT_KING_DEFEATED_FLAG), false)):
+		return
+	cleanup_temporary_summons()
+	cleanup_arena_mutations()
+	if is_instance_valid(_enemy):
+		if _enemy.has_method("mark_defeated_from_progress"):
+			_enemy.call("mark_defeated_from_progress")
+		_enemy.visible = false
+		_enemy.collision_layer = 0
+		_enemy.collision_mask = 0
+	_refresh_boss_hud()
+
+
+func _sync_boss2_encounter_handoff() -> bool:
+	var boss: Node = _get_boss2_echo_guardian()
+	if _boss2_death_presentation_pending:
+		if boss != null:
+			boss.visible = true
+		_set_boss2_arena_frame_visible(true)
+		return boss != null
+	var should_activate: bool = _should_activate_boss2_encounter(boss)
+	if boss != null:
+		if boss.has_method("set_encounter_active"):
+			boss.call(
+				"set_encounter_active",
+				should_activate,
+				_player if should_activate else null
+			)
+		else:
+			boss.visible = should_activate
+			if boss is CollisionObject2D and not should_activate:
+				var collision_object := boss as CollisionObject2D
+				collision_object.collision_layer = 0
+				collision_object.collision_mask = 0
+	_set_boss2_arena_frame_visible(should_activate)
+	return should_activate
+
+
+func _should_activate_boss2_encounter(boss: Node = null) -> bool:
+	if boss == null:
+		boss = _get_boss2_echo_guardian()
+	if boss == null:
+		return false
+	if not bool(_world_progress_flags.get(String(RAT_KING_DEFEATED_FLAG), false)):
+		return false
+	if _game_flow != null and _game_flow.get_flow_state() in [&"victory_pending", &"victory"]:
+		return false
+	if _is_boss2_echo_guardian_defeated():
+		return false
+	return true
+
+
+func get_boss2_encounter_handoff_diagnostics() -> Dictionary:
+	var boss: Node = _get_boss2_echo_guardian()
+	var camera_state: Dictionary = get_boss2_camera_lock_diagnostics()
+	var room_seal_state: Dictionary = get_boss2_room_seal_diagnostics()
+	var collision_object := boss as CollisionObject2D
+	return {
+		"game_flow_state": String(_game_flow.get_flow_state()) if _game_flow != null else "",
+		"rat_king_defeated": bool(_world_progress_flags.get(
+			String(RAT_KING_DEFEATED_FLAG),
+			false
+		)),
+		"rat_king_visible": _enemy.visible if is_instance_valid(_enemy) else false,
+		"boss2_encounter_active": (
+			bool(boss.call("is_encounter_active"))
+			if boss != null and boss.has_method("is_encounter_active")
+			else false
+		),
+		"boss2_visible": boss.visible if boss != null else false,
+		"boss2_has_target": (
+			bool(boss.call("has_attack_target"))
+			if boss != null and boss.has_method("has_attack_target")
+			else false
+		),
+		"boss2_collision_layer": collision_object.collision_layer if collision_object != null else 0,
+		"boss2_collision_mask": collision_object.collision_mask if collision_object != null else 0,
+		"boss2_arena_frame_visible": _is_boss2_arena_frame_visible(),
+		"boss2_room_seals_enabled": bool(room_seal_state.get("enabled", false)),
+		"boss2_camera_lock_enabled": bool(camera_state.get("enabled", false)),
+		"boss_hud_label": (
+			String(_hud.call("get_boss_label_text"))
+			if _hud != null and _hud.has_method("get_boss_label_text")
+			else ""
+		),
+	}
+
+
 func _should_show_boss2_hud(boss: Node = null) -> bool:
 	if boss == null:
 		boss = _get_boss2_echo_guardian()
 	if boss == null:
+		return false
+	if not _should_activate_boss2_encounter(boss):
+		return false
+	if boss.has_method("is_encounter_active") and not bool(boss.call("is_encounter_active")):
 		return false
 	if not boss.visible:
 		return false
@@ -2461,6 +2792,16 @@ func _sync_boss2_double_jump_payoff_state() -> void:
 	))
 	var boss_defeated: bool = _is_boss2_echo_guardian_defeated()
 	var boss: Node = _get_boss2_echo_guardian()
+	var source: Node = _get_boss2_double_jump_reward_source()
+	if _boss2_death_presentation_pending:
+		if boss != null:
+			boss.visible = true
+		if source != null:
+			_sync_reward_source_prompt_provider(source)
+			if source.has_method("set_available"):
+				source.call("set_available", false)
+			source.call("set_claimed", reward_claimed)
+		return
 	if boss != null and boss_defeated and not bool(boss.call("is_defeated")):
 		if boss.has_method("mark_defeated_from_progress"):
 			boss.call("mark_defeated_from_progress")
@@ -2469,7 +2810,6 @@ func _sync_boss2_double_jump_payoff_state() -> void:
 			var collision_object := boss as CollisionObject2D
 			collision_object.collision_layer = 0
 			collision_object.collision_mask = 0
-	var source: Node = _get_boss2_double_jump_reward_source()
 	if source == null:
 		return
 	_sync_reward_source_prompt_provider(source)
@@ -2491,14 +2831,98 @@ func _process_boss2_double_jump_reward_source_contact() -> void:
 
 
 func _on_boss2_echo_guardian_defeated() -> void:
+	if _boss2_death_presentation_pending:
+		return
+	_boss2_death_presentation_pending = true
+	_boss2_death_presentation_remaining_sec = BOSS2_DEATH_PRESENTATION_HOLD_SEC
+	_player.set_control_locked(true)
 	set_world_progress_flag(BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG, true)
 	_combat_presentation.on_kill_event(
 		2,
 		_boss2_echo_guardian.global_position + Vector2(0, -40)
 	)
+
+
+## Advances the transient Echo Guardian death presentation deterministically.
+func advance_boss2_death_presentation(delta_sec: float) -> bool:
+	if not _boss2_death_presentation_pending:
+		return false
+	_boss2_death_presentation_remaining_sec = maxf(
+		0.0,
+		_boss2_death_presentation_remaining_sec - maxf(delta_sec, 0.0)
+	)
+	if _boss2_death_presentation_remaining_sec > 0.0:
+		return false
+	_complete_boss2_death_presentation()
+	return true
+
+
+## Returns Story018 timing, animation, arena, and payoff evidence for tests/MCP.
+func get_boss2_death_presentation_diagnostics() -> Dictionary:
+	var boss: Node = _get_boss2_echo_guardian()
+	var sprite: AnimatedSprite2D = (
+		boss.get_node_or_null("Sprite") as AnimatedSprite2D
+		if boss != null
+		else null
+	)
+	var collision: CollisionComponent = (
+		boss.call("get_collision_component") as CollisionComponent
+		if boss != null and boss.has_method("get_collision_component")
+		else null
+	)
+	var source: Node = _get_boss2_double_jump_reward_source()
+	return {
+		"pending": _boss2_death_presentation_pending,
+		"remaining_sec": _boss2_death_presentation_remaining_sec,
+		"hold_duration_sec": BOSS2_DEATH_PRESENTATION_HOLD_SEC,
+		"boss_defeated": _is_boss2_echo_guardian_defeated(),
+		"boss_visible": boss.visible if boss != null else false,
+		"animation": String(sprite.animation) if sprite != null else "",
+		"death_frame_count": (
+			sprite.sprite_frames.get_frame_count(&"death")
+			if sprite != null
+				and sprite.sprite_frames != null
+				and sprite.sprite_frames.has_animation(&"death")
+			else 0
+		),
+		"active_hitbox_count": (
+			collision.get_active_hitbox_count() if collision != null else -1
+		),
+		"reward_available": (
+			bool(source.call("is_available"))
+			if source != null and source.has_method("is_available")
+			else false
+		),
+		"reward_claim_available": (
+			bool(source.call("is_claim_available"))
+			if source != null and source.has_method("is_claim_available")
+			else false
+		),
+		"camera_lock_enabled": _boss2_camera_lock_enabled,
+		"room_seals_enabled": _boss2_room_seals_enabled,
+		"player_control_locked": (
+			_boss2_death_presentation_pending
+			or (_game_flow != null and _game_flow.is_player_control_locked())
+		),
+		"notification_text": (
+			String(_hud.call("get_notification_text"))
+			if _hud != null and _hud.has_method("get_notification_text")
+			else ""
+		),
+	}
+
+
+func _complete_boss2_death_presentation() -> void:
+	if not _boss2_death_presentation_pending:
+		return
+	_boss2_death_presentation_pending = false
+	_boss2_death_presentation_remaining_sec = 0.0
+	_sync_boss2_encounter_handoff()
 	_sync_boss2_double_jump_payoff_state()
 	refresh_boss2_camera_lock()
+	refresh_rat_king_camera_choreography()
 	refresh_boss2_room_seals()
+	_player.set_control_locked(_game_flow != null and _game_flow.is_player_control_locked())
 	_hud.show_notification("Echo Guardian defeated - Claim Double Jump", 2.5)
 
 
@@ -2569,6 +2993,76 @@ func _sync_scrap_roost_return_hub() -> bool:
 	if not was_secured:
 		_hud.show_notification(SCRAP_ROOST_RETURN_HUB_NOTIFICATION, 2.5)
 	return true
+
+
+func get_crown_warden_victory_return_diagnostics() -> Dictionary:
+	var savepoint: Node2D = get_node_or_null(SCRAP_ROOST_SAVEPOINT_NODE_PATH) as Node2D
+	var player_position: Vector2 = _player.global_position if _player != null else Vector2.ZERO
+	var savepoint_position: Vector2 = (
+		savepoint.global_position if savepoint != null else Vector2.ZERO
+	)
+	return {
+		"secured": bool(_world_progress_flags.get(
+			String(CROWN_WARDEN_HUB_RETURN_FLAG),
+			false
+		)),
+		"valid_recall_proof": _has_crown_warden_victory_recall_proof(),
+		"current_scene": String(_get_scene_manager_current_scene()),
+		"current_spawn_point": String(_get_scene_manager_current_spawn_point()),
+		"savepoint_present": savepoint != null,
+		"savepoint_position": savepoint_position,
+		"player_position": player_position,
+		"player_savepoint_distance": player_position.distance_to(savepoint_position),
+		"last_savepoint": get_last_discovered_savepoint(),
+		"hud_notification_text": (
+			String(_hud.call("get_notification_text"))
+			if _hud != null and _hud.has_method("get_notification_text")
+			else ""
+		),
+	}
+
+
+func _sync_crown_warden_victory_return_hub() -> bool:
+	if not _is_scene_manager_at_scrap_roost_hub():
+		return false
+	if not _has_crown_warden_victory_recall_proof():
+		return false
+	var savepoint: Node2D = get_node_or_null(SCRAP_ROOST_SAVEPOINT_NODE_PATH) as Node2D
+	if savepoint == null:
+		return false
+	var was_secured: bool = bool(_world_progress_flags.get(
+		String(CROWN_WARDEN_HUB_RETURN_FLAG),
+		false
+	))
+	if not _move_player_to_spawn_point(SCRAP_ROOST_SAVEPOINT_ID):
+		return false
+	if not discover_savepoint(
+		SCRAP_ROOST_SAVEPOINT_ID,
+		StringName(MAIN_SCENE_ID),
+		SCRAP_ROOST_SAVEPOINT_ID,
+		savepoint.global_position
+	):
+		return false
+	_world_progress_flags[String(CROWN_WARDEN_HUB_RETURN_FLAG)] = true
+	if not was_secured:
+		_crown_warden_hub_return_notification_pending = true
+		_hud.show_notification(CROWN_WARDEN_HUB_RETURN_NOTIFICATION, 2.5)
+	return true
+
+
+func _has_crown_warden_victory_recall_proof() -> bool:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if scene_manager == null or not scene_manager.has_method("get_scene_state"):
+		return false
+	var arena_state: Dictionary = Dictionary(scene_manager.call(
+		"get_scene_state",
+		CROWN_WARDEN_ARENA_SCENE_ID
+	))
+	return (
+		bool(arena_state.get(CROWN_WARDEN_DEFEATED_STATE_KEY, false))
+		and bool(arena_state.get(CROWN_WARDEN_REWARD_STATE_KEY, false))
+		and bool(arena_state.get(CROWN_WARDEN_RECALL_STATE_KEY, false))
+	)
 
 
 func _is_scene_manager_at_scrap_roost_hub() -> bool:
@@ -2666,6 +3160,7 @@ func _on_exploration_gate_state_changed(
 		if not area_flag.begins_with("area_"):
 			area_flag = "area_%s" % area_flag
 		set_world_progress_flag(StringName("%s_unlocked" % area_flag), true)
+		_reveal_main_minimap_area(target_area)
 	var required_ability: StringName = _exploration_gate_required_ability_id(gate)
 	var world_position: Vector2 = (gate as Node2D).global_position if gate is Node2D else Vector2.ZERO
 	_dispatch_audio_event(&"on_exploration_gate_unlocked", [
@@ -2724,6 +3219,73 @@ func _exploration_gate_required_ability_id(gate: Node) -> StringName:
 	if gate != null and gate.has_method("get_required_ability"):
 		return StringName(String(gate.call("get_required_ability")))
 	return &""
+
+
+func _setup_main_minimap() -> void:
+	if _hud == null or not _hud.has_method("configure_minimap"):
+		return
+	_hud.call("configure_minimap", _main_minimap_region_definitions(), &"main")
+	_update_main_minimap_player_marker()
+
+
+func _main_minimap_region_definitions() -> Array[Dictionary]:
+	var definitions: Array[Dictionary] = []
+	for region_definition: Dictionary in MAIN_MINIMAP_REGIONS:
+		var definition: Dictionary = region_definition.duplicate(true)
+		var region_id: String = String(definition.get("id", ""))
+		definition["discovered"] = (
+			region_id == MAIN_SCENE_ID
+			or bool(_world_progress_flags.get("%s_unlocked" % region_id, false))
+		)
+		definitions.append(definition)
+	return definitions
+
+
+func _sync_main_minimap_from_world_flags() -> void:
+	if _hud == null or not _hud.has_method("set_minimap_region_discovered"):
+		return
+	for definition: Dictionary in _main_minimap_region_definitions():
+		var region_id: StringName = StringName(String(definition.get("id", "")))
+		_hud.call(
+			"set_minimap_region_discovered",
+			region_id,
+			bool(definition.get("discovered", false))
+		)
+
+
+func _reveal_main_minimap_area(area_id: StringName) -> bool:
+	if _hud == null or not _hud.has_method("reveal_minimap_region"):
+		return false
+	if not bool(_hud.call(
+		"reveal_minimap_region",
+		area_id,
+		MAIN_MINIMAP_REVEAL_DURATION_SEC
+	)):
+		return false
+	_hud.show_notification("%s discovered" % _main_minimap_area_display_name(area_id), 2.0)
+	return true
+
+
+func _main_minimap_area_display_name(area_id: StringName) -> String:
+	for definition: Dictionary in MAIN_MINIMAP_REGIONS:
+		if String(definition.get("id", "")) == String(area_id):
+			return String(definition.get("display_name", String(area_id)))
+	return String(area_id).replace("_", " ").capitalize()
+
+
+func _update_main_minimap_player_marker() -> void:
+	if _hud != null and _hud.has_method("update_minimap_player_position"):
+		_hud.call(
+			"update_minimap_player_position",
+			_player.global_position,
+			MAIN_MINIMAP_WORLD_BOUNDS
+		)
+
+
+func get_main_minimap_diagnostics() -> Dictionary:
+	if _hud == null or not _hud.has_method("get_minimap_diagnostics"):
+		return {}
+	return Dictionary(_hud.call("get_minimap_diagnostics"))
 
 
 func _record_boss_reward_ability(ability_id: StringName) -> void:
@@ -3442,6 +4004,45 @@ func _connect_player_focus_mode_signal() -> void:
 func _on_player_focus_mode_changed(entity_id: int, active: bool, metadata: Dictionary) -> void:
 	_combat_presentation.on_focus_mode_changed(entity_id, active, metadata)
 	_dispatch_audio_event(&"on_focus_mode_changed", [entity_id, active, metadata])
+	_sync_enemy_focus_windup(active, metadata)
+	_sync_focus_environment_particles(active)
+
+
+func get_focus_mode_enemy_windup_diagnostics() -> Dictionary:
+	return {
+		"player_focus_active": _is_player_focus_mode_active(),
+		"rat_king": _get_enemy_focus_windup_diagnostics(_enemy),
+		"echo_guardian": _get_enemy_focus_windup_diagnostics(
+			_get_boss2_echo_guardian()
+		),
+	}
+
+
+func get_focus_environment_diagnostics() -> Dictionary:
+	var particles: Node = get_node_or_null("FocusEnvironmentParticles")
+	if particles == null or not particles.has_method(
+		"get_focus_environment_diagnostics"
+	):
+		return {}
+	return Dictionary(particles.call("get_focus_environment_diagnostics"))
+
+
+func _sync_enemy_focus_windup(active: bool, metadata: Dictionary) -> void:
+	for enemy: Node in [_enemy, _get_boss2_echo_guardian()]:
+		if enemy != null and enemy.has_method("set_target_focus_mode"):
+			enemy.call("set_target_focus_mode", active, metadata)
+
+
+func _sync_focus_environment_particles(active: bool) -> void:
+	var particles: Node = get_node_or_null("FocusEnvironmentParticles")
+	if particles != null and particles.has_method("set_focus_mode"):
+		particles.call("set_focus_mode", active)
+
+
+func _get_enemy_focus_windup_diagnostics(enemy: Node) -> Dictionary:
+	if enemy == null or not enemy.has_method("get_focus_windup_diagnostics"):
+		return {}
+	return Dictionary(enemy.call("get_focus_windup_diagnostics"))
 
 
 func _is_player_focus_mode_active() -> bool:

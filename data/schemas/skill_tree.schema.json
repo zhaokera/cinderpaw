@@ -23,6 +23,174 @@
 				"effect_summary": {"type": "String"},
 				"modifiers": {"type": "Array"}
 			}
+		},
+		"cat_claw_t1b": {
+			"required": [
+				"skill_id",
+				"display_name",
+				"branch",
+				"tier",
+				"node_type",
+				"cost",
+				"prerequisites",
+				"effect_summary",
+				"modifiers"
+			],
+			"fields": {
+				"skill_id": {"type": "String", "enum": ["cat_claw_t1b"]},
+				"display_name": {"type": "String"},
+				"branch": {"type": "String", "enum": ["cat_claw"]},
+				"tier": {"type": "String", "enum": ["T1"]},
+				"node_type": {"type": "String", "enum": ["passive"]},
+				"cost": {"type": "int", "min": 0, "max": 5},
+				"prerequisites": {"type": "Array"},
+				"effect_summary": {"type": "String"},
+				"modifiers": {"type": "Array"}
+			}
+		},
+		"long_tail_t1a": {
+			"required": [
+				"skill_id",
+				"display_name",
+				"branch",
+				"tier",
+				"node_type",
+				"cost",
+				"prerequisites",
+				"effect_summary",
+				"modifiers"
+			],
+			"fields": {
+				"skill_id": {"type": "String", "enum": ["long_tail_t1a"]},
+				"display_name": {"type": "String"},
+				"branch": {"type": "String", "enum": ["long_tail"]},
+				"tier": {"type": "String", "enum": ["T1"]},
+				"node_type": {"type": "String", "enum": ["modifier"]},
+				"cost": {"type": "int", "min": 0, "max": 5},
+				"prerequisites": {"type": "Array"},
+				"effect_summary": {"type": "String"},
+				"modifiers": {"type": "Array"}
+			}
+		},
+		"long_tail_t1b": {
+			"required": [
+				"skill_id",
+				"display_name",
+				"branch",
+				"tier",
+				"node_type",
+				"cost",
+				"prerequisites",
+				"effect_summary",
+				"modifiers"
+			],
+			"fields": {
+				"skill_id": {"type": "String", "enum": ["long_tail_t1b"]},
+				"display_name": {"type": "String"},
+				"branch": {"type": "String", "enum": ["long_tail"]},
+				"tier": {"type": "String", "enum": ["T1"]},
+				"node_type": {"type": "String", "enum": ["passive"]},
+				"cost": {"type": "int", "min": 0, "max": 5},
+				"prerequisites": {"type": "Array"},
+				"effect_summary": {"type": "String"},
+				"modifiers": {"type": "Array"}
+			}
+		},
+		"fish_bone_t1a": {
+			"required": [
+				"skill_id",
+				"display_name",
+				"branch",
+				"tier",
+				"node_type",
+				"cost",
+				"prerequisites",
+				"effect_summary",
+				"modifiers"
+			],
+			"fields": {
+				"skill_id": {"type": "String", "enum": ["fish_bone_t1a"]},
+				"display_name": {"type": "String"},
+				"branch": {"type": "String", "enum": ["fish_bone"]},
+				"tier": {"type": "String", "enum": ["T1"]},
+				"node_type": {"type": "String", "enum": ["modifier"]},
+				"cost": {"type": "int", "min": 0, "max": 5},
+				"prerequisites": {"type": "Array"},
+				"effect_summary": {"type": "String"},
+				"modifiers": {"type": "Array"}
+			}
+		},
+		"fish_bone_t1b": {
+			"required": [
+				"skill_id",
+				"display_name",
+				"branch",
+				"tier",
+				"node_type",
+				"cost",
+				"prerequisites",
+				"effect_summary",
+				"modifiers"
+			],
+			"fields": {
+				"skill_id": {"type": "String", "enum": ["fish_bone_t1b"]},
+				"display_name": {"type": "String"},
+				"branch": {"type": "String", "enum": ["fish_bone"]},
+				"tier": {"type": "String", "enum": ["T1"]},
+				"node_type": {"type": "String", "enum": ["passive"]},
+				"cost": {"type": "int", "min": 0, "max": 5},
+				"prerequisites": {"type": "Array"},
+				"effect_summary": {"type": "String"},
+				"modifiers": {"type": "Array"}
+			}
+		},
+		"electro_bell_t1a": {
+			"required": [
+				"skill_id",
+				"display_name",
+				"branch",
+				"tier",
+				"node_type",
+				"cost",
+				"prerequisites",
+				"effect_summary",
+				"modifiers"
+			],
+			"fields": {
+				"skill_id": {"type": "String", "enum": ["electro_bell_t1a"]},
+				"display_name": {"type": "String"},
+				"branch": {"type": "String", "enum": ["electro_bell"]},
+				"tier": {"type": "String", "enum": ["T1"]},
+				"node_type": {"type": "String", "enum": ["modifier"]},
+				"cost": {"type": "int", "min": 0, "max": 5},
+				"prerequisites": {"type": "Array"},
+				"effect_summary": {"type": "String"},
+				"modifiers": {"type": "Array"}
+			}
+		},
+		"electro_bell_t1b": {
+			"required": [
+				"skill_id",
+				"display_name",
+				"branch",
+				"tier",
+				"node_type",
+				"cost",
+				"prerequisites",
+				"effect_summary",
+				"modifiers"
+			],
+			"fields": {
+				"skill_id": {"type": "String", "enum": ["electro_bell_t1b"]},
+				"display_name": {"type": "String"},
+				"branch": {"type": "String", "enum": ["electro_bell"]},
+				"tier": {"type": "String", "enum": ["T1"]},
+				"node_type": {"type": "String", "enum": ["passive"]},
+				"cost": {"type": "int", "min": 0, "max": 5},
+				"prerequisites": {"type": "Array"},
+				"effect_summary": {"type": "String"},
+				"modifiers": {"type": "Array"}
+			}
 		}
 	}
 }

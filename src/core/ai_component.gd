@@ -165,6 +165,19 @@ func set_health_adapter(health_adapter: Object) -> void:
 	_connect_health_signal(&"on_boss_phase_change", _handle_boss_phase_change)
 
 
+## Applies focus emitted by an external target, such as the player hunted by this AI.
+func set_target_focus_mode(active: bool, metadata: Dictionary = {}) -> void:
+	_set_focus_mode(active, metadata)
+
+
+func is_target_focus_mode_active() -> bool:
+	return _focus_mode_active
+
+
+func get_focus_windup_extension_frames() -> int:
+	return _focus_windup_extension_frames if _focus_mode_active else 0
+
+
 ## Configures low-HP flee and berserk behavior thresholds.
 func configure_low_hp_behavior(
 	flee_enabled: bool,
@@ -264,6 +277,9 @@ func get_current_attack_pattern_id() -> StringName:
 func _start_attack_from_pattern(pattern: Dictionary) -> bool:
 	_current_attack_pattern = pattern.duplicate(true)
 	_apply_berserk_timing(_current_attack_pattern)
+	_current_attack_pattern["base_startup_frames"] = int(
+		_current_attack_pattern.get("startup_frames", DEFAULT_ATTACK_STARTUP_FRAMES)
+	)
 	_current_attack_pattern["startup_frames"] = _get_effective_startup_frames(_current_attack_pattern)
 	_attack_phase = ATTACK_PHASE_STARTUP
 	_attack_phase_frame = 0
@@ -288,6 +304,15 @@ func get_effective_attack_startup_frames() -> int:
 	if _current_attack_pattern.is_empty():
 		return 0
 	return int(_current_attack_pattern.get("startup_frames", DEFAULT_ATTACK_STARTUP_FRAMES))
+
+
+func get_current_attack_base_startup_frames() -> int:
+	if _current_attack_pattern.is_empty():
+		return 0
+	return int(_current_attack_pattern.get(
+		"base_startup_frames",
+		DEFAULT_ATTACK_STARTUP_FRAMES
+	))
 
 
 ## Returns the latest accepted boss phase for this entity.
@@ -798,6 +823,10 @@ func _build_attack_metadata() -> Dictionary:
 		"pattern_id": _current_attack_pattern.get("pattern_id", &"default_attack"),
 		"damage_type": _current_attack_pattern.get("damage_type", &"physical"),
 		"damage": _current_attack_pattern.get("damage", 0),
+		"base_startup_frames": _current_attack_pattern.get(
+			"base_startup_frames",
+			DEFAULT_ATTACK_STARTUP_FRAMES
+		),
 		"startup_frames": _current_attack_pattern.get("startup_frames", DEFAULT_ATTACK_STARTUP_FRAMES),
 		"active_frames": _current_attack_pattern.get("active_frames", DEFAULT_ATTACK_ACTIVE_FRAMES),
 		"recovery_frames": _current_attack_pattern.get("recovery_frames", DEFAULT_ATTACK_RECOVERY_FRAMES),

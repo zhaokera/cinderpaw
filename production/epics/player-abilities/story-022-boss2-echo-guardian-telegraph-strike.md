@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Combat Feel
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-06-26
+> **Last Updated**: 2026-07-14
 
 ## Context
 
@@ -36,8 +36,9 @@ flow.
   `get_current_attack_startup_frames()`, `get_attack_phase()`,
   `is_enemy_attack_active()`, `get_collision_component()`, and
   `get_last_enemy_attack_metadata()`.
-- [x] `echo_swipe` has a readable startup window where the `attack` animation
-  plays but the hitbox is inactive.
+- [x] `echo_swipe` has a readable startup window where the dedicated
+  `attack_tell` animation plays but the hitbox is inactive. Story165 supersedes
+  only this story's original startup-to-`attack` animation mapping.
 - [x] After startup, `boss2_echo_swipe` becomes active for fixed frames and
   damages the Player exactly once through the existing Core Collision/Combat
   damage path when the Player hurtbox overlaps it.
@@ -57,8 +58,9 @@ flow.
 
 - Multi-phase Boss2 AI, summon patterns, authored boss music, cutscene/camera
   scripting, final arena layout, HP bar polish, or full boss balancing.
-- New Boss2 art or animation generation. This slice reuses Story021 generated
-  `idle`, `attack`, `hurt`, and `death` frames.
+- New Boss2 art or animation generation was out of scope for this original
+  slice. Story165 later adds the generated `attack_tell` frames without changing
+  Story022's combat timing, hitbox, damage, metadata, or reward contract.
 - New route gates, minimap updates, fast travel, or full Old Factory route
   content.
 - A generic AI rewrite, new Autoload, EventBus, or NavigationAgent2D.
@@ -130,3 +132,7 @@ final arena layout, HP bar polish, authored music, and full boss balancing
 remain out of scope.
 **QA Evidence**:
 `production/qa/evidence/boss2-echo-guardian-telegraph-strike-2026-06-26.md`
+
+**Supersession note**: Story165 replaces only the startup presentation with
+`attack_tell`; active frames continue to use `attack`, and every gameplay value
+verified by this story remains unchanged.

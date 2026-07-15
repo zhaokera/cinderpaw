@@ -282,6 +282,11 @@ func test_enemy_damage_and_player_dodge_events_route_to_audio_system() -> void:
 	assert_str(String(damage_event.get("source", &""))).is_equal("rat_king_claw")
 	assert_bool(damage_event.has("hit_position")).is_true()
 
+	var combat: CombatComponent = player.call("get_combat_component") as CombatComponent
+	assert_that(combat).is_not_null()
+	if combat == null:
+		return
+	combat.advance_hit_stun_frames(12)
 	assert_bool(bool(player.call("request_dodge"))).is_true()
 	assert_int(audio_system.dodge_events.size()).is_equal(1)
 	if audio_system.dodge_events.size() != 1:
@@ -352,6 +357,7 @@ func test_rat_king_boss_music_start_and_end_events_route_to_audio_system() -> vo
 
 
 func test_boss2_runtime_states_and_reward_claim_route_authored_audio_events() -> void:
+	scene.call("set_world_progress_flag", &"boss_rat_king_defeated", true)
 	var audio_system: FakeAudioSystem = _configure_fake_audio_system()
 	var boss: Node2D = scene.get_node("Boss2EchoGuardian") as Node2D
 	var player: Node2D = scene.get_node("Player") as Node2D
@@ -359,12 +365,14 @@ func test_boss2_runtime_states_and_reward_claim_route_authored_audio_events() ->
 	assert_bool(boss.has_method("get_auto_pressure_diagnostics")).is_true()
 	assert_bool(boss.has_method("set_attack_target")).is_true()
 	assert_bool(scene.has_method("apply_damage")).is_true()
+	assert_bool(scene.has_method("advance_boss2_death_presentation")).is_true()
 	assert_bool(scene.has_method("claim_boss2_double_jump_reward_source")).is_true()
 	if (
 		not boss.has_method("advance_behavior_frames")
 		or not boss.has_method("get_auto_pressure_diagnostics")
 		or not boss.has_method("set_attack_target")
 		or not scene.has_method("apply_damage")
+		or not scene.has_method("advance_boss2_death_presentation")
 		or not scene.has_method("claim_boss2_double_jump_reward_source")
 	):
 		return
@@ -395,6 +403,7 @@ func test_boss2_runtime_states_and_reward_claim_route_authored_audio_events() ->
 		"source": &"unit_test_boss2_audio_defeat",
 	}))).is_true()
 	_assert_boss2_audio_event(audio_system, 4, &"defeated", boss.global_position)
+	assert_bool(bool(scene.call("advance_boss2_death_presentation", 2.0))).is_true()
 
 	var reward_source: Node = scene.get_node("Boss2DoubleJumpRewardSource")
 	assert_bool(bool(reward_source.call("is_claim_available"))).is_true()

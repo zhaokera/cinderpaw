@@ -6,7 +6,7 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 ## Technology Stack
 
 - **Engine**: Godot 4.7
-- **Godot AI MCP**: 2.9.1
+- **Godot AI MCP**: 3.0.2
 - **Language**: GDScript
 - **Version Control**: Git with trunk-based development
 - **Build System**: SCons (engine), Godot Export Templates
@@ -30,6 +30,76 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 ## Coordination Rules
 
 @.claude/docs/coordination-rules.md
+
+## Project-Local Superpowers Policy
+
+This policy applies only inside the `cinderpaw` repository. Do not modify or
+disable global Superpowers installations, user-level Codex configuration, or
+rules in other projects. Except where a higher-priority instruction explicitly
+requires a skill, Superpowers are selected by risk and are not a mandatory
+ceremony for every task.
+
+### Invocation Boundary
+
+- Inside this repository, do not automatically invoke `using-superpowers` at
+  the start of every turn and do not apply its generic "1% chance" rule. This
+  project-local policy is the explicit user override for Superpowers usage.
+- Invoke a Superpowers skill only when the user explicitly requests it or when
+  one of the Required/Conditional Triggers below is actually met.
+- Merely having a matching skill installed is not a trigger. Routine repository
+  reading, status checks, documentation edits, and already-specified low-risk
+  Story work may proceed directly.
+
+### Default Execution
+
+- For a small, approved, low-risk Story with clear GDD/ADR acceptance criteria,
+  the integrating agent should read the relevant files and implement directly.
+  Do not run brainstorming, write a separate implementation plan, create a
+  worktree, or request multiple reviews only because those skills are installed.
+- Keep process proportional to player impact and blast radius. Prefer one
+  bounded Story, one intentional RED, focused GREEN, necessary related
+  regression, and one MCP runtime acceptance when visible gameplay changes.
+- Do not repeat equivalent test, review, or planning passes without new
+  evidence, a code change, or an unresolved risk that justifies the repetition.
+
+### Required Triggers
+
+- Use `systematic-debugging` when a reproducible bug, failing test, Godot parse
+  error, MCP runtime error, or unexplained behavior exists and the cause is not
+  already known.
+- Use `verification-before-completion` before claiming a Story complete, before
+  a requested commit/push, and at milestone or release gates. Verification must
+  match the changed surface; it does not imply running the full suite.
+- Use `test-driven-development` for new gameplay behavior and bug regressions,
+  but apply thin TDD: one meaningful failing acceptance test, focused GREEN,
+  then only the related regression required by risk.
+- Use `dispatching-parallel-agents` only when at least two independent
+  workstreams materially advance the current slice and have disjoint ownership
+  or are read-only. Do not spawn agents merely to satisfy an agent count.
+
+### Conditional Triggers
+
+- Use `brainstorming` only when a new mechanic or creative direction is
+  genuinely ambiguous, lacks approved GDD/Story guidance, or would materially
+  change scope. Do not brainstorm again for an already approved bounded Story.
+- Use `writing-plans` only for cross-system work, high-risk migrations, or work
+  with at least three coupled implementation phases. A short in-session plan is
+  enough for ordinary Stories.
+- Use `using-git-worktrees` only when the user requests isolation or concurrent
+  write ownership makes the current worktree unsafe. Do not create a worktree
+  for routine Story work in the active repository.
+- Use code-review request/response workflows for shared APIs, architecture
+  changes, high-blast-radius refactors, or pre-merge review, not every small
+  patch.
+
+### Verification Budget
+
+- Documentation-only changes: formatting and consistency checks only.
+- Pure data or local logic: focused tests plus the smallest relevant regression.
+- Scene, animation, asset, or visible gameplay changes: focused/related tests
+  plus one Godot MCP launch, runtime log inspection, and a non-empty screenshot.
+- Full-suite testing is reserved for milestones, releases, requested pre-merge
+  gates, or changes whose shared-system blast radius genuinely requires it.
 
 ## Parallel Agent Use
 

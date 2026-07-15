@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 144 stories tracked
+> **Stories**: 167 stories tracked
 
 ## Overview
 
@@ -182,6 +182,29 @@ recording the reward in progression state.
 | 142 | Central Tower Cooling Shaft Roost Traverse | Integration + Gameplay Runtime + Traversal + Save/Respawn + Visual | Complete | ADR-0001/0002/0004/0005/0007/0018/0019/0021 |
 | 143 | Central Tower Deep Lift Counterweight Ambush | Integration + Gameplay Runtime + Combat + Moving Platform + Frame Animation | Complete | ADR-0001/0002/0003/0004/0005/0006/0007/0019/0021 |
 | 144 | Central Tower Apex Conduit Purge Run | Integration + Gameplay Runtime + Traversal + Save/Respawn + Environmental Hazard + Visual | Complete | ADR-0001/0002/0003/0004/0005/0007/0018/0019/0021 |
+| 145 | Central Tower Crown Warden Arena Handoff | Integration + Gameplay Runtime + Scene Management + Visual | Complete | ADR-0001/0002/0003/0004/0007/0018/0021 |
+| 146 | Crown Warden Playable Boss4 Core | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0001/0002/0003/0004/0005/0006/0007/0018/0019/0021 |
+| 147 | Crown Warden Wall Climb Reward Payoff | Integration + Gameplay Runtime + Generated Visual Contract | Complete | ADR-0001/0002/0003/0007/0018/0021 |
+| 148 | Crown Warden Victory Recall To Scrap Roost | Integration + Gameplay Runtime + Scene Flow + Generated Visual Contract | Complete | ADR-0001/0003/0007/0018/0021 |
+| 149 | Skill Tree Long Tail T1-A Choice | Integration + Gameplay Runtime + UI | Complete | ADR-0001/0003/0005/0009/0011/0016/0021 |
+| 150 | Skill Tree Fish Bone T1-A Heavy Shock | Integration + Gameplay Runtime + UI + Collision | Complete | ADR-0001/0003/0004/0005/0009/0011/0016/0021 |
+| 151 | Skill Tree Electro Bell T1-A Pulse Touch | Integration + Gameplay Runtime + UI + Status + Visual/Feel | Complete | ADR-0001/0003/0004/0005/0009/0011/0016/0017/0021 |
+| 152 | Main Scene Local Minimap Discovery Runtime | Integration + UI + Exploration + Save | Complete | ADR-0001/0002/0007/0008/0011/0013/0015/0021 |
+| 153 | Main Scene Autosave Paw Stamp Feedback | Integration + UI + Audio/Feel + Save | Complete | ADR-0001/0002/0010/0011/0013/0015/0021 |
+| 154 | Main Scene Low-HP Focus Activation Feedback | Integration + Visual/Feel + Audio | Complete | ADR-0002/0010/0013/0015/0019 |
+| 155 | Crown Warden Parry Counter Runtime | Integration + Combat Runtime + Boss Config + Visual/Feel + Audio | Complete | ADR-0001/0002/0003/0004/0005/0010/0019 |
+| 156 | Main Rat King to Echo Guardian Sequential Encounter Handoff | Integration + ACT Pacing + Scene/HUD | Complete | ADR-0002/0007/0018/0021 |
+| 157 | Main Scene Focus Mode Boss Windup Runtime | Integration + Combat Readability + AI | Complete | ADR-0001/0002/0005/0006/0019 |
+| 158 | Main Scene Focus Mode Boss Attack Tell Amplification | Integration + Combat Readability + Generated Visual | Complete | ADR-0001/0002/0005/0006/0010/0019 |
+| 159 | Main Scene Focus Mode Environment Particle Clarity | Integration + Combat Readability + Generated Visual | Complete | ADR-0001/0002/0006/0010/0019 |
+| 160 | Skill Tree Cat Claw T1-B Damage Choice | Integration + Gameplay Runtime + UI + Damage | Complete | ADR-0001/0003/0005/0009/0011/0016/0021 |
+| 161 | Skill Tree Long Tail T1-B Damage Choice | Integration + Gameplay Runtime + UI + Damage | Complete | ADR-0001/0003/0005/0009/0011/0016/0021 |
+| 162 | Skill Tree Fish Bone T1-B Damage Choice | Integration + Gameplay Runtime + UI + Damage | Complete | ADR-0001/0003/0005/0009/0011/0016/0021 |
+| 163 | Crown Warden Phase II Transition Readability | Integration + Gameplay Runtime + Combat Readability | Complete | ADR-0002/0004/0005/0006/0010/0019/0020 |
+| 164 | Skill Tree Electro Bell T1-B Damage Choice | Integration + Gameplay Runtime + UI + Damage | Complete | ADR-0001/0003/0005/0009/0011/0016/0021 |
+| 165 | Echo Guardian Attack Tell Frame Animation Runtime | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0006/0010/0018 |
+| 166 | Cinderpaw Real-Input Three-Stage Light Combo Runtime | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0001/0002/0004/0005/0010/0018 |
+| 167 | Cinderpaw Authored Three-Stage Light Hitbox Timing | Integration + Gameplay Runtime + Collision Timing | Complete | ADR-0001/0002/0004/0005/0010/0018 |
 
 ## Definition of Done
 
@@ -201,7 +224,8 @@ This epic is complete when:
 
 ## Next Step
 
-Story144 is complete. The next Tower slice must first receive an authored
-Boss4 approach/handoff or other upper-Tower continuation contract; do not infer
-Boss4 identity, data, arena, reward, narrative, music, ending or scene handoff
-from the Apex Approach endpoint.
+Story167 synchronizes Story166's generated three-stage light combo with authored
+startup, active and pure-recovery windows while preserving damage, energy and
+collision contracts. Select the next bounded player-visible ACT gap from the
+current GDD/Story state without reopening this verified timing contract unless
+new runtime evidence requires it.

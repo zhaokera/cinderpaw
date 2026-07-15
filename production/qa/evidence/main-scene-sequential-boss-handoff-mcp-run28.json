@@ -1,0 +1,73 @@
+{
+  "story": "player-abilities-156",
+  "date": "2026-07-14",
+  "engine": "Godot 4.7-stable (official)",
+  "mcp": {
+    "session": "cinderpaw@d40a",
+    "plugin_version": "2.9.2",
+    "server_version": "2.9.2",
+    "run_id": "r22661784-28",
+    "autosave": false,
+    "current_run_errors": []
+  },
+  "fresh_rat_king_encounter": {
+    "rat_king_visible": true,
+    "boss_hud_label": "垃圾桶鼠王  Phase I  300/300",
+    "boss2_encounter_active": false,
+    "boss2_visible": false,
+    "boss2_has_target": false,
+    "boss2_collision_layer": 0,
+    "boss2_collision_mask": 0,
+    "boss2_arena_frame_visible": false,
+    "boss2_room_seals_enabled": false,
+    "boss2_camera_lock_enabled": false,
+    "boss2_sprite_type": "AnimatedSprite2D",
+    "boss2_idle_frames": 3,
+    "boss2_run_frames": 3,
+    "boss2_attack_frames": 3
+  },
+  "echo_guardian_handoff": {
+    "rat_king_defeated": true,
+    "rat_king_visible": false,
+    "boss_hud_label": "Echo Guardian  Phase I  36/36",
+    "boss2_encounter_active": true,
+    "boss2_visible": true,
+    "boss2_has_target": true,
+    "boss2_collision_layer": 2,
+    "boss2_collision_mask": 17,
+    "boss2_hp": 36,
+    "boss2_max_hp": 36,
+    "boss2_arena_frame_visible": true,
+    "boss2_room_seals_enabled": true,
+    "boss2_camera_lock_enabled": true,
+    "boss2_sprite_type": "AnimatedSprite2D",
+    "boss2_animation": "run",
+    "boss2_animation_frame_count": 3
+  },
+  "screenshots": [
+    {
+      "path": "reports/visual/cinderpaw-mcp-main-rat-king-initial-handoff-20260714.png",
+      "sha256": "e390b1afd2f544faac4af8fb323282b95dfd738ff7dd935bf2d464370ef42eeb",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    },
+    {
+      "path": "reports/visual/cinderpaw-mcp-main-echo-guardian-handoff-20260714.png",
+      "sha256": "7385e0f2e1a7a73c56045e2588fa41fd9a6f7971e0f537d7acdf4133d57d579d",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    }
+  ],
+  "final_logs": {
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0,
+    "clean_stop_readiness": "ready"
+  }
+}

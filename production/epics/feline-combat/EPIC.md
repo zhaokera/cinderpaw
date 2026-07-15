@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/feline-combat.md
 > **Architecture Module**: CombatComponent
 > **Status**: Complete
-> **Stories**: 9 stories
+> **Stories**: 10 stories
 
 ## Stories
 
@@ -19,12 +19,18 @@
 | 007 | Hit Confirmation + Focus Damage Metadata | Integration | Complete | ADR-0002, ADR-0004, ADR-0005 |
 | 008 | Runtime Player Attack Core Chain | Integration | Complete | ADR-0002, ADR-0004, ADR-0005, ADR-0016 |
 | 009 | Runtime Enemy Attack + Shadow Beast Frame Animation | Integration / Visual | Complete | ADR-0002, ADR-0004, ADR-0005 |
+| 010 | Grounded Heavy Charge Runtime | Integration / Gameplay Runtime / Frame Animation | Complete | ADR-0002, ADR-0004, ADR-0005, ADR-0010, ADR-0011, ADR-0016 |
 
 ## Overview
 
 Implement `CombatComponent` as a Core entity component that turns normalized input actions into frame-level combat state transitions. It owns the 6-state combat FSM, light combo chain, dodge and parry windows, heavy charge lifecycle, cat energy, battle statistics, and the provisional adapters used to hand off hitbox, damage, health, weapon, and focus-mode data without making Combat an Autoload.
 
-Visual effects, audio, combo HUD, and charge UI remain out of scope for this Core epic. Those requirements are delegated to Combat Presentation, Audio, and HUD/UI epics, which consume Combat signals instead of being called directly. Story 008 adds the first runtime playable attack integration for the vertical slice by wiring PlayerController, MainScene, SimpleEnemy, and the completed Core components together. Story 009 adds reciprocal enemy attack pressure and replaces the runtime enemy's static sprite with a Shadow Beast `AnimatedSprite2D + SpriteFrames` presentation.
+Core remains independent of visual effects, audio, combo HUD, and charge UI.
+Those systems consume Combat signals through their own presentation modules.
+Story 008 adds the first runtime playable attack integration, Story 009 adds
+reciprocal enemy attack pressure and Shadow Beast frame animation, and Story
+010 completes the live grounded heavy-charge path without moving presentation
+ownership into `CombatComponent`.
 
 ## Governing ADRs
 
@@ -62,8 +68,10 @@ This epic is complete when:
 - Input, DamageCalculator, HealthComponent focus mode, and provisional CollisionComponent adapters are integrated through typed methods/signals.
 - The playable MainScene player attack path uses CombatComponent, CollisionComponent, HealthComponent, WeaponComponent, and StatusEffectComponent instead of prototype direct damage.
 - The runtime enemy attack path uses CollisionComponent, CombatComponent, DamageCalculator, and the player HealthComponent path instead of relying only on prototype contact damage.
-- Presentation-layer visual/audio/UI requirements are explicitly deferred to downstream epics and are not implemented in Core.
+- Presentation-layer visual/audio/UI behavior remains outside Core ownership;
+  Story010 verifies those consumers through signals and runtime evidence.
 
 ## Next Step
 
-Feline Combat Core, player attack integration, and runtime enemy attack pressure are complete for the current vertical slice. Continue with richer enemy AI scheduling, boss-specific attacks, audio, or expanded player/enemy animation coverage.
+All 10 stories are complete. The next combat slice should be selected from the
+highest-priority remaining playable ACT gap rather than extending this epic.

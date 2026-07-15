@@ -23,6 +23,7 @@ func after_test() -> void:
 func test_rat_king_defeat_consumes_configured_rewards_once_and_persists_progress() -> void:
 	var enemy: Node = scene.get_node("Enemy")
 	var hud: Node = scene.get_node("HUD")
+	var flow: Node = scene.get_node("GameFlowController")
 	var initial_progress: Dictionary = scene.call("get_runtime_progress_state")
 
 	assert_int(int(initial_progress.get("currency", -1))).is_equal(0)
@@ -43,6 +44,10 @@ func test_rat_king_defeat_consumes_configured_rewards_once_and_persists_progress
 	if dash_gate != null:
 		assert_str(String(dash_gate.call("get_gate_state"))).is_equal("unlockable")
 		assert_bool(bool(dash_gate.call("is_collision_blocking"))).is_true()
+
+	assert_str(String(flow.call("get_flow_state"))).is_equal("victory_pending")
+	assert_bool(bool(hud.call("is_menu_visible"))).is_false()
+	flow.call("advance_time", 3.01)
 
 	assert_str(String(hud.call("get_notification_text"))).is_equal("Dash unlocked +50 Gears +5 SP")
 	assert_str(String(hud.call("get_menu_title"))).is_equal("Rat King defeated")

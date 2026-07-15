@@ -1,0 +1,39 @@
+{
+  "date": "2026-07-14",
+  "session": {
+    "id": "cinderpaw@d40a",
+    "godot_version": "4.7-stable",
+    "plugin_version": "2.9.2",
+    "server_version": "2.9.2",
+    "run_id": "r8347138-8"
+  },
+  "result": {
+    "ok": true,
+    "unlocked": true,
+    "charge_animation": "heavy_charge",
+    "charge_animation_frames": 3,
+    "player_animation": "heavy_attack",
+    "player_animation_frames": 3,
+    "target_animation": "hurt",
+    "target_animation_frames": 3,
+    "skill_knockback_px": 8.0,
+    "displacement": 8.0,
+    "duplicate_displacement": 8.0,
+    "knockback_applied": true,
+    "knockback_requested_px": 8.0,
+    "knockback_applied_px": 8.0,
+    "knockback_blocked": false,
+    "vfx_count": 2,
+    "target_hp": 52
+  },
+  "logs": {
+    "game_info_rows": 3,
+    "game_warning_rows": 0,
+    "game_error_rows": 0,
+    "editor_rows": 0
+  },
+  "screenshots": [
+    "skill-tree-fish-bone-t1a-heavy-shock-mcp-charge-2026-07-14.png",
+    "skill-tree-fish-bone-t1a-heavy-shock-mcp-hit-2026-07-14.png"
+  ]
+}

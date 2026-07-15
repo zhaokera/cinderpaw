@@ -4,9 +4,9 @@
 |-------|-------|
 | **Engine Version** | Godot 4.7 |
 | **Local Binary Verified** | 4.7.stable.official.5b4e0cb0f |
-| **Godot AI MCP Baseline** | 2.9.1 |
-| **Project Pinned** | 2026-07-02 |
-| **Last Docs Verified** | 2026-07-02 |
+| **Godot AI MCP Baseline** | 3.0.2 |
+| **Project Pinned** | 2026-07-14 |
+| **Last Docs Verified** | 2026-07-14 |
 | **LLM Knowledge Cutoff** | May 2025 |
 | **Risk Level** | HIGH — versions 4.4, 4.5, 4.6, and 4.7 are beyond LLM training data |
 

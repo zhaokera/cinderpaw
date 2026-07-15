@@ -1,0 +1,110 @@
+{
+  "story": "player-abilities-165",
+  "date": "2026-07-14",
+  "engine": "Godot 4.7-stable",
+  "mcp": {
+    "session": "cinderpaw@af5f",
+    "plugin_version": "3.0.2",
+    "server_version": "3.0.2",
+    "run_id": "r12850599-8",
+    "current_run_errors": [],
+    "helper_live": true,
+    "clean_stop_readiness": "ready"
+  },
+  "main_handoff": {
+    "rat_king_defeated": true,
+    "boss_visible": true,
+    "boss_encounter_active": true,
+    "boss_has_target": true,
+    "arena_visible": true,
+    "room_seals_closed": true,
+    "camera_locked": true,
+    "hud": "Echo Guardian  Phase I  36/36"
+  },
+  "sprite_frames": {
+    "node_type": "AnimatedSprite2D",
+    "resource": "res://assets/characters/boss2_echo_guardian/boss2_echo_guardian_sprite_frames.tres",
+    "animations": ["attack", "attack_tell", "death", "hurt", "idle", "run"],
+    "attack_tell_frame_count": 3,
+    "attack_tell_loop": false,
+    "attack_tell_speed_fps": 18.0,
+    "attack_frame_count": 3,
+    "runtime_frame_size": [160, 128],
+    "continuous_paths": true
+  },
+  "startup": {
+    "focus_mode": true,
+    "base_frames": 8,
+    "extension_frames": 6,
+    "total_frames": 14,
+    "animation": "attack_tell",
+    "frame": 2,
+    "animation_playing": false,
+    "phase": "startup",
+    "hitbox_active": false,
+    "last_frame_held_after_manual_tick": true,
+    "external_focus_tell_area_multiplier": 1.25,
+    "external_focus_tell_duration_multiplier": 1.1
+  },
+  "active": {
+    "phase": "active",
+    "animation": "attack",
+    "frame": 0,
+    "animation_playing": true,
+    "hitbox_active": true,
+    "external_focus_tell_visible": false
+  },
+  "screenshots": [
+    {
+      "state": "startup",
+      "path": "reports/visual/cinderpaw-mcp-boss2-echo-guardian-attack-tell-startup-20260714.png",
+      "sha256": "a5cdb7d68205f8b667ef17660929d5e58dc7436e957edc9b3dbf7318668b584b",
+      "width": 1278,
+      "height": 718,
+      "non_empty": true,
+      "visually_inspected": true
+    },
+    {
+      "state": "active",
+      "path": "reports/visual/cinderpaw-mcp-boss2-echo-guardian-attack-active-20260714.png",
+      "sha256": "8626ca1db7ef002506966d225263ddf492ca49c6685482a3c70578d67d050c08",
+      "width": 1278,
+      "height": 718,
+      "non_empty": true,
+      "visually_inspected": true
+    }
+  ],
+  "tests": {
+    "initial_red": "reports/report_1701/results.xml",
+    "hold_red": "reports/report_1704/results.xml",
+    "focused_green": {
+      "path": "reports/report_1705/results.xml",
+      "passed": 1,
+      "failed": 0
+    },
+    "bounded_related_green": {
+      "path": "reports/report_1708/results.xml",
+      "passed": 16,
+      "failed": 0
+    }
+  },
+  "final_logs": {
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0
+  },
+  "rejected_runs": [
+    {
+      "run_id": "r11167773-6",
+      "reason": "Temporary game_eval mixed spaces with MCP wrapper tab indentation",
+      "project_error": false
+    },
+    {
+      "run_id": "r11474731-7",
+      "reason": "Exploratory run exposed non-looping attack_tell restart during extended startup",
+      "project_error": false,
+      "behavioral_regression_exposed": true,
+      "fixed_before_final_run": true
+    }
+  ]
+}

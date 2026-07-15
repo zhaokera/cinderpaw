@@ -102,6 +102,20 @@ func test_damage_number_records_gdd_float_distance_and_lifetime() -> void:
 	assert_int(presentation.get_active_damage_number_count()).is_equal(0)
 
 
+func test_death_wisp_cleanup_tolerates_node_already_freed_by_tween() -> void:
+	presentation.set_process(false)
+	presentation.on_player_death(Vector2(120, 180))
+	var expired_wisp: Sprite2D = presentation.get_node(
+		"PlayerDeathVfxLayer/PlayerDeathSoulWisp00"
+	) as Sprite2D
+	assert_object(expired_wisp).is_not_null()
+	expired_wisp.free()
+
+	presentation.advance_time(1.5)
+
+	assert_int(presentation.get_active_player_death_wisp_count()).is_equal(0)
+
+
 func test_damage_number_boundary_values_clamp_to_valid_tiers() -> void:
 	presentation.on_hit_event({
 		"damage": 0,
@@ -610,7 +624,7 @@ func test_boss_phase_transition_spawns_textured_overlay_and_metal_debris() -> vo
 	assert_int(int(presentation.call("get_last_boss_phase_entity_id"))).is_equal(42)
 	assert_int(int(presentation.call("get_last_boss_phase"))).is_equal(2)
 	assert_str(String(presentation.call("get_last_boss_phase_overlay_texture_path"))).is_equal(
-		"res://assets/generated/combat_boss_phase_overlay.png"
+		"res://assets/generated/combat_boss_phase_overlay_readable.png"
 	)
 
 	var metadata: Dictionary = Dictionary(presentation.call("get_last_boss_phase_metadata"))

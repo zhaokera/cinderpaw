@@ -4,6 +4,7 @@ class_name CombatComponent
 
 signal on_state_changed(old_state: int, new_state: int)
 signal on_attack_hit(metadata: Dictionary)
+signal on_light_attack_frame_advanced(combo_index: int, attack_frame: int)
 signal on_dodge_counter_active(active: bool)
 signal on_parry_resolved(metadata: Dictionary)
 signal on_heavy_attack_released(metadata: Dictionary)
@@ -42,9 +43,27 @@ const WEAPON_LONG_TAIL: StringName = &"long_tail"
 const WEAPON_FISH_BONE: StringName = &"fish_bone"
 const WEAPON_ELECTRO_BELL: StringName = &"electro_bell"
 const LIGHT_ATTACK_FRAME_DATA: Array[Dictionary] = [
-	{"startup_frames": 4, "recovery_frames": 8, "total_frames": 12},
-	{"startup_frames": 6, "recovery_frames": 12, "total_frames": 18},
-	{"startup_frames": 10, "recovery_frames": 20, "total_frames": 30},
+	{
+		"startup_frames": 4,
+		"active_frames": 4,
+		"post_active_recovery_frames": 4,
+		"recovery_frames": 8,
+		"total_frames": 12,
+	},
+	{
+		"startup_frames": 6,
+		"active_frames": 6,
+		"post_active_recovery_frames": 6,
+		"recovery_frames": 12,
+		"total_frames": 18,
+	},
+	{
+		"startup_frames": 10,
+		"active_frames": 10,
+		"post_active_recovery_frames": 10,
+		"recovery_frames": 20,
+		"total_frames": 30,
+	},
 ]
 const CAT_ENERGY_GAIN_BY_EVENT: Dictionary = {
 	&"light_0": 5,
@@ -420,6 +439,15 @@ func advance_charge_time(delta_sec: float) -> void:
 		_release_heavy_attack()
 
 
+## Cancels an active charge without releasing an attack.
+func cancel_heavy_charge() -> bool:
+	if _current_state != CombatState.CHARGING:
+		return false
+	_reset_charge()
+	_change_state(CombatState.IDLE)
+	return true
+
+
 ## Advances hit-stun frames for tests and frame processing.
 func advance_hit_stun_frames(frames: int) -> void:
 	for _index: int in range(maxi(0, frames)):
@@ -608,6 +636,63 @@ func _compose_hit_metadata(
 			+ int(skill_modifiers["claw_counter_crit_window_bonus_frames"])
 		),
 		"skill_modifiers": skill_modifiers,
+		"charge_seconds": float(_metadata_value(attack_metadata, event, "charge_seconds", 0.0)),
+		"charge_ratio": float(_metadata_value(attack_metadata, event, "charge_ratio", 0.0)),
+		"charge_multiplier": float(_metadata_value(
+			attack_metadata,
+			event,
+			"charge_multiplier",
+			1.0
+		)),
+		"facing": float(_metadata_value(attack_metadata, event, "facing", 0.0)),
+		"skill_knockback_px": float(_metadata_value(
+			attack_metadata,
+			event,
+			"skill_knockback_px",
+			0.0
+		)),
+		"knockback_direction": float(_metadata_value(
+			attack_metadata,
+			event,
+			"knockback_direction",
+			0.0
+		)),
+		"knockback_attempted": bool(_metadata_value(
+			attack_metadata,
+			event,
+			"knockback_attempted",
+			false
+		)),
+		"knockback_applied": bool(_metadata_value(
+			attack_metadata,
+			event,
+			"knockback_applied",
+			false
+		)),
+		"knockback_requested_px": float(_metadata_value(
+			attack_metadata,
+			event,
+			"knockback_requested_px",
+			0.0
+		)),
+		"knockback_applied_px": float(_metadata_value(
+			attack_metadata,
+			event,
+			"knockback_applied_px",
+			0.0
+		)),
+		"knockback_blocked": bool(_metadata_value(
+			attack_metadata,
+			event,
+			"knockback_blocked",
+			false
+		)),
+		"knockback_blocked_reason": StringName(_metadata_value(
+			attack_metadata,
+			event,
+			"knockback_blocked_reason",
+			&""
+		)),
 		"attack_power": int(_metadata_value(attack_metadata, event, "attack_power", 0)),
 		"enemy_defense": int(_metadata_value(attack_metadata, event, "enemy_defense", 0)),
 		"injected_damage_params": _metadata_dictionary_value(
@@ -895,6 +980,9 @@ func _advance_attack_frame() -> void:
 	if _current_state != CombatState.ATTACKING:
 		return
 	_attack_frame += 1
+	var advanced_stage: int = _combo_index
+	var advanced_frame: int = _attack_frame
+	on_light_attack_frame_advanced.emit(advanced_stage, advanced_frame)
 	if _attack_frame >= _get_current_attack_total_frames():
 		_change_state(CombatState.IDLE)
 

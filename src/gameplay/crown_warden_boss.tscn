@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/gameplay/crown_warden_boss.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/characters/crown_warden.tscn" id="2_character"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(126, 132)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurtbox"]
+size = Vector2(154, 170)
+
+[node name="CrownWardenBoss" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 17
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -86)
+shape = SubResource("RectangleShape2D_body")
+
+[node name="Sprite" parent="." instance=ExtResource("2_character")]
+position = Vector2(0, -90)
+scale = Vector2(1.35, 1.35)
+
+[node name="HurtboxArea" type="Area2D" parent="."]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtboxArea"]
+position = Vector2(0, -74)
+shape = SubResource("RectangleShape2D_hurtbox")

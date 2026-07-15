@@ -5,6 +5,7 @@ const MAIN_SCENE: PackedScene = preload("res://scenes/main.tscn")
 const BOSS2_ENTITY_ID: int = 2200
 const EXPECTED_BOSS2_MAX_HP: int = 36
 const EXPECTED_BOSS2_HIT_DAMAGE: int = 14
+const RAT_KING_DEFEATED_FLAG: StringName = &"boss_rat_king_defeated"
 
 var scene: Node2D
 
@@ -12,6 +13,7 @@ var scene: Node2D
 func before_test() -> void:
 	scene = MAIN_SCENE.instantiate() as Node2D
 	add_child(scene)
+	scene.call("set_world_progress_flag", RAT_KING_DEFEATED_FLAG, true)
 
 
 func after_test() -> void:
@@ -22,7 +24,7 @@ func after_test() -> void:
 	scene = null
 
 
-func test_boss2_hud_focuses_echo_guardian_on_main_scene_start() -> void:
+func test_boss2_hud_focuses_echo_guardian_after_rat_king_handoff() -> void:
 	var hud: Node = scene.get_node("HUD")
 	assert_bool(hud.has_method("get_boss_label_text")).is_true()
 	if not hud.has_method("get_boss_label_text"):
@@ -59,7 +61,7 @@ func test_boss2_damage_updates_hud_and_rat_king_health_does_not_override_focus()
 	assert_bool(label.contains("垃圾桶鼠王")).is_false()
 
 
-func test_boss2_defeat_and_restored_flag_hand_hud_back_to_rat_king() -> void:
+func test_boss2_defeat_and_restored_flag_hide_completed_boss_hud() -> void:
 	var hud: Node = scene.get_node("HUD")
 	var boss: Node = scene.get_node("Boss2EchoGuardian")
 	assert_bool(scene.has_method("apply_damage")).is_true()
@@ -75,17 +77,19 @@ func test_boss2_defeat_and_restored_flag_hand_hud_back_to_rat_king() -> void:
 	assert_bool(scene.call("apply_damage", BOSS2_ENTITY_ID, int(boss.call("get_current_hp")), {
 		"source": &"unit_test_boss2_hud_defeat",
 	})).is_true()
-	var label: String = String(hud.call("get_boss_label_text"))
-	assert_bool(label.contains("Echo Guardian")).is_false()
-	assert_str(label).contains("垃圾桶鼠王")
+	assert_bool(bool(Dictionary(hud.call("get_boss_portrait_diagnostics")).get(
+		"panel_visible",
+		true
+	))).is_false()
 
 	scene.call("set_world_progress_flag", &"boss_02_echo_guardian_defeated", true)
-	label = String(hud.call("get_boss_label_text"))
-	assert_bool(label.contains("Echo Guardian")).is_false()
-	assert_str(label).contains("垃圾桶鼠王")
+	assert_bool(bool(Dictionary(hud.call("get_boss_portrait_diagnostics")).get(
+		"panel_visible",
+		true
+	))).is_false()
 
 
-func test_restored_boss2_defeated_flag_immediately_hands_hud_back_to_rat_king() -> void:
+func test_restored_boss2_defeated_flag_immediately_hides_boss_hud() -> void:
 	var hud: Node = scene.get_node("HUD")
 	assert_bool(scene.has_method("set_world_progress_flag")).is_true()
 	assert_bool(hud.has_method("get_boss_label_text")).is_true()
@@ -97,6 +101,7 @@ func test_restored_boss2_defeated_flag_immediately_hands_hud_back_to_rat_king() 
 	assert_str(label).contains("36/36")
 
 	scene.call("set_world_progress_flag", &"boss_02_echo_guardian_defeated", true)
-	label = String(hud.call("get_boss_label_text"))
-	assert_bool(label.contains("Echo Guardian")).is_false()
-	assert_str(label).contains("垃圾桶鼠王")
+	assert_bool(bool(Dictionary(hud.call("get_boss_portrait_diagnostics")).get(
+		"panel_visible",
+		true
+	))).is_false()

@@ -25,6 +25,7 @@ const WEAPON_SWAP_TIMER_EPSILON: float = 0.0001
 const SPECIAL_COOLDOWN_TIMER_EPSILON: float = 0.0001
 const COMBAT_STATE_ATTACKING: int = 1
 const STATUS_EFFECT_SLOW: StringName = &"slow"
+const COMBAT_TILE_SIZE_PX: float = 32.0
 const SPECIAL_CAT_ENERGY_COST_BY_ATTACK: Dictionary = {
 	&"gale_claw": 30,
 	&"whirlwind_slash": 40,
@@ -217,12 +218,31 @@ func activate_current_attack_hitbox(
 		float(extra_metadata.get("hitbox_offset_x", 0.0)),
 		float(extra_metadata.get("hitbox_offset_y", 0.0))
 	)
+	var skill_range_tiles: float = maxf(0.0, float(extra_metadata.get("skill_range_tiles", 0.0)))
+	var skill_range_px: float = skill_range_tiles * COMBAT_TILE_SIZE_PX
+	var hitbox_size_multiplier: float = maxf(
+		0.1,
+		float(extra_metadata.get("hitbox_size_multiplier", 1.0))
+	)
+	var facing: float = signf(float(extra_metadata.get("facing", 1.0)))
+	if is_zero_approx(facing):
+		facing = 1.0
+	var hitbox_size: Vector2 = weapon.hitbox_size * hitbox_size_multiplier + Vector2(
+		skill_range_px,
+		0.0
+	)
+	hitbox_offset.x += skill_range_px * 0.5 * facing
+	metadata["skill_range_tiles"] = skill_range_tiles
+	metadata["skill_range_px"] = skill_range_px
+	metadata["hitbox_size_multiplier"] = hitbox_size_multiplier
+	metadata["attack_range"] = float(weapon.attack_range) + skill_range_tiles
+	metadata["hitbox_size"] = hitbox_size
 	_collision_adapter.call(
 		"activate_hitbox",
 		hitbox_id,
 		maxi(1, duration_frames),
 		hitbox_offset,
-		weapon.hitbox_size,
+		hitbox_size,
 		metadata
 	)
 	return true
@@ -235,6 +255,8 @@ func apply_confirmed_hit_effects(target_adapter: Object, hit_metadata: Dictionar
 	metadata["shield_broken"] = false
 	metadata["slow_status_attempted"] = false
 	metadata["slow_status_applied"] = false
+	metadata["slow_pulse_attempted"] = false
+	metadata["slow_pulse_applied"] = false
 	var weapon: Resource = get_current_weapon()
 	if weapon == null:
 		metadata["shield_break_skipped_reason"] = &"missing_weapon"
@@ -424,7 +446,11 @@ func _build_attack_hitbox_metadata(weapon: Resource, attack_type: StringName, co
 
 func _apply_shield_break_hit_effect(target_adapter: Object, metadata: Dictionary) -> Dictionary:
 	var attack_type: StringName = StringName(metadata.get("attack_type", &""))
-	var charge_ratio: float = _get_combat_charge_ratio()
+	var charge_ratio: float = clampf(
+		float(metadata.get("charge_ratio", _get_combat_charge_ratio())),
+		0.0,
+		1.0
+	)
 	metadata["charge_ratio"] = charge_ratio
 	if not _is_charge_attack_type(attack_type):
 		metadata["shield_break_skipped_reason"] = &"not_charge_attack"
@@ -451,20 +477,80 @@ func _apply_slow_on_hit_effect(
 	var slow_percentage: float = float(mechanism.get("slow_percentage", 0.3))
 	var slow_duration_sec: float = float(mechanism.get("slow_duration_sec", 2.0))
 	var slow_movement_modifier: float = clampf(1.0 - slow_percentage, 0.0, 1.0)
+	var skill_modifiers: Dictionary = Dictionary(metadata.get("skill_modifiers", {}))
+	var slow_pulse: Dictionary = Dictionary(skill_modifiers.get("slow_pulse", {}))
+	var pulse_bonus_percentage: float = clampf(
+		float(slow_pulse.get("bonus_percentage", 0.0)),
+		0.0,
+		1.0 - slow_percentage
+	)
+	var pulse_duration_sec: float = maxf(0.0, float(slow_pulse.get("duration_sec", 0.0)))
+	var pulse_total_percentage: float = slow_percentage + pulse_bonus_percentage
+	var pulse_movement_modifier: float = clampf(1.0 - pulse_total_percentage, 0.0, 1.0)
+	var pulse_requested: bool = pulse_bonus_percentage > 0.0 and pulse_duration_sec > 0.0
 	metadata["status_effect_id"] = status_effect_id
 	metadata["slow_duration_sec"] = slow_duration_sec
 	metadata["slow_percentage"] = slow_percentage
 	metadata["slow_movement_modifier"] = slow_movement_modifier
 	metadata["slow_status_attempted"] = true
-	if target_adapter == null or not target_adapter.has_method("apply_status"):
+	metadata["slow_pulse_attempted"] = pulse_requested
+	metadata["slow_pulse_bonus_percentage"] = pulse_bonus_percentage
+	metadata["slow_pulse_total_percentage"] = pulse_total_percentage
+	metadata["slow_pulse_duration_sec"] = pulse_duration_sec
+	metadata["slow_pulse_movement_modifier"] = pulse_movement_modifier
+	var status_adapter: Object = _resolve_status_adapter(target_adapter)
+	if status_adapter == null:
 		metadata["slow_status_skipped_reason"] = &"missing_apply_status"
+		metadata["slow_pulse_skipped_reason"] = &"missing_apply_status"
 		return metadata
 	var target_id: int = int(metadata.get("target_id", 0))
 	var source_id: int = int(metadata.get("source_id", metadata.get("attacker_id", 0)))
-	var apply_result: Variant = target_adapter.call("apply_status", target_id, status_effect_id, source_id)
+	var apply_result: Variant = null
+	if status_adapter.has_method("apply_status_profile"):
+		var status_profile: Dictionary = {
+			"duration_sec": slow_duration_sec,
+			"movement_modifier": slow_movement_modifier,
+		}
+		if pulse_requested:
+			status_profile["pulse_duration_sec"] = pulse_duration_sec
+			status_profile["pulse_movement_modifier"] = pulse_movement_modifier
+		apply_result = status_adapter.call(
+			"apply_status_profile",
+			target_id,
+			status_effect_id,
+			source_id,
+			status_profile
+		)
+		metadata["slow_pulse_applied"] = pulse_requested and (
+			true if apply_result == null else bool(apply_result)
+		)
+		metadata["slow_pulse_skipped_reason"] = (
+			&""
+			if bool(metadata["slow_pulse_applied"])
+			else (&"not_requested" if not pulse_requested else &"status_rejected")
+		)
+	elif status_adapter.has_method("apply_status"):
+		apply_result = status_adapter.call("apply_status", target_id, status_effect_id, source_id)
+		metadata["slow_pulse_skipped_reason"] = (
+			&"missing_apply_status_profile" if pulse_requested else &"not_requested"
+		)
+	else:
+		metadata["slow_status_skipped_reason"] = &"missing_apply_status"
+		metadata["slow_pulse_skipped_reason"] = &"missing_apply_status"
+		return metadata
 	metadata["slow_status_applied"] = true if apply_result == null else bool(apply_result)
 	metadata["slow_status_skipped_reason"] = &"" if bool(metadata["slow_status_applied"]) else &"status_rejected"
 	return metadata
+
+
+func _resolve_status_adapter(target_adapter: Object) -> Object:
+	if target_adapter == null:
+		return null
+	if target_adapter.has_method("get_status_effect_component"):
+		var component: Variant = target_adapter.call("get_status_effect_component")
+		if component is Object:
+			return component as Object
+	return target_adapter
 
 
 func _get_combat_charge_ratio() -> float:

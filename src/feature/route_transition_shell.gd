@@ -107,5 +107,12 @@ func _sync_visual_state() -> void:
 		_prompt_label.text = available_prompt_text if _route_available else locked_prompt_text
 		_prompt_label.visible = _route_available and not _transition_requested
 	if _interaction_area != null:
-		_interaction_area.monitoring = _route_available and not _transition_requested
-		_interaction_area.monitorable = _route_available and not _transition_requested
+		var interaction_active: bool = (
+			_route_available and not _transition_requested
+		)
+		if Engine.is_in_physics_frame():
+			_interaction_area.set_deferred("monitoring", interaction_active)
+			_interaction_area.set_deferred("monitorable", interaction_active)
+		else:
+			_interaction_area.monitoring = interaction_active
+			_interaction_area.monitorable = interaction_active

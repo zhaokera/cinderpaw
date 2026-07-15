@@ -1,0 +1,43 @@
+{
+  "story": 149,
+  "date": "2026-07-14",
+  "engine": "Godot 4.7-stable (official)",
+  "mcp": {
+    "session": "cinderpaw@d40a",
+    "plugin_version": "2.9.2",
+    "server_version": "2.9.2",
+    "acceptance_run_id": "r481304-1",
+    "clean_restart_run_id": "r843635-2"
+  },
+  "runtime_probe": {
+    "scene": "res://scenes/main.tscn",
+    "menu": "skill_tree",
+    "initial_selection": "cat_claw_t1a",
+    "selected": "long_tail_t1a",
+    "bought": true,
+    "learned": true,
+    "skill_points": 1,
+    "attacked": true,
+    "weapon": "long_tail",
+    "combo_index": 0,
+    "attack_range": 2.3,
+    "skill_range_tiles": 0.3,
+    "skill_range_px": 9.6,
+    "hitbox_width": 73.5999984741211,
+    "menu_subtitle": "SP 1 | Node 2/2\nLong Tail T1 - Extended Sweep\nCost 1 SP | Learned\nLong Tail light attack 1 increases range by 0.3 tile.",
+    "unlock_button": "Extended Sweep learned"
+  },
+  "screenshot": {
+    "path": "production/qa/evidence/skill-tree-long-tail-t1a-choice-mcp.png",
+    "width": 1278,
+    "height": 718,
+    "format": "png",
+    "non_empty": true
+  },
+  "final_logs": {
+    "game_run_id": "r843635-2",
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0
+  }
+}

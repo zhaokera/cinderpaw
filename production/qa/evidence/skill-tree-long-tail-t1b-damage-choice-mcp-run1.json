@@ -1,0 +1,85 @@
+{
+  "story": "player-abilities-161",
+  "date": "2026-07-14",
+  "engine": "Godot 4.7-stable (official)",
+  "mcp": {
+    "session": "cinderpaw@3736",
+    "plugin_version": "3.0.2",
+    "server_version": "3.0.2",
+    "transport": "streamable-http",
+    "run_id": "r10362250-5",
+    "current_run_errors": [],
+    "helper_live": true
+  },
+  "baseline": {
+    "requested": true,
+    "weapon_id": "long_tail",
+    "hit_frame": 2,
+    "hp_before": 300,
+    "hp_after": 263,
+    "attack_damage": 37.5,
+    "final_damage": 37,
+    "damage_number": "37"
+  },
+  "menu_unlock": {
+    "source": "SkillUnlockButton.pressed",
+    "menu_mode": "skill_tree",
+    "active_skill_id": "long_tail_t1b",
+    "skill_points": 0,
+    "has_skill": true,
+    "stat_bonus_damage": 0.05,
+    "button_found": true,
+    "button_text": "Honed Tailblade learned",
+    "button_disabled": true,
+    "subtitle": "SP 0 | Node 4/6\nLong Tail T1 - Honed Tailblade\nCost 1 SP | Learned\nLong Tail attacks deal 5% more damage."
+  },
+  "upgraded_hit": {
+    "requested": true,
+    "menu_mode": "none",
+    "weapon_id": "long_tail",
+    "hit_frame": 2,
+    "hp_before": 300,
+    "hp_after": 261,
+    "skill_damage_bonus": 0.05,
+    "base_damage": 15,
+    "attack_damage": 39.375,
+    "final_damage": 39,
+    "damage_number": "39",
+    "vfx_count": 1,
+    "vfx_texture_path": "res://assets/generated/combat_long_tail_arc_runtime.png"
+  },
+  "wrong_weapon_control": {
+    "weapon_id": "cat_claw",
+    "skill_damage_bonus": 0.0,
+    "final_damage": 25,
+    "source": "reports/report_1681/results.xml"
+  },
+  "screenshots": [
+    {
+      "state": "skill_tree_learned",
+      "path": "reports/visual/cinderpaw-mcp-skill-tree-long-tail-t1b-20260714.png",
+      "sha256": "6ded7183dce1c0aed3444006cb7cff3667dbd5f40a221c42f0fddf944d8ce231",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    },
+    {
+      "state": "upgraded_hit",
+      "path": "reports/visual/cinderpaw-mcp-long-tail-t1b-damage-20260714.png",
+      "sha256": "8dc5679a8a7c3ae2714673a9b0fa95a23120bb5dcc1da5874cf73482bdca32c8",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    }
+  ],
+  "final_logs": {
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0,
+    "clean_stop_readiness": "ready"
+  }
+}

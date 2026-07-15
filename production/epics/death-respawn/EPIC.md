@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/death-respawn.md
 > **Architecture Module**: GameFlowController + HealthComponent adapters
 > **Status**: Complete
-> **Stories**: 7 stories
+> **Stories**: 8 stories
 
 ## Overview
 
@@ -26,13 +26,13 @@ surface a learning-focused battle summary.
 
 | TR-ID | Requirement | ADR Coverage |
 |-------|-------------|--------------|
-| TR-respawn-001 | Death flow progresses through death delay, respawn, revive, and control return. | ADR-0001, ADR-0002 ✅ partial |
+| TR-respawn-001 | Death flow progresses through death delay, respawn, revive, and control return. | ADR-0001, ADR-0002 ✅ |
 | TR-respawn-002 | Respawn point priority: savepoint, clan base fallback, boss entrance. | ADR-0007 ✅ |
 | TR-respawn-003 | Boss death resets arena state and boss HP. | ADR-0007 ✅ |
 | TR-respawn-004 | Optional hunter lesson battle summary. | ADR-0002 ✅ partial |
 | TR-respawn-005 | No currency/item/progress loss. | ADR-0007 ✅ runtime adapter |
-| TR-respawn-006 | Total death-to-control budget remains under 5.5 seconds. | ADR-0001 ✅ partial |
-| TR-respawn-007 | 2 seconds invincibility plus visual feedback after revive. | ADR-0019 ⚠️ partial |
+| TR-respawn-006 | Total death-to-control budget remains under 5.5 seconds. | ADR-0001 ✅ |
+| TR-respawn-007 | 2 seconds invincibility plus visual feedback after revive. | ADR-0019 ✅ |
 
 ## Stories
 
@@ -45,6 +45,7 @@ surface a learning-focused battle summary.
 | 005 | Battle Summary Handoff | Integration | Complete | ADR-0002, ADR-0019 |
 | 006 | No-Loss Respawn State Contract | Integration | Complete | ADR-0007 |
 | 007 | Main Scene Savepoint Runtime | Integration | Complete | ADR-0007 |
+| 008 | Main Scene Death Greyout + Revive Halo Feedback | Integration + Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0019 |
 
 ## Definition of Done
 
@@ -57,6 +58,9 @@ This epic is complete when:
 - No-loss rules are covered by save/economy integration tests.
 - The main scene includes at least one player-visible runtime savepoint that
   writes autosave data and respawns non-boss deaths at the discovered point.
+- Main presents the authored death/revive beat with a 0.5-second grayscale
+  fade, generated gold soul wisps, a 0.5-second fade-out and one-second revive
+  halo without taking timing ownership from GameFlowController.
 
 ## Completion Evidence
 
@@ -64,4 +68,7 @@ Death & Respawn Story 004 completed the savepoint priority and SceneManager
 handoff. Story 007 adds the player-visible main-scene Scrap Roost savepoint
 runtime with generated art, autosave, and MCP evidence. QA evidence:
 `production/qa/evidence/savepoint-respawn-selection-2026-06-25.md` and
-`production/qa/evidence/main-scene-savepoint-runtime-2026-06-26.md`.
+`production/qa/evidence/main-scene-savepoint-runtime-2026-06-26.md`. Story 008
+completes the Main player-visible transition and records generated VFX,
+bounded regression and clean Godot MCP evidence in
+`production/qa/evidence/main-scene-death-respawn-visual-feedback-2026-07-14.md`.

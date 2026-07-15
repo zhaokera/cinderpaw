@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 13 stories tracked; future stories planned
+> **Stories**: 14 stories tracked; future stories planned
 
 ## Overview
 
@@ -37,7 +37,9 @@ active Rat King arena mutation descriptors through MainScene save/load snapshots
 and SaveSystem slot handoff, then rebuilds collision, damage-zone, and VFX
 runtime nodes on restore. Story013 removes the remaining visible placeholder
 `Polygon2D` baseline from those mutation nodes so runtime presentation uses only
-the generated `Sprite2D` prop textures and generated VFX layers.
+the generated `Sprite2D` prop textures and generated VFX layers. Story014 adds
+phase-aware Rat King camera framing, deterministic release during the victory
+hold, and explicit compatibility with the sequential Echo Guardian camera lock.
 
 ## Governing ADRs
 
@@ -76,6 +78,7 @@ the generated `Sprite2D` prop textures and generated VFX layers.
 | 011 | Rat King Final Arena VFX | Visual / Integration | Complete | ADR-0007 |
 | 012 | Boss Arena Mutation Save-State Persistence | Integration | Complete | ADR-0007, ADR-0008, ADR-0021 |
 | 013 | Rat King Arena Placeholder Visual Removal | Visual / Integration | Complete | ADR-0007, ADR-0004, ADR-0019 |
+| 014 | Rat King Arena Camera Choreography | Visual / Integration | Complete | ADR-0007 |
 
 ## Definition of Done
 
@@ -121,15 +124,18 @@ This epic is complete when:
   placeholder blocks; the player-facing runtime layer uses generated `Sprite2D`
   prop textures and generated VFX while collision/damage shapes remain gameplay
   only.
+- Rat King phases use progressively tighter MainScene camera profiles, restore
+  the default framing on defeat, preserve CombatPresentation offset ownership,
+  and yield cleanly to the Story156 Echo Guardian camera lock.
 - SceneManager exposes deterministic runtime memory-budget diagnostics for
   mobile/PC/console budgets, emits one-shot over-budget warnings, and can evict
   non-current deferred runtime cache while preserving the current scene.
 - Later stories add real platform memory profiler evidence, low-memory UI
-  prompts, and optional shader/camera arena polish.
+  prompts, and optional shader arena polish.
 - Godot CLI/GdUnit and Godot MCP verify the Autoload, runtime logs, and current
   scene visibility after SceneManager changes.
 
 ## Next Step
 
 Continue later SceneManagement stories: real platform profiler evidence,
-low-memory UI prompt routing, and optional shader/camera arena polish.
+low-memory UI prompt routing, and optional shader arena polish.

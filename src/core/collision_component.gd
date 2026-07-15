@@ -6,6 +6,7 @@ const HITBOX_AREA_SCRIPT: Script = preload("res://src/core/hitbox_area.gd")
 const HIT_EVENT_SCRIPT: Script = preload("res://src/core/events/hit_event.gd")
 const DEFAULT_HURTBOX_SIZE: Vector2 = Vector2(24, 48)
 const MIN_HURTBOX_SIZE: Vector2 = Vector2(4, 4)
+const KNOCKBACK_DISTANCE_EPSILON: float = 0.001
 
 const HURTBOX_STATE_NORMAL: StringName = &"normal"
 const HURTBOX_STATE_SHRUNK: StringName = &"shrunk"
@@ -185,6 +186,40 @@ func get_hurtbox_size() -> Vector2:
 	return rectangle.size
 
 
+## Moves this component's CharacterBody2D owner without bypassing world collision.
+func apply_horizontal_knockback(distance_px: float, direction: float) -> Dictionary:
+	var requested_px: float = maxf(0.0, distance_px)
+	var direction_sign: float = signf(direction)
+	var result: Dictionary = {
+		"knockback_attempted": requested_px > 0.0 and not is_zero_approx(direction_sign),
+		"knockback_applied": false,
+		"knockback_requested_px": requested_px,
+		"knockback_applied_px": 0.0,
+		"knockback_direction": direction_sign,
+		"knockback_blocked": false,
+	}
+	if not bool(result["knockback_attempted"]):
+		return result
+	var actor: CharacterBody2D = get_parent() as CharacterBody2D
+	if actor == null:
+		result["knockback_blocked"] = true
+		result["knockback_blocked_reason"] = &"target_not_character_body"
+		return result
+	var start_x: float = actor.global_position.x
+	var motion: Vector2 = Vector2(direction_sign * requested_px, 0.0)
+	if actor.is_inside_tree():
+		actor.move_and_collide(motion)
+	else:
+		actor.global_position += motion
+	var applied_px: float = absf(actor.global_position.x - start_x)
+	result["knockback_applied_px"] = applied_px
+	result["knockback_applied"] = applied_px > KNOCKBACK_DISTANCE_EPSILON
+	result["knockback_blocked"] = applied_px + KNOCKBACK_DISTANCE_EPSILON < requested_px
+	if bool(result["knockback_blocked"]):
+		result["knockback_blocked_reason"] = &"environment_collision"
+	return result
+
+
 func _get_or_create_hitbox(hitbox_id: StringName) -> Area2D:
 	if _hitboxes.has(hitbox_id):
 		return _hitboxes[hitbox_id]
@@ -245,7 +280,20 @@ func _try_emit_hit(hitbox: Area2D, area: Variant) -> void:
 	if hitbox.has_hit(target_id):
 		return
 	hitbox.mark_hit(target_id)
-	_emit_hit_confirmed(hitbox, hurtbox, target_id)
+	var attack_metadata: Dictionary = hitbox.get_attack_metadata()
+	var skill_knockback_px: float = maxf(0.0, float(
+		attack_metadata.get("skill_knockback_px", 0.0)
+	))
+	if skill_knockback_px > 0.0 and target_component.has_method("apply_horizontal_knockback"):
+		var reaction: Variant = target_component.call(
+			"apply_horizontal_knockback",
+			skill_knockback_px,
+			float(attack_metadata.get("knockback_direction", 0.0))
+		)
+		if reaction is Dictionary:
+			for key: Variant in (reaction as Dictionary).keys():
+				attack_metadata[key] = (reaction as Dictionary)[key]
+	_emit_hit_confirmed(hitbox, hurtbox, target_id, attack_metadata)
 
 
 func _is_valid_target_hurtbox(hitbox: Area2D, hurtbox: Area2D) -> bool:
@@ -261,7 +309,12 @@ func _is_valid_target_hurtbox(hitbox: Area2D, hurtbox: Area2D) -> bool:
 	return int(target_component.get_entity_id()) != _entity_id
 
 
-func _emit_hit_confirmed(hitbox: Area2D, hurtbox: Area2D, target_id: int) -> void:
+func _emit_hit_confirmed(
+	hitbox: Area2D,
+	hurtbox: Area2D,
+	target_id: int,
+	attack_metadata: Dictionary
+) -> void:
 	var hit_position := (hitbox.global_position + hurtbox.global_position) * 0.5
 	var event: RefCounted = HIT_EVENT_SCRIPT.new(
 		_entity_id,
@@ -269,7 +322,7 @@ func _emit_hit_confirmed(hitbox: Area2D, hurtbox: Area2D, target_id: int) -> voi
 		hitbox.hitbox_id,
 		hit_position,
 		hitbox.get_remaining_frames(),
-		hitbox.get_attack_metadata()
+		attack_metadata
 	)
 	on_hit_confirmed.emit(event)
 
@@ -303,12 +356,14 @@ func _apply_hurtbox_state() -> void:
 func _set_hurtbox_monitorable(monitorable: bool) -> void:
 	if _hurtbox == null:
 		return
+	if _hurtbox.is_inside_tree() and Engine.is_in_physics_frame():
+		# Always queue the final same-frame intent. A pending death-state write may
+		# not yet be reflected by the property when respawn restores the hurtbox.
+		_hurtbox.set_deferred("monitorable", monitorable)
+		return
 	if _hurtbox.monitorable == monitorable:
 		return
-	if _hurtbox.is_inside_tree() and Engine.is_in_physics_frame():
-		_hurtbox.set_deferred("monitorable", monitorable)
-	else:
-		_hurtbox.monitorable = monitorable
+	_hurtbox.monitorable = monitorable
 
 
 func _set_hurtbox_rectangle_size(size: Vector2) -> void:

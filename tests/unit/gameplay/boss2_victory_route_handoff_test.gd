@@ -13,6 +13,7 @@ const FACTORY_SPAWN_POINT: StringName = &"factory_gate_entry"
 const FACTORY_DISPLAY_NAME: String = "Factory Route"
 const STATE_UNLOCKABLE: StringName = &"unlockable"
 const STATE_UNLOCKED: StringName = &"unlocked"
+const RAT_KING_DEFEATED_FLAG: StringName = &"boss_rat_king_defeated"
 
 var _scene: Node2D
 
@@ -80,6 +81,7 @@ class FakeFactorySceneManager:
 func before_test() -> void:
 	_scene = MAIN_SCENE.instantiate() as Node2D
 	add_child(_scene)
+	_scene.call("set_world_progress_flag", RAT_KING_DEFEATED_FLAG, true)
 
 
 func after_test() -> void:
@@ -117,6 +119,7 @@ func test_boss2_victory_reward_handoff_opens_factory_route_transition() -> void:
 	assert_bool(_scene.call("apply_damage", BOSS2_ENTITY_ID, int(boss.call("get_current_hp")), {
 		"source": &"unit_test_boss2_victory_handoff",
 	})).is_true()
+	assert_bool(bool(_scene.call("advance_boss2_death_presentation", 2.0))).is_true()
 	await get_tree().process_frame
 
 	var defeated: Dictionary = _scene.call("get_boss2_victory_route_handoff_diagnostics")

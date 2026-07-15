@@ -1,0 +1,75 @@
+{
+  "story": "player-abilities-164",
+  "date": "2026-07-14",
+  "engine": "Godot 4.7-stable (official)",
+  "mcp": {
+    "session": "cinderpaw@af5f",
+    "plugin_version": "3.0.2",
+    "server_version": "3.0.2",
+    "run_id": "r3330877-4",
+    "current_run_errors": [],
+    "helper_live": true
+  },
+  "menu_unlock": {
+    "source": "SkillUnlockButton.pressed",
+    "active_skill_id": "electro_bell_t1b",
+    "skill_points": 0,
+    "has_skill": true,
+    "stat_bonus_damage": 0.05,
+    "button_text": "Honed Bell learned",
+    "button_disabled": true,
+    "subtitle": "SP 0 | Node 8/8\nElectro Bell T1 - Honed Bell\nCost 1 SP | Learned\nElectro Bell attacks deal 5% more damage."
+  },
+  "upgraded_hit": {
+    "requested": true,
+    "weapon_id": "electro_bell",
+    "crit_type": "perfect",
+    "hit_frame": 2,
+    "hp_before": 300,
+    "hp_after": 269,
+    "skill_damage_bonus": 0.05,
+    "skill_weapon_bonus": 0.0,
+    "base_damage": 12,
+    "attack_damage": 31.5,
+    "final_damage": 31,
+    "damage_number": "31"
+  },
+  "wrong_weapon_control": {
+    "weapon_id": "cat_claw",
+    "skill_damage_bonus": 0.0,
+    "final_damage": 25,
+    "source": "reports/report_1696/results.xml"
+  },
+  "screenshots": [
+    {
+      "state": "skill_tree_learned",
+      "path": "reports/visual/cinderpaw-mcp-skill-tree-electro-bell-t1b-20260714.png",
+      "sha256": "7608afd4c7b81d7e297eecda7b18ed690ff2617c639c9f8575f7d99317c97b64",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    },
+    {
+      "state": "upgraded_hit",
+      "path": "reports/visual/cinderpaw-mcp-electro-bell-t1b-damage-20260714.png",
+      "sha256": "e22238b136dfd8a8abf0650ebc3ef3b78901550ca5cafaab650c47e2d7edb261",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    }
+  ],
+  "final_logs": {
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0,
+    "clean_stop_readiness": "ready"
+  },
+  "rejected_probe_run": {
+    "run_id": "r2344118-2",
+    "reason": "game_eval static inference compile error; stopped and replaced by a clean run"
+  }
+}

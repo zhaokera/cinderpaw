@@ -1,0 +1,69 @@
+[gd_resource type="SpriteFrames" load_steps=25 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/idle/crown_warden_idle_000.png" id="1_idle0"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/idle/crown_warden_idle_001.png" id="2_idle1"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/idle/crown_warden_idle_002.png" id="3_idle2"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/run/crown_warden_run_000.png" id="4_run0"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/run/crown_warden_run_001.png" id="5_run1"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/run/crown_warden_run_002.png" id="6_run2"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/talon_dive_tell/crown_warden_talon_dive_tell_000.png" id="7_dive_tell0"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/talon_dive_tell/crown_warden_talon_dive_tell_001.png" id="8_dive_tell1"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/talon_dive_tell/crown_warden_talon_dive_tell_002.png" id="9_dive_tell2"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/talon_dive/crown_warden_talon_dive_000.png" id="10_dive0"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/talon_dive/crown_warden_talon_dive_001.png" id="11_dive1"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/talon_dive/crown_warden_talon_dive_002.png" id="12_dive2"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/wing_sweep_tell/crown_warden_wing_sweep_tell_000.png" id="13_sweep_tell0"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/wing_sweep_tell/crown_warden_wing_sweep_tell_001.png" id="14_sweep_tell1"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/wing_sweep_tell/crown_warden_wing_sweep_tell_002.png" id="15_sweep_tell2"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/wing_sweep/crown_warden_wing_sweep_000.png" id="16_sweep0"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/wing_sweep/crown_warden_wing_sweep_001.png" id="17_sweep1"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/wing_sweep/crown_warden_wing_sweep_002.png" id="18_sweep2"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/hurt/crown_warden_hurt_000.png" id="19_hurt0"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/hurt/crown_warden_hurt_001.png" id="20_hurt1"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/hurt/crown_warden_hurt_002.png" id="21_hurt2"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/death/crown_warden_death_000.png" id="22_death0"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/death/crown_warden_death_001.png" id="23_death1"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/death/crown_warden_death_002.png" id="24_death2"]
+
+[resource]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("1_idle0")}, {"duration": 1.0, "texture": ExtResource("2_idle1")}, {"duration": 1.0, "texture": ExtResource("3_idle2")}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("4_run0")}, {"duration": 1.0, "texture": ExtResource("5_run1")}, {"duration": 1.0, "texture": ExtResource("6_run2")}],
+"loop": true,
+"name": &"run",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("7_dive_tell0")}, {"duration": 1.0, "texture": ExtResource("8_dive_tell1")}, {"duration": 1.0, "texture": ExtResource("9_dive_tell2")}],
+"loop": true,
+"name": &"talon_dive_tell",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("10_dive0")}, {"duration": 1.0, "texture": ExtResource("11_dive1")}, {"duration": 1.0, "texture": ExtResource("12_dive2")}],
+"loop": true,
+"name": &"talon_dive",
+"speed": 12.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("13_sweep_tell0")}, {"duration": 1.0, "texture": ExtResource("14_sweep_tell1")}, {"duration": 1.0, "texture": ExtResource("15_sweep_tell2")}],
+"loop": true,
+"name": &"wing_sweep_tell",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("16_sweep0")}, {"duration": 1.0, "texture": ExtResource("17_sweep1")}, {"duration": 1.0, "texture": ExtResource("18_sweep2")}],
+"loop": true,
+"name": &"wing_sweep",
+"speed": 12.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("19_hurt0")}, {"duration": 1.0, "texture": ExtResource("20_hurt1")}, {"duration": 1.0, "texture": ExtResource("21_hurt2")}],
+"loop": false,
+"name": &"hurt",
+"speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("22_death0")}, {"duration": 1.0, "texture": ExtResource("23_death1")}, {"duration": 1.0, "texture": ExtResource("24_death2")}],
+"loop": false,
+"name": &"death",
+"speed": 5.0
+}]

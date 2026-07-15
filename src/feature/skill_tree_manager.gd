@@ -6,6 +6,12 @@ signal skill_unlocked(skill_id: StringName)
 
 const SKILL_TREE_GROUP: StringName = &"skill_tree_manager"
 const SKILL_TREE_DOMAIN: StringName = &"skill_tree"
+const BRANCH_DISPLAY_ORDER: Array[StringName] = [
+	&"cat_claw",
+	&"long_tail",
+	&"fish_bone",
+	&"electro_bell",
+]
 
 var _data_manager: Object = null
 var _skill_entries: Dictionary = {}
@@ -107,7 +113,9 @@ func get_stat_bonus(stat_key: StringName) -> float:
 ## Returns a compact UI model for the current minimal skill tree slice.
 func get_hud_entries() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	for key: Variant in _skill_entries.keys():
+	var sorted_keys: Array = _skill_entries.keys()
+	sorted_keys.sort_custom(_is_skill_key_before)
+	for key: Variant in sorted_keys:
 		var skill_id: StringName = StringName(String(key))
 		var entry: Dictionary = _get_skill_entry(skill_id)
 		result.append({
@@ -121,6 +129,25 @@ func get_hud_entries() -> Array[Dictionary]:
 			"unlocked": has_skill(skill_id),
 		})
 	return result
+
+
+func _is_skill_key_before(left_key: Variant, right_key: Variant) -> bool:
+	var left_entry: Dictionary = _get_skill_entry(StringName(String(left_key)))
+	var right_entry: Dictionary = _get_skill_entry(StringName(String(right_key)))
+	var left_branch_index: int = _branch_display_index(StringName(String(
+		left_entry.get("branch", "")
+	)))
+	var right_branch_index: int = _branch_display_index(StringName(String(
+		right_entry.get("branch", "")
+	)))
+	if left_branch_index != right_branch_index:
+		return left_branch_index < right_branch_index
+	return String(left_key) < String(right_key)
+
+
+func _branch_display_index(branch_id: StringName) -> int:
+	var branch_index: int = BRANCH_DISPLAY_ORDER.find(branch_id)
+	return branch_index if branch_index >= 0 else BRANCH_DISPLAY_ORDER.size()
 
 
 func _load_skill_entries() -> void:

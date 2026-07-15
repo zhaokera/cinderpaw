@@ -40,14 +40,23 @@ static func calculate_damage(
 	)
 	var crit_type: StringName = classify_crit_type_with_modifiers(hit_frame, 0, skill_modifiers)
 	var crit_multiplier: float = _crit_multiplier_for_type(crit_type, global_params)
-	var options: Dictionary = _damage_options(global_params, data_manager)
+	var options: Dictionary = _damage_options(global_params, data_manager, skill_modifiers)
 	match attack_type:
 		&"parry":
 			return _calculate_data_parry(base_damage, enemy_defense, parry_timing, crit_type, crit_multiplier, global_params, options)
 		&"special":
 			return _calculate_data_special(base_damage, enemy_defense, weapon_params, crit_type, crit_multiplier, global_params, options)
 		&"heavy", &"heavy_min", &"heavy_max", &"charged", &"aerial", &"aerial_dive":
-			return _calculate_data_attack_type(base_damage, enemy_defense, attack_type, crit_type, crit_multiplier, global_params, options)
+			return _calculate_data_attack_type(
+				base_damage,
+				enemy_defense,
+				attack_type,
+				crit_type,
+				crit_multiplier,
+				skill_modifiers,
+				global_params,
+				options
+			)
 		_:
 			return _calculate_data_normal(base_damage, enemy_defense, weapon_params, combo_index, crit_type, crit_multiplier, global_params, options)
 
@@ -98,7 +107,12 @@ static func calculate_normal_damage(
 	var crit_type: StringName = classify_crit_type_with_modifiers(hit_frame, window_start, skill_modifiers)
 	var crit_multiplier: float = calculate_crit_multiplier_with_modifiers(hit_frame, window_start, skill_modifiers)
 	var combo_multiplier: float = calculate_combo_multiplier(weapon_id, combo_index)
-	var attack_damage: float = float(base_damage) * crit_multiplier * combo_multiplier
+	var attack_damage: float = (
+		float(base_damage)
+		* crit_multiplier
+		* combo_multiplier
+		* _skill_damage_multiplier(skill_modifiers)
+	)
 	var result: RefCounted = _build_result(base_damage, attack_damage, defense, damage_multiplier)
 	result.is_crit = crit_type != &"none"
 	result.crit_type = crit_type
@@ -126,6 +140,7 @@ static func calculate_parry_damage(
 		float(base_damage)
 		* calculate_parry_multiplier(frame_diff)
 		* calculate_crit_multiplier_with_modifiers(hit_frame, window_start, skill_modifiers)
+		* _skill_damage_multiplier(skill_modifiers)
 	)
 	var result: RefCounted = _build_result(base_damage, attack_damage, defense, damage_multiplier)
 	result.is_crit = crit_type != &"none"
@@ -152,7 +167,12 @@ static func calculate_special_damage(
 	var crit_type: StringName = classify_crit_type_with_modifiers(hit_frame, window_start, skill_modifiers)
 	var crit_multiplier: float = calculate_crit_multiplier_with_modifiers(hit_frame, window_start, skill_modifiers)
 	var hit_count: int = calculate_special_hit_count(weapon_id)
-	var per_hit_attack_damage: float = float(base_damage) * calculate_special_multiplier(weapon_id) * crit_multiplier
+	var per_hit_attack_damage: float = (
+		float(base_damage)
+		* calculate_special_multiplier(weapon_id)
+		* crit_multiplier
+		* _skill_damage_multiplier(skill_modifiers)
+	)
 	var reduction_factor: float = calculate_reduction_factor(defense)
 	var final_damage: int = 0
 	for _hit_index: int in range(hit_count):
@@ -190,6 +210,7 @@ static func calculate_attack_type_damage(
 		float(base_damage)
 		* calculate_attack_type_multiplier(attack_type, skill_modifiers)
 		* calculate_crit_multiplier_with_modifiers(hit_frame, window_start, skill_modifiers)
+		* _skill_damage_multiplier(skill_modifiers)
 	)
 	var result: RefCounted = _build_result(base_damage, attack_damage, defense, damage_multiplier)
 	result.is_crit = crit_type != &"none"
@@ -432,10 +453,16 @@ static func _calculate_data_attack_type(
 	attack_type: StringName,
 	crit_type: StringName,
 	crit_multiplier: float,
+	skill_modifiers: Dictionary,
 	global_params: Dictionary,
 	options: Dictionary
 ) -> RefCounted:
-	var type_multiplier: float = _attack_type_multiplier_from_params(attack_type, global_params)
+	var authored_multiplier: float = _attack_type_multiplier_from_params(attack_type, global_params)
+	var type_multiplier: float = _modifier_float(
+		skill_modifiers,
+		&"attack_type_multiplier",
+		authored_multiplier
+	)
 	var attack_damage: float = float(base_damage) * type_multiplier * crit_multiplier
 	var result: RefCounted = _build_result_with_options(base_damage, attack_damage, defense, options, global_params)
 	result.is_crit = crit_type != &"none"
@@ -454,7 +481,12 @@ static func _calculate_data_special(
 	options: Dictionary
 ) -> RefCounted:
 	var special: Dictionary = _param_dict(weapon_params, &"special_move")
-	var per_hit_attack_damage: float = float(base_damage) * _param_float(special, &"multiplier", 1.0) * crit_multiplier
+	var per_hit_attack_damage: float = (
+		float(base_damage)
+		* _param_float(special, &"multiplier", 1.0)
+		* crit_multiplier
+		* float(options.get("skill_damage_multiplier", 1.0))
+	)
 	var hit_count: int = max(1, _param_int(special, &"hits", 1))
 	var reduction_factor: float = calculate_reduction_factor(defense, options["defense_curve_constant"])
 	var final_damage: int = 0
@@ -475,6 +507,7 @@ static func _build_result_with_options(
 	options: Dictionary,
 	global_params: Dictionary
 ) -> RefCounted:
+	attack_damage *= float(options.get("skill_damage_multiplier", 1.0))
 	var reduction_factor: float = calculate_reduction_factor(defense, options["defense_curve_constant"])
 	var final_damage: int = apply_final_damage(
 		attack_damage,
@@ -547,6 +580,15 @@ static func _modifier_float(skill_modifiers: Dictionary, key: StringName, defaul
 			return default_value
 
 
+static func _skill_damage_multiplier(skill_modifiers: Dictionary) -> float:
+	var damage_bonus: float = clampf(
+		_modifier_float(skill_modifiers, &"skill_damage_bonus", 0.0),
+		0.0,
+		0.25
+	)
+	return 1.0 + damage_bonus
+
+
 static func _resolve_global_params(injected_params: Dictionary, data_manager: Node) -> Dictionary:
 	var injected_entries: Dictionary = _param_dict(injected_params, &"entries")
 	if injected_entries.has(&"_global"):
@@ -583,7 +625,11 @@ static func _resolve_weapon_params(
 	return {}
 
 
-static func _damage_options(global_params: Dictionary, data_manager: Node) -> Dictionary:
+static func _damage_options(
+	global_params: Dictionary,
+	data_manager: Node,
+	skill_modifiers: Dictionary = {}
+) -> Dictionary:
 	var multiplier: float = _param_float(global_params, &"damage_multiplier", 1.0)
 	var curve_constant: float = _param_float(global_params, &"defense_curve_constant", 60.0)
 	var damage_floor: int = _param_int(global_params, &"damage_floor", 1)
@@ -593,6 +639,7 @@ static func _damage_options(global_params: Dictionary, data_manager: Node) -> Di
 		"defense_curve_constant": _tuning_float(data_manager, &"damage.defense_curve_constant", curve_constant),
 		"damage_floor": _tuning_int(data_manager, &"damage.floor", damage_floor),
 		"damage_cap": _tuning_int(data_manager, &"damage.cap", damage_cap),
+		"skill_damage_multiplier": _skill_damage_multiplier(skill_modifiers),
 	}
 
 

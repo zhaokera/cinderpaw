@@ -5,6 +5,7 @@ const MAIN_SCENE: PackedScene = preload("res://scenes/main.tscn")
 const BOSS2_PORTRAIT_TEXTURE_PATH: String = (
 	"res://assets/ui/boss_portraits/boss2_echo_guardian_portrait.png"
 )
+const RAT_KING_DEFEATED_FLAG: StringName = &"boss_rat_king_defeated"
 
 var scene: Node2D
 
@@ -12,6 +13,7 @@ var scene: Node2D
 func before_test() -> void:
 	scene = MAIN_SCENE.instantiate() as Node2D
 	add_child(scene)
+	scene.call("set_world_progress_flag", RAT_KING_DEFEATED_FLAG, true)
 
 
 func after_test() -> void:

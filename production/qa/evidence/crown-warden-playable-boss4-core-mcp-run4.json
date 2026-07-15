@@ -1,0 +1,71 @@
+{
+  "date": "2026-07-13",
+  "session": "cinderpaw@13e3",
+  "godot_version": "4.7-stable",
+  "mcp_version": "2.9.1",
+  "scene": "res://scenes/bosses/crown_warden_arena.tscn",
+  "run_id": "r3362590-4",
+  "current_run_errors": [],
+  "editor_cursor": {
+    "before": 4,
+    "after": 4,
+    "new_rows": 0
+  },
+  "player_attack": {
+    "boss_hp_before": 160,
+    "boss_hp_after": 148,
+    "attacker_id": 1,
+    "target_id": 2400,
+    "weapon_id": "cat_claw",
+    "hitbox_id": "cat_claw_light",
+    "final_damage": 12
+  },
+  "boss_attacks": {
+    "talon_dive": {
+      "player_hp_before": 100,
+      "player_hp_after": 82,
+      "final_damage": 18
+    },
+    "wing_sweep": {
+      "player_hp_before": 100,
+      "player_hp_after": 86,
+      "final_damage": 14,
+      "boss_x_before": 515,
+      "boss_x_after": 515
+    }
+  },
+  "phase_two": {
+    "threshold_hp": 80,
+    "phase_during_active_chain": 1,
+    "pending_during_active_chain": true,
+    "phase_after_recovery": 2,
+    "cooldown_frames": 30,
+    "dive_step_px": 12,
+    "abilities": ["basic_attack", "jump", "dodge", "parry"]
+  },
+  "retry": {
+    "player_hp": 100,
+    "player_max_hp": 100,
+    "hurtbox_state": "normal",
+    "hurtbox_monitorable": true,
+    "boss_hp": 160,
+    "boss_phase": 1,
+    "room_seals_enabled": true,
+    "scene_manager_locked": true
+  },
+  "defeat": {
+    "boss_hp": 0,
+    "animation": "death",
+    "frame_count": 3,
+    "boss_hud_visible": false,
+    "room_seals_enabled": false,
+    "scene_manager_locked": false,
+    "return_route_available": true,
+    "persistent_state": true,
+    "fresh_restore_transition_requested": false
+  },
+  "screenshots": [
+    "production/qa/evidence/crown-warden-playable-boss4-phase2-mcp.png",
+    "production/qa/evidence/crown-warden-playable-boss4-defeated-mcp.png"
+  ]
+}

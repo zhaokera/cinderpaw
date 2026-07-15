@@ -47,6 +47,63 @@
 				"patrol_speed": {"type": "float", "min": 0.0, "max": 500.0},
 				"attack_patterns": {"type": "Array"}
 			}
+		},
+		"boss_04_crown_warden": {
+			"required": ["max_hp", "patrol_speed", "attack_patterns"],
+			"fields": {
+				"max_hp": {"type": "int", "min": 1, "max": 999},
+				"patrol_speed": {"type": "float", "min": 0.0, "max": 500.0},
+				"attack_patterns": {
+					"type": "Array",
+					"items": {
+						"type": "Dictionary",
+						"required": [
+							"pattern_id",
+							"startup_frames",
+							"active_frames",
+							"recovery_frames",
+							"damage",
+							"damage_type",
+							"active_step_px_phase_1",
+							"active_step_px_phase_2",
+							"hitbox_config"
+						],
+						"fields": {
+							"pattern_id": {"type": "String"},
+							"startup_frames": {"type": "int", "min": 1},
+							"active_frames": {"type": "int", "min": 1},
+							"recovery_frames": {"type": "int", "min": 1},
+							"damage": {"type": "int", "min": 1},
+							"damage_type": {"type": "String", "enum": ["physical"]},
+							"active_step_px_phase_1": {"type": "float", "min": 0.0},
+							"active_step_px_phase_2": {"type": "float", "min": 0.0},
+							"hitbox_config": {
+								"type": "Dictionary",
+								"required": ["hitbox_id", "offset", "size"],
+								"fields": {
+									"hitbox_id": {"type": "String"},
+									"offset": {
+										"type": "Dictionary",
+										"required": ["x", "y"],
+										"fields": {
+											"x": {"type": "float"},
+											"y": {"type": "float"}
+										}
+									},
+									"size": {
+										"type": "Dictionary",
+										"required": ["x", "y"],
+										"fields": {
+											"x": {"type": "float", "min": 1.0},
+											"y": {"type": "float", "min": 1.0}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }

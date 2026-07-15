@@ -27,6 +27,7 @@ const ATTACK_ACTIVE_FRAMES: int = 4
 const ATTACK_RECOVERY_FRAMES: int = 14
 const ATTACK_COOLDOWN_FRAMES: int = 28
 const PHASE_TWO_ATTACK_COOLDOWN_FRAMES: int = 24
+const FOCUS_WINDUP_EXTENSION_FRAMES: int = 6
 const ATTACK_HITBOX_ID: StringName = &"boss2_echo_swipe"
 const ATTACK_HITBOX_SIZE: Vector2 = Vector2(72, 34)
 const ATTACK_HITBOX_OFFSET: Vector2 = Vector2(56, -38)
@@ -38,6 +39,7 @@ const NORMAL_MODULATE: Color = Color.WHITE
 const HIT_MODULATE: Color = Color(1.0, 0.88, 0.82, 1.0)
 const ANIMATION_IDLE: StringName = &"idle"
 const ANIMATION_RUN: StringName = &"run"
+const ANIMATION_ATTACK_TELL: StringName = &"attack_tell"
 const ANIMATION_ATTACK: StringName = &"attack"
 const ANIMATION_HURT: StringName = &"hurt"
 const ANIMATION_DEATH: StringName = &"death"
@@ -49,15 +51,18 @@ const STATUS_EFFECT_COMPONENT_SCRIPT: Script = preload("res://src/core/status_ef
 enum State { IDLE, HIT, ATTACK_TELL, ATTACK_ACTIVE, ATTACK_RECOVERY, DEAD }
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
+@onready var _focus_attack_tell: Node = $FocusAttackTell
 
 var _state: State = State.IDLE
 var _facing: float = -1.0
 var _hit_timer: int = 0
 var _attack_timer: int = 0
+var _current_attack_startup_frames: int = ATTACK_TELL_FRAMES
 var _attack_cooldown_timer: int = 0
 var _attack_sequence_id: int = 0
 var _behavior_phase: StringName = &"idle"
 var _defeated: bool = false
+var _encounter_active: bool = true
 var _current_phase: int = PHASE_ONE
 var _pending_phase_two_hp_percentage: float = -1.0
 var _last_hit_metadata: Dictionary = {}
@@ -73,6 +78,8 @@ var _default_collision_mask: int = 0
 var _arena_anchor_position: Vector2 = Vector2.ZERO
 var _audio_chase_active: bool = false
 var _last_audio_hp: int = MAX_HP
+var _target_focus_mode_active: bool = false
+var _focus_windup_extension_frames: int = 0
 
 
 func _ready() -> void:
@@ -87,6 +94,8 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	if not _encounter_active:
+		return
 	if _status_effects != null:
 		_status_effects.advance_time(_delta)
 	if _defeated:
@@ -117,6 +126,41 @@ func has_attack_target() -> bool:
 	return _has_valid_attack_target()
 
 
+## Enables or freezes the authored encounter without treating the Boss as defeated.
+func set_encounter_active(active: bool, target: Node = null) -> void:
+	if active and not _defeated:
+		var was_active: bool = _encounter_active
+		_encounter_active = true
+		visible = true
+		set_physics_process(true)
+		if not was_active:
+			reset_encounter()
+		set_attack_target(target)
+		return
+	_encounter_active = false
+	set_attack_target(null)
+	velocity = Vector2.ZERO
+	_stop_focus_attack_tell()
+	_attack_timer = 0
+	_attack_cooldown_timer = 0
+	_audio_chase_active = false
+	if not _defeated:
+		_state = State.IDLE
+		_behavior_phase = &"inactive"
+		_play_animation(ANIMATION_IDLE, true)
+	if _collision != null:
+		_collision.deactivate_all_hitboxes()
+		_collision.set_hurtbox_state(CollisionComponent.HURTBOX_STATE_GONE)
+	collision_layer = 0
+	collision_mask = 0
+	visible = false
+	set_physics_process(false)
+
+
+func is_encounter_active() -> bool:
+	return _encounter_active and not _defeated
+
+
 func set_damage_calculator_adapter(damage_calculator_adapter: Object) -> void:
 	_damage_calculator_adapter = damage_calculator_adapter
 	if _combat != null:
@@ -124,17 +168,23 @@ func set_damage_calculator_adapter(damage_calculator_adapter: Object) -> void:
 
 
 func request_attack() -> bool:
-	if _defeated or _state != State.IDLE or _attack_cooldown_timer > 0 or not _has_valid_attack_target():
+	if not _encounter_active \
+			or _defeated \
+			or _state != State.IDLE \
+			or _attack_cooldown_timer > 0 \
+			or not _has_valid_attack_target():
 		return false
 	_face_attack_target()
 	_attack_sequence_id += 1
-	_attack_timer = ATTACK_TELL_FRAMES
+	_current_attack_startup_frames = _next_attack_startup_frames()
+	_attack_timer = _current_attack_startup_frames
 	_state = State.ATTACK_TELL
 	_behavior_phase = &"startup"
 	_audio_chase_active = false
 	if _collision != null:
 		_collision.deactivate_hitbox(ATTACK_HITBOX_ID)
-	_play_animation(ANIMATION_ATTACK, true)
+	_play_animation(ANIMATION_ATTACK_TELL, true)
+	_begin_focus_attack_tell(ATTACK_TELL_FRAMES)
 	_emit_boss2_audio_event(&"attack_startup", {
 		"attack_sequence_id": _attack_sequence_id,
 		"attack_phase": &"startup",
@@ -144,11 +194,14 @@ func request_attack() -> bool:
 
 func advance_behavior_frames(frames: int) -> void:
 	for _index: int in range(maxi(0, frames)):
-		if _status_effects != null:
-			_status_effects.advance_time(1.0 / 60.0)
 		if _defeated:
 			_behavior_phase = &"defeated"
 			return
+		if not _encounter_active:
+			_behavior_phase = &"inactive"
+			return
+		if _status_effects != null:
+			_status_effects.advance_time(1.0 / 60.0)
 		_attack_cooldown_timer = maxi(_attack_cooldown_timer - 1, 0)
 		match _state:
 			State.IDLE:
@@ -168,7 +221,7 @@ func advance_behavior_frames(frames: int) -> void:
 
 func advance_attack_frames(frames: int) -> void:
 	for _index: int in range(maxi(0, frames)):
-		if _defeated:
+		if not _encounter_active or _defeated:
 			return
 		_attack_cooldown_timer = maxi(_attack_cooldown_timer - 1, 0)
 		match _state:
@@ -185,7 +238,7 @@ func advance_attack_frames(frames: int) -> void:
 
 
 func apply_damage(final_damage: int, metadata: Dictionary = {}) -> void:
-	if _defeated or _health == null or final_damage <= 0:
+	if not _encounter_active or _defeated or _health == null or final_damage <= 0:
 		return
 	_last_hit_metadata = metadata.duplicate(true)
 	_health.apply_damage(final_damage, metadata)
@@ -204,8 +257,10 @@ func break_shield() -> bool:
 
 
 func reset_encounter() -> void:
+	_encounter_active = true
 	_defeated = false
 	_state = State.IDLE
+	_stop_focus_attack_tell()
 	_behavior_phase = &"idle"
 	global_position = _arena_anchor_position
 	velocity = Vector2.ZERO
@@ -219,6 +274,8 @@ func reset_encounter() -> void:
 	_last_enemy_attack_metadata.clear()
 	collision_layer = _default_collision_layer
 	collision_mask = _default_collision_mask
+	visible = true
+	set_physics_process(true)
 	_ensure_core_components()
 	_setup_core_components()
 	_last_audio_hp = get_current_hp()
@@ -233,6 +290,7 @@ func reset_encounter() -> void:
 func mark_defeated_from_progress() -> void:
 	_defeated = true
 	_state = State.DEAD
+	_stop_focus_attack_tell()
 	_behavior_phase = &"defeated"
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
@@ -310,6 +368,7 @@ func restore_respawn_snapshot(snapshot: Dictionary) -> void:
 	global_position = _read_vector2(snapshot.get("global_position", global_position), global_position)
 	_defeated = false
 	_state = State.IDLE
+	_stop_focus_attack_tell()
 	_behavior_phase = &"idle"
 	_current_phase = PHASE_ONE
 	_pending_phase_two_hp_percentage = -1.0
@@ -350,11 +409,47 @@ func get_current_attack_sequence_id() -> int:
 
 
 func get_current_attack_startup_frames() -> int:
-	return ATTACK_TELL_FRAMES
+	if _is_attack_chain_active():
+		return _current_attack_startup_frames
+	return _next_attack_startup_frames()
 
 
 func get_attack_startup_frames() -> int:
 	return get_current_attack_startup_frames()
+
+
+func set_target_focus_mode(active: bool, metadata: Dictionary = {}) -> bool:
+	_target_focus_mode_active = active
+	_focus_windup_extension_frames = (
+		clampi(
+			_read_int(
+				metadata.get("windup_extension_frames", FOCUS_WINDUP_EXTENSION_FRAMES),
+				FOCUS_WINDUP_EXTENSION_FRAMES
+			),
+			0,
+			300
+		)
+		if active
+		else 0
+	)
+	return true
+
+
+func get_focus_windup_diagnostics() -> Dictionary:
+	return {
+		"focus_mode_active": _target_focus_mode_active,
+		"base_startup_frames": ATTACK_TELL_FRAMES,
+		"windup_extension_frames": _focus_windup_extension_frames,
+		"current_attack_startup_frames": get_current_attack_startup_frames(),
+		"attack_phase": String(get_attack_phase()),
+		"attack_sequence_id": _attack_sequence_id,
+	}
+
+
+func get_focus_attack_tell_diagnostics() -> Dictionary:
+	if _focus_attack_tell == null:
+		return {}
+	return Dictionary(_focus_attack_tell.call("get_diagnostics"))
 
 
 func get_attack_phase() -> StringName:
@@ -385,6 +480,7 @@ func get_auto_pressure_diagnostics() -> Dictionary:
 		distance_x = absf(to_target.x)
 		distance_y = absf(to_target.y)
 	return {
+		"encounter_active": is_encounter_active(),
 		"behavior_phase": _behavior_phase,
 		"current_phase": _current_phase,
 		"is_chasing": _behavior_phase == &"chase",
@@ -445,13 +541,14 @@ func _process_attack_tell() -> void:
 	_behavior_phase = &"startup"
 	velocity = Vector2.ZERO
 	_update_sprite_facing()
-	_play_animation(ANIMATION_ATTACK)
+	_advance_focus_attack_tell()
 	_attack_timer -= 1
 	if _attack_timer <= 0:
 		_enter_attack_active()
 
 
 func _enter_attack_active() -> void:
+	_stop_focus_attack_tell()
 	_state = State.ATTACK_ACTIVE
 	_behavior_phase = &"active"
 	_attack_timer = ATTACK_ACTIVE_FRAMES
@@ -575,6 +672,7 @@ func _die(_metadata: Dictionary) -> void:
 		return
 	_defeated = true
 	_state = State.DEAD
+	_stop_focus_attack_tell()
 	_behavior_phase = &"defeated"
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
@@ -751,6 +849,29 @@ func _current_attack_cooldown_frames() -> int:
 	return ATTACK_COOLDOWN_FRAMES
 
 
+func _begin_focus_attack_tell(base_duration_frames: int) -> void:
+	if _focus_attack_tell != null:
+		_focus_attack_tell.call(
+			"begin",
+			base_duration_frames,
+			_target_focus_mode_active
+		)
+
+
+func _advance_focus_attack_tell() -> void:
+	if _focus_attack_tell != null:
+		_focus_attack_tell.call("advance_frames")
+
+
+func _stop_focus_attack_tell() -> void:
+	if _focus_attack_tell != null:
+		_focus_attack_tell.call("stop")
+
+
+func _next_attack_startup_frames() -> int:
+	return ATTACK_TELL_FRAMES + _focus_windup_extension_frames
+
+
 func _is_attack_chain_active() -> bool:
 	return (
 		_state == State.ATTACK_TELL
@@ -801,7 +922,7 @@ func _direction_to_target() -> float:
 
 
 func _has_valid_attack_target() -> bool:
-	return _attack_target != null and is_instance_valid(_attack_target)
+	return _encounter_active and _attack_target != null and is_instance_valid(_attack_target)
 
 
 func _face_attack_target() -> void:

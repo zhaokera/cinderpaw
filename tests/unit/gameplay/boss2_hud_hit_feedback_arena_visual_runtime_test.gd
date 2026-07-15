@@ -7,6 +7,7 @@ const BOSS2_ARENA_FRAME_TEXTURE_PATH: String = (
 	"res://assets/environment/boss2_arena/boss2_echo_guardian_arena_frame.png"
 )
 const BOSS2_HIT_DAMAGE: int = 9
+const RAT_KING_DEFEATED_FLAG: StringName = &"boss_rat_king_defeated"
 
 var scene: Node2D
 
@@ -14,6 +15,7 @@ var scene: Node2D
 func before_test() -> void:
 	scene = MAIN_SCENE.instantiate() as Node2D
 	add_child(scene)
+	scene.call("set_world_progress_flag", RAT_KING_DEFEATED_FLAG, true)
 
 
 func after_test() -> void:

@@ -1,0 +1,71 @@
+{
+  "story": "player-abilities-163",
+  "date": "2026-07-14",
+  "engine": "Godot 4.7-stable (official)",
+  "mcp": {
+    "session": "cinderpaw@3736",
+    "plugin_version": "3.0.2",
+    "server_version": "3.0.2",
+    "transport": "streamable-http",
+    "run_id": "r18107187-8",
+    "current_run_errors": [],
+    "helper_live": true
+  },
+  "transition_entry": {
+    "attack_id": "wing_sweep",
+    "attack_started": true,
+    "threshold_damage": 80,
+    "threshold_damage_accepted": true,
+    "phase": 2,
+    "hp": 80,
+    "max_hp": 160,
+    "attack_phase": "phase_transition",
+    "active": true,
+    "duration_sec": 2.5,
+    "remaining_sec": 2.5,
+    "start_count": 1,
+    "animation": "hurt",
+    "hurtbox_state": "gone",
+    "overlay_count": 1,
+    "debris_count": 32,
+    "hud": "Crown Warden  Phase II  80/160",
+    "audio_event": "boss_phase_transition",
+    "sfx_id": "sfx_boss_phase"
+  },
+  "invulnerability_and_boundary": {
+    "probe_damage": 12,
+    "damage_rejected": true,
+    "hp_unchanged": true,
+    "attack_rejected": true,
+    "active_at_2_49_sec": true,
+    "inactive_at_2_50_sec": true,
+    "hurtbox_after_recovery": "normal",
+    "recovery_attack_id": "talon_dive",
+    "recovery_attack_started": true,
+    "transition_start_count": 1
+  },
+  "screenshots": [
+    {
+      "state": "phase_two_transition",
+      "path": "reports/visual/cinderpaw-mcp-crown-warden-phase2-transition-20260714.png",
+      "sha256": "834bca1378f11f16155721d0f04fed70dec7def5a1126c2df36a32835c5ead96",
+      "width": 1278,
+      "height": 718,
+      "format": "png",
+      "non_empty": true,
+      "visually_inspected": true
+    }
+  ],
+  "final_logs": {
+    "game_total_count": 3,
+    "game_levels": ["info"],
+    "editor_total_count": 0,
+    "clean_stop_readiness": "ready"
+  },
+  "rejected_attempt": {
+    "run_token": 7,
+    "reason": "Temporary MCP eval mixed spaces with the wrapper's tab indentation",
+    "project_error": false,
+    "stopped_before_final_run": true
+  }
+}
