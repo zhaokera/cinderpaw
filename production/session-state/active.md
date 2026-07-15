@@ -5989,3 +5989,40 @@
 - Blockers: None for Story024. The broader complete-game goal remains active.
 - Next after this isolated checkpoint: select the next bounded player-visible
   ACT gap without reopening the verified hitstop values.
+
+## Session Extract -- Combat Presentation Story025 2026-07-15
+
+- Delivery checkpoint: Combat Presentation Story025 is complete as verified
+  local work on top of uploaded Story024 commit `85aee81e`; report/tmp noise
+  remains excluded from the isolated change set.
+- Story: `production/epics/combat-presentation/story-025-crown-warden-victory-death-presentation-hold.md`
+  -- Crown Warden Victory Death Presentation Hold.
+- Implementation: Boss4 durable defeat now persists immediately while a
+  transient `2.0s` hold keeps its three-frame `death` visible, hitboxes off,
+  player/room/scene locks active, and reward/return/recall unavailable. The
+  existing kill profile supplies six hitstop frames and 18 debris; completion
+  releases the arena and spawns one reward reveal. Loaded defeat state does not
+  replay transient timing or VFX.
+- Verification: Initial RED `report_1790` failed only on the two missing
+  Story025 APIs; focused GREEN `report_1791` passed `1/1`; bounded Boss4 core,
+  reward, recall, and hitstop regressions `report_1792` through `report_1795`
+  passed `15/15`, for `16/16` total. `git diff --check` passed. No full suite or
+  repeated broad test pass was used.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r86792500-26`. Runtime lethal probe verified pending `2.0`, three death
+  frames, zero hitboxes, six hitstop frames, 18 debris, locked arena, delayed
+  reward/routes, one post-hold reveal, non-empty `1278x718` screenshot, clean
+  game logs, and stopped editor readiness `ready`.
+- Assets: No image/audio generation or import. Existing Crown Warden
+  AnimatedSprite2D/SpriteFrames, Observatory, Wall Climb reward, HUD and combat
+  VFX were sufficient; no placeholder character art was added.
+- Parallel review: Game design prioritized the Boss4 victory climax over
+  another bridge-only scene; technical-art confirmed the existing death frames
+  were production-usable; QA bounded regressions. The integrating agent owned
+  implementation, tests, MCP acceptance and documentation.
+- Scope: This closes the Boss4 death-to-reward presentation beat but does not
+  claim a fifth Boss or final ending. The complete-game goal and Combat
+  Presentation Epic remain active.
+- Blockers: None for Story025.
+- Next after this isolated checkpoint: prioritize the next player-visible ACT
+  gap, with Neon Rooftops and Underground Passage as bounded candidates.

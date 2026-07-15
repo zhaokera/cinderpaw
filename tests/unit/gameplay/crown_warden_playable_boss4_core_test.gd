@@ -463,6 +463,9 @@ func test_arena_lock_player_retry_defeat_and_fresh_restore_form_complete_loop() 
 	assert_bool(bool(arena.call(
 		"apply_damage", BOSS_ENTITY_ID, BOSS_MAX_HP, {}
 	))).is_true()
+	assert_bool(bool(arena.call(
+		"advance_boss4_death_presentation", 2.0
+	))).is_true()
 	var defeated: Dictionary = arena.call("get_boss4_combat_diagnostics")
 	assert_bool(bool(defeated.get("boss_defeated", false))).is_true()
 	assert_bool(bool(defeated.get("room_seals_enabled", true))).is_false()

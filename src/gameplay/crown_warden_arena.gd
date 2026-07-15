@@ -20,6 +20,7 @@ const VICTORY_RECALL_REQUESTED_STATE_KEY: String = (
 )
 const WALL_CLIMB_REWARD_ID: StringName = &"boss_04_wall_climb_reward"
 const WALL_CLIMB_ABILITY_ID: StringName = &"wall_climb"
+const BOSS_DEATH_PRESENTATION_HOLD_SEC: float = 2.0
 const WALL_CLIMB_REWARD_FEEDBACK_DURATION_SEC: float = 1.5
 const WALL_CLIMB_REWARD_REVEAL_DURATION_SEC: float = 0.8
 const WALL_CLIMB_REWARD_TEXTURE_PATH: String = (
@@ -86,6 +87,8 @@ var _last_return_rejected_reason: StringName = &""
 var _last_return_request: Dictionary = {}
 var _arena_discovered: bool = true
 var _boss_defeated: bool = false
+var _boss_death_presentation_pending: bool = false
+var _boss_death_presentation_remaining_sec: float = 0.0
 var _last_player_hit_metadata: Dictionary = {}
 var _last_boss_attack_metadata: Dictionary = {}
 var _player_retry_pending: bool = false
@@ -117,6 +120,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	advance_boss4_death_presentation(delta)
 	advance_wall_climb_reward_feedback(delta)
 	_advance_wall_climb_reward_reveal_vfx(delta)
 	_process_wall_climb_reward_contact()
@@ -198,6 +202,9 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 
 ## Returns to the secured Apex Approach without mutating the ability set.
 func try_request_central_tower_return(provider: Node = null) -> bool:
+	if _boss_death_presentation_pending:
+		_record_return_rejection(&"victory_presentation_pending")
+		return false
 	if not _boss_defeated:
 		_record_return_rejection(&"boss_active")
 		return false
@@ -245,6 +252,9 @@ func try_request_central_tower_return(provider: Node = null) -> bool:
 
 ## Closes the completed Boss4 session at the established Scrap Roost hub.
 func try_request_victory_recall(provider: Node = null) -> bool:
+	if _boss_death_presentation_pending:
+		_record_return_rejection(&"victory_presentation_pending")
+		return false
 	if not _boss_defeated or not _wall_climb_reward_claimed:
 		_record_return_rejection(&"reward_unclaimed")
 		return false
@@ -315,6 +325,8 @@ func set_local_state(state: Dictionary) -> void:
 	_last_return_rejected_reason = &""
 	_last_return_request.clear()
 	_boss_defeated = bool(state.get(BOSS_DEFEATED_STATE_KEY, false))
+	_boss_death_presentation_pending = false
+	_boss_death_presentation_remaining_sec = 0.0
 	_wall_climb_reward_claimed = bool(state.get(
 		WALL_CLIMB_REWARD_CLAIMED_STATE_KEY,
 		false
@@ -399,6 +411,10 @@ func get_boss4_combat_diagnostics() -> Dictionary:
 			else 0
 		),
 		"boss_defeated": _boss_defeated,
+		"death_presentation_pending": _boss_death_presentation_pending,
+		"death_presentation_remaining_sec": (
+			_boss_death_presentation_remaining_sec
+		),
 		"boss_visible": _boss != null and _boss.visible,
 		"boss_animation": String(boss_sprite.animation) if boss_sprite != null else "",
 		"boss_frame_count": (
@@ -424,6 +440,10 @@ func get_boss4_combat_diagnostics() -> Dictionary:
 		"return_transition_requested": _return_transition_requested,
 		"scene_manager_locked": _is_scene_manager_locked(),
 		"scene_manager_lock_owned": _scene_manager_lock_owned,
+		"player_control_locked": (
+			_boss_death_presentation_pending
+			or _wall_climb_reward_feedback_remaining_sec > 0.0
+		),
 		"last_player_hit_metadata": _last_player_hit_metadata.duplicate(true),
 		"last_boss_attack_metadata": _last_boss_attack_metadata.duplicate(true),
 		"player_retry_pending": _player_retry_pending,
@@ -462,6 +482,7 @@ func claim_wall_climb_reward_source(provider: Node = null) -> bool:
 		_wall_climb_reward_source == null
 		or _wall_climb_reward_claimed
 		or not _boss_defeated
+		or _boss_death_presentation_pending
 		or not _wall_climb_reward_source.has_method("try_claim")
 	):
 		return false
@@ -532,6 +553,7 @@ func get_wall_climb_reward_diagnostics() -> Dictionary:
 		"reward_id": String(WALL_CLIMB_REWARD_ID),
 		"ability_id": String(WALL_CLIMB_ABILITY_ID),
 		"boss_defeated": _boss_defeated,
+		"death_presentation_pending": _boss_death_presentation_pending,
 		"reward_present": _wall_climb_reward_source != null,
 		"reward_visible": reward_canvas != null and reward_canvas.visible,
 		"reward_available": (
@@ -570,7 +592,8 @@ func get_wall_climb_reward_diagnostics() -> Dictionary:
 func get_victory_recall_diagnostics() -> Dictionary:
 	var recall_canvas: CanvasItem = _victory_recall_route as CanvasItem
 	var player_control_locked: bool = (
-		_wall_climb_reward_feedback_remaining_sec > 0.0
+		_boss_death_presentation_pending
+		or _wall_climb_reward_feedback_remaining_sec > 0.0
 	)
 	return {
 		"route_present": _victory_recall_route != null,
@@ -650,7 +673,10 @@ func _on_scene_load_failed(scene_id: StringName, reason: StringName) -> void:
 
 func _sync_return_route() -> void:
 	if _return_route != null and _return_route.has_method("set_route_available"):
-		_return_route.call("set_route_available", _boss_defeated)
+		_return_route.call(
+			"set_route_available",
+			_boss_defeated and not _boss_death_presentation_pending
+		)
 	if _return_route != null and _return_route.has_method("set_transition_requested"):
 		_return_route.call(
 			"set_transition_requested",
@@ -662,7 +688,11 @@ func _sync_return_route() -> void:
 func _sync_victory_recall_route() -> void:
 	if _victory_recall_route == null:
 		return
-	var available: bool = _boss_defeated and _wall_climb_reward_claimed
+	var available: bool = (
+		_boss_defeated
+		and not _boss_death_presentation_pending
+		and _wall_climb_reward_claimed
+	)
 	if _victory_recall_route.has_method("set_route_available"):
 		_victory_recall_route.call("set_route_available", available)
 	if _victory_recall_route.has_method("set_transition_requested"):
@@ -775,7 +805,9 @@ func _sync_boss4_combat_state() -> void:
 		and _boss.has_method("mark_defeated_from_progress")
 	):
 		_boss.call("mark_defeated_from_progress")
-	_set_room_seals_enabled(not _boss_defeated)
+	_set_room_seals_enabled(
+		not _boss_defeated or _boss_death_presentation_pending
+	)
 	_sync_return_route()
 	_sync_scene_lock()
 	if _hud != null:
@@ -803,6 +835,7 @@ func _process_wall_climb_reward_contact() -> void:
 		or _wall_climb_reward_source == null
 		or _wall_climb_reward_claimed
 		or not _boss_defeated
+		or _boss_death_presentation_pending
 		or not _wall_climb_reward_source.has_method("is_provider_in_reward_range")
 	):
 		return
@@ -816,7 +849,10 @@ func _process_wall_climb_reward_contact() -> void:
 func _sync_wall_climb_reward_payoff() -> void:
 	if _wall_climb_reward_source == null:
 		return
-	_wall_climb_reward_source.visible = _boss_defeated
+	var reward_revealed: bool = (
+		_boss_defeated and not _boss_death_presentation_pending
+	)
+	_wall_climb_reward_source.visible = reward_revealed
 	if _wall_climb_reward_source.has_method("set_prompt_provider"):
 		_wall_climb_reward_source.call("set_prompt_provider", _player)
 	if _wall_climb_reward_source.has_method("set_claimed"):
@@ -827,7 +863,7 @@ func _sync_wall_climb_reward_payoff() -> void:
 	if _wall_climb_reward_source.has_method("set_available"):
 		_wall_climb_reward_source.call(
 			"set_available",
-			_boss_defeated and not _wall_climb_reward_claimed
+			reward_revealed and not _wall_climb_reward_claimed
 		)
 
 
@@ -836,6 +872,8 @@ func _refresh_wall_climb_reward_objective() -> void:
 		return
 	if not _boss_defeated:
 		_objective_label.text = "Defeat Crown Warden"
+	elif _boss_death_presentation_pending:
+		_objective_label.text = "Crown Warden Falling"
 	elif not _wall_climb_reward_claimed:
 		_objective_label.text = "Claim Wall Climb"
 	elif _wall_climb_reward_feedback_remaining_sec > 0.0:
@@ -973,7 +1011,7 @@ func _sync_scene_lock() -> void:
 	var scene_manager: Object = _resolve_scene_manager_for_runtime()
 	if not _is_valid_scene_manager(scene_manager):
 		return
-	if _boss_defeated:
+	if _boss_defeated and not _boss_death_presentation_pending:
 		_release_scene_lock()
 		return
 	if _scene_manager_lock_owned:
@@ -1051,10 +1089,97 @@ func _on_boss4_health_changed(current_hp: int, max_hp: int) -> void:
 	)
 
 
-func _on_boss4_defeated() -> void:
-	_boss_defeated = true
+## Advances the transient Boss4 death hold without persisting timer state.
+func advance_boss4_death_presentation(delta_sec: float) -> bool:
+	if not _boss_death_presentation_pending:
+		return false
+	_boss_death_presentation_remaining_sec = maxf(
+		0.0,
+		_boss_death_presentation_remaining_sec - maxf(0.0, delta_sec)
+	)
+	if _boss_death_presentation_remaining_sec > 0.0:
+		return false
+	_boss_death_presentation_pending = false
+	_set_player_reward_control_locked(false)
 	_sync_boss4_combat_state()
 	_spawn_wall_climb_reward_reveal_vfx()
+	return true
+
+
+## Returns the complete Story025 hold contract for tests and MCP probes.
+func get_boss4_death_presentation_diagnostics() -> Dictionary:
+	var boss_sprite: AnimatedSprite2D = (
+		_boss.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _boss != null
+		else null
+	)
+	var boss_collision: CollisionComponent = (
+		_boss.call("get_collision_component") as CollisionComponent
+		if _boss != null and _boss.has_method("get_collision_component")
+		else null
+	)
+	var reward_canvas: CanvasItem = _wall_climb_reward_source as CanvasItem
+	return {
+		"pending": _boss_death_presentation_pending,
+		"remaining_sec": _boss_death_presentation_remaining_sec,
+		"hold_duration_sec": BOSS_DEATH_PRESENTATION_HOLD_SEC,
+		"boss_defeated": _boss_defeated,
+		"boss_visible": _boss != null and _boss.visible,
+		"animation": String(boss_sprite.animation) if boss_sprite != null else "",
+		"death_frame_count": (
+			boss_sprite.sprite_frames.get_frame_count(&"death")
+			if boss_sprite != null and boss_sprite.sprite_frames != null
+			else 0
+		),
+		"active_hitbox_count": (
+			boss_collision.get_active_hitbox_count()
+			if boss_collision != null
+			else -1
+		),
+		"reward_visible": reward_canvas != null and reward_canvas.visible,
+		"reward_available": (
+			bool(_wall_climb_reward_source.call("is_claim_available"))
+			if _wall_climb_reward_source != null
+			and _wall_climb_reward_source.has_method("is_claim_available")
+			else false
+		),
+		"room_seals_enabled": _are_room_seals_enabled(),
+		"return_route_available": (
+			bool(_return_route.call("is_route_available"))
+			if _return_route != null and _return_route.has_method("is_route_available")
+			else false
+		),
+		"recall_route_available": (
+			bool(_victory_recall_route.call("is_route_available"))
+			if _victory_recall_route != null
+			and _victory_recall_route.has_method("is_route_available")
+			else false
+		),
+		"scene_manager_locked": _is_scene_manager_locked(),
+		"player_control_locked": (
+			_boss_death_presentation_pending
+			or _wall_climb_reward_feedback_remaining_sec > 0.0
+		),
+		"reveal_vfx_spawn_count": _wall_climb_reward_reveal_spawn_count,
+		"objective_text": _objective_label.text if _objective_label != null else "",
+	}
+
+
+func _on_boss4_defeated() -> void:
+	if _boss_defeated:
+		return
+	_boss_defeated = true
+	_boss_death_presentation_pending = true
+	_boss_death_presentation_remaining_sec = BOSS_DEATH_PRESENTATION_HOLD_SEC
+	_set_player_reward_control_locked(true)
+	if _combat_presentation != null:
+		_combat_presentation.on_kill_event(
+			BOSS_ENTITY_ID,
+			_boss.global_position if _boss != null else Vector2.ZERO
+		)
+	_sync_boss4_combat_state()
+	if _is_valid_scene_manager(_resolve_scene_manager_for_runtime()):
+		_persist_progress()
 
 
 func _on_boss4_phase_transition_started(

@@ -117,6 +117,9 @@ func test_defeat_reveals_generated_reward_and_claim_unlocks_once() -> void:
 		BOSS_MAX_HP,
 		{"source": &"story147_reward_test"}
 	))).is_true()
+	assert_bool(bool(arena.call(
+		"advance_boss4_death_presentation", 2.0
+	))).is_true()
 	var revealed: Dictionary = arena.call("get_wall_climb_reward_diagnostics")
 	assert_bool(bool(revealed.get("reward_visible", false))).is_true()
 	assert_bool(bool(revealed.get("reward_available", false))).is_true()
@@ -162,6 +165,9 @@ func test_alternate_path_claim_is_safe_and_persists_without_replay() -> void:
 		unlock_events.append(ability_id)
 	)
 	assert_bool(bool(arena.call("apply_damage", BOSS_ENTITY_ID, BOSS_MAX_HP, {}))).is_true()
+	assert_bool(bool(arena.call(
+		"advance_boss4_death_presentation", 2.0
+	))).is_true()
 	player.set("global_position", source.get("global_position"))
 	assert_bool(bool(arena.call("claim_wall_climb_reward_source", player))).is_true()
 	assert_array(unlock_events).is_empty()
@@ -227,6 +233,9 @@ func test_reward_asset_and_scene_manager_handoff_contract() -> void:
 	var scene_manager := RewardSceneManager.new()
 	assert_bool(bool(arena.call("configure_scene_manager_runtime", scene_manager))).is_true()
 	assert_bool(bool(arena.call("apply_damage", BOSS_ENTITY_ID, BOSS_MAX_HP, {}))).is_true()
+	assert_bool(bool(arena.call(
+		"advance_boss4_death_presentation", 2.0
+	))).is_true()
 	player.set("global_position", source.get("global_position"))
 	assert_bool(bool(arena.call("claim_wall_climb_reward_source", player))).is_true()
 	for target_id: StringName in [ARENA_SCENE_ID, TOWER_SCENE_ID, MAIN_SCENE_ID]:

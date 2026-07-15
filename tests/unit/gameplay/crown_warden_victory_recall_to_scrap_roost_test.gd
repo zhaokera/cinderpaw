@@ -125,6 +125,9 @@ func test_reward_claim_reveals_generated_recall_and_requests_main_once() -> void
 	assert_bool(bool(arena.call(
 		"apply_damage", BOSS_ENTITY_ID, BOSS_MAX_HP, {"source": &"story148"}
 	))).is_true()
+	assert_bool(bool(arena.call(
+		"advance_boss4_death_presentation", 2.0
+	))).is_true()
 	player.global_position = reward.global_position
 	assert_bool(bool(arena.call("claim_wall_climb_reward_source", player))).is_true()
 	assert_bool(recall.visible).is_true()
