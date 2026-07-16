@@ -191,6 +191,17 @@
   evidence from the stories validated at that time.
 
 ## Last Completed Task
+- Combat Presentation Story 029: Cinderpaw Air Animation Identity Consistency
+  -- 以 Cinderpaw 主精灵表和连击表为参考重新生成 jump/fall 六帧，修复旧素材
+  的蓝披风角色漂移与 `42.9%-51.3%` 软边；新帧保持红围巾、琥珀高光、深钢
+  护甲，hard-edge ratio 为 `0`。RED `report_1825`；focused GREEN
+  `report_1826` `1/1`；final focused/related `report_1829` `12/12`；fresh
+  completion gate `report_1830` `12/12`。
+  Godot 4.7 / MCP 3.0.2 run `r97104478-36` 验证 Main 真实 jump/fall、
+  `AnimatedSprite2D`、各 3 帧 `96x96`、两张非空 `1278x718` 截图、info-only
+  logs 与 clean stop `ready`。同时修正一条与 authored combo frame pause 不符的
+  旧 Story003 测试断言，未修改运行时代码。
+
 - Audio System Story 010: Focus Damage Low-HP Final Mix -- 保持既有 cue id/
   path 与 Main/AudioSystem 接线不变，将 Story005 0.34s replaceable baseline
   替换为 0.38s 44.1kHz mono PCM16 最终混音；相对普通受击音 20-80Hz

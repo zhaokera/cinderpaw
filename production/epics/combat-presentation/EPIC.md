@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 28 stories tracked
+> **Stories**: 29 stories tracked
 
 ## Overview
 
@@ -68,6 +68,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 026 | Neon Rooftops Combat Impact | Integration/Feel | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005 |
 | 027 | Underground Passage Combat Impact | Integration/Feel | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005 |
 | 028 | Old Factory Spark Rat Combat Impact | Integration/Feel | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005 |
+| 029 | Cinderpaw Air Animation Identity Consistency | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
 
 ## Definition of Done
 
@@ -81,7 +82,7 @@ This epic is complete when:
 
 ## Completion Evidence
 
-Combat Presentation has all 28 tracked stories complete, but the Epic remains
+Combat Presentation has all 29 tracked stories complete, but the Epic remains
 In Progress until the Main-scene real hitstop/input handoff is extended to
 independent player-facing combat scenes. Story014 adds the
 first Rat King boss frame-animation asset slice so the MVP boss no longer exists
@@ -133,6 +134,9 @@ valid after a defeated Leech is freed. Story028 extends the same runtime owner
 to Old Factory, verifies the real Spark Rat bite and Cat Claw dodge-counter,
 preserves dedicated PERFECT-parry and one-shot lethal feedback, and connects
 the shared Factory enemy landed-hit path without changing encounter balance.
+Story029 replaces the six blue-cloak, soft-edge jump/fall frames with
+reference-guided hard-edge Cinderpaw pixel art while preserving the existing
+SpriteFrames paths, air-state selection, and gameplay rules.
 Other independently mounted
 player-facing combat scenes remain follow-up coverage before Epic completion.
 Evidence is recorded in
@@ -164,3 +168,5 @@ Story027 evidence is recorded in
 `production/qa/evidence/underground-passage-combat-impact-2026-07-15.md`.
 Story028 evidence is recorded in
 `production/qa/evidence/old-factory-spark-rat-combat-impact-2026-07-15.md`.
+Story029 evidence is recorded in
+`production/qa/evidence/cinderpaw-air-animation-identity-consistency-2026-07-15.md`.

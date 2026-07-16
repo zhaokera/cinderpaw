@@ -56,7 +56,8 @@ func test_player_attack_switches_to_attack_animation() -> void:
 	assert_bool(player.request_attack()).is_true()
 
 	assert_str(String(sprite.animation)).is_equal("attack")
-	assert_bool(sprite.is_playing()).is_true()
+	assert_bool(sprite.is_playing()).is_false()
+	assert_int(sprite.frame).is_equal(0)
 
 
 func _get_animated_sprite_or_fail() -> AnimatedSprite2D:
