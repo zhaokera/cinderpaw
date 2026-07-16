@@ -18,6 +18,12 @@ const WALL_CLIMB_REWARD_CLAIMED_STATE_KEY: String = (
 const VICTORY_RECALL_REQUESTED_STATE_KEY: String = (
 	"boss_04_victory_recall_requested"
 )
+const EPILOGUE_CHECKPOINT_STATE_KEY: String = (
+	"crown_observatory_epilogue_checkpoint_activated"
+)
+const EPILOGUE_ASCENT_COMPLETED_STATE_KEY: String = (
+	"crown_observatory_epilogue_ascent_completed"
+)
 const WALL_CLIMB_REWARD_ID: StringName = &"boss_04_wall_climb_reward"
 const WALL_CLIMB_ABILITY_ID: StringName = &"wall_climb"
 const BOSS_DEATH_PRESENTATION_HOLD_SEC: float = 2.0
@@ -49,6 +55,10 @@ const BACKGROUND_TEXTURE_PATH: String = (
 	"res://assets/environment/crown_warden_arena/"
 	+ "env_crown_warden_observatory_1280x720.png"
 )
+const EPILOGUE_BACKGROUND_TEXTURE_PATH: String = (
+	"res://assets/environment/crown_warden_arena/"
+	+ "env_crown_observatory_epilogue_ascent_1280x720.png"
+)
 
 @onready var _player: Node2D = get_node_or_null("Player") as Node2D
 @onready var _entry_spawn: Marker2D = get_node_or_null("BossEntrySpawn") as Marker2D
@@ -79,6 +89,10 @@ const BACKGROUND_TEXTURE_PATH: String = (
 @onready var _hitstop_input_bridge = get_node_or_null("HitstopInputBridge")
 @onready var _boss_config_component: BossConfigComponent = (
 	get_node_or_null("BossConfigComponent") as BossConfigComponent
+)
+@onready var _epilogue_ascent: CrownObservatoryEpilogueAscentController = (
+	get_node_or_null("CrownObservatoryEpilogueAscent")
+	as CrownObservatoryEpilogueAscentController
 )
 
 var _scene_manager: Object = null
@@ -113,6 +127,7 @@ func _ready() -> void:
 	_setup_boss4_parry_runtime()
 	_setup_hitstop_input_buffer()
 	_setup_boss4_combat()
+	_setup_epilogue_ascent_runtime()
 	_sync_boss4_combat_state()
 	var root_scene_manager: Node = get_node_or_null("/root/SceneManager")
 	if _is_valid_scene_manager(root_scene_manager):
@@ -124,6 +139,7 @@ func _process(delta: float) -> void:
 	advance_wall_climb_reward_feedback(delta)
 	_advance_wall_climb_reward_reveal_vfx(delta)
 	_process_wall_climb_reward_contact()
+	_update_objective_screen_position()
 	if Input.is_action_just_pressed(&"interact") and not _return_transition_requested:
 		if _is_provider_near_victory_recall(_player):
 			try_request_victory_recall(_player)
@@ -258,6 +274,9 @@ func try_request_victory_recall(provider: Node = null) -> bool:
 	if not _boss_defeated or not _wall_climb_reward_claimed:
 		_record_return_rejection(&"reward_unclaimed")
 		return false
+	if not _is_epilogue_ascent_completed():
+		_record_return_rejection(&"epilogue_ascent_incomplete")
+		return false
 	if _victory_recall_route == null or _return_transition_requested:
 		_record_return_rejection(&"transition_already_requested")
 		return false
@@ -307,11 +326,20 @@ func try_request_victory_recall(provider: Node = null) -> bool:
 
 
 func get_local_state() -> Dictionary:
+	var epilogue_state: Dictionary = _get_epilogue_ascent_state()
 	return {
 		"crown_warden_arena_discovered": _arena_discovered,
 		BOSS_DEFEATED_STATE_KEY: _boss_defeated,
 		WALL_CLIMB_REWARD_CLAIMED_STATE_KEY: _wall_climb_reward_claimed,
 		VICTORY_RECALL_REQUESTED_STATE_KEY: _victory_recall_proof_persisted,
+		EPILOGUE_CHECKPOINT_STATE_KEY: bool(epilogue_state.get(
+			"checkpoint_activated",
+			false
+		)),
+		EPILOGUE_ASCENT_COMPLETED_STATE_KEY: bool(epilogue_state.get(
+			"completed",
+			false
+		)),
 		"unlocked_abilities": _get_player_unlocked_ability_strings(),
 	}
 
@@ -335,6 +363,14 @@ func set_local_state(state: Dictionary) -> void:
 		VICTORY_RECALL_REQUESTED_STATE_KEY,
 		false
 	))
+	var epilogue_completed: bool = bool(state.get(
+		EPILOGUE_ASCENT_COMPLETED_STATE_KEY,
+		false
+	)) or _victory_recall_proof_persisted
+	var epilogue_checkpoint: bool = bool(state.get(
+		EPILOGUE_CHECKPOINT_STATE_KEY,
+		false
+	)) or epilogue_completed
 	_wall_climb_reward_feedback_remaining_sec = 0.0
 	_wall_climb_reward_feedback_count = 0
 	_wall_climb_reward_ability_was_already_unlocked = false
@@ -342,13 +378,18 @@ func set_local_state(state: Dictionary) -> void:
 	_clear_wall_climb_reward_reveal_vfx()
 	_set_player_reward_control_locked(false)
 	_restore_player_unlocked_abilities(state)
+	if _epilogue_ascent != null:
+		_epilogue_ascent.restore_progress(
+			epilogue_checkpoint,
+			epilogue_completed
+		)
 	if _boss != null:
 		if _boss_defeated and _boss.has_method("mark_defeated_from_progress"):
 			_boss.call("mark_defeated_from_progress")
 		elif not _boss_defeated and _boss.has_method("reset_encounter"):
 			_boss.call("reset_encounter")
 	_sync_boss4_combat_state()
-	_align_player_to_entry_spawn()
+	_align_player_after_state_restore()
 
 
 func get_arena_handoff_diagnostics() -> Dictionary:
@@ -507,6 +548,7 @@ func claim_wall_climb_reward_source(provider: Node = null) -> bool:
 	_wall_climb_reward_feedback_count += 1
 	_set_player_reward_control_locked(true)
 	_sync_wall_climb_reward_payoff()
+	_sync_epilogue_ascent_route()
 	_sync_victory_recall_route()
 	_update_wall_climb_reward_feedback_pulse()
 	if _hud != null:
@@ -635,6 +677,42 @@ func get_victory_recall_diagnostics() -> Dictionary:
 	}
 
 
+## Attempts the one-shot high-platform proof owned by Story172's controller.
+func try_complete_crown_observatory_epilogue_ascent(
+	provider: Node = null
+) -> bool:
+	if _epilogue_ascent == null:
+		return false
+	return _epilogue_ascent.try_complete(
+		_player if provider == null else provider
+	)
+
+
+## Returns traversal, persistence, recall, and visual details for tests and MCP.
+func get_crown_observatory_epilogue_ascent_diagnostics() -> Dictionary:
+	var diagnostics: Dictionary = _get_epilogue_ascent_state()
+	diagnostics.merge({
+		"boss_defeated": _boss_defeated,
+		"reward_claimed": _wall_climb_reward_claimed,
+		"recall_route_available": (
+			bool(_victory_recall_route.call("is_route_available"))
+			if _victory_recall_route != null
+			and _victory_recall_route.has_method("is_route_available")
+			else false
+		),
+		"recall_route_visible": (
+			_victory_recall_route != null and _victory_recall_route.visible
+		),
+		"objective_text": _objective_label.text if _objective_label != null else "",
+		"player_position": (
+			_player.global_position if _player != null else Vector2.ZERO
+		),
+		"background_expected_path": EPILOGUE_BACKGROUND_TEXTURE_PATH,
+		"camera_limit_right": _get_camera_limit_right(),
+	}, true)
+	return diagnostics
+
+
 func _connect_scene_manager_failure_signal() -> void:
 	if _scene_manager == null or not _scene_manager.has_signal("on_scene_load_failed"):
 		return
@@ -682,6 +760,7 @@ func _sync_return_route() -> void:
 			"set_transition_requested",
 			_return_transition_requested
 		)
+	_sync_epilogue_ascent_route()
 	_sync_victory_recall_route()
 
 
@@ -692,6 +771,7 @@ func _sync_victory_recall_route() -> void:
 		_boss_defeated
 		and not _boss_death_presentation_pending
 		and _wall_climb_reward_claimed
+		and _is_epilogue_ascent_completed()
 	)
 	if _victory_recall_route.has_method("set_route_available"):
 		_victory_recall_route.call("set_route_available", available)
@@ -701,6 +781,36 @@ func _sync_victory_recall_route() -> void:
 			_return_transition_requested
 		)
 	_victory_recall_route.visible = available
+
+
+func _setup_epilogue_ascent_runtime() -> void:
+	if _epilogue_ascent == null:
+		return
+	_epilogue_ascent.configure_runtime(_player, self)
+	if not _epilogue_ascent.checkpoint_activated.is_connected(
+		_on_epilogue_ascent_checkpoint_activated
+	):
+		_epilogue_ascent.checkpoint_activated.connect(
+			_on_epilogue_ascent_checkpoint_activated
+		)
+	if not _epilogue_ascent.ascent_completed.is_connected(
+		_on_epilogue_ascent_completed
+	):
+		_epilogue_ascent.ascent_completed.connect(_on_epilogue_ascent_completed)
+	if not _epilogue_ascent.fall_requested.is_connected(
+		_on_epilogue_ascent_fall_requested
+	):
+		_epilogue_ascent.fall_requested.connect(_on_epilogue_ascent_fall_requested)
+
+
+func _sync_epilogue_ascent_route() -> void:
+	if _epilogue_ascent == null:
+		return
+	_epilogue_ascent.set_route_available(
+		_boss_defeated
+		and not _boss_death_presentation_pending
+		and _wall_climb_reward_claimed
+	)
 
 
 func _setup_boss4_combat() -> void:
@@ -878,8 +988,10 @@ func _refresh_wall_climb_reward_objective() -> void:
 		_objective_label.text = "Claim Wall Climb"
 	elif _wall_climb_reward_feedback_remaining_sec > 0.0:
 		_objective_label.text = _wall_climb_reward_notification_text()
+	elif not _is_epilogue_ascent_completed():
+		_objective_label.text = "Climb to the Crown Signal"
 	else:
-		_objective_label.text = "Choose Scrap Roost Recall or Apex Return"
+		_objective_label.text = "Recall to Scrap Roost"
 
 
 func _wall_climb_reward_notification_text() -> String:
@@ -1053,12 +1165,61 @@ func _on_player_health_changed(current_hp: int, max_hp: int) -> void:
 		_hud.update_hp(current_hp, max_hp)
 
 
+func _on_epilogue_ascent_checkpoint_activated() -> void:
+	if _hud != null:
+		_hud.show_notification("Crown Signal Checkpoint", 1.2)
+	if _is_valid_scene_manager(_resolve_scene_manager_for_runtime()):
+		_persist_progress()
+
+
+func _on_epilogue_ascent_completed() -> void:
+	_sync_victory_recall_route()
+	_refresh_wall_climb_reward_objective()
+	if _hud != null:
+		_hud.show_notification("Crown Signal Linked", 1.5)
+	if _is_valid_scene_manager(_resolve_scene_manager_for_runtime()):
+		_persist_progress()
+
+
+func _on_epilogue_ascent_fall_requested(provider: Node2D) -> void:
+	if (
+		provider != _player
+		or _player == null
+		or not _boss_defeated
+		or not _player.has_method("apply_damage")
+	):
+		return
+	_player.call("apply_damage", 9999, {
+		"source": &"crown_observatory_epilogue_fall",
+		"damage_type": &"fall",
+	})
+
+
 func _on_player_died(_death_metadata: Dictionary) -> void:
-	if _boss_defeated or _player_retry_pending:
+	if _player_retry_pending:
 		return
 	_player_retry_pending = true
 	_player_death_count += 1
-	call_deferred("_reset_active_boss4_encounter_after_player_death")
+	if _boss_defeated:
+		call_deferred("_reset_epilogue_ascent_after_player_death")
+	else:
+		call_deferred("_reset_active_boss4_encounter_after_player_death")
+
+
+func _reset_epilogue_ascent_after_player_death() -> void:
+	_player_retry_pending = false
+	if not _boss_defeated or _player == null:
+		return
+	var respawn_position: Vector2 = (
+		_epilogue_ascent.get_respawn_position()
+		if _epilogue_ascent != null
+		else Vector2.ZERO
+	)
+	if respawn_position == Vector2.ZERO and _entry_spawn != null:
+		respawn_position = _entry_spawn.global_position
+	if _player.has_method("respawn_at"):
+		_player.call("respawn_at", respawn_position, 1.0)
+	_sync_boss4_combat_state()
 
 
 func _reset_active_boss4_encounter_after_player_death() -> void:
@@ -1340,6 +1501,52 @@ func _build_boss4_parry_presentation_data(parry_data: Dictionary) -> Dictionary:
 	enriched["position"] = parry_position
 	enriched["source"] = &"crown_warden_parry_counter"
 	return enriched
+
+
+func _get_epilogue_ascent_state() -> Dictionary:
+	if _epilogue_ascent == null:
+		return {
+			"checkpoint_activated": false,
+			"completed": false,
+		}
+	return _epilogue_ascent.get_diagnostics()
+
+
+func _is_epilogue_ascent_completed() -> bool:
+	return _epilogue_ascent != null and _epilogue_ascent.is_completed()
+
+
+func _get_camera_limit_right() -> int:
+	if _player == null:
+		return 0
+	var camera: Camera2D = _player.get_node_or_null("Camera2D") as Camera2D
+	return camera.limit_right if camera != null else 0
+
+
+func _update_objective_screen_position() -> void:
+	if _objective_label == null or _player == null:
+		return
+	var camera: Camera2D = _player.get_node_or_null("Camera2D") as Camera2D
+	if camera == null:
+		return
+	var screen_center: Vector2 = camera.get_screen_center_position()
+	_objective_label.position = screen_center + Vector2(-244.0, -280.0)
+
+
+func _align_player_after_state_restore() -> bool:
+	if _player == null:
+		return false
+	var restore_position: Vector2 = (
+		_epilogue_ascent.get_respawn_position()
+		if _epilogue_ascent != null
+		else Vector2.ZERO
+	)
+	if restore_position == Vector2.ZERO:
+		return _align_player_to_entry_spawn()
+	_player.global_position = restore_position
+	if _player is CharacterBody2D:
+		(_player as CharacterBody2D).velocity = Vector2.ZERO
+	return true
 
 
 func _align_player_to_entry_spawn() -> bool:

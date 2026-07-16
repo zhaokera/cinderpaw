@@ -6346,3 +6346,30 @@
 - Assets: no new game visual was required; Story171 reuses the established
   code-drawn minimap. The MCP screenshot is retained as QA evidence.
 - Blockers: None for Story171.
+
+## Session Extract -- Player Abilities Story172 2026-07-17
+
+- Delivery checkpoint: Story172 is complete as an isolated post-Boss4
+  wall-climb payoff. The broader complete-game goal remains active.
+- Story: `production/epics/player-abilities/story-172-crown-observatory-wall-climb-epilogue-ascent.md`
+  -- Crown Observatory Wall-Climb Epilogue Ascent.
+- Runtime: Crown Warden Arena now spans `2560x720`; its generated second
+  viewport contains authored entry wall, staggered landings, lethal shaft,
+  magnetic signal spine and high Recall platform.
+- Progression: Boss defeat plus Crown Core claim opens the ascent but not
+  Recall. One real `wall_climb_started` activates the durable checkpoint; the
+  endpoint persists completion and only then exposes Scrap Roost Recall.
+- Recovery: post-Boss fall/death revives at the ascent checkpoint or completed
+  endpoint without resetting Boss, reward or abilities. Existing Recall saves
+  infer completion for backward compatibility.
+- Verification: RED `report_1878`; focused GREEN `report_1881` `1/1`; related
+  Story147/148 `report_1884` `6/6`; final pre-commit `report_1886` `7/7`; two
+  updated smoke scripts passed `--check-only`; all exits `0`.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`,
+  final run `r191067492-57`. Runtime diagnostics, `AnimatedSprite2D` player,
+  imported generated background, non-empty `1278x718` screenshot, clean
+  three-line info log, zero editor errors and clean stop were verified.
+- Assets: built-in image generation produced and retained an opaque `1672x941`
+  source, exact prompt/metadata and normalized `1280x720` runtime background;
+  asset spec, manifest and entity inventory were updated.
+- Blockers: None for Story172.

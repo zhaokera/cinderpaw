@@ -27,6 +27,9 @@ const BOSS_MAX_HP: int = 160
 const DEFEATED_KEY: String = "boss_04_crown_warden_defeated"
 const REWARD_KEY: String = "boss_04_wall_climb_reward_claimed"
 const RECALL_KEY: String = "boss_04_victory_recall_requested"
+const EPILOGUE_COMPLETED_KEY: String = (
+	"crown_observatory_epilogue_ascent_completed"
+)
 const HUB_FLAG: String = "boss_04_victory_hub_return_secured"
 const RAT_KING_DEFEATED_FLAG: String = "boss_rat_king_defeated"
 const BOSS2_DEFEATED_FLAG: String = "boss_02_echo_guardian_defeated"
@@ -110,12 +113,15 @@ func test_reward_claim_reveals_generated_recall_and_requests_main_once() -> void
 	var player: Node2D = arena.get_node_or_null("Player") as Node2D
 	var reward: Node2D = arena.get_node_or_null("WallClimbRewardSource") as Node2D
 	var recall: Node2D = arena.get_node_or_null("CrownVictoryRecallRoute") as Node2D
+	var endpoint: Node2D = arena.get_node_or_null(
+		"CrownObservatoryEpilogueAscent/AscentEndpoint"
+	) as Node2D
 	assert_that(recall).override_failure_message(
 		"Story148 must author CrownVictoryRecallRoute"
 	).is_not_null()
 	assert_bool(arena.has_method("try_request_victory_recall")).is_true()
 	assert_bool(arena.has_method("get_victory_recall_diagnostics")).is_true()
-	if player == null or reward == null or recall == null:
+	if player == null or reward == null or recall == null or endpoint == null:
 		return
 	assert_bool(recall.visible).is_false()
 	assert_bool(bool(recall.call("is_route_available"))).is_false()
@@ -130,10 +136,23 @@ func test_reward_claim_reveals_generated_recall_and_requests_main_once() -> void
 	))).is_true()
 	player.global_position = reward.global_position
 	assert_bool(bool(arena.call("claim_wall_climb_reward_source", player))).is_true()
-	assert_bool(recall.visible).is_true()
-	assert_bool(bool(recall.call("is_route_available"))).is_true()
+	assert_bool(recall.visible).is_false()
+	assert_bool(bool(recall.call("is_route_available"))).is_false()
 	assert_bool(bool(arena.call("try_request_victory_recall", player))).is_false()
 
+	arena.call("advance_wall_climb_reward_feedback", 1.51)
+	player.global_position = Vector2(1220, 480)
+	assert_bool(bool(player.call(
+		"request_wall_climb", Vector2(-1, 0), -1.0, true
+	))).is_true()
+	player.global_position = endpoint.global_position
+	assert_bool(bool(arena.call(
+		"try_complete_crown_observatory_epilogue_ascent", player
+	))).is_true()
+	assert_bool(recall.visible).is_true()
+	assert_bool(bool(recall.call("is_route_available"))).is_true()
+	player.global_position = reward.global_position
+	assert_bool(bool(arena.call("try_request_victory_recall", player))).is_false()
 	player.global_position = recall.global_position
 	assert_bool(bool(arena.call("try_request_victory_recall", player))).is_true()
 	assert_bool(bool(arena.call("try_request_victory_recall", player))).is_false()
@@ -148,6 +167,7 @@ func test_reward_claim_reveals_generated_recall_and_requests_main_once() -> void
 	assert_bool(bool(persisted.get(RECALL_KEY, false))).is_true()
 	assert_bool(bool(persisted.get(DEFEATED_KEY, false))).is_true()
 	assert_bool(bool(persisted.get(REWARD_KEY, false))).is_true()
+	assert_bool(bool(persisted.get(EPILOGUE_COMPLETED_KEY, false))).is_true()
 	assert_int(int(manager.get_scene_state(MAIN_SCENE_ID).get(
 		"main_sentinel", 0
 	))).is_equal(2)
@@ -170,7 +190,7 @@ func test_reward_claim_reveals_generated_recall_and_requests_main_once() -> void
 		"try_request_victory_recall", rejected_player
 	))).is_false()
 	assert_bool(bool(rejected_manager.get_scene_state(ARENA_SCENE_ID).get(
-		RECALL_KEY, true
+		RECALL_KEY, false
 	))).is_false()
 
 

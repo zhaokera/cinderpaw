@@ -59,7 +59,10 @@ func _run() -> void:
 	var player: Node2D = arena.get_node_or_null("Player") as Node2D
 	var reward: Node2D = arena.get_node_or_null("WallClimbRewardSource") as Node2D
 	var recall: Node2D = arena.get_node_or_null("CrownVictoryRecallRoute") as Node2D
-	if player == null or reward == null or recall == null:
+	var endpoint: Node2D = arena.get_node_or_null(
+		"CrownObservatoryEpilogueAscent/AscentEndpoint"
+	) as Node2D
+	if player == null or reward == null or recall == null or endpoint == null:
 		_fail("arena_post_boss_nodes_missing")
 		return
 	if not bool(arena.call(
@@ -70,9 +73,27 @@ func _run() -> void:
 	)):
 		_fail("boss_defeat_rejected")
 		return
-	player.global_position.x = reward.global_position.x
-	await process_frame
+	if not bool(arena.call("advance_boss4_death_presentation", 2.0)):
+		_fail("boss_death_presentation_did_not_finish")
+		return
+	player.global_position = reward.global_position
+	if not bool(arena.call("claim_wall_climb_reward_source", player)):
+		_fail("wall_climb_reward_claim_failed")
+		return
 	arena.call("advance_wall_climb_reward_feedback", 1.51)
+	player.global_position = Vector2(1220, 480)
+	await physics_frame
+	if not bool(player.call(
+		"request_wall_climb", Vector2(-1, 0), -1.0, true
+	)):
+		_fail("entry_wall_climb_proof_failed")
+		return
+	player.global_position = endpoint.global_position
+	if not bool(arena.call(
+		"try_complete_crown_observatory_epilogue_ascent", player
+	)):
+		_fail("epilogue_ascent_completion_failed")
+		return
 	var available: Dictionary = arena.call("get_victory_recall_diagnostics")
 	if (
 		not bool(available.get("recall_route_visible", false))

@@ -141,7 +141,7 @@ func test_defeat_reveals_generated_reward_and_claim_unlocks_once() -> void:
 	var completed: Dictionary = arena.call("get_wall_climb_reward_diagnostics")
 	assert_bool(bool(completed.get("feedback_active", true))).is_false()
 	assert_str(String(completed.get("objective_text", ""))).is_equal(
-		"Choose Scrap Roost Recall or Apex Return"
+		"Climb to the Crown Signal"
 	)
 
 

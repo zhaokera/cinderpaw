@@ -74,7 +74,7 @@ func _run() -> void:
 	if (
 		bool(completed.get("feedback_active", true))
 		or String(completed.get("objective_text", ""))
-		!= "Choose Scrap Roost Recall or Apex Return"
+		!= "Climb to the Crown Signal"
 		or not bool(completed.get("return_route_available", false))
 	):
 		_fail("feedback_completion_contract_failed")

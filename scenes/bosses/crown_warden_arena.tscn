@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=29 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/crown_warden_arena.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/crown_warden_arena/env_crown_warden_observatory_1280x720.png" id="2_background"]
@@ -13,12 +13,38 @@
 [ext_resource type="Script" path="res://src/core/boss_config_component.gd" id="11_boss_config"]
 [ext_resource type="Script" path="res://src/presentation/combat_presentation.gd" id="12_combat_presentation"]
 [ext_resource type="Script" path="res://src/gameplay/hitstop_input_bridge.gd" id="13_hitstop_bridge"]
+[ext_resource type="Script" path="res://src/gameplay/crown_observatory_epilogue_ascent_controller.gd" id="14_epilogue_ascent"]
+[ext_resource type="Texture2D" path="res://assets/environment/crown_warden_arena/env_crown_observatory_epilogue_ascent_1280x720.png" id="15_epilogue_background"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
 size = Vector2(40, 720)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ascent_entry_wall"]
+size = Vector2(40, 320)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ascent_entry_platform"]
+size = Vector2(376, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ascent_lower_landing"]
+size = Vector2(220, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ascent_mid_perch"]
+size = Vector2(200, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ascent_signal_spine"]
+size = Vector2(44, 620)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ascent_signal_platform"]
+size = Vector2(376, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ascent_fall_zone"]
+size = Vector2(760, 48)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ascent_completion"]
+radius = 132.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_route"]
 radius = 104.0
@@ -55,13 +81,95 @@ collision_mask = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall"]
 shape = SubResource("RectangleShape2D_wall")
 
-[node name="RightWall" type="StaticBody2D" parent="."]
+[node name="RightWall" type="Node2D" parent="."]
 position = Vector2(1260, 360)
+
+[node name="CrownObservatoryEpilogueAscent" type="Node2D" parent="."]
+script = ExtResource("14_epilogue_ascent")
+
+[node name="Background" type="Sprite2D" parent="CrownObservatoryEpilogueAscent"]
+z_index = -100
+position = Vector2(1920, 360)
+texture_filter = 1
+texture = ExtResource("15_epilogue_background")
+
+[node name="EntryWall" type="StaticBody2D" parent="CrownObservatoryEpilogueAscent"]
+position = Vector2(1260, 440)
 collision_layer = 16
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CrownObservatoryEpilogueAscent/EntryWall"]
+shape = SubResource("RectangleShape2D_ascent_entry_wall")
+
+[node name="EntryPlatform" type="StaticBody2D" parent="CrownObservatoryEpilogueAscent"]
+position = Vector2(1468, 320)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CrownObservatoryEpilogueAscent/EntryPlatform"]
+shape = SubResource("RectangleShape2D_ascent_entry_platform")
+
+[node name="LowerLanding" type="StaticBody2D" parent="CrownObservatoryEpilogueAscent"]
+position = Vector2(1685, 400)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CrownObservatoryEpilogueAscent/LowerLanding"]
+shape = SubResource("RectangleShape2D_ascent_lower_landing")
+
+[node name="MidPerch" type="StaticBody2D" parent="CrownObservatoryEpilogueAscent"]
+position = Vector2(1818, 520)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CrownObservatoryEpilogueAscent/MidPerch"]
+shape = SubResource("RectangleShape2D_ascent_mid_perch")
+
+[node name="SignalSpine" type="StaticBody2D" parent="CrownObservatoryEpilogueAscent"]
+position = Vector2(2128, 400)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CrownObservatoryEpilogueAscent/SignalSpine"]
+shape = SubResource("RectangleShape2D_ascent_signal_spine")
+
+[node name="SignalPlatform" type="StaticBody2D" parent="CrownObservatoryEpilogueAscent"]
+position = Vector2(2372, 320)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CrownObservatoryEpilogueAscent/SignalPlatform"]
+shape = SubResource("RectangleShape2D_ascent_signal_platform")
+
+[node name="FarRightWall" type="StaticBody2D" parent="CrownObservatoryEpilogueAscent"]
+position = Vector2(2540, 360)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CrownObservatoryEpilogueAscent/FarRightWall"]
 shape = SubResource("RectangleShape2D_wall")
+
+[node name="CompletionArea" type="Area2D" parent="CrownObservatoryEpilogueAscent"]
+position = Vector2(2400, 250)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CrownObservatoryEpilogueAscent/CompletionArea"]
+shape = SubResource("CircleShape2D_ascent_completion")
+
+[node name="FallZone" type="Area2D" parent="CrownObservatoryEpilogueAscent"]
+position = Vector2(1900, 696)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CrownObservatoryEpilogueAscent/FallZone"]
+shape = SubResource("RectangleShape2D_ascent_fall_zone")
+
+[node name="AscentEndpoint" type="Marker2D" parent="CrownObservatoryEpilogueAscent"]
+position = Vector2(2400, 264)
+
+[node name="AscentCheckpointSpawn" type="Marker2D" parent="CrownObservatoryEpilogueAscent"]
+position = Vector2(1400, 264)
 
 [node name="BossEntrySpawn" type="Marker2D" parent="."]
 position = Vector2(220, 536)
@@ -73,7 +181,7 @@ position = Vector2(220, 536)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 1280
+limit_right = 2560
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
@@ -200,7 +308,7 @@ horizontal_alignment = 1
 [node name="CrownVictoryRecallRoute" type="Node2D" parent="."]
 visible = false
 z_index = 18
-position = Vector2(1180, 536)
+position = Vector2(2280, 264)
 script = ExtResource("4_route")
 route_id = &"crown_warden_victory_recall"
 target_scene_id = &"main"
@@ -210,9 +318,9 @@ locked_prompt_text = "Claim the Crown Core"
 available_prompt_text = "Recall to Scrap Roost"
 
 [node name="Visual" type="Sprite2D" parent="CrownVictoryRecallRoute"]
-position = Vector2(0, -132)
+position = Vector2(0, -100)
 texture_filter = 1
-scale = Vector2(0.56, 0.56)
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("10_recall_texture")
 
 [node name="InteractionArea" type="Area2D" parent="CrownVictoryRecallRoute"]
@@ -223,10 +331,10 @@ collision_mask = 1
 shape = SubResource("CircleShape2D_route")
 
 [node name="PromptLabel" type="Label" parent="CrownVictoryRecallRoute"]
-offset_left = -260.0
-offset_top = -300.0
-offset_right = 64.0
-offset_bottom = -264.0
+offset_left = -280.0
+offset_top = -220.0
+offset_right = 40.0
+offset_bottom = -184.0
 theme_override_colors/font_color = Color(1, 0.84, 0.42, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
 theme_override_constants/shadow_offset_x = 2

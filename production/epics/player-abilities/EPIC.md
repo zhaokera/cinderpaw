@@ -209,6 +209,7 @@ recording the reward in progression state.
 | 169 | Main Rat King Victory Continue to Echo Guardian Same-Runtime Handoff | Integration + ACT Pacing + Scene/HUD | Complete | ADR-0002/0007/0018/0021 |
 | 170 | Neon Rooftops Central Tower Parry-Laser Motion Readability | Visual/Feel + Frame Animation Contract | Complete | ADR-0001/0002/0004/0005/0010/0018 |
 | 171 | Central Tower Local Minimap Continuity | Integration + UI + Exploration + Save | Complete | ADR-0001/0002/0007/0008/0011/0013/0015/0021 |
+| 172 | Crown Observatory Wall-Climb Epilogue Ascent | Integration + Gameplay + Exploration + Save | Complete | ADR-0001/0002/0007/0008/0013/0015/0021 |
 
 ## Definition of Done
 
@@ -228,7 +229,7 @@ This epic is complete when:
 
 ## Next Step
 
-Story171 connects Central Tower's five authored route segments to the existing
-shape-readable HUD minimap, with position-driven current-region continuity and
-discovery restored from existing durable progress. Select the next bounded
-player-visible ACT gap after reviewing live route, combat and Boss pacing.
+Story172 closes Boss4's Wall Climb reward payoff with a generated-art,
+retryable Crown Observatory ascent and gates Scrap Roost Recall behind one real
+climb plus the high signal endpoint. Select the next bounded player-visible ACT
+gap after reviewing the completed four-Boss route and post-Boss pacing.
