@@ -185,12 +185,23 @@
 ## Technical Maintenance
 - Godot AI MCP current baseline — the project-local plugin reports version
   `3.0.2`, Godot 4.7 editor settings use managed server version `3.0.2`, and
-  live MCP session `cinderpaw@3736` reports plugin/server `3.0.2` with
+  live MCP session `cinderpaw@af5f` reports plugin/server `3.0.2` with
   readiness `ready`. Current runtime validation should use Godot `4.7-stable`
   and Godot AI MCP `3.0.2`; older 2.8.x/2.9.x entries below are historical
   evidence from the stories validated at that time.
 
 ## Last Completed Task
+- Combat Presentation Story 030: Cinderpaw Dedicated Dash Animation Identity
+  -- 用 Cinderpaw 主精灵表和最新 jump/fall 资产作参考，生成发射、全速水平
+  拉伸、动量收束三帧，替换原先与 Dodge 逐像素相同的临时素材。三帧保持
+  `96x96` PNG-8、硬 Alpha、18 FPS 非循环，轮廓差异为
+  `71.23%/49.89%/58.79%`。RED `report_1831`；focused GREEN
+  `report_1832` `1/1`；final focused/related `report_1835` `7/7`，无退出
+  泄漏。Godot 4.7 / MCP 3.0.2 run `r141438875-37` 用真实 Dash 输入验证
+  `frame=1`、`velocity.x=620`、三帧路径/像素差异、非空 `1278x718` 截图、
+  3 条 info-only game log、0 条 editor log 与 clean stop `ready`。两道高速
+  残影、独立速度线事件和专用风声仍作为后续表现 Story。
+
 - Combat Presentation Story 029: Cinderpaw Air Animation Identity Consistency
   -- 以 Cinderpaw 主精灵表和连击表为参考重新生成 jump/fall 六帧，修复旧素材
   的蓝披风角色漂移与 `42.9%-51.3%` 软边；新帧保持红围巾、琥珀高光、深钢

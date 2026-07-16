@@ -32,6 +32,7 @@ func after_test() -> void:
 		if player.get_parent() != null:
 			player.get_parent().remove_child(player)
 		player.free()
+	_clear_audio_system_players()
 	player = null
 	received_dash_texture = null
 	received_dash_position = Vector2.ZERO
@@ -140,3 +141,18 @@ func _animation_frames_are_textured_and_same_size(
 		elif texture_size != expected_size:
 			return false
 	return true
+
+
+func _clear_audio_system_players() -> void:
+	var audio_system := get_node_or_null("/root/AudioSystem")
+	if audio_system == null:
+		return
+	for child: Node in audio_system.get_children():
+		if child is AudioStreamPlayer:
+			var audio_player := child as AudioStreamPlayer
+			audio_player.stop()
+			audio_player.stream = null
+		elif child is AudioStreamPlayer2D:
+			var audio_player_2d := child as AudioStreamPlayer2D
+			audio_player_2d.stop()
+			audio_player_2d.stream = null
