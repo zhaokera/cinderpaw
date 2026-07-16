@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 31 stories tracked
+> **Stories**: 32 stories tracked
 
 ## Overview
 
@@ -71,6 +71,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 029 | Cinderpaw Air Animation Identity Consistency | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
 | 030 | Cinderpaw Dedicated Dash Animation Identity | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
 | 031 | Cinderpaw Dash Afterimage, Speed-Line, and Wind Feedback | Visual/Feel/Audio | Complete | ADR-0001, ADR-0002, ADR-0005 |
+| 032 | Rat Minion Attack Tell Frame Animation | Visual/Feel + Frame Animation Contract | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005, ADR-0006 |
 
 ## Definition of Done
 
@@ -182,3 +183,9 @@ Story030 evidence is recorded in
 `production/qa/evidence/cinderpaw-dedicated-dash-animation-identity-2026-07-16.md`.
 Story031 evidence is recorded in
 `production/qa/evidence/cinderpaw-dash-afterimage-speed-line-wind-feedback-2026-07-16.md`.
+Story032 separates the Rat Minion's seven-frame bite startup from its active
+attack with three reference-guided generated anticipation frames while
+preserving hitbox, damage, AI and summon contracts. Evidence is recorded in
+`production/qa/evidence/rat-minion-attack-tell-frame-animation-2026-07-16.md`.
+The next bounded visual gap is Old Factory steam-vent motion readability; keep
+its existing contact-damage contract unchanged if that slice is selected.

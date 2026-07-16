@@ -26,6 +26,7 @@ const NORMAL_MODULATE: Color = Color.WHITE
 const HIT_MODULATE: Color = Color(1.0, 0.9, 0.84, 1.0)
 const ANIMATION_IDLE: StringName = &"idle"
 const ANIMATION_RUN: StringName = &"run"
+const ANIMATION_ATTACK_TELL: StringName = &"attack_tell"
 const ANIMATION_ATTACK: StringName = &"attack"
 const ANIMATION_HURT: StringName = &"hurt"
 const ANIMATION_DEATH: StringName = &"death"
@@ -406,7 +407,7 @@ func _build_enemy_damage_params() -> Dictionary:
 
 
 func _get_attack_tell_animation() -> StringName:
-	return ANIMATION_ATTACK
+	return ANIMATION_ATTACK_TELL
 
 
 func _get_attack_tell_frames() -> int:

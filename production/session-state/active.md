@@ -6207,3 +6207,31 @@
   credits, New Game Plus and new narrative remain out of scope. The broader
   complete-game goal remains active.
 - Blockers: None for Story168.
+
+## Session Extract -- Combat Presentation Story032 2026-07-16
+
+- Delivery checkpoint: Story032 is complete as an isolated Rat Minion visual
+  slice on top of uploaded Story168 commit `00b28583`; report/tmp noise and
+  unrelated generated test UIDs remain excluded.
+- Story: `production/epics/combat-presentation/story-032-rat-minion-attack-tell-frame-animation.md`
+  -- Rat Minion Attack Tell Frame Animation.
+- Implementation: Added a dedicated non-looping three-frame `attack_tell` to
+  the existing Rat Minion SpriteFrames and mapped only its seven-frame startup
+  to the new state. Active attack, damage `8`, hitbox, recovery, cooldown, AI,
+  summon cap and Factory Spark Rat override are unchanged.
+- Verification: Initial RED `report_1853` failed only on the absent animation;
+  focused GREEN `report_1854` passed `1/1`; final bounded Story032, Rat King
+  live-summon and Spark Rat gate `report_1855` passed `12/12` with exit `0`.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r161142464-49`. Actual Main `request_summon()` produced a visible minion in
+  `attack_tell` frame `2/3` with no bite hitbox; exactly seven frames switched
+  to `attack`, active hitbox and damage `8`. The `1278x718` screenshot was
+  non-empty, game logs had three info rows, editor logs were empty, and stop
+  restored `ready`.
+- Assets: Built-in image generation produced a retained `1946x808` RGB strip;
+  the alpha intermediate and three transparent `96x96` runtime frames use
+  continuous names, four-pixel side padding and a common `y=91` baseline.
+- Scope: No balance or behavior changed. The next bounded visual candidate is
+  Old Factory steam-vent motion readability. The broader complete-game goal
+  remains active.
+- Blockers: None for Story032.

@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=16 format=3]
+[gd_resource type="SpriteFrames" load_steps=19 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/characters/rat_minion/idle/rat_minion_idle_000.png" id="1_idle0"]
 [ext_resource type="Texture2D" path="res://assets/characters/rat_minion/idle/rat_minion_idle_001.png" id="2_idle1"]
@@ -15,6 +15,9 @@
 [ext_resource type="Texture2D" path="res://assets/characters/rat_minion/death/rat_minion_death_000.png" id="13_death0"]
 [ext_resource type="Texture2D" path="res://assets/characters/rat_minion/death/rat_minion_death_001.png" id="14_death1"]
 [ext_resource type="Texture2D" path="res://assets/characters/rat_minion/death/rat_minion_death_002.png" id="15_death2"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_minion/attack_tell/rat_minion_attack_tell_000.png" id="16_tell0"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_minion/attack_tell/rat_minion_attack_tell_001.png" id="17_tell1"]
+[ext_resource type="Texture2D" path="res://assets/characters/rat_minion/attack_tell/rat_minion_attack_tell_002.png" id="18_tell2"]
 
 [resource]
 animations = [{
@@ -44,6 +47,20 @@ animations = [{
 }],
 "loop": true,
 "name": &"run",
+"speed": 9.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("16_tell0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_tell1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_tell2")
+}],
+"loop": false,
+"name": &"attack_tell",
 "speed": 9.0
 }, {
 "frames": [{

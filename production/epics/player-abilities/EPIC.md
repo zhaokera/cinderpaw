@@ -226,7 +226,7 @@ This epic is complete when:
 ## Next Step
 
 Story168 closes the GDD's degraded four-Boss Tier 4 loop with a durable,
-image-generated ACT Complete payoff at Scrap Roost. The next bounded visible
-gap is Rat Minion attack readability: author a distinct three-frame
-`attack_tell` SpriteFrames state so startup no longer reuses the active attack
-animation. Do not reopen the verified completion flow without new evidence.
+image-generated ACT Complete payoff at Scrap Roost. Combat Presentation
+Story032 subsequently closes the Rat Minion `attack_tell` frame-animation gap.
+Select the next bounded player-visible ACT gap without reopening either
+verified contract unless new runtime evidence requires it.
