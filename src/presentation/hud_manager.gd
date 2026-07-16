@@ -342,6 +342,13 @@ func set_minimap_region_discovered(region_id: StringName, discovered: bool) -> b
 	return bool(_minimap_widget.call("set_region_discovered", region_id, discovered))
 
 
+## Changes the current schematic node without resetting discovery or reveals.
+func set_minimap_current_area(area_id: StringName) -> bool:
+	if _minimap_widget == null:
+		return false
+	return bool(_minimap_widget.call("set_current_area", area_id))
+
+
 func update_minimap_player_position(world_position: Vector2, world_bounds: Rect2) -> void:
 	if _minimap_widget != null:
 		_minimap_widget.call("set_player_world_position", world_position, world_bounds)

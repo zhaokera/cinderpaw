@@ -101,6 +101,18 @@ func set_region_discovered(region_id: StringName, discovered: bool) -> bool:
 	return changed
 
 
+## Updates the highlighted region without rebuilding discovery or reveal state.
+func set_current_area(area_id: StringName) -> bool:
+	var key: String = String(area_id)
+	if not _regions.has(key):
+		return false
+	if _current_area_id == area_id:
+		return false
+	_current_area_id = area_id
+	queue_redraw()
+	return true
+
+
 func set_player_world_position(world_position: Vector2, world_bounds: Rect2) -> void:
 	var safe_width: float = maxf(0.001, world_bounds.size.x)
 	var safe_height: float = maxf(0.001, world_bounds.size.y)

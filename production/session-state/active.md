@@ -6319,3 +6319,30 @@
   persistence, gate behavior and audio events are unchanged. The broader
   complete-game goal remains active.
 - Blockers: None for Story170.
+
+## Session Extract -- Player Abilities Story171 2026-07-17
+
+- Delivery checkpoint: Story171 is complete as an isolated Central Tower HUD
+  continuity slice. The broader complete-game goal remains active.
+- Story: `production/epics/player-abilities/story-171-central-tower-local-minimap-continuity.md`
+  -- Central Tower Local Minimap Continuity.
+- Runtime: the existing `MinimapWidget` now supports a current-area update
+  without rebuilding regions. Central Tower configures five route nodes, maps
+  player X to the authored `1280px` segments, and normalizes marker position
+  within the current segment.
+- Persistence: Service Spine, Cooling Shaft, Deep Lift and Apex Conduit derive
+  discovery from the existing guard, mantis, cooling traverse and lift ascent
+  keys. Live callbacks animate once; restore callbacks synchronize silently.
+  No duplicate map save field was introduced.
+- Verification: RED `report_1872`; restore-notification defect captured by
+  `report_1873`; focused GREEN `report_1874` `1/1`; bounded Story171/Story152/
+  Story140 gate `report_1875` `6/6`; post-review real-signal/boundary gate
+  `report_1877` `1/1`; exit `0`.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r184502199-54`. Live Service Spine reveal, five-node silent restoration,
+  position-driven Threshold/Service/Apex selection, non-empty `1278x718`
+  screenshot, two info-only game logs, zero editor logs and clean stop `ready`
+  were verified.
+- Assets: no new game visual was required; Story171 reuses the established
+  code-drawn minimap. The MCP screenshot is retained as QA evidence.
+- Blockers: None for Story171.

@@ -40,6 +40,54 @@ const APEX_CONDUIT_BACKGROUND_PATH: String = (
 )
 const COOLING_SHAFT_SPAWN_POINT: StringName = &"cooling_shaft_roost"
 const APEX_ROOST_SPAWN_POINT: StringName = &"apex_roost"
+const TOWER_MINIMAP_SEGMENT_WIDTH: float = 1280.0
+const TOWER_MINIMAP_WORLD_HEIGHT: float = 720.0
+const TOWER_MINIMAP_REVEAL_DURATION_SEC: float = 1.0
+const TOWER_MINIMAP_REGION_IDS: Array[StringName] = [
+	&"central_tower_threshold",
+	&"central_tower_service_spine",
+	&"central_tower_cooling_shaft",
+	&"central_tower_deep_lift",
+	&"central_tower_apex_conduit",
+]
+const TOWER_MINIMAP_REGIONS: Array[Dictionary] = [
+	{
+		"id": &"central_tower_threshold",
+		"display_name": "Tower Threshold",
+		"position": Vector2(0.10, 0.78),
+		"connects_to": [&"central_tower_service_spine"],
+	},
+	{
+		"id": &"central_tower_service_spine",
+		"display_name": "Service Spine",
+		"position": Vector2(0.30, 0.66),
+		"connects_to": [&"central_tower_cooling_shaft"],
+	},
+	{
+		"id": &"central_tower_cooling_shaft",
+		"display_name": "Cooling Shaft",
+		"position": Vector2(0.50, 0.58),
+		"connects_to": [&"central_tower_deep_lift"],
+	},
+	{
+		"id": &"central_tower_deep_lift",
+		"display_name": "Deep Lift",
+		"position": Vector2(0.70, 0.40),
+		"connects_to": [&"central_tower_apex_conduit"],
+	},
+	{
+		"id": &"central_tower_apex_conduit",
+		"display_name": "Apex Conduit",
+		"position": Vector2(0.90, 0.22),
+		"connects_to": [],
+	},
+]
+const TOWER_MINIMAP_DISCOVERY_KEYS: Dictionary = {
+	&"central_tower_service_spine": &"central_tower_threshold_guard_defeated",
+	&"central_tower_cooling_shaft": &"central_tower_relay_mantis_defeated",
+	&"central_tower_deep_lift": &"central_tower_cooling_shaft_traversed",
+	&"central_tower_apex_conduit": &"central_tower_deep_lift_ascended",
+}
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 const PRESENTATION_ENEMY_PATHS: Array[NodePath] = [
 	NodePath("ThresholdGuardController/CentralTowerThresholdGuard"),
@@ -120,6 +168,7 @@ var _last_discovered_savepoint: Dictionary = {}
 var _last_player_hit_metadata: Dictionary = {}
 var _last_enemy_hit_metadata: Dictionary = {}
 var _audio_request_count: int = 0
+var _is_restoring_local_state: bool = false
 
 
 func _ready() -> void:
@@ -132,6 +181,7 @@ func _ready() -> void:
 	_setup_cooling_shaft_controller()
 	_setup_deep_lift_controller()
 	_setup_apex_purge_controller()
+	_setup_central_tower_minimap()
 	_setup_combat_presentation()
 	_setup_threshold_roost()
 	_setup_game_flow()
@@ -147,6 +197,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	advance_central_tower_respawn_flow(delta)
+	_update_central_tower_minimap_player_state()
 	_sync_return_prompt_visibility()
 	_refresh_objective_text()
 	_sync_objective_position()
@@ -642,6 +693,7 @@ func get_local_state() -> Dictionary:
 
 
 func set_local_state(state: Dictionary) -> void:
+	_is_restoring_local_state = true
 	_threshold_roost_activated = bool(state.get(
 		"central_tower_threshold_roost_activated",
 		_threshold_roost_activated
@@ -680,6 +732,8 @@ func set_local_state(state: Dictionary) -> void:
 	_sync_return_route()
 	_sync_crown_warden_route()
 	_refresh_objective_text()
+	_is_restoring_local_state = false
+	_sync_central_tower_minimap_discovery(false)
 	_apply_current_scene_manager_spawn_point()
 
 
@@ -1008,6 +1062,13 @@ func get_central_tower_apex_diagnostics() -> Dictionary:
 	return diagnostics
 
 
+## Returns the five-segment presentation snapshot used by tests and MCP QA.
+func get_central_tower_minimap_diagnostics() -> Dictionary:
+	if _hud == null or not _hud.has_method("get_minimap_diagnostics"):
+		return {}
+	return Dictionary(_hud.call("get_minimap_diagnostics"))
+
+
 ## Returns Story145's gate, spawn, request, and generated-art evidence.
 func get_crown_warden_route_diagnostics() -> Dictionary:
 	return {
@@ -1180,6 +1241,7 @@ func _setup_guard_controller() -> void:
 
 func _on_guard_objective_changed(_objective_text: String) -> void:
 	_sync_inner_relay_prerequisite()
+	_sync_central_tower_minimap_discovery(not _is_restoring_local_state)
 	_refresh_objective_text()
 
 
@@ -1198,6 +1260,7 @@ func _setup_inner_relay_controller() -> void:
 
 func _on_inner_relay_objective_changed(_objective_text: String) -> void:
 	_sync_cooling_shaft_prerequisite()
+	_sync_central_tower_minimap_discovery(not _is_restoring_local_state)
 	_refresh_objective_text()
 
 
@@ -1234,6 +1297,7 @@ func _setup_cooling_shaft_controller() -> void:
 
 func _on_cooling_shaft_objective_changed(_objective_text: String) -> void:
 	_sync_deep_lift_prerequisite()
+	_sync_central_tower_minimap_discovery(not _is_restoring_local_state)
 	_refresh_objective_text()
 
 
@@ -1270,6 +1334,7 @@ func _setup_deep_lift_controller() -> void:
 
 func _on_deep_lift_objective_changed(_objective_text: String) -> void:
 	_sync_apex_purge_prerequisite()
+	_sync_central_tower_minimap_discovery(not _is_restoring_local_state)
 	_refresh_objective_text()
 
 
@@ -1424,6 +1489,102 @@ func _setup_player_hud() -> void:
 		_hud.update_hp(
 			int(_player.call("get_current_hp")),
 			int(_player.call("get_max_hp"))
+		)
+
+
+func _setup_central_tower_minimap() -> void:
+	if _hud == null or not _hud.has_method("configure_minimap"):
+		return
+	_hud.call(
+		"configure_minimap",
+		_central_tower_minimap_region_definitions(),
+		TOWER_MINIMAP_REGION_IDS[0]
+	)
+	_update_central_tower_minimap_player_state()
+
+
+func _central_tower_minimap_region_definitions() -> Array[Dictionary]:
+	var local_state: Dictionary = get_local_state()
+	var definitions: Array[Dictionary] = []
+	for source: Dictionary in TOWER_MINIMAP_REGIONS:
+		var definition: Dictionary = source.duplicate(true)
+		var region_id := StringName(String(definition.get("id", "")))
+		definition["discovered"] = _is_tower_minimap_region_discovered(
+			region_id,
+			local_state
+		)
+		definitions.append(definition)
+	return definitions
+
+
+func _sync_central_tower_minimap_discovery(animate_reveal: bool) -> void:
+	if _hud == null:
+		return
+	var local_state: Dictionary = get_local_state()
+	for region_id: StringName in TOWER_MINIMAP_REGION_IDS:
+		var discovered: bool = _is_tower_minimap_region_discovered(
+			region_id,
+			local_state
+		)
+		if animate_reveal:
+			if not discovered or not _hud.has_method("reveal_minimap_region"):
+				continue
+			if bool(_hud.call(
+				"reveal_minimap_region",
+				region_id,
+				TOWER_MINIMAP_REVEAL_DURATION_SEC
+			)):
+				_hud.show_notification(
+					"%s discovered" % _tower_minimap_area_display_name(region_id),
+					2.0
+				)
+		elif _hud.has_method("set_minimap_region_discovered"):
+			_hud.call("set_minimap_region_discovered", region_id, discovered)
+
+
+func _is_tower_minimap_region_discovered(
+	region_id: StringName,
+	local_state: Dictionary
+) -> bool:
+	if region_id == TOWER_MINIMAP_REGION_IDS[0]:
+		return true
+	var state_key: StringName = TOWER_MINIMAP_DISCOVERY_KEYS.get(
+		region_id,
+		&""
+	)
+	return state_key != &"" and bool(local_state.get(String(state_key), false))
+
+
+func _tower_minimap_area_display_name(region_id: StringName) -> String:
+	for definition: Dictionary in TOWER_MINIMAP_REGIONS:
+		if String(definition.get("id", "")) == String(region_id):
+			return String(definition.get("display_name", String(region_id)))
+	return String(region_id).replace("_", " ").capitalize()
+
+
+func _update_central_tower_minimap_player_state() -> void:
+	if _player == null or _hud == null:
+		return
+	var segment_index: int = clampi(
+		floori(_player.global_position.x / TOWER_MINIMAP_SEGMENT_WIDTH),
+		0,
+		TOWER_MINIMAP_REGION_IDS.size() - 1
+	)
+	if _hud.has_method("set_minimap_current_area"):
+		_hud.call(
+			"set_minimap_current_area",
+			TOWER_MINIMAP_REGION_IDS[segment_index]
+		)
+	if _hud.has_method("update_minimap_player_position"):
+		_hud.call(
+			"update_minimap_player_position",
+			_player.global_position,
+			Rect2(
+				segment_index * TOWER_MINIMAP_SEGMENT_WIDTH,
+				0.0,
+				TOWER_MINIMAP_SEGMENT_WIDTH,
+				TOWER_MINIMAP_WORLD_HEIGHT
+			)
 		)
 
 
