@@ -41,6 +41,7 @@ const MENU_SETTINGS: StringName = &"settings"
 const MENU_MAIN: StringName = &"main_menu"
 const MENU_SAVE_LOAD: StringName = &"save_load"
 const MENU_SKILL_TREE: StringName = &"skill_tree"
+const MENU_ACT_COMPLETE: StringName = &"act_complete"
 const COLORBLIND_NONE: StringName = &"none"
 const COLORBLIND_RED_GREEN: StringName = &"red_green"
 const COLORBLIND_BLUE_YELLOW: StringName = &"blue_yellow"
@@ -81,6 +82,12 @@ const AUTOSAVE_PAW_STAMP_FADE_DURATION_SEC: float = 0.5
 const MINIMAP_WIDGET_SCRIPT: Script = preload("res://src/presentation/minimap_widget.gd")
 const MINIMAP_PANEL_BASE_SIZE: Vector2 = Vector2(120, 120)
 const MINIMAP_PANEL_GAP: float = 10.0
+const ACT_COMPLETE_BACKGROUND_TEXTURE_PATH: String = (
+	"res://assets/ui/act_complete/act_complete_scrap_roost_1280x720.png"
+)
+const ACT_COMPLETE_BACKGROUND_TEXTURE: Texture2D = preload(
+	"res://assets/ui/act_complete/act_complete_scrap_roost_1280x720.png"
+)
 
 var _hp_ratio: float = 1.0
 var _hp_color: Color = HP_HEALTHY_COLOR
@@ -123,6 +130,7 @@ var _heavy_charge_bar: ProgressBar
 var _heavy_charge_label: Label
 var _notification_label: Label
 var _menu_overlay: ColorRect
+var _act_complete_background: TextureRect
 var _menu_panel: PanelContainer
 var _menu_content: VBoxContainer
 var _settings_box: VBoxContainer
@@ -354,6 +362,20 @@ func show_pause_menu() -> void:
 	_show_menu(MENU_PAUSE, "Paused", "Take a breath. The wasteland waits.", "Resume")
 
 
+## Displays the four-Boss ACT completion payoff with post-game choices.
+func show_act_complete_menu() -> void:
+	_show_menu(
+		MENU_ACT_COMPLETE,
+		"ACT COMPLETE",
+		"The Crown Warden has fallen.\nThe three-region hunt is secured.",
+		"Continue Exploring"
+	)
+	_set_act_complete_background_visible(true)
+	_set_button_state(_retry_button, false, "")
+	_set_button_state(_main_menu_button, true, "Return to Title")
+	_resume_button.grab_focus()
+
+
 ## Displays an encounter retry menu for victory, defeat, or battle-summary routes.
 func show_retry_menu(title: String, subtitle: String) -> void:
 	_show_menu(MENU_RETRY, title, subtitle, "Continue")
@@ -375,6 +397,7 @@ func show_main_menu(slot_infos: Array = []) -> void:
 	_menu_mode = MENU_MAIN
 	if _menu_overlay == null:
 		return
+	_set_act_complete_background_visible(false)
 	_settings_return_menu = MENU_NONE
 	_main_menu_slot_infos = _duplicate_slot_infos(slot_infos)
 	_save_slot_labels = _format_save_slot_labels(slot_infos)
@@ -399,6 +422,7 @@ func show_save_load_menu(slot_infos: Array, can_save: bool, save_unavailable_rea
 	_menu_mode = MENU_SAVE_LOAD
 	if _menu_overlay == null:
 		return
+	_set_act_complete_background_visible(false)
 	_settings_return_menu = MENU_NONE
 	_save_slot_labels = _format_save_slot_labels(slot_infos)
 	if _settings_box != null:
@@ -438,6 +462,7 @@ func show_skill_tree_menu(skill_points: int, skill_entries: Array = []) -> void:
 	_menu_mode = MENU_SKILL_TREE
 	if _menu_overlay == null:
 		return
+	_set_act_complete_background_visible(false)
 	_settings_return_menu = MENU_NONE
 	_skill_tree_points = maxi(0, skill_points)
 	_skill_tree_entries = _duplicate_skill_entries(skill_entries)
@@ -479,6 +504,7 @@ func show_settings_menu(invoking_menu: StringName = MENU_PAUSE) -> void:
 	_menu_mode = MENU_SETTINGS
 	if _menu_overlay == null:
 		return
+	_set_act_complete_background_visible(false)
 	_hide_menu_buttons()
 	_settings_box.visible = true
 	_menu_title_label.text = "Settings"
@@ -518,6 +544,7 @@ func hide_menu() -> void:
 	_skill_tree_points = 0
 	if _menu_overlay != null:
 		_menu_overlay.visible = false
+	_set_act_complete_background_visible(false)
 	if _settings_box != null:
 		_settings_box.visible = false
 	for button: Button in _ordered_menu_buttons():
@@ -680,6 +707,20 @@ func is_menu_visible() -> bool:
 ## Returns the active menu mode for diagnostics and integration tests.
 func get_menu_mode() -> StringName:
 	return _menu_mode
+
+
+## Returns the generated ACT-complete visual and interaction state.
+func get_act_complete_diagnostics() -> Dictionary:
+	return {
+		"visible": is_menu_visible() and _menu_mode == MENU_ACT_COMPLETE,
+		"background_visible": (
+			_act_complete_background != null and _act_complete_background.visible
+		),
+		"background_texture_path": ACT_COMPLETE_BACKGROUND_TEXTURE_PATH,
+		"title": get_menu_title(),
+		"buttons": get_menu_button_texts(),
+		"focused_button": get_focused_menu_button_text(),
+	}
 
 
 ## Returns the current menu title text.
@@ -1110,6 +1151,18 @@ func _build_menu_overlay() -> void:
 	_menu_overlay.focus_mode = Control.FOCUS_NONE
 	_root.add_child(_menu_overlay)
 
+	_act_complete_background = TextureRect.new()
+	_act_complete_background.name = "ActCompleteBackground"
+	_act_complete_background.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_act_complete_background.texture = ACT_COMPLETE_BACKGROUND_TEXTURE
+	_act_complete_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_act_complete_background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_act_complete_background.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_act_complete_background.modulate = Color(0.66, 0.66, 0.66, 1.0)
+	_act_complete_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_act_complete_background.visible = false
+	_menu_overlay.add_child(_act_complete_background)
+
 	_menu_panel = _new_panel("MenuPanel")
 	_menu_panel.position = Vector2(424, 188)
 	_menu_panel.size = Vector2(432, 340)
@@ -1402,6 +1455,7 @@ func _show_menu(
 	_menu_mode = mode
 	if _menu_overlay == null:
 		return
+	_set_act_complete_background_visible(false)
 	if _settings_box != null:
 		_settings_box.visible = false
 	_save_slot_labels.clear()
@@ -1418,6 +1472,11 @@ func _show_menu(
 	_resize_menu_panel(false)
 	_menu_overlay.visible = true
 	_resume_button.grab_focus()
+
+
+func _set_act_complete_background_visible(should_show: bool) -> void:
+	if _act_complete_background != null:
+		_act_complete_background.visible = should_show
 
 
 func _ordered_menu_buttons() -> Array[Button]:

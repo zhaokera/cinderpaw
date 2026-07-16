@@ -6173,3 +6173,37 @@
 - Scope: Combat Presentation remains In Progress because other independent
   combat scenes still need coverage. The complete-game goal remains active.
 - Blockers: None for Story028.
+
+## Session Extract -- Player Abilities Story168 2026-07-16
+
+- Delivery checkpoint: Story168 is complete as an isolated four-Boss ACT
+  payoff on top of uploaded Story031 commit `b34a0d14`; report/tmp noise and
+  unrelated generated test UIDs remain excluded.
+- Story: `production/epics/player-abilities/story-168-crown-warden-act-complete-epilogue-at-scrap-roost.md`
+  -- Crown Warden ACT Complete Epilogue At Scrap Roost.
+- Implementation: Complete Boss4 defeat/reward/recall proof at
+  `main / scrap_roost` now starts one `2.5s` delay, presents an image-generated
+  ACT Complete backdrop/menu, locks gameplay, writes
+  `four_boss_act_completion_seen`, and requests one autosave. Continue
+  Exploring and Return to Title reuse established HUD actions.
+- Verification: Initial RED `report_1846` reproduced the missing contract;
+  focused GREEN `report_1848` passed `3/3`; final bounded Story168/Story148,
+  sequential-Boss and HUD gate `report_1852` passed `29/29` with exit `0`.
+  The unrelated stale title-load expectations isolated in `report_1850` are
+  documented in QA evidence and were not changed by this Story.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`,
+  clean run `r156712604-48`. The actual SceneManager proof reached pending and
+  presented states, persisted one successful autosave, hid old Bosses, showed
+  a non-empty `1278x718` generated completion frame, accepted physical ENTER,
+  returned to acknowledged/unlocked state, and produced clean game/editor logs.
+- Assets: Added retained `1672x941` RGB image-generation source, exact prompt
+  record and normalized `1280x720` RGB runtime backdrop under
+  `assets/ui/act_complete/`; both were imported by Godot 4.7.
+- Parallel review: game design and QA selected the four-Boss completion gap;
+  technical art confirmed no visible character remained a block and identified
+  Rat Minion `attack_tell` as the next bounded frame-animation gap. The
+  integrating agent owned code, test/MCP acceptance, assets and documentation.
+- Scope: This closes the GDD's degraded four-Boss Tier 4 loop only. Boss5,
+  credits, New Game Plus and new narrative remain out of scope. The broader
+  complete-game goal remains active.
+- Blockers: None for Story168.

@@ -99,6 +99,8 @@ const CROWN_WARDEN_HUB_RETURN_FLAG: StringName = &"boss_04_victory_hub_return_se
 const CROWN_WARDEN_HUB_RETURN_NOTIFICATION: String = (
 	"Crown secured - returned to Scrap Roost"
 )
+const FOUR_BOSS_ACT_COMPLETION_FLAG: StringName = &"four_boss_act_completion_seen"
+const FOUR_BOSS_ACT_COMPLETION_DELAY_SEC: float = 2.5
 const FACTORY_ROUTE_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_ROUTE_SPAWN_POINT: StringName = &"factory_gate_entry"
 const FACTORY_ROUTE_UNLOCKED_FLAG: StringName = &"area_03_factory_unlocked"
@@ -239,6 +241,12 @@ var _boss2_room_seal_reason: StringName = &"not_initialized"
 var _boss2_death_presentation_pending: bool = false
 var _boss2_death_presentation_remaining_sec: float = 0.0
 var _crown_warden_hub_return_notification_pending: bool = false
+var _act_completion_state: StringName = &"idle"
+var _act_completion_delay_remaining_sec: float = 0.0
+var _act_completion_autosave_request_count: int = 0
+var _act_completion_autosave_succeeded: bool = false
+
+
 func _ready() -> void:
 	_setup_skill_tree_manager()
 	_setup_weapon_component()
@@ -313,6 +321,7 @@ func _ready() -> void:
 	_hud.show_notification("Hunt the Rat King", 2.0)
 	_sync_scrap_roost_return_hub()
 	_sync_crown_warden_victory_return_hub()
+	_sync_four_boss_act_completion()
 
 
 func _exit_tree() -> void:
@@ -324,15 +333,14 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
-	_player.set_control_locked(
-		_game_flow.is_player_control_locked() or _boss2_death_presentation_pending
-	)
+	_refresh_player_control_lock()
 	advance_arena_hazard_time(delta)
 	_process_hidden_double_jump_reward_source_contact()
 	_process_boss2_double_jump_reward_source_contact()
 	_process_factory_route_transition_shell_contact()
 	_update_main_minimap_player_marker()
 	advance_boss2_death_presentation(delta)
+	advance_act_completion(delta)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -523,6 +531,16 @@ func _on_menu_pause_requested() -> void:
 
 
 func _on_menu_resume_requested() -> void:
+	var menu_mode: StringName = _hud.get_menu_mode()
+	if menu_mode == &"act_complete" or _act_completion_state == &"title":
+		_act_completion_state = &"acknowledged"
+		_hud.hide_menu()
+		_refresh_player_control_lock()
+		_dispatch_audio_event(&"on_menu_closed", [{
+			"menu_mode": menu_mode,
+			"reason": &"continue_exploring",
+		}])
+		return
 	if _pause_menu_active:
 		get_tree().paused = false
 	_pause_menu_active = false
@@ -591,8 +609,10 @@ func _on_menu_new_game_requested() -> void:
 		_hud.show_main_menu(_collect_save_slot_infos())
 		return
 	_pause_menu_active = false
+	_act_completion_state = &"acknowledged"
 	get_tree().paused = false
 	_hud.hide_menu()
+	_refresh_player_control_lock()
 	_dispatch_audio_event(&"on_menu_closed", [{
 		"menu_mode": &"main_menu",
 		"reason": &"new_game",
@@ -602,8 +622,10 @@ func _on_menu_new_game_requested() -> void:
 func _on_menu_continue_requested() -> void:
 	if _try_load_first_available_slot():
 		_pause_menu_active = false
+		_act_completion_state = &"acknowledged"
 		get_tree().paused = false
 		_hud.hide_menu()
+		_refresh_player_control_lock()
 		_dispatch_audio_event(&"on_menu_closed", [{
 			"menu_mode": &"main_menu",
 			"reason": &"continue",
@@ -631,10 +653,11 @@ func _on_menu_load_menu_requested() -> void:
 
 
 func _on_menu_main_menu_requested() -> void:
+	var source_menu_mode: StringName = _hud.get_menu_mode()
 	_pause_menu_active = false
 	get_tree().paused = false
 	_dispatch_audio_event(&"on_ui_navigate", [{
-		"from_menu_mode": _hud.get_menu_mode(),
+		"from_menu_mode": source_menu_mode,
 		"to_menu_mode": &"main_menu",
 	}])
 	_dispatch_audio_event(&"on_menu_opened", [{
@@ -642,6 +665,9 @@ func _on_menu_main_menu_requested() -> void:
 		"source": &"main_menu_requested",
 	}])
 	_hud.show_main_menu(_collect_save_slot_infos())
+	if source_menu_mode == &"act_complete":
+		_act_completion_state = &"title"
+	_refresh_player_control_lock()
 
 
 func _on_menu_exit_requested() -> void:
@@ -687,8 +713,10 @@ func _on_menu_save_slot_requested(slot: int) -> void:
 func _on_menu_load_slot_requested(slot: int) -> void:
 	if load_runtime_from_slot(slot):
 		_pause_menu_active = false
+		_act_completion_state = &"acknowledged"
 		get_tree().paused = false
 		_hud.hide_menu()
+		_refresh_player_control_lock()
 		_dispatch_audio_event(&"on_menu_closed", [{
 			"menu_mode": &"save_load",
 			"reason": &"load_slot",
@@ -1074,6 +1102,7 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	refresh_boss2_room_seals()
 	_sync_factory_route_transition_shell()
 	_sync_crown_warden_victory_return_hub()
+	_sync_four_boss_act_completion()
 	_sync_main_minimap_from_world_flags()
 	_update_main_minimap_player_marker()
 
@@ -1581,6 +1610,7 @@ func configure_scene_manager_runtime(scene_manager: Object) -> bool:
 		_apply_current_scene_manager_spawn_point()
 		_sync_scrap_roost_return_hub()
 		_sync_crown_warden_victory_return_hub()
+		_sync_four_boss_act_completion()
 	return valid_scene_manager
 
 
@@ -1821,6 +1851,7 @@ func _on_scene_manager_changed(old_scene: StringName, new_scene: StringName) -> 
 	_apply_scene_manager_spawn_point(new_scene)
 	_sync_scrap_roost_return_hub()
 	_sync_crown_warden_victory_return_hub()
+	_sync_four_boss_act_completion()
 	_hud.hide_scene_transition()
 
 
@@ -3065,6 +3096,105 @@ func _sync_crown_warden_victory_return_hub() -> bool:
 		_crown_warden_hub_return_notification_pending = true
 		_hud.show_notification(CROWN_WARDEN_HUB_RETURN_NOTIFICATION, 2.5)
 	return true
+
+
+## Advances the one-shot delay between the secured notice and ACT completion payoff.
+func advance_act_completion(delta_sec: float) -> bool:
+	if _act_completion_state != &"pending":
+		return false
+	_act_completion_delay_remaining_sec = maxf(
+		0.0,
+		_act_completion_delay_remaining_sec - maxf(0.0, delta_sec)
+	)
+	if _act_completion_delay_remaining_sec > 0.0:
+		return false
+	return _present_four_boss_act_completion()
+
+
+## Returns the one-shot completion, persistence and HUD state for tests and MCP.
+func get_act_completion_diagnostics() -> Dictionary:
+	var hud_diagnostics: Dictionary = {}
+	if _hud != null and _hud.has_method("get_act_complete_diagnostics"):
+		hud_diagnostics = Dictionary(_hud.call("get_act_complete_diagnostics"))
+	return {
+		"state": String(_act_completion_state),
+		"delay_remaining_sec": _act_completion_delay_remaining_sec,
+		"panel_visible": bool(hud_diagnostics.get("visible", false)),
+		"background_visible": bool(hud_diagnostics.get("background_visible", false)),
+		"background_texture_path": String(
+			hud_diagnostics.get("background_texture_path", "")
+		),
+		"menu_mode": String(_hud.get_menu_mode()) if _hud != null else "",
+		"player_control_locked": _is_act_completion_control_locked(),
+		"completion_seen": bool(_world_progress_flags.get(
+			String(FOUR_BOSS_ACT_COMPLETION_FLAG),
+			false
+		)),
+		"valid_recall_proof": _has_crown_warden_victory_recall_proof(),
+		"hub_return_secured": bool(_world_progress_flags.get(
+			String(CROWN_WARDEN_HUB_RETURN_FLAG),
+			false
+		)),
+		"autosave_request_count": _act_completion_autosave_request_count,
+		"autosave_succeeded": _act_completion_autosave_succeeded,
+	}
+
+
+func _sync_four_boss_act_completion() -> bool:
+	var completion_seen: bool = bool(_world_progress_flags.get(
+		String(FOUR_BOSS_ACT_COMPLETION_FLAG),
+		false
+	))
+	if completion_seen:
+		_act_completion_delay_remaining_sec = 0.0
+		if _act_completion_state == &"idle" or _act_completion_state == &"pending":
+			_act_completion_state = &"acknowledged"
+		return false
+	if _act_completion_state != &"idle":
+		return false
+	if not _is_scene_manager_at_scrap_roost_hub():
+		return false
+	if not _has_crown_warden_victory_recall_proof():
+		return false
+	if not bool(_world_progress_flags.get(String(CROWN_WARDEN_HUB_RETURN_FLAG), false)):
+		return false
+	_act_completion_state = &"pending"
+	_act_completion_delay_remaining_sec = FOUR_BOSS_ACT_COMPLETION_DELAY_SEC
+	return true
+
+
+func _present_four_boss_act_completion() -> bool:
+	if _act_completion_state != &"pending":
+		return false
+	_act_completion_state = &"presented"
+	_act_completion_delay_remaining_sec = 0.0
+	_world_progress_flags[String(FOUR_BOSS_ACT_COMPLETION_FLAG)] = true
+	_hud.show_act_complete_menu()
+	_refresh_player_control_lock()
+	_act_completion_autosave_request_count += 1
+	_act_completion_autosave_succeeded = _trigger_runtime_autosave(
+		&"act_complete",
+		{
+			"scene_id": MAIN_SCENE_ID,
+			"spawn_point": String(SCRAP_ROOST_SAVEPOINT_ID),
+			"boss_count": 4,
+		}
+	)
+	return true
+
+
+func _is_act_completion_control_locked() -> bool:
+	return _act_completion_state == &"presented" or _act_completion_state == &"title"
+
+
+func _refresh_player_control_lock() -> void:
+	if _player == null or not is_instance_valid(_player):
+		return
+	_player.set_control_locked(
+		_game_flow.is_player_control_locked()
+		or _boss2_death_presentation_pending
+		or _is_act_completion_control_locked()
+	)
 
 
 func _has_crown_warden_victory_recall_proof() -> bool:

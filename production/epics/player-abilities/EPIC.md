@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 167 stories tracked
+> **Stories**: 168 stories tracked
 
 ## Overview
 
@@ -205,6 +205,7 @@ recording the reward in progression state.
 | 165 | Echo Guardian Attack Tell Frame Animation Runtime | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0002/0004/0005/0006/0010/0018 |
 | 166 | Cinderpaw Real-Input Three-Stage Light Combo Runtime | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0001/0002/0004/0005/0010/0018 |
 | 167 | Cinderpaw Authored Three-Stage Light Hitbox Timing | Integration + Gameplay Runtime + Collision Timing | Complete | ADR-0001/0002/0004/0005/0010/0018 |
+| 168 | Crown Warden ACT Complete Epilogue At Scrap Roost | Integration + UI/Visual + Save/Scene Flow | Complete | ADR-0001/0002/0003/0007/0010/0011/0015/0018/0021 |
 
 ## Definition of Done
 
@@ -224,8 +225,8 @@ This epic is complete when:
 
 ## Next Step
 
-Story167 synchronizes Story166's generated three-stage light combo with authored
-startup, active and pure-recovery windows while preserving damage, energy and
-collision contracts. Select the next bounded player-visible ACT gap from the
-current GDD/Story state without reopening this verified timing contract unless
-new runtime evidence requires it.
+Story168 closes the GDD's degraded four-Boss Tier 4 loop with a durable,
+image-generated ACT Complete payoff at Scrap Roost. The next bounded visible
+gap is Rat Minion attack readability: author a distinct three-frame
+`attack_tell` SpriteFrames state so startup no longer reuses the active attack
+animation. Do not reopen the verified completion flow without new evidence.

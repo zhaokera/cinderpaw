@@ -171,6 +171,7 @@ All new visual assets in this inventory should be produced from image2 / image g
 | 9 | Death Screen | Grayscale death panel, learning hint, recent save point name, optional combat summary. | design/gdd/death-respawn.md | Needed |
 | 10 | Loading / Transition Screen | SceneManager-driven loading shell with image-generated tunnel overlay, transparent cat paw spinner, and dynamic scene label; fast travel and full scene-tree transition variants remain pending. | design/gdd/scene-management.md; production/epics/scene-management/story-004-transition-loading-ui-shell.md | Partial |
 | 11 | Save / Load Screen | Save slot list and autosave indicator. | design/gdd/save-system.md | Needed |
+| 12 | Four-Boss ACT Complete | One-shot post-Crown-Warden completion screen with an image-generated `1280x720` Scrap Roost sunrise, broken owl crown, paw lantern, ACT Complete panel, Continue Exploring and Return to Title actions. | design/gdd/game-concept.md; design/assets/specs/crown-warden-four-boss-act-complete.md; production/epics/player-abilities/story-168-crown-warden-act-complete-epilogue-at-scrap-roost.md | Implemented |
 
 ## HUD Elements
 
