@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 169 stories tracked
+> **Stories**: 170 stories tracked
 
 ## Overview
 
@@ -207,6 +207,7 @@ recording the reward in progression state.
 | 167 | Cinderpaw Authored Three-Stage Light Hitbox Timing | Integration + Gameplay Runtime + Collision Timing | Complete | ADR-0001/0002/0004/0005/0010/0018 |
 | 168 | Crown Warden ACT Complete Epilogue At Scrap Roost | Integration + UI/Visual + Save/Scene Flow | Complete | ADR-0001/0002/0003/0007/0010/0011/0015/0018/0021 |
 | 169 | Main Rat King Victory Continue to Echo Guardian Same-Runtime Handoff | Integration + ACT Pacing + Scene/HUD | Complete | ADR-0002/0007/0018/0021 |
+| 170 | Neon Rooftops Central Tower Parry-Laser Motion Readability | Visual/Feel + Frame Animation Contract | Complete | ADR-0001/0002/0004/0005/0010/0018 |
 
 ## Definition of Done
 
@@ -226,7 +227,7 @@ This epic is complete when:
 
 ## Next Step
 
-Story169 closes the same-runtime progression block between Rat King victory and
-Echo Guardian while preserving the existing persisted restore route. Select
-the next bounded player-visible ACT gap; current candidates are Central Tower
-local minimap continuity and Neon Rooftops parry-laser motion readability.
+Story170 replaces the Central Tower trial's static pulse presentation with
+four state-specific three-frame animations while preserving its gameplay
+anchor, timing and damage. Select the next bounded player-visible ACT gap;
+Central Tower local minimap continuity remains a current candidate.

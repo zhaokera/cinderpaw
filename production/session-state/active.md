@@ -6290,3 +6290,32 @@
 - Scope: No Boss balance, reward, level, world flag or visual contract changed.
   The broader complete-game goal remains active.
 - Blockers: None for Story169.
+
+## Session Extract -- Player Abilities Story170 2026-07-17
+
+- Delivery checkpoint: Story170 is complete as an isolated Central Tower laser
+  readability slice on top of uploaded Story169 commit `a7720720`; unrelated
+  report/tmp noise and generated test UIDs remain excluded.
+- Story: `production/epics/player-abilities/story-170-neon-rooftops-central-tower-parry-laser-motion-readability.md`
+  -- Neon Rooftops Central Tower Parry-Laser Motion Readability.
+- Implementation: Added one shared SpriteFrames resource with three-frame
+  `telegraph`, `strike`, `recovery_reflected` and `recovery_missed` animation.
+  Runtime `LaserPulseAnimation` handles presentation while the hidden legacy
+  sprite remains the fixed gameplay range anchor.
+- Verification: Initial RED `report_1867` failed on the absent resource,
+  frames and node; final bounded Story170, Story139 and combat-impact gate
+  `report_1871` passed `10/10` with exit `0`.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r181947024-53`. A real parry selected reflected recovery and progress `1/3`;
+  the next unresolved strike selected missed recovery and damage `18`. The
+  `1278x718` screenshot visibly showed the player, cyan/gold reflected beam,
+  outer gate and objective. Game logs were info-only, the captured pre-existing
+  Relay Spire warnings did not recur after baseline clear, and stop restored
+  `ready`.
+- Assets: Built-in image generation produced four retained `2172x724` RGB
+  strips, four alpha intermediates, a `1536x512` preview and twelve transparent
+  sRGBA `512x128` runtime frames under the new laser asset root.
+- Scope: Timing `0.60/0.18/0.55`, three parries, miss damage `18`, collision,
+  persistence, gate behavior and audio events are unchanged. The broader
+  complete-game goal remains active.
+- Blockers: None for Story170.

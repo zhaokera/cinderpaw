@@ -1,0 +1,73 @@
+[gd_resource type="SpriteFrames" load_steps=13 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/tower_parry_laser/telegraph/tower_parry_laser_telegraph_000.png" id="1_telegraph0"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/tower_parry_laser/telegraph/tower_parry_laser_telegraph_001.png" id="2_telegraph1"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/tower_parry_laser/telegraph/tower_parry_laser_telegraph_002.png" id="3_telegraph2"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/tower_parry_laser/strike/tower_parry_laser_strike_000.png" id="4_strike0"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/tower_parry_laser/strike/tower_parry_laser_strike_001.png" id="5_strike1"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/tower_parry_laser/strike/tower_parry_laser_strike_002.png" id="6_strike2"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/tower_parry_laser/recovery_reflected/tower_parry_laser_recovery_reflected_000.png" id="7_reflected0"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/tower_parry_laser/recovery_reflected/tower_parry_laser_recovery_reflected_001.png" id="8_reflected1"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/tower_parry_laser/recovery_reflected/tower_parry_laser_recovery_reflected_002.png" id="9_reflected2"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/tower_parry_laser/recovery_missed/tower_parry_laser_recovery_missed_000.png" id="10_missed0"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/tower_parry_laser/recovery_missed/tower_parry_laser_recovery_missed_001.png" id="11_missed1"]
+[ext_resource type="Texture2D" path="res://assets/environment/neon_rooftops/tower_parry_laser/recovery_missed/tower_parry_laser_recovery_missed_002.png" id="12_missed2"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("10_missed0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_missed1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_missed2")
+}],
+"loop": false,
+"name": &"recovery_missed",
+"speed": 5.454545
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_reflected0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_reflected1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_reflected2")
+}],
+"loop": false,
+"name": &"recovery_reflected",
+"speed": 5.454545
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_strike0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_strike1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_strike2")
+}],
+"loop": false,
+"name": &"strike",
+"speed": 16.666667
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_telegraph0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_telegraph1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_telegraph2")
+}],
+"loop": true,
+"name": &"telegraph",
+"speed": 5.0
+}]

@@ -35,6 +35,11 @@ const PULSE_TEXTURE_PATH: String = (
 	"res://assets/environment/neon_rooftops/"
 	+ "vfx_neon_tower_laser_pulse_512x128.png"
 )
+const PULSE_SPRITE_FRAMES_PATH: String = (
+	"res://assets/environment/neon_rooftops/tower_parry_laser/"
+	+ "tower_parry_laser_sprite_frames.tres"
+)
+const PULSE_SPRITE_FRAMES: SpriteFrames = preload(PULSE_SPRITE_FRAMES_PATH)
 const ENDPOINT_TEXTURE_PATH: String = (
 	"res://assets/environment/neon_rooftops/"
 	+ "prop_neon_tower_threshold_beacon_256x384.png"
@@ -58,6 +63,9 @@ const ENDPOINT_TEXTURE_PATH: String = (
 @onready var _trial_zone: Area2D = get_node_or_null("TrialZone") as Area2D
 @onready var _pulse_visual: Sprite2D = (
 	get_node_or_null("LaserPulseVisual") as Sprite2D
+)
+@onready var _pulse_animation: AnimatedSprite2D = (
+	get_node_or_null("LaserPulseAnimation") as AnimatedSprite2D
 )
 @onready var _tower_gate: ExplorationGate = (
 	get_node_or_null("TowerLaserGate") as ExplorationGate
@@ -95,6 +103,7 @@ var _last_emitted_objective_text: String = ""
 
 
 func _ready() -> void:
+	_ensure_pulse_animation()
 	_connect_trial_zone()
 	_sync_state()
 
@@ -307,6 +316,32 @@ func get_diagnostics() -> Dictionary:
 			"Visual"
 		),
 		"pulse_texture_path": _get_sprite_texture_path(_pulse_visual),
+		"pulse_sprite_frames_path": (
+			_pulse_animation.sprite_frames.resource_path
+			if _pulse_animation != null
+			and _pulse_animation.sprite_frames != null
+			else ""
+		),
+		"pulse_animation_name": (
+			String(_pulse_animation.animation)
+			if _pulse_animation != null
+			else ""
+		),
+		"pulse_animation_frame": (
+			_pulse_animation.frame if _pulse_animation != null else -1
+		),
+		"pulse_animation_frame_count": _get_pulse_animation_frame_count(),
+		"pulse_animation_visible": (
+			_pulse_animation.visible if _pulse_animation != null else false
+		),
+		"pulse_animation_playing": (
+			_pulse_animation.is_playing()
+			if _pulse_animation != null
+			else false
+		),
+		"legacy_pulse_visible": (
+			_pulse_visual.visible if _pulse_visual != null else false
+		),
 		"endpoint_texture_path": _get_child_sprite_texture_path(
 			_threshold,
 			"Visual"
@@ -529,27 +564,81 @@ func _set_access_seal_blocking(blocking: bool) -> void:
 
 
 func _sync_pulse_visual() -> void:
-	if _pulse_visual == null:
+	_ensure_pulse_animation()
+	if _pulse_visual != null:
+		_pulse_visual.visible = false
+	if _pulse_animation == null:
 		return
+	var animation_name: StringName = &""
 	match _pulse_state:
 		STATE_TELEGRAPH:
-			_pulse_visual.visible = true
-			_pulse_visual.modulate = Color(1.0, 0.38, 0.30, 0.42)
-			_pulse_visual.scale = Vector2(0.86, 0.78)
+			animation_name = &"telegraph"
 		STATE_STRIKE:
-			_pulse_visual.visible = true
-			_pulse_visual.modulate = Color(1.0, 1.0, 1.0, 1.0)
-			_pulse_visual.scale = Vector2(1.0, 1.0)
+			animation_name = &"strike"
 		STATE_RECOVERY:
-			_pulse_visual.visible = true
-			_pulse_visual.modulate = (
-				Color(0.42, 1.0, 0.96, 0.72)
+			animation_name = (
+				&"recovery_reflected"
 				if _last_pulse_reflected
-				else Color(1.0, 0.18, 0.18, 0.22)
+				else &"recovery_missed"
 			)
-			_pulse_visual.scale = Vector2(1.04, 0.82)
 		_:
-			_pulse_visual.visible = false
+			_hide_pulse_animation()
+			return
+	_show_pulse_animation(animation_name)
+
+
+func _ensure_pulse_animation() -> void:
+	if _pulse_animation == null:
+		_pulse_animation = get_node_or_null(
+			"LaserPulseAnimation"
+		) as AnimatedSprite2D
+	if _pulse_animation == null:
+		_pulse_animation = AnimatedSprite2D.new()
+		_pulse_animation.name = "LaserPulseAnimation"
+		if _pulse_visual != null:
+			_pulse_animation.position = _pulse_visual.position
+			_pulse_animation.rotation = _pulse_visual.rotation
+			_pulse_animation.z_index = _pulse_visual.z_index
+			_pulse_animation.texture_filter = _pulse_visual.texture_filter
+			_pulse_animation.centered = _pulse_visual.centered
+			_pulse_animation.offset = _pulse_visual.offset
+		add_child(_pulse_animation)
+	_pulse_animation.sprite_frames = PULSE_SPRITE_FRAMES
+	_pulse_animation.modulate = Color.WHITE
+	_pulse_animation.self_modulate = Color.WHITE
+	_pulse_animation.scale = Vector2.ONE
+	if _pulse_visual != null:
+		_pulse_visual.visible = false
+
+
+func _show_pulse_animation(animation_name: StringName) -> void:
+	var should_restart: bool = (
+		not _pulse_animation.visible
+		or _pulse_animation.animation != animation_name
+	)
+	_pulse_animation.visible = true
+	if should_restart:
+		_pulse_animation.play(animation_name)
+
+
+func _hide_pulse_animation() -> void:
+	_pulse_animation.visible = false
+	_pulse_animation.stop()
+	_pulse_animation.frame = 0
+
+
+func _get_pulse_animation_frame_count() -> int:
+	if (
+		_pulse_animation == null
+		or _pulse_animation.sprite_frames == null
+		or not _pulse_animation.sprite_frames.has_animation(
+			_pulse_animation.animation
+		)
+	):
+		return 0
+	return _pulse_animation.sprite_frames.get_frame_count(
+		_pulse_animation.animation
+	)
 
 
 func _sync_prompt_visibility() -> void:
