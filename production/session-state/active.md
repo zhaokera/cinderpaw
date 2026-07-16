@@ -6263,3 +6263,30 @@
   hazard ids and transforms are unchanged. The broader complete-game goal
   remains active.
 - Blockers: None for Story033.
+
+## Session Extract -- Player Abilities Story169 2026-07-16
+
+- Delivery checkpoint: Story169 is complete as an isolated same-runtime Boss
+  progression fix on top of uploaded Story033 commit `ef698bf5`; unrelated
+  report/tmp noise and generated test UIDs remain excluded.
+- Story: `production/epics/player-abilities/story-169-main-rat-king-victory-continue-echo-guardian-same-runtime-handoff.md`
+  -- Main Rat King Victory Continue to Echo Guardian Same-Runtime Handoff.
+- Implementation: Added an explicit GameFlow victory continuation and wired
+  retry-menu `Continue` to unlock the player, activate Echo Guardian, refresh
+  arena/HUD/camera/seals and recapture the Boss entry snapshot after activation.
+- Verification: Initial RED `report_1862` reproduced the live progression
+  block; focused GREEN `report_1863` passed `2/2`; final bounded GameFlow,
+  Rat King hold, sequential handoff and Boss2 route `report_1866` passed `9/9`
+  with exit `0`. One old reward-prompt assertion was made deterministic after
+  its process-frame ordering dependency reproduced independently.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r166455681-52`. Physical Enter continued from Rat King victory to the active
+  three-frame Echo Guardian encounter in the same Main run. Real movement was
+  accepted, death/respawn returned to Boss2, the `1278x718` screenshot was
+  non-empty, game logs were info-only, editor logs were empty, and stop restored
+  `ready`.
+- Assets: No new visual or audio asset. Existing image-generated Main, Boss2,
+  arena, room-seal and HUD assets were reused.
+- Scope: No Boss balance, reward, level, world flag or visual contract changed.
+  The broader complete-game goal remains active.
+- Blockers: None for Story169.

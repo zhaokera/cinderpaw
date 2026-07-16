@@ -541,6 +541,31 @@ func _on_menu_resume_requested() -> void:
 			"reason": &"continue_exploring",
 		}])
 		return
+	if (
+		menu_mode == &"retry"
+		and _game_flow.get_flow_state() == &"victory"
+		and bool(_world_progress_flags.get(String(RAT_KING_DEFEATED_FLAG), false))
+		and not _is_boss2_echo_guardian_defeated()
+		and _game_flow.continue_after_victory()
+	):
+		_pause_menu_active = false
+		get_tree().paused = false
+		_hud.hide_menu()
+		_sync_rat_king_defeated_state()
+		var boss2_activated: bool = _sync_boss2_encounter_handoff()
+		if boss2_activated:
+			_game_flow.start_boss_encounter(_player.global_position, self)
+		_sync_boss2_double_jump_payoff_state()
+		refresh_boss2_camera_lock()
+		refresh_rat_king_camera_choreography()
+		refresh_boss2_room_seals()
+		_refresh_boss_hud()
+		_refresh_player_control_lock()
+		_dispatch_audio_event(&"on_menu_closed", [{
+			"menu_mode": menu_mode,
+			"reason": &"continue_to_echo_guardian",
+		}])
+		return
 	if _pause_menu_active:
 		get_tree().paused = false
 	_pause_menu_active = false

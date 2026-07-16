@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 168 stories tracked
+> **Stories**: 169 stories tracked
 
 ## Overview
 
@@ -206,6 +206,7 @@ recording the reward in progression state.
 | 166 | Cinderpaw Real-Input Three-Stage Light Combo Runtime | Integration + Gameplay Runtime + Frame Animation Contract | Complete | ADR-0001/0002/0004/0005/0010/0018 |
 | 167 | Cinderpaw Authored Three-Stage Light Hitbox Timing | Integration + Gameplay Runtime + Collision Timing | Complete | ADR-0001/0002/0004/0005/0010/0018 |
 | 168 | Crown Warden ACT Complete Epilogue At Scrap Roost | Integration + UI/Visual + Save/Scene Flow | Complete | ADR-0001/0002/0003/0007/0010/0011/0015/0018/0021 |
+| 169 | Main Rat King Victory Continue to Echo Guardian Same-Runtime Handoff | Integration + ACT Pacing + Scene/HUD | Complete | ADR-0002/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -225,8 +226,7 @@ This epic is complete when:
 
 ## Next Step
 
-Story168 closes the GDD's degraded four-Boss Tier 4 loop with a durable,
-image-generated ACT Complete payoff at Scrap Roost. Combat Presentation
-Story032 subsequently closes the Rat Minion `attack_tell` frame-animation gap.
-Select the next bounded player-visible ACT gap without reopening either
-verified contract unless new runtime evidence requires it.
+Story169 closes the same-runtime progression block between Rat King victory and
+Echo Guardian while preserving the existing persisted restore route. Select
+the next bounded player-visible ACT gap; current candidates are Central Tower
+local minimap continuity and Neon Rooftops parry-laser motion readability.

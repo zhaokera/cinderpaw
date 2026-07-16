@@ -64,6 +64,39 @@ func test_rat_king_victory_restore_hands_main_encounter_to_boss2_once() -> void:
 	assert_str(String(activated.get("boss_hud_label", ""))).contains("Echo Guardian")
 
 
+func test_rat_king_victory_continue_starts_boss2_in_same_runtime() -> void:
+	var scene: Node2D = _instantiate_main_scene()
+	var rat_king: Node = scene.get_node("Enemy")
+	var flow: Node = scene.get_node("GameFlowController")
+	var hud: Node = scene.get_node("HUD")
+
+	assert_bool(scene.call("apply_damage", int(rat_king.call("get_entity_id")), int(
+		rat_king.call("get_current_hp")
+	), {"source": &"story169_same_runtime_handoff"})).is_true()
+	flow.call("advance_time", 3.01)
+	assert_str(String(flow.call("get_flow_state"))).is_equal("victory")
+	assert_bool(bool(flow.call("is_player_control_locked"))).is_true()
+	assert_str(String(hud.call("get_menu_mode"))).is_equal("retry")
+	assert_bool(bool(hud.call("is_menu_visible"))).is_true()
+
+	hud.emit_signal("menu_resume_requested")
+
+	var activated: Dictionary = scene.call("get_boss2_encounter_handoff_diagnostics")
+	assert_str(String(activated.get("game_flow_state", ""))).is_equal("playing")
+	assert_bool(bool(flow.call("is_player_control_locked"))).is_false()
+	assert_bool(bool(hud.call("is_menu_visible"))).is_false()
+	assert_bool(bool(activated.get("rat_king_defeated", false))).is_true()
+	assert_bool(bool(activated.get("rat_king_visible", true))).is_false()
+	assert_bool(bool(activated.get("boss2_encounter_active", false))).is_true()
+	assert_bool(bool(activated.get("boss2_visible", false))).is_true()
+	assert_bool(bool(activated.get("boss2_has_target", false))).is_true()
+	assert_int(int(activated.get("boss2_collision_layer", 0))).is_greater(0)
+	assert_bool(bool(activated.get("boss2_arena_frame_visible", false))).is_true()
+	assert_bool(bool(activated.get("boss2_room_seals_enabled", false))).is_true()
+	assert_bool(bool(activated.get("boss2_camera_lock_enabled", false))).is_true()
+	assert_str(String(activated.get("boss_hud_label", ""))).contains("Echo Guardian")
+
+
 func _instantiate_main_scene() -> Node2D:
 	var scene := MAIN_SCENE.instantiate() as Node2D
 	add_child(scene)

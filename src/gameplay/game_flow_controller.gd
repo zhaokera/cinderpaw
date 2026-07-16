@@ -127,6 +127,15 @@ func handle_enemy_defeated() -> void:
 	_player_control_locked = true
 
 
+func continue_after_victory() -> bool:
+	if _state != FlowState.VICTORY:
+		return false
+	_state = FlowState.PLAYING
+	_victory_presentation_remaining_sec = 0.0
+	_player_control_locked = false
+	return true
+
+
 func advance_time(delta_sec: float) -> void:
 	var safe_delta: float = maxf(0.0, delta_sec)
 	match _state:

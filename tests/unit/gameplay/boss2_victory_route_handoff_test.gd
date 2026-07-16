@@ -131,7 +131,7 @@ func test_boss2_victory_reward_handoff_opens_factory_route_transition() -> void:
 	assert_bool(String(defeated.get("hud_notification_text", "")).contains("Claim Double Jump")).is_true()
 
 	player.global_position = reward.global_position + Vector2(-160, 0)
-	await get_tree().process_frame
+	_scene.call("_process", 0.0)
 	var approached_reward: Dictionary = _scene.call("get_boss2_victory_route_handoff_diagnostics")
 	assert_bool(bool(approached_reward.get("reward_prompt_visible", false))).is_true()
 	assert_bool(bool(reward.call("is_provider_in_reward_range", player))).is_false()
