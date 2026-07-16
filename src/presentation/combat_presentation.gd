@@ -31,6 +31,8 @@ const FISH_BONE_WAVE_LIFETIME_SEC: float = 0.3
 const ELECTRO_BELL_ARC_LIFETIME_SEC: float = 0.4
 const ELECTRO_BELL_PULSE_LIFETIME_SEC: float = 0.5
 const DODGE_AFTERIMAGE_LIFETIME_SEC: float = 0.35
+const DASH_AFTERIMAGE_LIFETIME_SEC: float = 10.0 / 60.0
+const DASH_SPEED_LINE_LIFETIME_SEC: float = 6.0 / 60.0
 const PERFECT_PARRY_AFTERIMAGE_LIFETIME_SEC: float = 0.35
 const PERFECT_PARRY_AFTERIMAGE_ALPHA: float = 0.82
 const PERFECT_PARRY_AFTERIMAGE_OFFSET_PX: float = 12.0
@@ -65,6 +67,8 @@ const PARTICLE_FRAME_BUDGET_MS: float = 2.0
 const SHAKE_HITSTOP_FRAME_BUDGET_MS: float = 0.1
 const TOTAL_PRESENTATION_FRAME_BUDGET_MS: float = 3.0
 const DODGE_AFTERIMAGE_ALPHAS: Array[float] = [0.5, 0.3, 0.1]
+const DASH_AFTERIMAGE_ALPHAS: Array[float] = [0.45, 0.25]
+const DASH_AFTERIMAGE_OFFSETS_PX: Array[float] = [20.0, 40.0]
 const PERFECT_PARRY_HITSTOP_FRAMES: int = 8
 const PERFECT_PARRY_FLASH_ALPHA: float = 0.8
 const NORMAL_DAMAGE_COLOR: Color = Color.WHITE
@@ -91,6 +95,7 @@ const FISH_BONE_WAVE_COLOR: Color = Color("#F8F4E8")
 const ELECTRO_BELL_ARC_COLOR: Color = Color("#38BDF8")
 const ELECTRO_BELL_PULSE_COLOR: Color = Color("#E0F2FE")
 const DODGE_AFTERIMAGE_COLOR: Color = Color.WHITE
+const DASH_AFTERIMAGE_COLOR: Color = Color("#DFF7FF")
 const PERFECT_PARRY_AFTERIMAGE_COLOR: Color = Color("#ECC94B")
 const PERFECT_PARRY_AFTERIMAGE_SHADER_CODE: String = """
 shader_type canvas_item;
@@ -164,6 +169,9 @@ const LONG_TAIL_ARC_TEXTURE_PATH: String = "res://assets/generated/combat_long_t
 const FISH_BONE_WAVE_TEXTURE_PATH: String = "res://assets/generated/combat_fish_bone_wave_runtime.png"
 const ELECTRO_BELL_ARC_TEXTURE_PATH: String = "res://assets/generated/combat_electro_bell_arc_runtime.png"
 const DOUBLE_JUMP_VORTEX_TEXTURE_PATH: String = "res://assets/generated/player_double_jump_vortex_runtime.png"
+const DASH_SPEED_LINE_TEXTURE_PATH: String = (
+	"res://assets/generated/combat_dash_speed_lines.png"
+)
 const BOSS_PHASE_OVERLAY_TEXTURE_PATH: String = (
 	"res://assets/generated/combat_boss_phase_overlay_readable.png"
 )
@@ -178,6 +186,7 @@ const ELECTRO_BELL_PULSE_SPRITE_SCALE: Vector2 = Vector2(0.12, 0.12)
 const DOUBLE_JUMP_VORTEX_SPRITE_SCALE: Vector2 = Vector2(0.32, 0.32)
 const BOSS_PHASE_DEBRIS_SPRITE_SCALE: Vector2 = Vector2(0.14, 0.14)
 const DODGE_AFTERIMAGE_OFFSET_PX: float = 14.0
+const DASH_SPEED_LINE_OFFSET_PX: float = 60.0
 
 var _hitstop_frames_remaining: int = 0
 var _gameplay_hitstop_active: bool = false
@@ -197,6 +206,7 @@ var _parry_sparks: Array[Dictionary] = []
 var _trails: Array[Dictionary] = []
 var _flashes: Array[Dictionary] = []
 var _afterimages: Array[Dictionary] = []
+var _dash_speed_lines: Array[Dictionary] = []
 var _double_jump_vfx: Array[Dictionary] = []
 var _boss_phase_debris: Array[Dictionary] = []
 var _boss_phase_overlays: Array[Dictionary] = []
@@ -214,6 +224,7 @@ var _long_tail_arc_texture: Texture2D = load(LONG_TAIL_ARC_TEXTURE_PATH) as Text
 var _fish_bone_wave_texture: Texture2D = load(FISH_BONE_WAVE_TEXTURE_PATH) as Texture2D
 var _electro_bell_arc_texture: Texture2D = load(ELECTRO_BELL_ARC_TEXTURE_PATH) as Texture2D
 var _double_jump_vortex_texture: Texture2D = load(DOUBLE_JUMP_VORTEX_TEXTURE_PATH) as Texture2D
+var _dash_speed_line_texture: Texture2D = load(DASH_SPEED_LINE_TEXTURE_PATH) as Texture2D
 var _boss_phase_overlay_texture: Texture2D = load(BOSS_PHASE_OVERLAY_TEXTURE_PATH) as Texture2D
 var _focus_mode_edge_flash_texture: Texture2D = (
 	load(FOCUS_MODE_EDGE_FLASH_TEXTURE_PATH) as Texture2D
@@ -233,6 +244,7 @@ var _last_damage_number_lifetime_sec: float = DAMAGE_NUMBER_LIFETIME_SEC
 var _last_flash_alpha: float = 0.0
 var _last_afterimage_alphas: Array[float] = []
 var _last_afterimage_positions: Array[Vector2] = []
+var _last_dash_speed_line_diagnostics: Dictionary = {}
 var _last_perfect_parry_afterimage_diagnostics: Dictionary = {}
 var _last_double_jump_vfx_texture_path: String = ""
 var _last_boss_phase_entity_id: int = 0
@@ -471,6 +483,12 @@ func on_dodge_event(texture: Texture2D, world_position: Vector2, facing: float) 
 	_spawn_dodge_afterimages(texture, world_position, facing)
 
 
+func on_dash_event(texture: Texture2D, world_position: Vector2, facing: float) -> void:
+	if texture != null:
+		_spawn_dash_afterimages(texture, world_position, facing)
+	_spawn_dash_speed_lines(world_position, facing)
+
+
 func on_double_jump_event(_texture: Texture2D, world_position: Vector2, facing: float) -> void:
 	_spawn_double_jump_vortex(world_position, facing)
 
@@ -547,6 +565,7 @@ func advance_time(delta_sec: float) -> void:
 	_tick_effects(_trails, safe_delta)
 	_tick_effects(_flashes, safe_delta)
 	_tick_effects(_afterimages, safe_delta)
+	_tick_effects(_dash_speed_lines, safe_delta)
 	_tick_effects(_double_jump_vfx, safe_delta)
 	_tick_effects(_boss_phase_debris, safe_delta)
 	_advance_boss_phase_overlays(safe_delta)
@@ -584,6 +603,18 @@ func get_active_afterimage_count() -> int:
 	return _afterimages.size()
 
 
+func get_active_dash_afterimage_count() -> int:
+	return _count_active_afterimages(&"dash")
+
+
+func get_active_dodge_afterimage_count() -> int:
+	return _count_active_afterimages(&"dodge")
+
+
+func get_active_dash_speed_line_count() -> int:
+	return _dash_speed_lines.size()
+
+
 func get_active_perfect_parry_afterimage_count() -> int:
 	var active_count: int = 0
 	for effect: Dictionary in _afterimages:
@@ -610,6 +641,7 @@ func get_active_particle_count() -> int:
 		+ _parry_sparks.size()
 		+ _trails.size()
 		+ _afterimages.size()
+		+ _dash_speed_lines.size()
 		+ _double_jump_vfx.size()
 		+ _boss_phase_debris.size()
 		+ _player_death_wisps.size()
@@ -878,6 +910,20 @@ func get_last_afterimage_positions() -> Array[Vector2]:
 	var result: Array[Vector2] = []
 	result.assign(_last_afterimage_positions)
 	return result
+
+
+func get_last_dash_speed_line_diagnostics() -> Dictionary:
+	var diagnostics: Dictionary = _last_dash_speed_line_diagnostics.duplicate(true)
+	var node: Variant = _last_dash_speed_line_diagnostics.get("node", null)
+	diagnostics["visible"] = (
+		node != null
+		and is_instance_valid(node)
+		and node is Sprite2D
+		and (node as Sprite2D).visible
+		and (node as Sprite2D).modulate.a > 0.0
+	)
+	diagnostics.erase("node")
+	return diagnostics
 
 
 func get_last_perfect_parry_afterimage_diagnostics() -> Dictionary:
@@ -1560,9 +1606,82 @@ func _spawn_dodge_afterimages(texture: Texture2D, world_position: Vector2, facin
 			"node": afterimage,
 			"remaining": DODGE_AFTERIMAGE_LIFETIME_SEC,
 			"tween": tween,
+			"mode": &"dodge",
 		})
 		_last_afterimage_alphas.append(alpha)
 		_last_afterimage_positions.append(afterimage.position)
+
+
+func _spawn_dash_afterimages(texture: Texture2D, world_position: Vector2, facing: float) -> void:
+	var facing_sign: float = -1.0 if facing < 0.0 else 1.0
+	_last_afterimage_alphas.clear()
+	_last_afterimage_positions.clear()
+	for index: int in range(DASH_AFTERIMAGE_ALPHAS.size()):
+		var alpha: float = DASH_AFTERIMAGE_ALPHAS[index]
+		var afterimage := _create_vfx_sprite(texture, DASH_AFTERIMAGE_COLOR, Vector2.ONE)
+		afterimage.position = world_position - Vector2(
+			facing_sign * DASH_AFTERIMAGE_OFFSETS_PX[index],
+			0.0
+		)
+		afterimage.flip_h = facing_sign < 0.0
+		afterimage.modulate.a = alpha
+		afterimage.z_index = 78 - index
+		add_child(afterimage)
+		var tween: Tween = create_tween()
+		tween.tween_property(afterimage, "modulate:a", 0.0, DASH_AFTERIMAGE_LIFETIME_SEC)
+		tween.tween_callback(afterimage.queue_free)
+		_register_particle_effect(_afterimages, {
+			"node": afterimage,
+			"remaining": DASH_AFTERIMAGE_LIFETIME_SEC,
+			"tween": tween,
+			"mode": &"dash",
+		})
+		_last_afterimage_alphas.append(alpha)
+		_last_afterimage_positions.append(afterimage.position)
+
+
+func _spawn_dash_speed_lines(world_position: Vector2, facing: float) -> void:
+	if _dash_speed_line_texture == null:
+		return
+	var facing_left: bool = facing < 0.0
+	var facing_sign: float = -1.0 if facing_left else 1.0
+	var speed_lines := _create_vfx_sprite(
+		_dash_speed_line_texture,
+		Color.WHITE,
+		Vector2.ONE
+	)
+	speed_lines.position = world_position - Vector2(facing_sign * DASH_SPEED_LINE_OFFSET_PX, 0.0)
+	speed_lines.flip_h = facing_left
+	speed_lines.z_index = 77
+	add_child(speed_lines)
+	var tween: Tween = create_tween()
+	tween.tween_property(speed_lines, "modulate:a", 0.0, DASH_SPEED_LINE_LIFETIME_SEC)
+	tween.tween_callback(speed_lines.queue_free)
+	var effect: Dictionary = {
+		"node": speed_lines,
+		"remaining": DASH_SPEED_LINE_LIFETIME_SEC,
+		"tween": tween,
+		"mode": &"dash",
+	}
+	_register_particle_effect(_dash_speed_lines, effect)
+	_last_dash_speed_line_diagnostics = {
+		"node": speed_lines,
+		"texture_path": DASH_SPEED_LINE_TEXTURE_PATH,
+		"position": speed_lines.position,
+		"flip_h": speed_lines.flip_h,
+		"lifetime_sec": DASH_SPEED_LINE_LIFETIME_SEC,
+	}
+
+
+func _count_active_afterimages(mode: StringName) -> int:
+	var active_count: int = 0
+	for effect: Dictionary in _afterimages:
+		if StringName(String(effect.get("mode", &""))) != mode:
+			continue
+		var node: Node = effect.get("node", null)
+		if node != null and is_instance_valid(node):
+			active_count += 1
+	return active_count
 
 
 func _spawn_perfect_parry_afterimage(
@@ -1883,6 +2002,7 @@ func _remove_effect_from_particle_buckets(effect: Dictionary) -> bool:
 	removed = _remove_effect_from_bucket(_parry_sparks, effect) or removed
 	removed = _remove_effect_from_bucket(_trails, effect) or removed
 	removed = _remove_effect_from_bucket(_afterimages, effect) or removed
+	removed = _remove_effect_from_bucket(_dash_speed_lines, effect) or removed
 	removed = _remove_effect_from_bucket(_double_jump_vfx, effect) or removed
 	removed = _remove_effect_from_bucket(_boss_phase_debris, effect) or removed
 	return removed
@@ -1928,6 +2048,7 @@ func _sample_particle_work() -> int:
 		+ _sample_particle_array(_parry_sparks)
 		+ _sample_particle_array(_trails)
 		+ _sample_particle_array(_afterimages)
+		+ _sample_particle_array(_dash_speed_lines)
 		+ _sample_particle_array(_double_jump_vfx)
 		+ _sample_particle_array(_boss_phase_debris)
 		+ _sample_particle_array(_player_death_wisps)

@@ -17,6 +17,7 @@ class FakeAudioSystem:
 	var hit_events: Array[Dictionary] = []
 	var damage_taken_events: Array[Dictionary] = []
 	var dodge_events: Array[Dictionary] = []
+	var dash_events: Array[Dictionary] = []
 	var parry_events: Array[Dictionary] = []
 	var double_jump_events: Array[Dictionary] = []
 	var focus_events: Array[Dictionary] = []
@@ -64,6 +65,13 @@ class FakeAudioSystem:
 
 	func on_dodge_event(_texture: Texture2D, world_position: Vector2, facing: float) -> bool:
 		dodge_events.append({
+			"position": world_position,
+			"facing": facing,
+		})
+		return false
+
+	func on_dash_event(_texture: Texture2D, world_position: Vector2, facing: float) -> bool:
+		dash_events.append({
 			"position": world_position,
 			"facing": facing,
 		})
@@ -238,6 +246,7 @@ func after_test() -> void:
 		if scene.get_parent() != null:
 			scene.get_parent().remove_child(scene)
 		scene.free()
+	_clear_audio_system_players()
 	scene = null
 
 
@@ -253,6 +262,12 @@ func test_player_attack_and_weapon_start_events_route_to_audio_system() -> void:
 	if audio_system.weapon_attack_events.size() != 1:
 		return
 	assert_str(String(audio_system.weapon_attack_events[0].get("weapon_id", &""))).is_equal("cat_claw")
+	var combat: CombatComponent = player.call("get_combat_component") as CombatComponent
+	assert_that(combat).is_not_null()
+	if combat == null:
+		return
+	var light_frame_data: Dictionary = combat.get_light_attack_frame_data(0)
+	combat.advance_attack_frames(int(light_frame_data.get("startup_frames", 0)))
 
 	player_collision.process_detection_frame({
 		&"cat_claw_light": [enemy_collision.get_hurtbox()],
@@ -293,6 +308,25 @@ func test_enemy_damage_and_player_dodge_events_route_to_audio_system() -> void:
 		return
 	assert_vector(audio_system.dodge_events[0].get("position", Vector2.ZERO)).is_equal(
 		player.get_node("Sprite").global_position
+	)
+
+
+func test_player_dash_routes_only_to_dash_audio_adapter() -> void:
+	var audio_system: FakeAudioSystem = _configure_fake_audio_system()
+	var player: Node = scene.get_node("Player")
+	scene.call("unlock_ability", &"dash")
+
+	assert_bool(bool(player.call("request_dash"))).is_true()
+	assert_int(audio_system.dash_events.size()).is_equal(1)
+	assert_int(audio_system.dodge_events.size()).is_equal(0)
+	if audio_system.dash_events.size() != 1:
+		return
+	assert_vector(audio_system.dash_events[0].get("position", Vector2.ZERO)).is_equal(
+		player.get_node("Sprite").global_position
+	)
+	assert_float(float(audio_system.dash_events[0].get("facing", 0.0))).is_equal_approx(
+		1.0,
+		0.001
 	)
 
 
@@ -582,6 +616,21 @@ func _configure_fake_audio_system() -> FakeAudioSystem:
 	var audio_system := FakeAudioSystem.new()
 	assert_bool(bool(scene.call("configure_audio_system_runtime", audio_system))).is_true()
 	return audio_system
+
+
+func _clear_audio_system_players() -> void:
+	var audio_system := get_node_or_null("/root/AudioSystem")
+	if audio_system == null:
+		return
+	for child: Node in audio_system.get_children():
+		if child is AudioStreamPlayer:
+			var audio_player := child as AudioStreamPlayer
+			audio_player.stop()
+			audio_player.stream = null
+		elif child is AudioStreamPlayer2D:
+			var audio_player_2d := child as AudioStreamPlayer2D
+			audio_player_2d.stop()
+			audio_player_2d.stream = null
 
 
 func _land_enemy_attack(enemy: Node, player: Node) -> void:

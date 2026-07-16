@@ -191,6 +191,18 @@
   evidence from the stories validated at that time.
 
 ## Last Completed Task
+- Combat Presentation Story 031: Cinderpaw Dash Afterimage, Speed-Line, and
+  Wind Feedback -- Main 不再把 `dash_started` 复用为 Dodge event：真实 Dash
+  现在生成 `20px/40px`、alpha `0.45/0.25` 的两道当前帧残影、1 组
+  image-generated `192x64` 冷白/月光蓝速度线，并请求独立 `sfx_dash`。
+  RED `report_1836`；initial GREEN `report_1837`；MCP 生命周期 RED/GREEN
+  `report_1843/report_1844`；final focused/related `report_1845` `41/41`，
+  无 error/failure/orphan。Godot 4.7 / MCP 3.0.2 clean run
+  `r148800817-42` 用真实 Dash/Dodge input 验证 `620 px/s`、Dash
+  `2+1` visual、独立 cue、Dodge `3+0` 隔离、生命周期清理、非空
+  `1278x718` 截图、5 条 info-only game log、0 条 editor log 和 clean stop
+  `ready`。主观音频混音仍由真人评审签收。
+
 - Combat Presentation Story 030: Cinderpaw Dedicated Dash Animation Identity
   -- 用 Cinderpaw 主精灵表和最新 jump/fall 资产作参考，生成发射、全速水平
   拉伸、动量收束三帧，替换原先与 Dodge 逐像素相同的临时素材。三帧保持

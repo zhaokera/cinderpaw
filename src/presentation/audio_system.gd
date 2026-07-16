@@ -39,6 +39,7 @@ const AUDIO_STATE_LOW_HP: StringName = &"LOW_HP"
 const AUDIO_STATE_MENU: StringName = &"MENU"
 const SFX_PRIORITY_NORMAL: int = 50
 const SFX_PRIORITY_DODGE: int = 60
+const SFX_PRIORITY_DASH: int = 60
 const SFX_PRIORITY_DAMAGE: int = 70
 const SFX_PRIORITY_HIGH: int = 90
 const SFX_PRIORITY_CRITICAL: int = 100
@@ -91,6 +92,7 @@ const DEFAULT_CORE_COMBAT_SFX_STREAMS: Dictionary = {
 	&"sfx_parry_perfect": "res://assets/audio/sfx/sfx_parry_perfect.wav",
 	&"sfx_parry_good": "res://assets/audio/sfx/sfx_parry_good.wav",
 	&"sfx_dodge": "res://assets/audio/sfx/sfx_dodge.wav",
+	&"sfx_dash": "res://assets/audio/sfx/sfx_dash.wav",
 	&"sfx_damage_taken": "res://assets/audio/sfx/sfx_damage_taken.wav",
 	&"sfx_damage_taken_lowhp": "res://assets/audio/sfx/sfx_damage_taken_lowhp.wav",
 	&"sfx_enemy_death": "res://assets/audio/sfx/sfx_enemy_death.wav",
@@ -696,6 +698,31 @@ func on_dodge_event(
 		&"sfx_dodge",
 		dodge_position,
 		SFX_PRIORITY_DODGE,
+		metadata
+	)
+
+
+## Routes a successful Dash start to its dedicated spatial wind SFX.
+func on_dash_event(
+	texture_or_metadata: Variant = null,
+	world_position: Vector2 = Vector2.ZERO,
+	facing: float = 1.0
+) -> bool:
+	var metadata: Dictionary = {}
+	var dash_position: Vector2 = world_position
+	if texture_or_metadata is Dictionary:
+		metadata = Dictionary(texture_or_metadata).duplicate(true)
+		dash_position = _event_position(metadata, ["position", "world_position", "hit_position"])
+	else:
+		metadata = {
+			"position": world_position,
+			"facing": facing,
+		}
+	return _request_gameplay_sfx(
+		&"dash",
+		&"sfx_dash",
+		dash_position,
+		SFX_PRIORITY_DASH,
 		metadata
 	)
 

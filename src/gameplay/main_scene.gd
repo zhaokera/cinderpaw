@@ -398,8 +398,8 @@ func _on_player_dodge_started(texture: Texture2D, world_position: Vector2, facin
 
 
 func _on_player_dash_started(texture: Texture2D, world_position: Vector2, facing: float) -> void:
-	_combat_presentation.on_dodge_event(texture, world_position, facing)
-	_dispatch_audio_event(&"on_dodge_event", [texture, world_position, facing])
+	_combat_presentation.on_dash_event(texture, world_position, facing)
+	_dispatch_audio_event(&"on_dash_event", [texture, world_position, facing])
 
 
 func _on_player_double_jump_started(texture: Texture2D, world_position: Vector2, facing: float) -> void:

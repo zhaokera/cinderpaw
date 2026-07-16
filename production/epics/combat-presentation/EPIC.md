@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 30 stories tracked
+> **Stories**: 31 stories tracked
 
 ## Overview
 
@@ -28,7 +28,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | TR-combatfx-001 | Hitstop durations are selected by event type, and same-frame events take the maximum duration. | ADR-0002 partial |
 | TR-combatfx-002 | Screen shake intensity and duration are selected by event type, and same-frame events take the maximum intensity. | ADR-0002 partial |
 | TR-combatfx-003 | Particle system supports GDD particle types with a 200-particle performance cap. | ADR-0002, Story012 cap, Story013 weapon family variants |
-| TR-combatfx-004 | Dodge, dash, and perfect parry support afterimage feedback modes. | ADR-0002, Story004, Story016 |
+| TR-combatfx-004 | Dodge, dash, and perfect parry support afterimage feedback modes. | ADR-0002, Story004, Story016, Story031 |
 | TR-combatfx-005 | Damage number size, color, and animation communicate damage tier. | ADR-0002 partial |
 | TR-combatfx-006 | Perfect parry, character hit, and enemy crit flash effects use authored durations and alpha. | ADR-0002 partial |
 | TR-combatfx-007 | Combat presentation work stays within the 3ms frame budget. | ADR-0002, Story012 |
@@ -70,6 +70,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 028 | Old Factory Spark Rat Combat Impact | Integration/Feel | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005 |
 | 029 | Cinderpaw Air Animation Identity Consistency | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
 | 030 | Cinderpaw Dedicated Dash Animation Identity | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
+| 031 | Cinderpaw Dash Afterimage, Speed-Line, and Wind Feedback | Visual/Feel/Audio | Complete | ADR-0001, ADR-0002, ADR-0005 |
 
 ## Definition of Done
 
@@ -83,7 +84,7 @@ This epic is complete when:
 
 ## Completion Evidence
 
-Combat Presentation has all 30 tracked stories complete, but the Epic remains
+Combat Presentation has all 31 tracked stories complete, but the Epic remains
 In Progress until the Main-scene real hitstop/input handoff is extended to
 independent player-facing combat scenes. Story014 adds the
 first Rat King boss frame-animation asset slice so the MVP boss no longer exists
@@ -140,8 +141,10 @@ reference-guided hard-edge Cinderpaw pixel art while preserving the existing
 SpriteFrames paths, air-state selection, and gameplay rules.
 Story030 replaces Dash's three pixel-identical Dodge copies with dedicated
 launch, maximum-speed, and carry-through poses while preserving the existing
-SpriteFrames paths and ability rules. GDD-specific two-afterimage, speed-line,
-and dedicated wind-audio presentation remain follow-up work.
+SpriteFrames paths and ability rules. Story031 then separates Main's Dash from
+Dodge presentation with two `20px/40px` cool-white afterimages, one generated
+directional speed-line burst, and an imported `sfx_dash` cue while preserving
+the existing `620 px/s` movement, cooldown and three-image Dodge behavior.
 Other independently mounted
 player-facing combat scenes remain follow-up coverage before Epic completion.
 Evidence is recorded in
@@ -177,3 +180,5 @@ Story029 evidence is recorded in
 `production/qa/evidence/cinderpaw-air-animation-identity-consistency-2026-07-15.md`.
 Story030 evidence is recorded in
 `production/qa/evidence/cinderpaw-dedicated-dash-animation-identity-2026-07-16.md`.
+Story031 evidence is recorded in
+`production/qa/evidence/cinderpaw-dash-afterimage-speed-line-wind-feedback-2026-07-16.md`.

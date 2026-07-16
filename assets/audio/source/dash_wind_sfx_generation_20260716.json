@@ -1,0 +1,29 @@
+{
+  "generated_on": "2026-07-16",
+  "story_id": "combat-presentation-story-031",
+  "generator": "deterministic procedural PCM synthesis via Python wave module",
+  "generator_script": "res://assets/audio/source/generate_dash_wind_sfx.py",
+  "generation_command": "python3 assets/audio/source/generate_dash_wind_sfx.py assets/audio/sfx/sfx_dash.wav",
+  "random_seed": 31031,
+  "cue_id": "sfx_dash",
+  "output_path": "res://assets/audio/sfx/sfx_dash.wav",
+  "output_sha256": "a6badef80e1d5996633cda206d49e7bc48ac765ccf4928694ea5b7e94336fdae",
+  "dodge_reference_path": "res://assets/audio/sfx/sfx_dodge.wav",
+  "dodge_reference_sha256": "4b7c8a81dce0ef0c24a8beecb1767eca7947d051379cce5b280338b18aac27af",
+  "description": "Fast air-only Dash whoosh with an 18 ms attack, high-frequency leading edge, 67 ms decay and controlled tail; no cloth, impact, alarm, tonal melody or reverb.",
+  "format": {
+    "codec": "PCM signed 16-bit little-endian WAV",
+    "sample_rate_hz": 44100,
+    "channels": 1,
+    "duration_sec": 0.2,
+    "loop": false
+  },
+  "objective_metrics": {
+    "peak_dbfs": -5.0,
+    "rms_dbfs": -19.2515,
+    "tail_after_160ms_rms_dbfs": -38.0133
+  },
+  "status": "procedural_baseline_replaceable",
+  "acceptance_scope": "Automated checks prove a separate deterministic imported Dash cue and routing. Subjective mix and listening quality remain a human audio pass.",
+  "image_generation": "not_applicable_audio_only"
+}

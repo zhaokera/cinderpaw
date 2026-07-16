@@ -13,6 +13,7 @@ const DEFAULT_CORE_COMBAT_SFX: Dictionary = {
 	&"sfx_parry_perfect": "res://assets/audio/sfx/sfx_parry_perfect.wav",
 	&"sfx_parry_good": "res://assets/audio/sfx/sfx_parry_good.wav",
 	&"sfx_dodge": "res://assets/audio/sfx/sfx_dodge.wav",
+	&"sfx_dash": "res://assets/audio/sfx/sfx_dash.wav",
 	&"sfx_damage_taken": "res://assets/audio/sfx/sfx_damage_taken.wav",
 	&"sfx_damage_taken_lowhp": "res://assets/audio/sfx/sfx_damage_taken_lowhp.wav",
 	&"sfx_enemy_death": "res://assets/audio/sfx/sfx_enemy_death.wav",
@@ -582,13 +583,14 @@ func test_weapon_style_attack_events_route_to_imported_sfx() -> void:
 		assert_int(int(request.get("player_index", -1))).is_greater_equal(0)
 
 
-func test_parry_dodge_enemy_death_and_boss_phase_events_route_to_expected_sfx() -> void:
+func test_parry_movement_enemy_death_and_boss_phase_events_route_to_expected_sfx() -> void:
 	assert_object(audio_system).is_not_null()
 	if audio_system == null:
 		return
 	for method_name: String in [
 		"on_parry_event",
 		"on_dodge_event",
+		"on_dash_event",
 		"on_enemy_defeated",
 		"on_boss_phase_transition_started",
 		"get_audio_state",
@@ -626,6 +628,19 @@ func test_parry_dodge_enemy_death_and_boss_phase_events_route_to_expected_sfx() 
 	assert_str(String(dodge_request.get("sfx_id", &""))).is_equal("sfx_dodge")
 	assert_vector(dodge_request.get("position", Vector2.ZERO)).is_equal(Vector2(40, 50))
 	assert_bool(bool(dodge_request.get("stream_found", false))).is_true()
+
+	assert_bool(bool(audio_system.call("on_dash_event", null, Vector2(52, 60), 1.0))).is_true()
+	var dash_request: Dictionary = audio_system.get_last_sfx_request()
+	assert_str(String(dash_request.get("sfx_id", &""))).is_equal("sfx_dash")
+	assert_vector(dash_request.get("position", Vector2.ZERO)).is_equal(Vector2(52, 60))
+	assert_bool(bool(dash_request.get("stream_found", false))).is_true()
+	var dash_event: Dictionary = audio_system.get_last_gameplay_audio_event()
+	assert_str(String(dash_event.get("event_id", &""))).is_equal("dash")
+	assert_str(String(dash_event.get("sfx_id", &""))).is_equal("sfx_dash")
+	assert_bool(
+		audio_system.get_audio_stream_path(&"sfx_dash")
+		!= audio_system.get_audio_stream_path(&"sfx_dodge")
+	).is_true()
 
 	assert_bool(bool(audio_system.call("on_enemy_defeated", {
 		"position": Vector2(80, 90),

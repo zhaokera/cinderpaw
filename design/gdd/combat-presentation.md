@@ -61,7 +61,11 @@
 
 #### 规则4：残影（Afterimage）系统
 - **闪避残影**：3帧半透明残影（50%/30%/10%）
-- **高速移动残影**：冲刺时2帧残影
+- **高速移动残影**：成功冲刺开始时生成2道当前 Dash 帧残影，位于移动反方向
+  20px/40px，透明度45%/25%，在10个 physics frame（按60Hz为0.167秒）内
+  线性淡出；同次冲刺只生成一次
+- **冲刺速度线**：成功冲刺开始时在角色身后生成1次世界空间定向速度线，
+  随朝向镜像并停留在生成位置，在6个 physics frame（0.10秒）内淡出
 - **弹反姿态残影**：PERFECT弹反时1帧金色残影
 
 #### 规则5：伤害数字表现
@@ -172,12 +176,15 @@ spawn_particles(type, position, config) → void
 | debris_enemy | 敌人主色 | 块状 | 15-20 |
 | debris_boss | 钢青灰 | 块状 | 30+ |
 | afterimage_dodge | 角色色 | 剪影 | 3帧 |
+| afterimage_dash | 角色冷白色 | 剪影 | 2道 |
+| speed_line_dash | 冷白/月光蓝 | 水平线束 | 1组 |
 
 ### 音效设计
 - 命中音效：与伤害类别匹配，音调随伤害递增
 - 暴击音效：强化金属碰撞+低频共鸣
 - 弹反音效：清脆金属碰撞（PERFECT=高频+共鸣）
 - 闪避音效：短促风声+布料音
+- 冲刺音效：独立短促高速风声，不含闪避布料层，非循环且不与闪避共用音频文件
 - 击杀音效：沉重碎裂音+胜利短音
 
 ## UI Requirements
@@ -190,6 +197,9 @@ spawn_particles(type, position, config) → void
 - **GIVEN** 暴击命中，**WHEN** is_crit=true，**THEN** 6帧帧停+中等震屏+金色粒子+金色大字
 - **GIVEN** PERFECT弹反，**WHEN** parry_type="perfect"，**THEN** 8帧帧停+全屏闪白+强烈震屏+放射粒子
 - **GIVEN** 闪避执行，**WHEN** dodge动画播放，**THEN** 3帧半透明残影
+- **GIVEN** Dash 已解锁且成功启动，**WHEN** `dash_started` 触发，**THEN**
+  同一开始帧生成2道递减残影、1组定向速度线并请求独立 `sfx_dash`；被冷却、
+  锁定或状态拒绝的 Dash 不产生上述表现
 - **GIVEN** 同帧多个帧停，**WHEN** 处理，**THEN** 取最大值
 - **GIVEN** Boss阶段转换，**WHEN** 触发，**THEN** 震屏+金属碎片+暗角
 - **GIVEN** 敌人被击杀，**WHEN** HP≤0，**THEN** 6帧帧停+碎裂粒子+击杀音效
