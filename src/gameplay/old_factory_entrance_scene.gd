@@ -16063,11 +16063,20 @@ func _sync_lower_deck_forward_conduit_state() -> void:
 		collision_shape.disabled = not conduit_active
 
 
+func _sync_steam_vent_visual_phase(hazard: Node, phase: StringName) -> void:
+	if hazard != null and hazard.has_method("set_visual_phase"):
+		hazard.call("set_visual_phase", phase)
+
+
 func _sync_lower_deck_forward_pressure_traverse_state() -> void:
 	if _lower_deck_forward_pressure_vent == null:
 		return
 	var available: bool = _is_lower_deck_forward_pressure_traverse_available()
 	var contact_active: bool = _is_lower_deck_forward_pressure_contact_active()
+	_sync_steam_vent_visual_phase(
+		_lower_deck_forward_pressure_vent,
+		_get_lower_deck_forward_pressure_phase()
+	)
 	_lower_deck_forward_pressure_vent.visible = available or _lower_deck_forward_pressure_traverse_active
 	_lower_deck_forward_pressure_vent.monitoring = contact_active
 	_lower_deck_forward_pressure_vent.monitorable = contact_active
@@ -16404,6 +16413,10 @@ func _sync_lower_deck_forward_pressure_aftershock_exhaust_state() -> void:
 	var contact_active: bool = (
 		_is_lower_deck_forward_pressure_aftershock_exhaust_contact_active()
 	)
+	_sync_steam_vent_visual_phase(
+		_lower_deck_forward_pressure_aftershock_exhaust_vent,
+		_get_lower_deck_forward_pressure_aftershock_exhaust_phase()
+	)
 	_lower_deck_forward_pressure_aftershock_exhaust_vent.visible = should_show_exhaust
 	_lower_deck_forward_pressure_aftershock_exhaust_vent.monitoring = contact_active
 	_lower_deck_forward_pressure_aftershock_exhaust_vent.monitorable = contact_active
@@ -16623,6 +16636,10 @@ func _sync_lower_deck_forward_pressure_aftershock_cooling_duct_state() -> void:
 		return
 	var contact_active: bool = (
 		_is_lower_deck_forward_pressure_aftershock_cooling_duct_contact_active()
+	)
+	_sync_steam_vent_visual_phase(
+		_lower_deck_forward_pressure_aftershock_cooling_duct_vent,
+		_get_lower_deck_forward_pressure_aftershock_cooling_duct_phase()
 	)
 	_lower_deck_forward_pressure_aftershock_cooling_duct_vent.visible = should_show_duct
 	_lower_deck_forward_pressure_aftershock_cooling_duct_vent.monitoring = contact_active
@@ -16852,6 +16869,10 @@ func _sync_lower_deck_forward_pressure_aftershock_condenser_outlet_state() -> vo
 	var contact_active: bool = (
 		_is_lower_deck_forward_pressure_aftershock_condenser_outlet_contact_active()
 	)
+	_sync_steam_vent_visual_phase(
+		_lower_deck_forward_pressure_aftershock_condenser_outlet_vent,
+		_get_condenser_outlet_phase()
+	)
 	_lower_deck_forward_pressure_aftershock_condenser_outlet_vent.visible = should_show_outlet
 	_lower_deck_forward_pressure_aftershock_condenser_outlet_vent.monitoring = contact_active
 	_lower_deck_forward_pressure_aftershock_condenser_outlet_vent.monitorable = contact_active
@@ -16901,6 +16922,10 @@ func _sync_outlet_drip_vent_state() -> void:
 	if _lower_deck_forward_pressure_aftershock_condenser_drip_vent == null:
 		return
 	var contact_active: bool = _is_outlet_drip_vent_contact_active()
+	_sync_steam_vent_visual_phase(
+		_lower_deck_forward_pressure_aftershock_condenser_drip_vent,
+		_get_outlet_drip_vent_phase()
+	)
 	_lower_deck_forward_pressure_aftershock_condenser_drip_vent.visible = (
 		should_show_drip_vent
 	)
@@ -17002,6 +17027,10 @@ func _sync_overflow_pump_runoff_duct_state() -> void:
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent == null:
 		return
 	var contact_active: bool = _is_overflow_pump_runoff_duct_contact_active()
+	_sync_steam_vent_visual_phase(
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent,
+		_get_overflow_pump_runoff_duct_phase()
+	)
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_vent.visible = (
 		should_show_duct
 	)
@@ -17100,6 +17129,10 @@ func _sync_overflow_pump_runoff_outlet_state() -> void:
 	):
 		return
 	var contact_active: bool = _is_overflow_pump_runoff_outlet_contact_active()
+	_sync_steam_vent_visual_phase(
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_vent,
+		_get_overflow_pump_runoff_outlet_phase()
+	)
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_vent.visible = (
 		should_show_outlet
 	)
@@ -17206,6 +17239,10 @@ func _sync_overflow_pump_runoff_outlet_service_sluice_state() -> void:
 	var contact_active: bool = (
 		_is_overflow_pump_runoff_outlet_service_sluice_contact_active()
 	)
+	_sync_steam_vent_visual_phase(
+		hazard,
+		_get_overflow_pump_runoff_outlet_service_sluice_phase()
+	)
 	hazard.visible = should_show_sluice
 	hazard.monitoring = contact_active
 	hazard.monitorable = contact_active
@@ -17303,6 +17340,10 @@ func _sync_overflow_pump_runoff_outlet_service_sluice_tailrace_state() -> void:
 	var contact_active: bool = (
 		_is_overflow_pump_runoff_outlet_service_sluice_tailrace_contact_active()
 	)
+	_sync_steam_vent_visual_phase(
+		hazard,
+		_get_overflow_pump_runoff_outlet_service_sluice_tailrace_phase()
+	)
 	hazard.visible = should_show_tailrace
 	hazard.monitoring = contact_active
 	hazard.monitorable = contact_active
@@ -17389,6 +17430,10 @@ func _sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_stat
 		return
 	var contact_active: bool = (
 		_is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_contact_active()
+	)
+	_sync_steam_vent_visual_phase(
+		hazard,
+		_get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_phase()
 	)
 	hazard.visible = should_show_runoff
 	hazard.monitoring = contact_active
@@ -17495,6 +17540,10 @@ func _sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pinc
 		return
 	var contact_active: bool = (
 		_is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_contact_active()
+	)
+	_sync_steam_vent_visual_phase(
+		hazard,
+		_get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_phase()
 	)
 	hazard.visible = should_show_spillway
 	hazard.monitoring = contact_active

@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 32 stories tracked
+> **Stories**: 33 stories tracked
 
 ## Overview
 
@@ -72,6 +72,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 030 | Cinderpaw Dedicated Dash Animation Identity | Visual/Feel | Complete | ADR-0001, ADR-0002, ADR-0005 |
 | 031 | Cinderpaw Dash Afterimage, Speed-Line, and Wind Feedback | Visual/Feel/Audio | Complete | ADR-0001, ADR-0002, ADR-0005 |
 | 032 | Rat Minion Attack Tell Frame Animation | Visual/Feel + Frame Animation Contract | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005, ADR-0006 |
+| 033 | Old Factory Steam Vent Motion Readability | Visual/Feel + Hazard Telegraph Contract | Complete | ADR-0002, ADR-0004, ADR-0010, ADR-0018 |
 
 ## Definition of Done
 
@@ -85,7 +86,7 @@ This epic is complete when:
 
 ## Completion Evidence
 
-Combat Presentation has all 31 tracked stories complete, but the Epic remains
+Combat Presentation has all 33 tracked stories complete, but the Epic remains
 In Progress until the Main-scene real hitstop/input handoff is extended to
 independent player-facing combat scenes. Story014 adds the
 first Rat King boss frame-animation asset slice so the MVP boss no longer exists
@@ -187,5 +188,9 @@ Story032 separates the Rat Minion's seven-frame bite startup from its active
 attack with three reference-guided generated anticipation frames while
 preserving hitbox, damage, AI and summon contracts. Evidence is recorded in
 `production/qa/evidence/rat-minion-attack-tell-frame-animation-2026-07-16.md`.
-The next bounded visual gap is Old Factory steam-vent motion readability; keep
-its existing contact-damage contract unchanged if that slice is selected.
+Story033 replaces the Old Factory's static steam-vent read with shared
+four-frame `safe`, `warning`, and `active` loops across all twenty-six hazard
+instances. It forwards eleven existing gameplay phase clocks into presentation
+without changing damage, collision, phase timing or encounter rules. Evidence
+is recorded in
+`production/qa/evidence/old-factory-steam-vent-motion-readability-2026-07-16.md`.

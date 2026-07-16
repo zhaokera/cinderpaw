@@ -6235,3 +6235,31 @@
   Old Factory steam-vent motion readability. The broader complete-game goal
   remains active.
 - Blockers: None for Story032.
+
+## Session Extract -- Combat Presentation Story033 2026-07-16
+
+- Delivery checkpoint: Story033 is complete as an isolated Old Factory hazard
+  readability slice on top of uploaded Story032 commit `a6d1c23c`; report/tmp
+  noise and unrelated generated test UIDs remain excluded.
+- Story: `production/epics/combat-presentation/story-033-old-factory-steam-vent-motion-readability.md`
+  -- Old Factory Steam Vent Motion Readability.
+- Implementation: Added one shared image-generated SpriteFrames resource with
+  four-frame `safe`, `warning`, and `active` loops; all twenty-six hazard
+  instances receive `SteamAnimation`, and eleven periodic vents consume their
+  existing phase values without changing gameplay timing.
+- Verification: Initial RED `report_1856` failed on the absent animation;
+  focused GREEN `report_1858` passed `1/1`; final bounded Story033, Story009,
+  Story047 and Story069 gate `report_1859` passed `10/10`; fresh completion
+  gate `report_1860/report_1` repeated the same `10/10` with exit `0`.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r164212247-51`. The actual Factory scene exposed `SteamAnimation` on every
+  vent, the entrance active loop advanced frames, the hidden checkpoint loop
+  was stopped, hazard diagnostics remained unchanged, the `1278x718`
+  screenshot was non-empty, logs were clean, and stop restored `ready`.
+- Assets: Built-in image generation produced a retained `1254x1254` RGB sheet,
+  alpha intermediate, `1024x768` preview and twelve transparent sRGBA
+  `256x256` runtime frames under the existing vent asset root.
+- Scope: Damage `8`, cooldown `1.0`, player filtering, collision, phase timing,
+  hazard ids and transforms are unchanged. The broader complete-game goal
+  remains active.
+- Blockers: None for Story033.

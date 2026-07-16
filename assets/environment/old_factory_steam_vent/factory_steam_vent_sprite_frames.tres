@@ -1,0 +1,68 @@
+[gd_resource type="SpriteFrames" load_steps=13 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/safe/factory_steam_vent_safe_000.png" id="1_safe0"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/safe/factory_steam_vent_safe_001.png" id="2_safe1"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/safe/factory_steam_vent_safe_002.png" id="3_safe2"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/safe/factory_steam_vent_safe_003.png" id="4_safe3"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/warning/factory_steam_vent_warning_000.png" id="5_warning0"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/warning/factory_steam_vent_warning_001.png" id="6_warning1"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/warning/factory_steam_vent_warning_002.png" id="7_warning2"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/warning/factory_steam_vent_warning_003.png" id="8_warning3"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/active/factory_steam_vent_active_000.png" id="9_active0"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/active/factory_steam_vent_active_001.png" id="10_active1"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/active/factory_steam_vent_active_002.png" id="11_active2"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_steam_vent/active/factory_steam_vent_active_003.png" id="12_active3"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("9_active0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_active1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_active2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_active3")
+}],
+"loop": true,
+"name": &"active",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_safe0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_safe1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_safe2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_safe3")
+}],
+"loop": true,
+"name": &"safe",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_warning0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_warning1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_warning2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_warning3")
+}],
+"loop": true,
+"name": &"warning",
+"speed": 12.0
+}]

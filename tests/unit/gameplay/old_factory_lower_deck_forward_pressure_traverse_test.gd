@@ -167,6 +167,13 @@ func test_forward_pressure_traverse_active_window_damage_and_crossed_state_persi
 	assert_that(pressure_vent).is_not_null()
 	if pressure_vent == null:
 		return
+	var pressure_motion: AnimatedSprite2D = pressure_vent.get_node_or_null(
+		"SteamAnimation"
+	) as AnimatedSprite2D
+	assert_that(pressure_motion).is_not_null()
+	if pressure_motion == null:
+		return
+	assert_that(pressure_motion.animation).is_equal(&"safe")
 
 	assert_bool(bool(destination.call(
 		"apply_factory_steam_vent_contact",
@@ -180,6 +187,7 @@ func test_forward_pressure_traverse_active_window_damage_and_crossed_state_persi
 	)
 	assert_str(String(warning.get("phase", ""))).is_equal("warning")
 	assert_bool(bool(warning.get("hazard_contact_active", true))).is_false()
+	assert_that(pressure_motion.animation).is_equal(&"warning")
 
 	destination.call("advance_factory_lower_deck_forward_pressure_traverse_time", 0.36)
 	var active: Dictionary = destination.call(
@@ -187,6 +195,7 @@ func test_forward_pressure_traverse_active_window_damage_and_crossed_state_persi
 	)
 	assert_str(String(active.get("phase", ""))).is_equal("active")
 	assert_bool(bool(active.get("hazard_contact_active", false))).is_true()
+	assert_that(pressure_motion.animation).is_equal(&"active")
 	var hp_before: int = int(player.call("get_current_hp"))
 	assert_bool(bool(destination.call(
 		"apply_factory_steam_vent_contact",
@@ -206,6 +215,7 @@ func test_forward_pressure_traverse_active_window_damage_and_crossed_state_persi
 	)
 	assert_str(String(safe.get("phase", ""))).is_equal("safe")
 	assert_bool(bool(safe.get("hazard_contact_active", true))).is_false()
+	assert_that(pressure_motion.animation).is_equal(&"safe")
 
 	player.global_position.x = float(safe.get("exit_x", 0.0)) + 4.0
 	assert_bool(bool(destination.call(
