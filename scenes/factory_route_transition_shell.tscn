@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3]
+[gd_scene load_steps=57 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -45,6 +45,7 @@
 [ext_resource type="Texture2D" path="res://assets/environment/underground_passage/prop_factory_aerial_breach_floor_384x160.png" id="43_underground_breach"]
 [ext_resource type="Script" path="res://src/presentation/combat_presentation.gd" id="44_combat_presentation"]
 [ext_resource type="Script" path="res://src/gameplay/hitstop_input_bridge.gd" id="45_hitstop_bridge"]
+[ext_resource type="Script" path="res://src/presentation/old_factory_environment_cohesion.gd" id="46_environment_cohesion"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(30080, 40)
@@ -96,6 +97,10 @@ offset_bottom = 720.0
 texture = ExtResource("24_post_bulkhead_backdrop")
 expand_mode = 1
 stretch_mode = 6
+
+[node name="EnvironmentCohesion" type="Node2D" parent="."]
+z_index = -98
+script = ExtResource("46_environment_cohesion")
 
 [node name="Ground" type="StaticBody2D" parent="."]
 z_index = 10

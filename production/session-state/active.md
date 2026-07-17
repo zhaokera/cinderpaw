@@ -191,6 +191,16 @@
   evidence from the stories validated at that time.
 
 ## Last Completed Task
+- Combat Presentation Story 034: Old Factory Environment Cohesion -- 以现有
+  Factory 美术为参考生成 assembly/furnace/condenser/tailrace 四张不透明
+  `1280x720` 背景，并用 24 个 `scale=(1,1)` 的 Sprite2D 覆盖完整
+  `30720px`，替换玩家可见的长距离拉伸色块。RED `report_1887`；focused
+  GREEN `report_1890` `1/1`；bounded related `report_1892` `3/3`，均 exit
+  `0`。Godot 4.7 / MCP 3.0.2 run `r213728878-59` 验证 24 个运行节点、4
+  个唯一纹理、首尾原比例、玩家/蒸汽 AnimatedSprite2D、非空
+  `1278x718` 截图、info-only game log、0 editor log 和 clean stop
+  `ready`。未修改碰撞、镜头、敌人、机关、奖励、存档或音频规则。
+
 - Combat Presentation Story 031: Cinderpaw Dash Afterimage, Speed-Line, and
   Wind Feedback -- Main 不再把 `dash_started` 复用为 Dodge event：真实 Dash
   现在生成 `20px/40px`、alpha `0.45/0.25` 的两道当前帧残影、1 组
@@ -3003,12 +3013,12 @@
 - Consistency check: found 1 conflict + 1 stale reference, both fixed
 
 ## Next Steps
-1. SceneManager integration — 标准化 title/continue/load scene handoff 与
-   runtime state restore 边界。
-2. Visual/animation polish — 按 AGENTS Godot 2D 帧动画规则审计玩家可见
-   方块/单帧占位，优先用 image generation 生成透明帧并接入
-   `AnimatedSprite2D + SpriteFrames`。
-3. Gameplay runtime gap — advanced combat input wiring and Rat King runtime boss encounter。
+1. Title flow P0 — 当前主程序直接进入 Rat King 战，补玩家可操作的
+   Title / Continue / New Game 入口并验证真实启动路径。
+2. Crown Warden phase-transition bug — 修复阶段切换后停在 hurt 尾帧的
+   可复现表现冻结，再跑 Boss4 focused/MCP 验收。
+3. Crown Warden Phase III — 先收敛批准的创意/行为规格，再实现最终阶段
+   ACT 压力与对应多帧表现。
 
 ## Key Decisions Made (this session)
 - HP恢复：存档点回满+道具回复，无被动回复（维持紧张感）
@@ -6373,3 +6383,26 @@
   source, exact prompt/metadata and normalized `1280x720` runtime background;
   asset spec, manifest and entity inventory were updated.
 - Blockers: None for Story172.
+
+## Session Extract -- Combat Presentation Story034 2026-07-17
+
+- Delivery checkpoint: Story034 is complete as an isolated player-visible Old
+  Factory environment cohesion pass. The broader complete-game goal remains
+  active.
+- Runtime: four generated `1280x720` background identities are cycled across
+  24 unscaled Sprite2D plates for `30720px` coverage above the two stretched
+  compatibility backgrounds and below all foreground gameplay layers.
+- Verification: RED `report_1887`; focused GREEN `report_1890` `1/1`; final
+  bounded Story034/floor/steam gate `report_1892` `3/3`; all authoritative
+  exits `0` and the final gate had no process teardown warnings.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r213728878-59`. Runtime diagnostics proved 24 plates, four textures,
+  unscaled/opaque coverage and legacy cover ordering. Player and live vent
+  remained AnimatedSprite2D, the `1278x718` screenshot was non-empty, game
+  logs were info-only, editor logs were empty and stop restored `ready`.
+- Assets: built-in image generation produced four retained `1672x941` RGB
+  sources, exact prompt/hash metadata and four exact `1280x720` RGB runtime
+  plates imported through Godot 4.7.
+- Scope: no gameplay, collision, camera, enemy, hazard, encounter, reward,
+  route state, save or audio value changed.
+- Blockers: None for Story034.
