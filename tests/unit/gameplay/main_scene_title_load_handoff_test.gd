@@ -129,6 +129,22 @@ func after_test() -> void:
 			scene.get_parent().remove_child(scene)
 		scene.free()
 	scene = null
+	_stop_global_audio_players()
+
+
+func _stop_global_audio_players() -> void:
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system == null:
+		return
+	if audio_system.has_method("stop_music"):
+		audio_system.call("stop_music", 0.0)
+	if audio_system.has_method("stop_ambient"):
+		audio_system.call("stop_ambient", 0.0)
+	for child: Node in audio_system.get_children():
+		if child is AudioStreamPlayer:
+			(child as AudioStreamPlayer).stop()
+		elif child is AudioStreamPlayer2D:
+			(child as AudioStreamPlayer2D).stop()
 
 
 func test_new_game_routes_default_playable_scene_through_scene_manager() -> void:

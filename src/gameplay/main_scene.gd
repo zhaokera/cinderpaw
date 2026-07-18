@@ -1656,6 +1656,8 @@ func _request_scene_manager_transition(scene_id: StringName, spawn_point: String
 		return true
 	if scene_manager.has_method("get_current_scene") \
 			and String(scene_manager.call("get_current_scene")) == String(scene_id):
+		if scene_manager.has_method("change_scene"):
+			return bool(scene_manager.call("change_scene", scene_id, spawn_point))
 		return true
 	if _can_skip_pending_same_main_scene_transition(scene_manager, scene_id):
 		return true
@@ -1685,16 +1687,10 @@ func _can_skip_pending_same_main_scene_transition(scene_manager: Object, scene_i
 func _handoff_loaded_scene_to_scene_manager(snapshot: Dictionary) -> bool:
 	var target: Dictionary = _resolve_scene_target_from_snapshot(snapshot)
 	var scene_id: StringName = StringName(target.get("scene_id", ""))
-	if _can_restore_loaded_snapshot_in_current_scene(scene_id):
-		return true
 	return _request_scene_manager_transition(
 		scene_id,
 		StringName(target.get("spawn_point", ""))
 	)
-
-
-func _can_restore_loaded_snapshot_in_current_scene(scene_id: StringName) -> bool:
-	return scene_id == StringName(MAIN_SCENE_ID) and is_inside_tree()
 
 
 func _resolve_scene_target_from_snapshot(snapshot: Dictionary) -> Dictionary:

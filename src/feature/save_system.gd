@@ -199,6 +199,27 @@ func get_save_info(slot: int) -> RefCounted:
 	return info
 
 
+## Reads and migrates a valid save snapshot without mutating runtime systems.
+##
+## Title/bootstrap callers use this to resolve a scene target before committing
+## a real load. The method intentionally emits no signals, does not update
+## _last_loaded_data, does not deserialize registered systems, and does not
+## rewrite migrated data to disk.
+func peek_save_data(slot: int) -> Dictionary:
+	if not _is_valid_slot(slot):
+		return {}
+	var loaded: Dictionary = _read_valid_save(_slot_path(slot))
+	if loaded.is_empty():
+		loaded = _read_valid_save(_backup_path(slot))
+	if loaded.is_empty():
+		return {}
+	var original_version: int = int(
+		Dictionary(loaded.get("_meta", {})).get("version", CURRENT_SAVE_VERSION)
+	)
+	var migrated: Dictionary = _migrate_save_data(loaded, original_version)
+	return migrated.duplicate(true)
+
+
 ## Returns the last successfully loaded save data.
 func get_last_loaded_data() -> Dictionary:
 	return _last_loaded_data.duplicate(true)

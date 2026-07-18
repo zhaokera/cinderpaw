@@ -1,0 +1,75 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/presentation/title_bootstrap.gd" id="1_bootstrap"]
+[ext_resource type="Texture2D" path="res://assets/ui/title/cinderpaw_title_threshold_background_1280x720.png" id="2_key_art"]
+[ext_resource type="Script" path="res://src/presentation/hud_manager.gd" id="3_hud"]
+[ext_resource type="SpriteFrames" path="res://assets/characters/cinderpaw/cinderpaw_title_sprite_frames.tres" id="4_title_frames"]
+
+[node name="TitleBootstrap" type="Node"]
+script = ExtResource("1_bootstrap")
+
+[node name="RuntimeSceneRoot" type="Node" parent="."]
+process_mode = 4
+
+[node name="TitleScreen" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="KeyArt" type="TextureRect" parent="TitleScreen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_key_art")
+expand_mode = 1
+stretch_mode = 6
+mouse_filter = 2
+
+[node name="LeftReadabilityScrim" type="ColorRect" parent="TitleScreen"]
+layout_mode = 1
+anchor_right = 0.48
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.008, 0.012, 0.018, 0.48)
+mouse_filter = 2
+
+[node name="TitleCinderpaw" type="AnimatedSprite2D" parent="TitleScreen"]
+texture_filter = 2
+position = Vector2(1080, 416)
+scale = Vector2(0.78, 0.78)
+sprite_frames = ExtResource("4_title_frames")
+animation = &"title_idle"
+autoplay = "title_idle"
+
+[node name="Brand" type="Label" parent="TitleScreen"]
+layout_mode = 0
+offset_left = 64.0
+offset_top = 54.0
+offset_right = 620.0
+offset_bottom = 144.0
+theme_override_colors/font_color = Color(0.96, 0.82, 0.32, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 4
+theme_override_font_sizes/font_size = 68
+text = "CINDERPAW"
+
+[node name="BrandRule" type="ColorRect" parent="TitleScreen"]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 162.0
+offset_right = 206.0
+offset_bottom = 166.0
+color = Color(0.08, 0.72, 0.76, 0.9)
+mouse_filter = 2
+
+[node name="TitleHUD" type="CanvasLayer" parent="."]
+script = ExtResource("3_hud")

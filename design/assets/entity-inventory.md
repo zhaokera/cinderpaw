@@ -161,7 +161,7 @@ All new visual assets in this inventory should be produced from image2 / image g
 
 | # | Screen Name | Description | Source | Status |
 |---|-------------|-------------|--------|--------|
-| 1 | Main Menu | Title screen with cat on warm/cold boundary, subtle idle motion, start/settings/load actions. | design/art/art-bible.md | Needed |
+| 1 | Main Menu | Project boot now opens a persistent title bootstrap instead of live Boss gameplay. An image-generated opaque `1280x720` cold/warm industrial threshold sits behind a separate six-frame seated Cinderpaw `AnimatedSprite2D + SpriteFrames`; New Game, Continue, Load, Settings and Exit share the HUD menu shell with keyboard/gamepad focus, deterministic save-slot routing and SceneManager transition ownership. | design/art/art-bible.md; design/assets/specs/cinderpaw-title-bootstrap.md; production/epics/scene-management/story-015-title-bootstrap-runtime.md; production/qa/evidence/title-bootstrap-runtime-2026-07-18.md | Implemented baseline |
 | 2 | Combat HUD | In-game HUD with HP, weapon, cooldown, charms, minimap, notifications. | design/gdd/hud-ui.md; design/gdd/health-death.md | Needed |
 | 3 | Pause Menu | Safe-port UI with resume, inventory, map, settings, quit. | design/gdd/hud-ui.md | Needed |
 | 4 | Settings Menu | Input, audio, accessibility, and display settings. | design/accessibility-requirements.md; design/gdd/input.md | Needed |

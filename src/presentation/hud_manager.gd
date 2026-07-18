@@ -68,6 +68,11 @@ const BOSS2_PORTRAIT_TEXTURE_PATH: String = (
 const MENU_TITLE_BASE_FONT_SIZE: int = 28
 const MENU_BODY_BASE_FONT_SIZE: int = 16
 const MENU_CONTROL_BASE_FONT_SIZE: int = 16
+const TITLE_MENU_WIDTH: float = 360.0
+const TITLE_MENU_SIDE_MARGIN: float = 64.0
+const TITLE_MENU_BOTTOM_MARGIN: float = 36.0
+const TITLE_MENU_BUTTON_HEIGHT: float = 48.0
+const TITLE_MENU_CONTROL_FONT_SIZE: int = 20
 const SCENE_TRANSITION_BACKGROUND_TEXTURE_PATH: String = "res://assets/generated/scene_transition_tunnel_overlay.png"
 const SCENE_TRANSITION_SPINNER_TEXTURE_PATH: String = "res://assets/generated/scene_transition_paw_spinner.png"
 const SCENE_TRANSITION_BACKGROUND_TEXTURE: Texture2D = preload("res://assets/generated/scene_transition_tunnel_overlay.png")
@@ -111,6 +116,7 @@ var _autosave_stamp_duration_sec: float = AUTOSAVE_PAW_STAMP_DURATION_SEC
 var _skill_tree_entries: Array[Dictionary] = []
 var _active_skill_tree_entry_id: StringName = &""
 var _skill_tree_points: int = 0
+var _title_screen_mode: bool = false
 
 var _root: Control
 var _player_panel: PanelContainer
@@ -380,6 +386,7 @@ func show_act_complete_menu() -> void:
 	_set_act_complete_background_visible(true)
 	_set_button_state(_retry_button, false, "")
 	_set_button_state(_main_menu_button, true, "Return to Title")
+	_configure_menu_focus_cycle()
 	_resume_button.grab_focus()
 
 
@@ -407,21 +414,40 @@ func show_main_menu(slot_infos: Array = []) -> void:
 	_set_act_complete_background_visible(false)
 	_settings_return_menu = MENU_NONE
 	_main_menu_slot_infos = _duplicate_slot_infos(slot_infos)
-	_save_slot_labels = _format_save_slot_labels(slot_infos)
-	var has_save: bool = _has_any_existing_save(slot_infos)
+	_save_slot_labels = _format_save_slot_labels(_main_menu_slot_infos)
+	var has_save: bool = _has_any_existing_save(_main_menu_slot_infos)
 	if _settings_box != null:
 		_settings_box.visible = false
 	_menu_title_label.text = "Cinderpaw"
-	_menu_subtitle_label.text = "Begin the hunt." if has_save else "No save file available"
+	_menu_title_label.visible = not _title_screen_mode
+	_menu_subtitle_label.visible = true
+	_menu_subtitle_label.text = (
+		"Continue from your latest save."
+		if has_save
+		else "No save found. Begin a new hunt."
+	)
 	_hide_menu_buttons()
 	_set_button_state(_new_game_button, true, "New Game")
 	_set_button_state(_continue_button, true, "Continue", not has_save, "No save file available")
 	_set_button_state(_load_game_button, true, "Load Game", not has_save, "No save file available")
 	_set_button_state(_settings_button, true, "Settings")
 	_set_button_state(_exit_button, true, "Exit")
+	_configure_menu_focus_cycle()
 	_resize_menu_panel(false)
 	_menu_overlay.visible = true
-	_new_game_button.grab_focus()
+	(_continue_button if has_save else _new_game_button).grab_focus()
+
+
+## Adapts the shared menu shell for the project boot title presentation.
+func set_title_screen_mode(enabled: bool) -> void:
+	_title_screen_mode = enabled
+	_apply_title_screen_mode()
+	if _menu_mode != MENU_NONE:
+		_resize_menu_panel(_menu_mode == MENU_SETTINGS)
+
+
+func is_title_screen_mode() -> bool:
+	return _title_screen_mode
 
 
 ## Displays save/load slots from caller-provided metadata only.
@@ -431,11 +457,14 @@ func show_save_load_menu(slot_infos: Array, can_save: bool, save_unavailable_rea
 		return
 	_set_act_complete_background_visible(false)
 	_settings_return_menu = MENU_NONE
-	_save_slot_labels = _format_save_slot_labels(slot_infos)
+	var normalized_slot_infos: Array = _duplicate_slot_infos(slot_infos)
+	_save_slot_labels = _format_save_slot_labels(normalized_slot_infos)
 	if _settings_box != null:
 		_settings_box.visible = false
 	_menu_title_label.text = "Save / Load"
+	_menu_title_label.visible = true
 	_menu_subtitle_label.text = _join_save_slot_labels()
+	_menu_subtitle_label.visible = true
 	_hide_menu_buttons()
 	_set_button_state(_resume_button, true, "Back")
 	_set_button_state(
@@ -449,16 +478,17 @@ func show_save_load_menu(slot_infos: Array, can_save: bool, save_unavailable_rea
 		_continue_button,
 		true,
 		"Load Autosave",
-		not _slot_exists(slot_infos, 0),
+		not _slot_exists(normalized_slot_infos, 0),
 		"No autosave available"
 	)
 	_set_button_state(
 		_load_game_button,
 		true,
 		"Load Slot 1",
-		not _slot_exists(slot_infos, 1),
+		not _slot_exists(normalized_slot_infos, 1),
 		"No manual save available"
 	)
+	_configure_menu_focus_cycle()
 	_resize_menu_panel(false)
 	_menu_overlay.visible = true
 	_resume_button.grab_focus()
@@ -479,9 +509,12 @@ func show_skill_tree_menu(skill_points: int, skill_entries: Array = []) -> void:
 	if _settings_box != null:
 		_settings_box.visible = false
 	_menu_title_label.text = "Skill Tree"
+	_menu_title_label.visible = true
+	_menu_subtitle_label.visible = true
 	_hide_menu_buttons()
 	_set_button_state(_resume_button, true, "Back")
 	_refresh_skill_tree_selection()
+	_configure_menu_focus_cycle()
 	_resize_menu_panel(false)
 	_menu_overlay.visible = true
 	if _skill_unlock_button != null and not _skill_unlock_button.disabled:
@@ -515,9 +548,11 @@ func show_settings_menu(invoking_menu: StringName = MENU_PAUSE) -> void:
 	_hide_menu_buttons()
 	_settings_box.visible = true
 	_menu_title_label.text = "Settings"
+	_menu_title_label.visible = true
 	_menu_subtitle_label.text = "Tune audio, display, controls, and gameplay."
-	_resume_button.text = "Back"
-	_resume_button.visible = true
+	_menu_subtitle_label.visible = true
+	_set_button_state(_resume_button, true, "Back")
+	_configure_menu_focus_cycle()
 	_sync_settings_controls()
 	_resize_menu_panel(true)
 	_menu_overlay.visible = true
@@ -815,10 +850,29 @@ func get_focused_menu_button_text() -> String:
 
 ## Returns true when menu controls support keyboard/gamepad focus.
 func are_menu_buttons_focusable() -> bool:
+	return is_menu_focus_contract_valid()
+
+
+## Returns true when enabled actions accept focus and disabled actions are skipped.
+func is_menu_focus_contract_valid() -> bool:
+	var has_enabled_action: bool = false
 	for button: Button in _ordered_menu_buttons():
+		if not button.visible:
+			continue
+		if button.disabled:
+			if button.focus_mode != Control.FOCUS_NONE:
+				return false
+			continue
+		has_enabled_action = true
 		if button.focus_mode != Control.FOCUS_ALL:
 			return false
-	return not _ordered_menu_buttons().is_empty()
+	return has_enabled_action
+
+
+func get_menu_panel_rect() -> Rect2:
+	if _menu_panel == null:
+		return Rect2()
+	return Rect2(_menu_panel.position, _menu_panel.size)
 
 
 func get_settings_group_names() -> Array[String]:
@@ -1467,7 +1521,9 @@ func _show_menu(
 		_settings_box.visible = false
 	_save_slot_labels.clear()
 	_menu_title_label.text = title
+	_menu_title_label.visible = true
 	_menu_subtitle_label.text = subtitle
+	_menu_subtitle_label.visible = true
 	_hide_menu_buttons()
 	_set_button_state(_resume_button, true, resume_text)
 	if mode == MENU_PAUSE:
@@ -1476,6 +1532,7 @@ func _show_menu(
 		_set_button_state(_settings_button, true, "Settings")
 		_set_button_state(_main_menu_button, true, "Main Menu")
 	_set_button_state(_retry_button, true, retry_text)
+	_configure_menu_focus_cycle()
 	_resize_menu_panel(false)
 	_menu_overlay.visible = true
 	_resume_button.grab_focus()
@@ -1513,6 +1570,11 @@ func _hide_menu_buttons() -> void:
 		button.visible = false
 		button.disabled = false
 		button.tooltip_text = ""
+		button.focus_mode = Control.FOCUS_NONE
+		button.focus_neighbor_top = NodePath()
+		button.focus_neighbor_bottom = NodePath()
+		button.focus_previous = NodePath()
+		button.focus_next = NodePath()
 		button.release_focus()
 
 
@@ -1529,20 +1591,47 @@ func _set_button_state(
 	button.visible = should_show
 	button.disabled = disabled
 	button.tooltip_text = disabled_reason if disabled else ""
+	button.focus_mode = (
+		Control.FOCUS_ALL
+		if should_show and not disabled
+		else Control.FOCUS_NONE
+	)
+
+
+func _configure_menu_focus_cycle() -> void:
+	var focusable: Array[Button] = []
+	for button: Button in _ordered_menu_buttons():
+		button.focus_neighbor_top = NodePath()
+		button.focus_neighbor_bottom = NodePath()
+		button.focus_previous = NodePath()
+		button.focus_next = NodePath()
+		if button.visible and not button.disabled:
+			focusable.append(button)
+	if focusable.is_empty():
+		return
+	for index: int in range(focusable.size()):
+		var button: Button = focusable[index]
+		var previous: Button = focusable[(index - 1 + focusable.size()) % focusable.size()]
+		var next: Button = focusable[(index + 1) % focusable.size()]
+		button.focus_neighbor_top = button.get_path_to(previous)
+		button.focus_neighbor_bottom = button.get_path_to(next)
+		button.focus_previous = button.get_path_to(previous)
+		button.focus_next = button.get_path_to(next)
 
 
 func _has_any_existing_save(slot_infos: Array) -> bool:
 	for slot_info: Variant in slot_infos:
-		if slot_info is Dictionary and bool((slot_info as Dictionary).get("exists", false)):
+		var info: Dictionary = _slot_info_dictionary(slot_info)
+		if not info.is_empty() and bool(info.get("exists", false)):
 			return true
 	return false
 
 
 func _slot_exists(slot_infos: Array, slot: int) -> bool:
 	for slot_info: Variant in slot_infos:
-		if not slot_info is Dictionary:
+		var info: Dictionary = _slot_info_dictionary(slot_info)
+		if info.is_empty():
 			continue
-		var info: Dictionary = slot_info as Dictionary
 		if int(info.get("slot", -1)) == slot:
 			return bool(info.get("exists", false))
 	return false
@@ -1551,17 +1640,31 @@ func _slot_exists(slot_infos: Array, slot: int) -> bool:
 func _format_save_slot_labels(slot_infos: Array) -> Array[String]:
 	var labels: Array[String] = []
 	for slot_info: Variant in slot_infos:
-		if slot_info is Dictionary:
-			labels.append(_format_save_slot_label(slot_info as Dictionary))
+		var info: Dictionary = _slot_info_dictionary(slot_info)
+		if not info.is_empty():
+			labels.append(_format_save_slot_label(info))
 	return labels
 
 
 func _duplicate_slot_infos(slot_infos: Array) -> Array:
 	var duplicated: Array = []
 	for slot_info: Variant in slot_infos:
-		if slot_info is Dictionary:
-			duplicated.append((slot_info as Dictionary).duplicate(true))
+		var info: Dictionary = _slot_info_dictionary(slot_info)
+		if not info.is_empty():
+			duplicated.append(info)
 	return duplicated
+
+
+func _slot_info_dictionary(slot_info: Variant) -> Dictionary:
+	if slot_info is Dictionary:
+		return (slot_info as Dictionary).duplicate(true)
+	if slot_info is Object:
+		var info_object: Object = slot_info as Object
+		if info_object.has_method("to_dictionary"):
+			var converted: Variant = info_object.call("to_dictionary")
+			if converted is Dictionary:
+				return (converted as Dictionary).duplicate(true)
+	return {}
 
 
 func _duplicate_skill_entries(skill_entries: Array) -> Array[Dictionary]:
@@ -1809,6 +1912,23 @@ func _resize_menu_panel(is_settings: bool) -> void:
 			maxf(48.0, (HUD_VIEWPORT_SIZE.y - _menu_panel.size.y) * 0.5)
 		)
 		return
+	if _title_screen_mode and _menu_mode in [MENU_MAIN, MENU_SAVE_LOAD]:
+		if _menu_title_label != null:
+			_menu_title_label.custom_minimum_size = Vector2(320, 44)
+		if _menu_subtitle_label != null:
+			_menu_subtitle_label.custom_minimum_size = Vector2(320, 48)
+		_apply_menu_scale_layout()
+		var title_content_height: float = _required_menu_content_height() + 32.0
+		var title_menu_height: float = minf(
+			HUD_VIEWPORT_SIZE.y - 2.0 * TITLE_MENU_BOTTOM_MARGIN,
+			maxf(320.0, title_content_height)
+		)
+		_menu_panel.size = Vector2(TITLE_MENU_WIDTH, title_menu_height)
+		_menu_panel.position = Vector2(
+			TITLE_MENU_SIDE_MARGIN,
+			HUD_VIEWPORT_SIZE.y - title_menu_height - TITLE_MENU_BOTTOM_MARGIN
+		)
+		return
 	var menu_width: float = 432.0 + 88.0 * (menu_scale - 1.0)
 	if _menu_title_label != null:
 		_menu_title_label.custom_minimum_size = Vector2(392, 44) * menu_scale
@@ -1823,6 +1943,24 @@ func _resize_menu_panel(is_settings: bool) -> void:
 		(HUD_VIEWPORT_SIZE.x - _menu_panel.size.x) * 0.5,
 		maxf(36.0, (HUD_VIEWPORT_SIZE.y - _menu_panel.size.y) * 0.5)
 	)
+
+
+func _apply_title_screen_mode() -> void:
+	if _player_panel == null:
+		return
+	_player_panel.visible = not _title_screen_mode
+	_weapon_panel.visible = not _title_screen_mode
+	_currency_panel.visible = not _title_screen_mode
+	if _title_screen_mode:
+		_boss_panel.visible = false
+		_heavy_charge_panel.visible = false
+		_minimap_panel.visible = false
+	if _menu_overlay != null:
+		_menu_overlay.color = (
+			Color(0.015, 0.02, 0.028, 0.38)
+			if _title_screen_mode
+			else MENU_OVERLAY_COLOR
+		)
 
 
 func _apply_hud_scale_layout() -> void:
@@ -1964,9 +2102,22 @@ func _apply_menu_scale_layout() -> void:
 		menu_buttons.append(_controls_remap_button)
 	for button: Button in menu_buttons:
 		if button != null:
+			var is_title_action: bool = (
+				_title_screen_mode
+				and _menu_mode in [MENU_MAIN, MENU_SAVE_LOAD]
+				and button != _controls_remap_button
+			)
+			button.custom_minimum_size.y = (
+				TITLE_MENU_BUTTON_HEIGHT
+				if is_title_action
+				else 38.0
+			)
+			var control_font_size: int = int(roundf(MENU_CONTROL_BASE_FONT_SIZE * menu_scale))
+			if is_title_action:
+				control_font_size = maxi(TITLE_MENU_CONTROL_FONT_SIZE, control_font_size)
 			button.add_theme_font_size_override(
 				"font_size",
-				int(roundf(MENU_CONTROL_BASE_FONT_SIZE * menu_scale))
+				control_font_size
 			)
 	for check_box: CheckBox in [_battle_summary_checkbox, _damage_numbers_checkbox]:
 		if check_box != null:
@@ -1982,7 +2133,8 @@ func _apply_menu_scale_layout() -> void:
 
 
 func _menu_text_scale() -> float:
-	return clampf(_hud_scale, 0.5, 1.5)
+	var configured_scale: float = clampf(_hud_scale, 0.5, 1.5)
+	return maxf(1.0, configured_scale) if _title_screen_mode else configured_scale
 
 
 func _visible_menu_buttons_height() -> float:

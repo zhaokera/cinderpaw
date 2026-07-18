@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 14 stories tracked; future stories planned
+> **Stories**: 15 stories tracked; future stories planned
 
 ## Overview
 
@@ -40,6 +40,9 @@ runtime nodes on restore. Story013 removes the remaining visible placeholder
 the generated `Sprite2D` prop textures and generated VFX layers. Story014 adds
 phase-aware Rat King camera framing, deterministic release during the victory
 hold, and explicit compatibility with the sequential Echo Guardian camera lock.
+Story015 replaces direct-to-gameplay project boot with a persistent title
+bootstrap, generated key art, six-frame Cinderpaw title animation, controller
+focus navigation, and deferred save deserialization after SceneManager commit.
 
 ## Governing ADRs
 
@@ -79,6 +82,7 @@ hold, and explicit compatibility with the sequential Echo Guardian camera lock.
 | 012 | Boss Arena Mutation Save-State Persistence | Integration | Complete | ADR-0007, ADR-0008, ADR-0021 |
 | 013 | Rat King Arena Placeholder Visual Removal | Visual / Integration | Complete | ADR-0007, ADR-0004, ADR-0019 |
 | 014 | Rat King Arena Camera Choreography | Visual / Integration | Complete | ADR-0007 |
+| 015 | Title Bootstrap Runtime | Visual / Integration | Complete | ADR-0007, ADR-0021 |
 
 ## Definition of Done
 
@@ -92,6 +96,10 @@ This epic is complete when:
 - Title, Continue, and Load Slot paths route through SceneManager before
   MainScene save snapshots are applied, and failure paths do not partially
   restore player/world/settings state.
+- Project boot opens a persistent title bootstrap without instantiating
+  gameplay first; generated opaque key art, a six-frame `AnimatedSprite2D`
+  Cinderpaw, keyboard/controller focus, and post-commit save restoration are
+  verified in the real Godot runtime.
 - Async scene change requests use `ResourceLoader.load_threaded_request()`, wait
   for the 1.5 second transition gate before logical commit, emit a load-start
   signal for Presentation, and timeout after 10 seconds with one retry before

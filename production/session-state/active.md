@@ -6406,3 +6406,28 @@
 - Scope: no gameplay, collision, camera, enemy, hazard, encounter, reward,
   route state, save or audio value changed.
 - Blockers: None for Story034.
+
+## Session Extract -- Scene Management Story015 2026-07-18
+
+- Delivery checkpoint: Story015 is complete as the real project title/bootstrap
+  slice. The broader complete-game goal remains active.
+- Runtime: `project.godot` now boots persistent `TitleBootstrap`; no gameplay is
+  instantiated before entry input. SceneManager owns the runtime root and title
+  presentation hides only after scene commit.
+- Save flow: Continue resolves slots `0-3` through read-only `peek_save_data()`;
+  SaveSystem deserialization occurs only after the requested runtime scene is
+  live. Existing SaveInfo objects are normalized for HUD availability.
+- Presentation: generated opaque `1280x720` key art and a separate looping
+  six-frame Cinderpaw `AnimatedSprite2D` replace the prior direct-to-gameplay
+  boot. Keyboard and gamepad focus navigation are explicit and cyclic.
+- Verification: RED `report_1893` plus visual RED `report_1899`; focused GREEN
+  `report_1901` `2/2`; related GREEN `report_1902` `33/33`; final bounded gate
+  `report_1909` `48/48`, all authoritative exits `0` with clean teardown.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`.
+  Physical D-pad/A input reached New Game, Main committed as the sole runtime
+  child, two `1278x718` screenshots were non-empty, and final clean run
+  `r229527521-68` had info-only game output, zero editor rows, and clean stop.
+- Assets: built-in image generation retained background and character sources,
+  exact prompts, alpha intermediate, normalized runtime textures, six aligned
+  transparent frames, import sidecars, asset spec and manifest entries.
+- Blockers: None for Story015.

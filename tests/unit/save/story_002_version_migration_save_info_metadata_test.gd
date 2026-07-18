@@ -82,6 +82,30 @@ func test_get_save_info_returns_empty_and_populated_slot_metadata() -> void:
 	assert_str(String(summary["scene_id"])).is_equal("hub_ruins")
 
 
+func test_peek_save_data_returns_snapshot_without_deserializing_runtime_systems() -> void:
+	if save_system == null:
+		return
+	var system := MockSerializable.new()
+	assert_bool(bool(save_system.call("register_serializable", system, &"combat"))).is_true()
+	assert_bool(bool(save_system.call("manual_save", 1, {
+		"current_hp": 64,
+		"scene_id": "main",
+	}, {
+		"last_savepoint": {
+			"scene_id": "main",
+			"spawn_point": "scrap_roost",
+		},
+	}, {}))).is_true()
+
+	assert_bool(save_system.has_method("peek_save_data")).is_true()
+	var peeked: Dictionary = Dictionary(save_system.call("peek_save_data", 1))
+	assert_int(int(peeked["player_state"]["current_hp"])).is_equal(64)
+	assert_str(String(peeked["world_state"]["last_savepoint"]["spawn_point"])).is_equal("scrap_roost")
+	assert_dict(system.last_deserialized).is_empty()
+	assert_int(system.last_version).is_equal(-1)
+	assert_dict(Dictionary(save_system.call("get_last_loaded_data"))).is_empty()
+
+
 func test_load_game_migrates_older_save_before_deserializing_and_writes_current_version() -> void:
 	if save_system == null:
 		return
