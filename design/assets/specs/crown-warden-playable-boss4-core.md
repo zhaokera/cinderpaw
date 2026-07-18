@@ -8,8 +8,8 @@
 
 | Asset | Contract | Runtime path |
 |-------|----------|--------------|
-| Crown Warden frame resource | `AnimatedSprite2D + SpriteFrames`; eight animations named `idle`, `run`, `talon_dive_tell`, `talon_dive`, `wing_sweep_tell`, `wing_sweep`, `hurt`, `death`; exactly three frames each | `res://assets/characters/crown_warden/crown_warden_sprite_frames.tres` |
-| Runtime frames | Twenty-four transparent sRGBA `192x192` PNGs, one shared scale and center pivot, ground edge within `y=158..159`, continuous `_000..002` names | `res://assets/characters/crown_warden/<animation>/crown_warden_<animation>_<frame>.png` |
+| Crown Warden frame resource | `AnimatedSprite2D + SpriteFrames`; the original eight Story146 animations plus Story176 `phase_transition`; exactly three frames each | `res://assets/characters/crown_warden/crown_warden_sprite_frames.tres` |
+| Runtime frames | Twenty-seven transparent sRGBA `192x192` PNGs, one shared center pivot, aligned ground edge, continuous `_000..002` names | `res://assets/characters/crown_warden/<animation>/crown_warden_<animation>_<frame>.png` |
 | Retained source | Opaque keyed image-generation source, full RGBA alpha intermediate, corrected transparent preview, and exact generation/processing record | `res://assets/characters/crown_warden/source/` |
 
 ## Visual Direction
@@ -54,3 +54,6 @@ variation and 3D rendering.
 - `crown_warden_sprite_sheet_alpha_20260712.png`
 - `crown_warden_frames_preview_20260712.png`
 - `crown_warden_sprite_sheet_imagegen_20260712.md`
+- Story176 extension: `crown_warden_phase_transition_sheet_imagegen_20260719.png`,
+  its alpha intermediate and exact generation record. See
+  `design/assets/specs/crown-warden-phase-transition-frame-animation.md`.

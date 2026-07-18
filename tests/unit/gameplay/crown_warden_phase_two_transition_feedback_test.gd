@@ -77,7 +77,7 @@ func test_crown_warden_phase_two_waits_then_runs_one_invulnerable_feedback_windo
 		0.001
 	)
 	assert_int(int(transition.get("start_count", 0))).is_equal(1)
-	assert_str(String(transition.get("animation", ""))).is_equal("hurt")
+	assert_str(String(transition.get("animation", ""))).is_equal("phase_transition")
 	assert_str(String(collision.call("get_hurtbox_state"))).is_equal("gone")
 	assert_int(transition_events.size()).is_equal(1)
 	assert_int(int(transition_events[0].get("entity_id", 0))).is_equal(
@@ -89,7 +89,9 @@ func test_crown_warden_phase_two_waits_then_runs_one_invulnerable_feedback_windo
 		"transition_duration_sec",
 		0.0
 	))).is_equal_approx(PHASE_TRANSITION_DURATION_SEC, 0.001)
-	assert_str(String(metadata.get("transition_animation", ""))).is_equal("hurt")
+	assert_str(String(metadata.get("transition_animation", ""))).is_equal(
+		"phase_transition"
+	)
 
 	assert_int(int(presentation.call(
 		"get_active_boss_phase_overlay_count"

@@ -1,6 +1,30 @@
 {
 	"_meta": {"version": "1.0", "domain": "scene_registry"},
 	"entries": {
+		"area_01_scrap_roost_dodge_trial": {
+			"scene_id": "area_01_scrap_roost_dodge_trial",
+			"path": "res://scenes/areas/scrap_roost_dodge_trial.tscn",
+			"type": "area",
+			"preload": true,
+			"default_spawn": "default",
+			"display_name": "Scrap Roost Exhaust Trial"
+		},
+		"area_01_scrap_roost_hunt": {
+			"scene_id": "area_01_scrap_roost_hunt",
+			"path": "res://scenes/areas/scrap_roost_hunt_initiation.tscn",
+			"type": "area",
+			"preload": true,
+			"default_spawn": "default",
+			"display_name": "Scrap Roost Initiation"
+		},
+		"area_01_scrap_roost_rat_king_approach": {
+			"scene_id": "area_01_scrap_roost_rat_king_approach",
+			"path": "res://scenes/areas/scrap_roost_rat_king_approach.tscn",
+			"type": "area",
+			"preload": true,
+			"default_spawn": "default",
+			"display_name": "Rat King Approach"
+		},
 		"hub": {
 			"scene_id": "hub",
 			"path": "res://scenes/main.tscn",

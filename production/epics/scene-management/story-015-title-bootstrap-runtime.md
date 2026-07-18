@@ -6,7 +6,7 @@
 > **Type**: Visual / Integration
 > **Estimate**: M
 > **Manifest Version**: 2026-07-18
-> **Last Updated**: 2026-07-18
+> **Last Updated**: 2026-07-19
 
 ## Context
 
@@ -34,9 +34,10 @@ runtime scene loading.
   focused when a save exists, and keyboard/controller focus navigation available.
 - [x] The title character is a separate visible `AnimatedSprite2D` backed by a
   six-frame `SpriteFrames` `title_idle`; no character is baked into the backdrop.
-- [x] New Game requests `main/default` through SceneManager, keeps the title
-  surface visible during the transition, and hides it only after the runtime
-  scene change commits.
+- [x] New Game requests the configured default entry through SceneManager, keeps
+  the title surface visible during the transition, and hides it only after the
+  runtime scene change commits. Story016 changes that entry from `main/default`
+  to `area_01_scrap_roost_hunt/default` without changing bootstrap ownership.
 - [x] Continue chooses the first existing slot in deterministic order `0,1,2,3`,
   reads its target without deserializing live systems, and requests the saved
   scene/spawn through SceneManager.

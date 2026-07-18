@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://main001"]
+[gd_scene load_steps=36 format=3 uid="uid://main001"]
 
 [ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://4j2ise5khuss" path="res://assets/generated/wasteland_alley_bg.png" id="3_bg"]
@@ -27,6 +27,7 @@
 [ext_resource type="Script" path="res://src/presentation/focus_environment_particles.gd" id="25_focus_environment_script"]
 [ext_resource type="Texture2D" path="res://assets/generated/combat_focus_environment_dust_mote.png" id="26_focus_environment_texture"]
 [ext_resource type="Script" path="res://src/gameplay/hitstop_input_bridge.gd" id="27_hitstop_bridge"]
+[ext_resource type="Texture2D" path="res://assets/environment/echo_guardian_challenge/echo_guardian_challenge_beacon.png" id="28_echo_challenge"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 40)
@@ -232,6 +233,28 @@ texture = ExtResource("23_boss2_room_seal")
 [node name="Boss2EchoGuardian" parent="." instance=ExtResource("19_boss2")]
 z_index = 33
 position = Vector2(520, 482)
+
+[node name="Boss2ChallengeMarker" type="Node2D" parent="."]
+visible = false
+z_index = 32
+position = Vector2(720, 420)
+
+[node name="Visual" type="Sprite2D" parent="Boss2ChallengeMarker"]
+scale = Vector2(0.28, 0.28)
+texture = ExtResource("28_echo_challenge")
+
+[node name="PromptLabel" type="Label" parent="Boss2ChallengeMarker"]
+visible = false
+offset_left = -104.0
+offset_top = -104.0
+offset_right = 104.0
+offset_bottom = -74.0
+theme_override_colors/font_color = Color(0.78, 0.94, 1, 1)
+theme_override_colors/font_outline_color = Color(0.03, 0.04, 0.06, 0.96)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 18
+text = "Challenge Echo Guardian"
+horizontal_alignment = 1
 
 [node name="Boss2RightRoomSeal" type="StaticBody2D" parent="."]
 z_index = 34

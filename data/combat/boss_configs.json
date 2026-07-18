@@ -133,7 +133,7 @@
 					"attack_patterns": ["talon_dive", "wing_sweep"],
 					"attack_speed_modifier": 1.35,
 					"special_attacks": [],
-					"transition_animation": "hurt",
+					"transition_animation": "phase_transition",
 					"arena_changes": []
 				}
 			],

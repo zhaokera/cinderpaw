@@ -1,5 +1,38 @@
 {
 	"entries": {
+		"area_01_scrap_roost_dodge_trial": {
+			"required": ["scene_id", "path", "type", "preload", "default_spawn", "display_name"],
+			"fields": {
+				"scene_id": {"type": "String", "enum": ["area_01_scrap_roost_dodge_trial"]},
+				"path": {"type": "String"},
+				"type": {"type": "String", "enum": ["area"]},
+				"preload": {"type": "bool"},
+				"default_spawn": {"type": "String"},
+				"display_name": {"type": "String"}
+			}
+		},
+		"area_01_scrap_roost_hunt": {
+			"required": ["scene_id", "path", "type", "preload", "default_spawn", "display_name"],
+			"fields": {
+				"scene_id": {"type": "String", "enum": ["area_01_scrap_roost_hunt"]},
+				"path": {"type": "String"},
+				"type": {"type": "String", "enum": ["area"]},
+				"preload": {"type": "bool"},
+				"default_spawn": {"type": "String"},
+				"display_name": {"type": "String"}
+			}
+		},
+		"area_01_scrap_roost_rat_king_approach": {
+			"required": ["scene_id", "path", "type", "preload", "default_spawn", "display_name"],
+			"fields": {
+				"scene_id": {"type": "String", "enum": ["area_01_scrap_roost_rat_king_approach"]},
+				"path": {"type": "String"},
+				"type": {"type": "String", "enum": ["area"]},
+				"preload": {"type": "bool"},
+				"default_spawn": {"type": "String"},
+				"display_name": {"type": "String"}
+			}
+		},
 		"hub": {
 			"required": ["scene_id", "path", "type", "preload", "default_spawn"],
 			"fields": {

@@ -1,7 +1,8 @@
 ## Persistent application shell for player-driven entry into runtime gameplay.
 extends Node
 
-const DEFAULT_SCENE_ID: StringName = &"main"
+const NEW_GAME_SCENE_ID: StringName = &"area_01_scrap_roost_hunt"
+const LEGACY_SAVE_SCENE_ID: StringName = &"main"
 const DEFAULT_SPAWN_POINT: StringName = &"default"
 const SAVE_SLOT_ORDER: Array[int] = [0, 1, 2, 3]
 const LOAD_FAILURE_TEXT: String = "Load failed"
@@ -59,7 +60,7 @@ func request_new_game() -> bool:
 	if _entry_request_active:
 		return false
 	_pending_load_slot = -1
-	return _request_runtime_scene(DEFAULT_SCENE_ID, DEFAULT_SPAWN_POINT)
+	return _request_runtime_scene(NEW_GAME_SCENE_ID, DEFAULT_SPAWN_POINT)
 
 
 func request_continue() -> bool:
@@ -297,7 +298,7 @@ func _resolve_scene_target(snapshot: Dictionary) -> Dictionary:
 	if scene_id.is_empty():
 		scene_id = String(player_state.get("scene_id", "")).strip_edges()
 	if scene_id.is_empty():
-		scene_id = String(DEFAULT_SCENE_ID)
+		scene_id = String(LEGACY_SAVE_SCENE_ID)
 	if spawn_point.is_empty():
 		spawn_point = _default_spawn_for_scene(StringName(scene_id))
 	return {

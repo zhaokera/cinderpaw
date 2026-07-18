@@ -12,82 +12,96 @@
 
 ## Core Mechanic (update per sprint)
 
-<!-- Add the primary mechanic for each sprint here as it is implemented -->
-4. [Player can move, jump, and the camera follows correctly — update when player-movement is implemented]
-5. [Player can attack and damage numbers appear — update when combat is implemented]
-6. [Player can dodge with i-frames — update when dodge is implemented]
-7. Old Factory service sluice exit hatch opens after the service sluice cache
+4. New Game enters Scrap Roost Hunt Initiation before any Boss; real movement
+   and jump input cross the safe runway and raised step while the camera remains
+   bounded to the room
+   (`tests/unit/gameplay/new_game_onboarding_slice_test.gd`)
+5. The first ordinary Rat Minion activates after the runway, takes real shared
+   attack damage, plays its death state, unlocks the exit and hands off through
+   SceneManager to the registered Scrap Roost dodge trial
+   (`tests/unit/gameplay/new_game_onboarding_slice_test.gd`)
+6. The third onboarding room cycles a four-frame exhaust through safe, warning
+   and active phases; a real active-phase dodge overlap preserves player HP,
+   unlocks the exit and hands off to the registered Rat King approach
+   (`tests/unit/gameplay/new_game_dodge_trial_test.gd`;
+   `production/qa/evidence/scrap-roost-dodge-trial-2026-07-19.md`)
+7. The first post-onboarding encounter activates one six-state frame-animated
+   Shadow Beast; real shared attack damage defeats it, opens the Rat King gate
+   and commits `main/scrap_roost` beside the existing savepoint
+   (`tests/unit/gameplay/scrap_roost_rat_king_approach_test.gd`;
+   `production/qa/evidence/scrap-roost-rat-king-approach-2026-07-19.md`)
+8. Old Factory service sluice exit hatch opens after the service sluice cache
    claim and persists opened state (`tests/smoke/old_factory_service_sluice_exit_hatch_smoke.gd`)
-8. Old Factory service sluice tailrace relay activates after the tailrace
+9. Old Factory service sluice tailrace relay activates after the tailrace
    ambush, records the savepoint, and respawns at the relay
    (`tests/smoke/old_factory_service_sluice_tailrace_relay_smoke.gd`)
-9. Old Factory service sluice tailrace relay runoff activates after the relay,
+10. Old Factory service sluice tailrace relay runoff activates after the relay,
    uses active-only steam contact, crosses the post-relay pocket, and persists
    crossed state
    (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_smoke.gd`)
-10. Old Factory service sluice tailrace relay runoff pincer activates after
+11. Old Factory service sluice tailrace relay runoff pincer activates after
     Story120, reveals frame-animated Spark/Coil Rats, requires both defeats,
     and persists cleared state
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_smoke.gd`)
-11. Old Factory service sluice tailrace relay runoff pincer reward cache appears
+12. Old Factory service sluice tailrace relay runoff pincer reward cache appears
     only after the pincer is cleared, claims once for `+20 Gears`, and persists
     claimed state
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_reward_cache_smoke.gd`)
-12. Old Factory service sluice tailrace relay runoff pincer exit hatch appears
+13. Old Factory service sluice tailrace relay runoff pincer exit hatch appears
     after the pincer reward cache is claimed, opens once, clears collision, and
     persists opened state
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_smoke.gd`)
-13. Old Factory service sluice tailrace relay runoff pincer exit spillway
+14. Old Factory service sluice tailrace relay runoff pincer exit spillway
     activates after the exit hatch opens, uses active-only steam contact,
     crosses the short spillway pocket, and persists crossed state
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_smoke.gd`)
-14. Old Factory tailrace exit Sluice Leech appears only after the spillway is
+15. Old Factory tailrace exit Sluice Leech appears only after the spillway is
     crossed, telegraphs for 18 frames, lunges through the shared hitbox path,
     and persists its cleared state
     (`tests/smoke/old_factory_tailrace_exit_spillway_sluice_leech_skirmish_smoke.gd`)
-15. Old Factory Sluice Leech clear unlocks the Matriarch route, SceneManager
+16. Old Factory Sluice Leech clear unlocks the Matriarch route, SceneManager
     enters the authored Boss3 arena at `boss_entry`, and the return route
     restores Factory at `tailrace_matriarch_gate_return` without losing the
     leech clear or carrying a stale transition latch
     (`tests/smoke/old_factory_tailrace_sluice_matriarch_arena_handoff_smoke.gd`)
-16. Sluice Matriarch starts with Boss HUD and room seals active, telegraphs and
+17. Sluice Matriarch starts with Boss HUD and room seals active, telegraphs and
     lands the pressure lunge through the shared hitbox chain, enters phase two,
     and opens the persistent return route on defeat
     (`tests/smoke/sluice_matriarch_playable_boss3_core_smoke.gd`)
-17. Boss3 defeat reveals and persists the `aerial_attack` reward; airborne
+18. Boss3 defeat reveals and persists the `aerial_attack` reward; airborne
     attack input drives the three-frame downward strike, lands shared damage,
     grants eight cat energy, bounces, and restores one air-jump use
     (`tests/smoke/sluice_matriarch_aerial_attack_reward_payoff_smoke.gd`)
-18. The Factory tailrace floor unlocks only from a nearby real aerial attack,
+19. The Factory tailrace floor unlocks only from a nearby real aerial attack,
     persists open, swaps into the authored Underground Passage, and returns to
     the exact Factory breach marker with `aerial_attack` intact
     (`tests/smoke/factory_aerial_breach_underground_passage_handoff_smoke.gd`)
-19. The Underground corrosion channel crosses a generated runoff hazard, closes
+20. The Underground corrosion channel crosses a generated runoff hazard, closes
     both generated seals around two frame-animated Sluice Leeches, accepts a
     real Core attack, opens on dual defeat, claims one salvage reward, and
     restores the claimed state after Factory return and Underground re-entry
     (`tests/smoke/underground_corrosion_channel_skirmish_smoke.gd`)
-20. The Underground recovery cistern activates a generated savepoint, restores
+21. The Underground recovery cistern activates a generated savepoint, restores
     full HP and autosaves once, revives a lethal fall at 50% HP, secures the
     far-side endpoint, and preserves relay/route state through Factory return
     and Underground re-entry
     (`tests/smoke/underground_recovery_cistern_savepoint_traverse_smoke.gd`)
-21. The Neon Signal Roof unlocks from Story136 traversal, closes both generated
+22. The Neon Signal Roof unlocks from Story136 traversal, closes both generated
     seals around a frame-animated Signal Rat, accepts real shared attack damage,
     opens on defeat, grants one `+20 Gears` signal cache, and restores clear and
     claimed state without replaying feedback
     (`tests/smoke/neon_rooftops_signal_rat_ambush_smoke.gd`)
-22. The Neon Relay Spire route opens only after the signal cache claim,
+23. The Neon Relay Spire route opens only after the signal cache claim,
     activates and autosaves the generated roost once, revives a lethal fall at
     50% HP, uses real wall-climb input to cross the magnetic spire, persists the
     Tower Approach endpoint, and restores all rooftop state without replay
     (`tests/smoke/neon_rooftops_relay_spire_savepoint_traverse_smoke.gd`)
-23. The Central Tower outer laser trial opens only after Story138 traversal,
+24. The Central Tower outer laser trial opens only after Story138 traversal,
     routes a missed pulse through player damage and roost revive, accepts three
     real strike-window parries, opens the generated ExplorationGate once,
     secures the threshold, and restores state without replay
     (`tests/smoke/neon_rooftops_central_tower_parry_laser_trial_smoke.gd`)
-24. The secured Rooftops threshold enters the generated Central Tower vestibule,
+25. The secured Rooftops threshold enters the generated Central Tower vestibule,
     uses the real SceneManager for exact entry and return spawns, activates a real
     Threshold Roost, closes both seals around the frame-animated guard, routes its
     14-damage latch thrust through shared collision, opens both seals on entity
@@ -97,10 +111,10 @@
 
 ## Data Integrity
 
-25. Save game completes without error (once save system is implemented)
-26. Load game restores correct state (once load system is implemented)
+26. Save game completes without error (once save system is implemented)
+27. Load game restores correct state (once load system is implemented)
 
 ## Performance
 
-27. No visible frame rate drops on target hardware (60fps target)
-28. No memory growth over 5 minutes of play (once core loop is implemented)
+28. No visible frame rate drops on target hardware (60fps target)
+29. No memory growth over 5 minutes of play (once core loop is implemented)

@@ -5,6 +5,15 @@ extends Node2D
 @onready var _enemy = $Enemy
 @onready var _boss2_echo_guardian: Node = get_node_or_null("Boss2EchoGuardian")
 @onready var _boss2_reward_source: Node = get_node_or_null("Boss2DoubleJumpRewardSource")
+@onready var _boss2_challenge_marker: Node2D = (
+	get_node_or_null("Boss2ChallengeMarker") as Node2D
+)
+@onready var _boss2_challenge_visual: Sprite2D = (
+	get_node_or_null("Boss2ChallengeMarker/Visual") as Sprite2D
+)
+@onready var _boss2_challenge_prompt: Label = (
+	get_node_or_null("Boss2ChallengeMarker/PromptLabel") as Label
+)
 @onready var _hud = $HUD
 @onready var _combat_presentation = $CombatPresentation
 @onready var _hitstop_input_bridge = $HitstopInputBridge
@@ -60,10 +69,17 @@ const BOSS2_DOUBLE_JUMP_REWARD_ID: StringName = &"boss_02_double_jump"
 const BOSS2_DOUBLE_JUMP_REWARD_ABILITY_ID: StringName = &"double_jump"
 const BOSS2_DOUBLE_JUMP_REWARD_CLAIMED_FLAG: StringName = &"boss_02_double_jump_claimed"
 const BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG: StringName = &"boss_02_echo_guardian_defeated"
+const BOSS2_INTERMISSION_STARTED_FLAG: StringName = &"boss_02_intermission_started"
+const BOSS2_ENCOUNTER_STARTED_FLAG: StringName = &"boss_02_encounter_started"
 const BOSS2_ECHO_GUARDIAN_BOSS_ID: StringName = &"boss_02_echo_guardian"
 const BOSS2_DOUBLE_JUMP_REWARD_NOTIFICATION: String = "Double Jump unlocked"
 const BOSS2_ECHO_GUARDIAN_DISPLAY_NAME: String = "Echo Guardian"
 const BOSS2_DEATH_PRESENTATION_HOLD_SEC: float = 2.0
+const BOSS2_CHALLENGE_RADIUS_PX: float = 112.0
+const BOSS2_CHALLENGE_TEXTURE_PATH: String = (
+	"res://assets/environment/echo_guardian_challenge/"
+	+ "echo_guardian_challenge_beacon.png"
+)
 const RAT_KING_CAMERA_LOCK_LIMIT_LEFT: int = 0
 const RAT_KING_CAMERA_LOCK_LIMIT_TOP: int = 0
 const RAT_KING_CAMERA_LOCK_LIMIT_RIGHT: int = 1120
@@ -241,6 +257,7 @@ var _boss2_room_seals_enabled: bool = false
 var _boss2_room_seal_reason: StringName = &"not_initialized"
 var _boss2_death_presentation_pending: bool = false
 var _boss2_death_presentation_remaining_sec: float = 0.0
+var _boss2_challenge_elapsed_sec: float = 0.0
 var _rat_king_phase_one_intro_pending: bool = true
 var _rat_king_phase_one_intro_request_reason: StringName = &"pending"
 var _crown_warden_hub_return_notification_pending: bool = false
@@ -313,6 +330,7 @@ func _ready() -> void:
 	_setup_main_minimap()
 	_sync_hidden_double_jump_reward_source()
 	_setup_boss2_double_jump_payoff()
+	_sync_boss2_challenge_marker()
 	refresh_boss2_camera_lock()
 	refresh_rat_king_camera_choreography()
 	refresh_boss2_room_seals()
@@ -337,8 +355,10 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
+	_boss2_challenge_elapsed_sec += maxf(delta, 0.0)
 	_refresh_player_control_lock()
 	advance_arena_hazard_time(delta)
+	_process_boss2_challenge_interaction()
 	_process_hidden_double_jump_reward_source_contact()
 	_process_boss2_double_jump_reward_source_contact()
 	_process_factory_route_transition_shell_contact()
@@ -509,6 +529,7 @@ func _on_enemy_defeated() -> void:
 	_combat_presentation.on_kill_event(2, _enemy.global_position + Vector2(0, -24))
 	_game_flow.handle_enemy_defeated()
 	_hud.hide_boss_hp()
+	set_world_progress_flag(BOSS2_INTERMISSION_STARTED_FLAG, true)
 	set_world_progress_flag(&"boss_rat_king_defeated", true)
 	_trigger_runtime_autosave(&"boss_defeat", {
 		"boss_id": RAT_KING_BOSS_ID,
@@ -564,6 +585,9 @@ func _on_menu_resume_requested() -> void:
 		var boss2_activated: bool = _sync_boss2_encounter_handoff()
 		if boss2_activated:
 			_game_flow.start_boss_encounter(_player.global_position, self)
+		else:
+			_sync_boss2_challenge_marker()
+			_hud.show_notification("Echo challenge available", 2.0)
 		_sync_boss2_double_jump_payoff_state()
 		refresh_boss2_camera_lock()
 		refresh_rat_king_camera_choreography()
@@ -572,7 +596,11 @@ func _on_menu_resume_requested() -> void:
 		_refresh_player_control_lock()
 		_dispatch_audio_event(&"on_menu_closed", [{
 			"menu_mode": menu_mode,
-			"reason": &"continue_to_echo_guardian",
+			"reason": (
+				&"continue_to_echo_guardian"
+				if boss2_activated
+				else &"continue_to_echo_intermission"
+			),
 		}])
 		return
 	if _pause_menu_active:
@@ -812,6 +840,7 @@ func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
 				boss2.call("restore_respawn_snapshot", boss2_snapshot)
 	_sync_boss2_encounter_handoff()
 	_sync_boss2_double_jump_payoff_state()
+	_sync_boss2_challenge_marker()
 	refresh_boss2_camera_lock()
 	refresh_rat_king_camera_choreography()
 	refresh_boss2_room_seals()
@@ -1179,6 +1208,7 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_sync_rat_king_defeated_state()
 	_sync_boss2_encounter_handoff()
 	_sync_boss2_double_jump_payoff_state()
+	_sync_boss2_challenge_marker()
 	refresh_boss2_camera_lock()
 	refresh_rat_king_camera_choreography()
 	refresh_boss2_room_seals()
@@ -1663,6 +1693,14 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 	if flag_id == RAT_KING_DEFEATED_FLAG:
 		_sync_rat_king_defeated_state()
 		_sync_boss2_encounter_handoff()
+		_sync_boss2_challenge_marker()
+		refresh_boss2_camera_lock()
+		refresh_rat_king_camera_choreography()
+		refresh_boss2_room_seals()
+	if flag_id == BOSS2_INTERMISSION_STARTED_FLAG \
+			or flag_id == BOSS2_ENCOUNTER_STARTED_FLAG:
+		_sync_boss2_encounter_handoff()
+		_sync_boss2_challenge_marker()
 		refresh_boss2_camera_lock()
 		refresh_rat_king_camera_choreography()
 		refresh_boss2_room_seals()
@@ -1670,6 +1708,7 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 			or flag_id == BOSS2_ECHO_GUARDIAN_DEFEATED_FLAG:
 		_sync_boss2_encounter_handoff()
 		_sync_boss2_double_jump_payoff_state()
+		_sync_boss2_challenge_marker()
 		refresh_boss2_camera_lock()
 		refresh_rat_king_camera_choreography()
 		refresh_boss2_room_seals()
@@ -2844,7 +2883,93 @@ func _should_activate_boss2_encounter(boss: Node = null) -> bool:
 		return false
 	if _is_boss2_echo_guardian_defeated():
 		return false
+	if bool(_world_progress_flags.get(String(BOSS2_ENCOUNTER_STARTED_FLAG), false)):
+		return true
+	if bool(_world_progress_flags.get(String(BOSS2_INTERMISSION_STARTED_FLAG), false)):
+		return false
+	# Saves created before Story019 preserve Story156's automatic handoff.
 	return true
+
+
+## Starts Echo Guardian only from the safe post-Rat-King challenge point.
+func try_start_boss2_challenge(provider: Node = null) -> bool:
+	var challenge_provider: Node = _player if provider == null else provider
+	if not _can_start_boss2_challenge(challenge_provider):
+		return false
+	set_world_progress_flag(BOSS2_ENCOUNTER_STARTED_FLAG, true)
+	if not _sync_boss2_encounter_handoff():
+		return false
+	_game_flow.start_boss_encounter(_player.global_position, self)
+	_sync_boss2_double_jump_payoff_state()
+	refresh_boss2_camera_lock()
+	refresh_rat_king_camera_choreography()
+	refresh_boss2_room_seals()
+	_refresh_boss_hud()
+	_refresh_player_control_lock()
+	_sync_boss2_challenge_marker()
+	_hud.show_notification("Echo Guardian awakened", 1.5)
+	_dispatch_audio_event(&"on_boss_encounter_started", [
+		BOSS2_ECHO_GUARDIAN_BOSS_ID,
+		_build_boss2_audio_metadata({"reason": &"player_challenge"}),
+	])
+	_trigger_runtime_autosave(&"boss_encounter_started", {
+		"boss_id": BOSS2_ECHO_GUARDIAN_BOSS_ID,
+	})
+	return true
+
+
+func _process_boss2_challenge_interaction() -> void:
+	_sync_boss2_challenge_marker()
+	if Input.is_action_just_pressed(&"interact"):
+		try_start_boss2_challenge(_player)
+
+
+func _can_start_boss2_challenge(provider: Node) -> bool:
+	if not _is_boss2_challenge_available():
+		return false
+	if provider == null or not (provider is Node2D):
+		return false
+	if _boss2_challenge_marker == null or not is_instance_valid(_boss2_challenge_marker):
+		return false
+	if _hud != null and _hud.is_menu_visible():
+		return false
+	if _game_flow != null and _game_flow.get_flow_state() != &"playing":
+		return false
+	return (provider as Node2D).global_position.distance_to(
+		_boss2_challenge_marker.global_position
+	) <= BOSS2_CHALLENGE_RADIUS_PX
+
+
+func _is_boss2_challenge_available() -> bool:
+	return (
+		bool(_world_progress_flags.get(String(RAT_KING_DEFEATED_FLAG), false))
+		and bool(_world_progress_flags.get(String(BOSS2_INTERMISSION_STARTED_FLAG), false))
+		and not bool(_world_progress_flags.get(String(BOSS2_ENCOUNTER_STARTED_FLAG), false))
+		and not _is_boss2_echo_guardian_defeated()
+	)
+
+
+func _sync_boss2_challenge_marker() -> void:
+	if _boss2_challenge_marker == null or not is_instance_valid(_boss2_challenge_marker):
+		return
+	var marker_visible: bool = (
+		_is_boss2_challenge_available()
+		and _game_flow != null
+		and _game_flow.get_flow_state() == &"playing"
+	)
+	_boss2_challenge_marker.visible = marker_visible
+	var prompt_visible: bool = marker_visible and _can_start_boss2_challenge(_player)
+	if _boss2_challenge_prompt != null:
+		_boss2_challenge_prompt.visible = prompt_visible
+	if _boss2_challenge_visual != null:
+		var pulse: float = 0.5 + 0.5 * sin(_boss2_challenge_elapsed_sec * 4.0)
+		_boss2_challenge_visual.modulate.a = 0.82 + 0.18 * pulse
+
+
+func _get_boss2_challenge_texture_path() -> String:
+	if _boss2_challenge_visual == null or _boss2_challenge_visual.texture == null:
+		return ""
+	return _boss2_challenge_visual.texture.resource_path
 
 
 func get_boss2_encounter_handoff_diagnostics() -> Dictionary:
@@ -2859,6 +2984,14 @@ func get_boss2_encounter_handoff_diagnostics() -> Dictionary:
 			false
 		)),
 		"rat_king_visible": _enemy.visible if is_instance_valid(_enemy) else false,
+		"boss2_intermission_started": bool(_world_progress_flags.get(
+			String(BOSS2_INTERMISSION_STARTED_FLAG),
+			false
+		)),
+		"boss2_encounter_started": bool(_world_progress_flags.get(
+			String(BOSS2_ENCOUNTER_STARTED_FLAG),
+			false
+		)),
 		"boss2_encounter_active": (
 			bool(boss.call("is_encounter_active"))
 			if boss != null and boss.has_method("is_encounter_active")
@@ -2875,6 +3008,18 @@ func get_boss2_encounter_handoff_diagnostics() -> Dictionary:
 		"boss2_arena_frame_visible": _is_boss2_arena_frame_visible(),
 		"boss2_room_seals_enabled": bool(room_seal_state.get("enabled", false)),
 		"boss2_camera_lock_enabled": bool(camera_state.get("enabled", false)),
+		"challenge_marker_visible": (
+			_boss2_challenge_marker.visible
+			if _boss2_challenge_marker != null
+			else false
+		),
+		"challenge_prompt_visible": (
+			_boss2_challenge_prompt.visible
+			if _boss2_challenge_prompt != null
+			else false
+		),
+		"challenge_texture_path": _get_boss2_challenge_texture_path(),
+		"challenge_expected_texture_path": BOSS2_CHALLENGE_TEXTURE_PATH,
 		"boss_hud_label": (
 			String(_hud.call("get_boss_label_text"))
 			if _hud != null and _hud.has_method("get_boss_label_text")

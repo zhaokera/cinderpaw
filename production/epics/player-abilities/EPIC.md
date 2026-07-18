@@ -213,6 +213,7 @@ recording the reward in progression state.
 | 173 | Sluice Matriarch Pressure Geyser Pattern | Attack Pattern + Frame Animation + VFX | Complete | ADR-0002/0004/0005/0006 |
 | 174 | Sluice Matriarch Phase II Transition Readability | Integration + Gameplay Runtime + Frame Animation | Complete | ADR-0002/0004/0005/0006/0010/0019/0020 |
 | 175 | Echo Guardian Secondary Attack Playable Loop | Attack Pattern + Frame Animation + Data Integration | Complete | ADR-0002/0004/0005/0006/0010/0018 |
+| 176 | Crown Warden Dedicated Phase Transition Frame Animation | Visual/Feel + Frame Animation + Data Integration | Complete | ADR-0002/0004/0005/0006/0010/0019/0020 |
 
 ## Definition of Done
 
@@ -232,8 +233,8 @@ This epic is complete when:
 
 ## Next Step
 
-Story175 gives Echo Guardian a deterministic fixed-location pounce with three
-generated animation states while preserving its opening swipe and progression
-contracts. The next bounded player-visible debt is Crown Warden's Phase II
-transition, which currently holds on the final hurt frame during the rules-change
-window.
+Story176 replaces Crown Warden's final-hurt-frame Phase II hold with a dedicated
+generated three-frame loop while preserving Story163's full combat contract.
+The next bounded slice should come from a short player-visible critical-path
+audit and prioritize playable ACT depth or encounter variety over another
+presentation-only pass.

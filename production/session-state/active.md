@@ -191,6 +191,24 @@
   evidence from the stories validated at that time.
 
 ## Last Completed Task
+- Scene Management Story 017: Scrap Roost Dodge Trial -- 完成 GDD 第三个教学
+  房：复用现有 `AnimatedSprite2D + SpriteFrames` 蒸汽口，按
+  `safe 30 -> warning 24 -> active 18 -> recovery 30` 帧循环；只有 active
+  阶段真实身体重叠、Core dodge i-frame、`gone` hurtbox、从左向右且同一
+  sequence 才解锁出口。生成并导入独立 `1280x720` Scrap Roost 背景；RED
+  `report_1951`，initial GREEN `report_1954`，post-review RED/GREEN
+  `report_1956/report_1957`，final bounded related `report_1958` `4/4`。Godot
+  4.7 / MCP 3.0.2 run `r284679113-84` 从标题真实
+  走完 Story016→017→Main，闪避前后 HP `100 -> 100`、同一 sequence `35`、
+  非空 `1278x718` 截图、info-only game log、0 editor error 和 clean stop。
+
+- Scene Management Story 016: New Game Scrap Roost Hunt Initiation -- New Game
+  先进入生成背景的 Scrap Roost 教学房，以真实移动/跳跃激活一只现有帧动画
+  Rat Minion，真实攻击击败后才打开 Story017 出口；legacy save fallback 仍为
+  `main/default`。RED `report_1945`，focused GREEN `report_1948` `1/1`，
+  related `report_1949` `5/5`，title compatibility `report_1950` `2/2`，当前
+  路由 regression 包含在 `report_1958`。
+
 - Combat Presentation Story 036: Rat King Phase-I Runtime Intro -- 真实 Main
   现在在每次存活的 Phase-I Boss attempt 首个 physics tick 自然进入现有
   三帧 `phase_1_intro`，时长从 SpriteFrames 计算为 `0.75s`。登场期间 Boss
@@ -6512,3 +6530,141 @@
 - Next: replace Crown Warden's hurt-frame Phase II hold with a dedicated
   generated transition animation while preserving Story163 timing and logic.
 - Blockers: None for Story175.
+
+## Session Extract -- Player Abilities Story176 2026-07-19
+
+- Delivery checkpoint: Story176 is complete as a bounded Crown Warden Phase II
+  animation replacement. The broader complete-game goal remains active.
+- Runtime: Phase II now maps to a dedicated generated three-frame
+  `phase_transition` loop at `6 FPS`; the existing `hurt` and `death` states,
+  gameplay scripts, scene nodes and Story163 timing/collision contracts remain
+  unchanged.
+- Verification: intentional RED `report_1942`; focused GREEN `report_1943`
+  `1/1`; bounded Story176/Story163/Boss4/death regression `report_1944` `9/9`;
+  target smoke exit `0`. No full suite was run.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, clean
+  run `r276785351-79`. Runtime sampled frames `[0,1,0]`, verified the exact
+  `2.49s/2.50s` boundary, preserved VFX/HUD/audio, non-empty `1278x718`
+  screenshot, info-only game logs, zero editor rows and clean stop.
+- Assets: image generation retained the exact prompt, RGB `2172x724` source,
+  alpha intermediate, three aligned transparent `192x192` runtime frames,
+  hashes, import sidecars, asset spec and manifest update.
+- Next: run a short critical-path content audit, then choose one playable ACT
+  depth or encounter-variety slice instead of another presentation-only pass.
+- Blockers: None for Story176.
+
+## Session Extract -- Scene Management Story016 2026-07-19
+
+- Delivery checkpoint: Story016 is complete locally as the first playable
+  onboarding slice after the uploaded baseline `d9fa1426`; the broader
+  complete-game goal remains active.
+- Runtime: title New Game now enters registered
+  `area_01_scrap_roost_hunt/default`, where a safe runway and raised step lead
+  to one physics-gated production Rat Minion. Real defeat opens the exit and
+  SceneManager commits `area_01_scrap_roost_dodge_trial/default`; Story017 then
+  owns the dodge gate and Story018 owns the final `main/scrap_roost` handoff.
+- Combat and recovery: production Player, WeaponComponent, runtime damage,
+  Rat Minion, HUD, CombatPresentation and HitstopInputBridge are reused. Falling
+  or death resets the bounded room without a stale enemy, gate or transition.
+- Verification: intentional RED `report_1945`; focused GREEN `report_1948`
+  `1/1`; related title/combo/Rat King intro gate `report_1949` `5/5`;
+  post-review New Game/legacy-save title routing `report_1950` `2/2`; current
+  Story015-017 route regression `report_1958` `4/4`. No full suite or duplicate
+  equivalent smoke run was used.
+- MCP: run `r281879257-82` is the isolated Story016 acceptance before Story017
+  insertion. Current Godot `4.7-stable` / plugin/server `3.0.2` run
+  `r284679113-84` used physical New Game, movement, jump and real attacks,
+  unlocked the exit, committed Story017 and later completed the three-frame Rat
+  King intro. Game logs were info-only, editor logs were empty, and stop restored
+  `ready`.
+- Assets: built-in image generation retained the exact prompt and opaque
+  `1672x941` source; `sips` normalized an imported `1280x720` runtime Scrap
+  Roost background. Asset spec and manifest are updated.
+- Next: Story017 owns the completed third-room dodge timing requirement.
+- Blockers: None for Story016.
+
+## Session Extract -- Scene Management Story017 2026-07-19
+
+- Delivery checkpoint: Story017 is complete locally as the third onboarding
+  room after the uploaded baseline `d9fa1426`; the broader complete-game goal
+  remains active.
+- Runtime: the registered one-screen exhaust chamber cycles `safe 30`,
+  `warning 24`, `active 18`, `recovery 30`. A no-dodge active overlap applies
+  `8` environment damage and keeps the gate locked. Only a same-sequence,
+  left-to-right Core dodge with active i-frames, gone hurtbox and body overlap
+  changes the hazard to `crossed` and unlocks the registered Story018 Rat King
+  approach.
+- Verification: intentional RED `report_1951`; initial GREEN `report_1954`;
+  post-review boundary RED/GREEN `report_1956/report_1957`; final bounded
+  Story015-017 regression `report_1958` `4/4`, with zero errors, failures,
+  flaky cases, skips or orphans. No full suite was run.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r284679113-84`. The active SteamAnimation exposed four-frame safe/warning/
+  active states; real dodge sequence `35` crossed at HP `100 -> 100`, unlocked
+  the exit, committed Main and completed Rat King Phase-I intro once. The
+  `1278x718` screenshot was non-empty, game logs were info-only, editor logs
+  were empty, and stop restored `ready`.
+- Assets: built-in image generation retained the exact prompt and opaque
+  `1672x941` source; `sips` normalized the imported `1280x720` runtime plate.
+  The separate animated steam reuses the existing Old Factory SpriteFrames.
+- Next: choose the next bounded player-facing ACT depth/encounter slice or the
+  first post-onboarding encounter; do not add another onboarding room.
+- Blockers: None for Story017.
+
+## Session Extract -- Scene Management Story018 2026-07-19
+
+- Delivery checkpoint: Story018 is complete locally as the first bounded ACT
+  encounter after the uploaded baseline `d9fa1426`; the broader complete-game
+  goal remains active.
+- Runtime: Story017 now enters registered
+  `area_01_scrap_roost_rat_king_approach/default`. One existing six-state,
+  three-frame Shadow Beast activates at player `x=440`, uses production
+  patrol/contact/bite behavior, and must die before the seal opens. The exit
+  commits `main/scrap_roost`, activates the existing savepoint and starts Rat
+  King Phase I.
+- Recovery: player death or a fall respawns Cinderpaw at the room entry and
+  restores enemy, gate and transition state without stale runtime nodes.
+- Verification: intentional RED `report_1959`; import and attack-overlap
+  diagnostics `report_1960-1963`; focused GREEN `report_1964` `1/1`; related
+  Story015-018/Main gate `report_1965` `8/8`; final clean route regression
+  `report_1966` `5/5`, with zero errors, failures, flaky cases, skips or orphans
+  and exit code `0`. No full suite was run.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`,
+  accepted run `r288970422-90`. Runtime proved six three-frame enemy states,
+  live red attack tell, real `J` damage `30 -> 20`, death/gate unlock,
+  `main/scrap_roost`, the discovered savepoint and one completed Rat King intro.
+  Two `1278x718` screenshots were non-empty, game logs were info-only, editor
+  logs were empty and stop restored `ready`.
+- Assets: built-in image generation retained the exact prompt and opaque
+  `1672x941` source; `sips` normalized the imported opaque RGB `1280x720` Rat
+  King gate background. Shadow Beast reuses its existing SpriteFrames.
+- Next: deepen the Scrap Roost/Rat King player-facing slice or select another
+  bounded ACT encounter; do not add another onboarding room.
+- Blockers: None for Story018.
+
+## Session Extract -- Scene Management Story019 2026-07-19
+
+- Delivery checkpoint: Story019 is complete locally as a bounded post-Rat-King
+  pacing slice; the broader complete-game goal remains active.
+- Runtime: live Rat King defeat writes a safe-intermission world flag before
+  its defeated flag. Continue restores control with Echo Guardian AI, collision,
+  HUD, camera and seals inactive. A generated challenge beacon appears, and a
+  nearby real `interact` atomically starts Boss2 and captures the Boss-entry
+  no-loss snapshot.
+- Persistence: new intermission/started flags ride Main's existing world-state
+  snapshot. Saves missing both flags keep Story156's legacy automatic handoff.
+- Verification: intentional RED `report_1967`; focused GREEN `report_1969`
+  `1/1`; final Story019/Story156/Story169 regression `report_1972` `3/3`, zero
+  errors, failures, flaky cases, skips or orphans and exit `0`. No full suite.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r291709325-91`. Real mouse Continue, real movement and physical `E` proved
+  safe intermission, prompt, persisted flags and atomic Echo activation.
+  Two `1278x718` screenshots were non-empty; game logs were info-only, editor
+  logs empty and stop restored `ready`.
+- Assets: built-in image generation retained the exact prompt and keyed
+  `1402x1122` source. The final imported beacon is transparent sRGBA `512x410`
+  with source/spec/manifest/evidence traceability.
+- Next: implement the currently missing registered `area_02_sewer` Dash
+  validation room behind Main's existing Dash gate; keep it a playable route,
+  not another text-led tutorial.
+- Blockers: None for Story019.

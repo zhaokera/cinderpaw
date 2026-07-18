@@ -8,6 +8,12 @@
 > **Manifest Version**: 2026-06-21
 > **Last Updated**: 2026-07-16
 
+> **Lifecycle Note (2026-07-19)**: Scene Management Story019 supersedes this
+> Story's automatic activation step for new live defeats. Continue now enters a
+> persisted safe intermission and a nearby real interaction starts Echo
+> Guardian. The automatic branch remains only for legacy saves that contain Rat
+> King defeat but neither Story019 flag.
+
 ## Context
 
 **GDD**: `design/gdd/player-abilities.md`

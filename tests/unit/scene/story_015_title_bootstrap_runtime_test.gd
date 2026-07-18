@@ -3,6 +3,9 @@ extends GdUnitTestSuite
 
 const TITLE_SCENE_PATH: String = "res://scenes/title_bootstrap.tscn"
 const MAIN_SCENE_PATH: String = "res://scenes/main.tscn"
+const ONBOARDING_SCENE_PATH: String = (
+	"res://scenes/areas/scrap_roost_hunt_initiation.tscn"
+)
 
 var bootstrap: Node
 
@@ -47,16 +50,22 @@ class FakeSceneManager:
 		return root != null
 
 	func has_scene(scene_id: StringName) -> bool:
-		return scene_id == &"main"
+		return scene_id in [&"area_01_scrap_roost_hunt", &"main"]
 
 	func get_scene_config(scene_id: StringName) -> Dictionary:
-		if scene_id != &"main":
-			return {}
-		return {
-			"path": MAIN_SCENE_PATH,
-			"default_spawn": "default",
-			"display_name": "Scrap Roost",
-		}
+		if scene_id == &"area_01_scrap_roost_hunt":
+			return {
+				"path": ONBOARDING_SCENE_PATH,
+				"default_spawn": "default",
+				"display_name": "Scrap Roost Initiation",
+			}
+		if scene_id == &"main":
+			return {
+				"path": MAIN_SCENE_PATH,
+				"default_spawn": "default",
+				"display_name": "Scrap Roost",
+			}
+		return {}
 
 	func request_scene_change(scene_id: StringName, spawn_point: StringName) -> bool:
 		requests.append({
@@ -127,7 +136,7 @@ func test_project_boots_title_only_and_new_game_waits_for_scene_commit() -> void
 
 	bootstrap.call("request_new_game")
 	assert_array(scene_manager.requests).is_equal([{
-		"scene_id": "main",
+		"scene_id": "area_01_scrap_roost_hunt",
 		"spawn_point": "default",
 	}])
 	assert_bool(bool(bootstrap.call("is_title_visible"))).is_true()
@@ -163,6 +172,12 @@ func test_continue_peeks_autosave_and_deserializes_only_after_scene_commit() -> 
 	assert_bool(bool(bootstrap.call("configure_runtime_services", save_system, scene_manager))).is_true()
 	var diagnostics: Dictionary = Dictionary(bootstrap.call("get_title_diagnostics"))
 	assert_str(String(diagnostics.get("focused_button", ""))).is_equal("Continue")
+	var legacy_target: Dictionary = Dictionary(bootstrap.call(
+		"_resolve_scene_target",
+		{"player_state": {}, "world_state": {}},
+	))
+	assert_str(String(legacy_target.get("scene_id", ""))).is_equal("main")
+	assert_str(String(legacy_target.get("spawn_point", ""))).is_equal("default")
 
 	assert_bool(bool(bootstrap.call("request_continue"))).is_true()
 	assert_array(save_system.peeked_slots).is_equal([0])

@@ -1,4 +1,4 @@
-## Player Abilities Story 156: Mainline Boss encounters activate sequentially.
+## Stories156/169 + Scene Management Story019: deterministic Boss sequencing.
 extends GdUnitTestSuite
 
 const MAIN_SCENE: PackedScene = preload("res://scenes/main.tscn")
@@ -19,7 +19,7 @@ func after_test() -> void:
 	_stop_runtime_audio()
 
 
-func test_rat_king_victory_restore_hands_main_encounter_to_boss2_once() -> void:
+func test_rat_king_victory_restore_preserves_echo_intermission_and_legacy_handoff() -> void:
 	var scene: Node2D = _instantiate_main_scene()
 	assert_bool(scene.has_method("get_boss2_encounter_handoff_diagnostics")).is_true()
 	if not scene.has_method("get_boss2_encounter_handoff_diagnostics"):
@@ -52,20 +52,37 @@ func test_rat_king_victory_restore_hands_main_encounter_to_boss2_once() -> void:
 	var snapshot: Dictionary = scene.call("capture_save_snapshot")
 	var restored: Node2D = _instantiate_main_scene()
 	restored.call("restore_save_snapshot", snapshot)
-	var activated: Dictionary = restored.call("get_boss2_encounter_handoff_diagnostics")
-	assert_bool(bool(activated.get("rat_king_defeated", false))).is_true()
-	assert_bool(bool(activated.get("rat_king_visible", true))).is_false()
-	assert_bool(bool(activated.get("boss2_encounter_active", false))).is_true()
-	assert_bool(bool(activated.get("boss2_visible", false))).is_true()
-	assert_bool(bool(activated.get("boss2_has_target", false))).is_true()
-	assert_int(int(activated.get("boss2_collision_layer", 0))).is_greater(0)
-	assert_bool(bool(activated.get("boss2_arena_frame_visible", false))).is_true()
-	assert_bool(bool(activated.get("boss2_room_seals_enabled", false))).is_true()
-	assert_bool(bool(activated.get("boss2_camera_lock_enabled", false))).is_true()
-	assert_str(String(activated.get("boss_hud_label", ""))).contains("Echo Guardian")
+	var intermission: Dictionary = restored.call("get_boss2_encounter_handoff_diagnostics")
+	assert_bool(bool(intermission.get("rat_king_defeated", false))).is_true()
+	assert_bool(bool(intermission.get("rat_king_visible", true))).is_false()
+	assert_bool(bool(intermission.get("boss2_intermission_started", false))).is_true()
+	assert_bool(bool(intermission.get("boss2_encounter_started", true))).is_false()
+	assert_bool(bool(intermission.get("boss2_encounter_active", true))).is_false()
+	assert_bool(bool(intermission.get("boss2_visible", true))).is_false()
+	assert_bool(bool(intermission.get("boss2_has_target", true))).is_false()
+	assert_int(int(intermission.get("boss2_collision_layer", -1))).is_equal(0)
+	assert_bool(bool(intermission.get("boss2_arena_frame_visible", true))).is_false()
+	assert_bool(bool(intermission.get("boss2_room_seals_enabled", true))).is_false()
+	assert_bool(bool(intermission.get("boss2_camera_lock_enabled", true))).is_false()
+	assert_bool(bool(intermission.get("challenge_marker_visible", false))).is_true()
+
+	var legacy: Node2D = _instantiate_main_scene()
+	legacy.call("set_world_progress_flag", RAT_KING_DEFEATED_FLAG, true)
+	var legacy_handoff: Dictionary = legacy.call(
+		"get_boss2_encounter_handoff_diagnostics"
+	)
+	assert_bool(bool(legacy_handoff.get("boss2_intermission_started", true))).is_false()
+	assert_bool(bool(legacy_handoff.get("boss2_encounter_active", false))).is_true()
+	assert_bool(bool(legacy_handoff.get("boss2_visible", false))).is_true()
+	assert_bool(bool(legacy_handoff.get("boss2_has_target", false))).is_true()
+	assert_int(int(legacy_handoff.get("boss2_collision_layer", 0))).is_greater(0)
+	assert_bool(bool(legacy_handoff.get("boss2_arena_frame_visible", false))).is_true()
+	assert_bool(bool(legacy_handoff.get("boss2_room_seals_enabled", false))).is_true()
+	assert_bool(bool(legacy_handoff.get("boss2_camera_lock_enabled", false))).is_true()
+	assert_str(String(legacy_handoff.get("boss_hud_label", ""))).contains("Echo Guardian")
 
 
-func test_rat_king_victory_continue_starts_boss2_in_same_runtime() -> void:
+func test_rat_king_victory_continue_enters_safe_echo_intermission() -> void:
 	var scene: Node2D = _instantiate_main_scene()
 	var rat_king: Node = scene.get_node("Enemy")
 	var flow: Node = scene.get_node("GameFlowController")
@@ -82,20 +99,22 @@ func test_rat_king_victory_continue_starts_boss2_in_same_runtime() -> void:
 
 	hud.emit_signal("menu_resume_requested")
 
-	var activated: Dictionary = scene.call("get_boss2_encounter_handoff_diagnostics")
-	assert_str(String(activated.get("game_flow_state", ""))).is_equal("playing")
+	var intermission: Dictionary = scene.call("get_boss2_encounter_handoff_diagnostics")
+	assert_str(String(intermission.get("game_flow_state", ""))).is_equal("playing")
 	assert_bool(bool(flow.call("is_player_control_locked"))).is_false()
 	assert_bool(bool(hud.call("is_menu_visible"))).is_false()
-	assert_bool(bool(activated.get("rat_king_defeated", false))).is_true()
-	assert_bool(bool(activated.get("rat_king_visible", true))).is_false()
-	assert_bool(bool(activated.get("boss2_encounter_active", false))).is_true()
-	assert_bool(bool(activated.get("boss2_visible", false))).is_true()
-	assert_bool(bool(activated.get("boss2_has_target", false))).is_true()
-	assert_int(int(activated.get("boss2_collision_layer", 0))).is_greater(0)
-	assert_bool(bool(activated.get("boss2_arena_frame_visible", false))).is_true()
-	assert_bool(bool(activated.get("boss2_room_seals_enabled", false))).is_true()
-	assert_bool(bool(activated.get("boss2_camera_lock_enabled", false))).is_true()
-	assert_str(String(activated.get("boss_hud_label", ""))).contains("Echo Guardian")
+	assert_bool(bool(intermission.get("rat_king_defeated", false))).is_true()
+	assert_bool(bool(intermission.get("rat_king_visible", true))).is_false()
+	assert_bool(bool(intermission.get("boss2_intermission_started", false))).is_true()
+	assert_bool(bool(intermission.get("boss2_encounter_started", true))).is_false()
+	assert_bool(bool(intermission.get("boss2_encounter_active", true))).is_false()
+	assert_bool(bool(intermission.get("boss2_visible", true))).is_false()
+	assert_bool(bool(intermission.get("boss2_has_target", true))).is_false()
+	assert_int(int(intermission.get("boss2_collision_layer", -1))).is_equal(0)
+	assert_bool(bool(intermission.get("boss2_arena_frame_visible", true))).is_false()
+	assert_bool(bool(intermission.get("boss2_room_seals_enabled", true))).is_false()
+	assert_bool(bool(intermission.get("boss2_camera_lock_enabled", true))).is_false()
+	assert_bool(bool(intermission.get("challenge_marker_visible", false))).is_true()
 
 
 func _instantiate_main_scene() -> Node2D:

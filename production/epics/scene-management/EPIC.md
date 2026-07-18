@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 15 stories tracked; future stories planned
+> **Stories**: 19 stories tracked; future stories planned
 
 ## Overview
 
@@ -43,6 +43,19 @@ hold, and explicit compatibility with the sequential Echo Guardian camera lock.
 Story015 replaces direct-to-gameplay project boot with a persistent title
 bootstrap, generated key art, six-frame Cinderpaw title animation, controller
 focus navigation, and deferred save deserialization after SceneManager commit.
+Story016 replaces the New Game direct-to-Boss route with a generated Scrap
+Roost initiation room: a safe movement/jump runway, one existing frame-animated
+Rat Minion, and a defeat-gated exit. Story017 completes the approved three-room
+onboarding curve with a generated Scrap Roost exhaust chamber where only a real
+dodge through the active hazard unlocks the next route. Story018 adds the first
+post-onboarding ACT encounter at the Rat King approach: one existing
+frame-animated Shadow Beast, a defeat-gated seal and an exact
+`main/scrap_roost` handoff into the existing savepoint and Rat King Phase-I
+intro.
+Story019 replaces the immediate Rat-King-to-Echo-Guardian chain with a persisted
+safe intermission and a generated challenge beacon. New runs activate Boss2 only
+after a nearby real interaction, while legacy saves retain the historical
+automatic handoff.
 
 ## Governing ADRs
 
@@ -83,6 +96,10 @@ focus navigation, and deferred save deserialization after SceneManager commit.
 | 013 | Rat King Arena Placeholder Visual Removal | Visual / Integration | Complete | ADR-0007, ADR-0004, ADR-0019 |
 | 014 | Rat King Arena Camera Choreography | Visual / Integration | Complete | ADR-0007 |
 | 015 | Title Bootstrap Runtime | Visual / Integration | Complete | ADR-0007, ADR-0021 |
+| 016 | New Game Scrap Roost Hunt Initiation | Gameplay / Integration | Complete | ADR-0004, ADR-0007 |
+| 017 | Scrap Roost Dodge Trial | Gameplay / Integration | Complete | ADR-0004, ADR-0007 |
+| 018 | Scrap Roost Rat King Approach | Gameplay / Integration | Complete | ADR-0004, ADR-0007 |
+| 019 | Rat King Victory Echo Challenge Intermission | Gameplay / Pacing / Visual / Save | Complete | ADR-0007, ADR-0021 |
 
 ## Definition of Done
 
@@ -100,6 +117,23 @@ This epic is complete when:
   gameplay first; generated opaque key art, a six-frame `AnimatedSprite2D`
   Cinderpaw, keyboard/controller focus, and post-commit save restoration are
   verified in the real Godot runtime.
+- New Game enters a registered Scrap Roost initiation scene before any Boss,
+  teaches movement and jumping through geometry, gates its exit behind one
+  existing frame-animated ordinary enemy, and hands off to the registered dodge
+  trial through SceneManager after the real defeat signal.
+- The third onboarding room uses an image-generated Scrap Roost exhaust chamber
+  and the existing four-frame steam-vent animations. Only an active-phase body
+  overlap with real dodge i-frames and a gone Core hurtbox unlocks its exit to
+  the registered Rat King approach; walking, standing away, Dash, and unrelated
+  invulnerability do not satisfy the trial.
+- The first post-onboarding ACT room uses an image-generated Rat King gate
+  approach and one existing six-state, three-frame Shadow Beast. Real attack
+  damage must defeat it before the seal opens and SceneManager can enter
+  `main/scrap_roost` beside the existing savepoint.
+- A live Rat King clear enters a persisted safe Scrap Roost intermission after
+  Continue. A generated challenge beacon and nearby real interaction atomically
+  start Echo Guardian, while saves without either Story019 flag retain legacy
+  automatic activation.
 - Async scene change requests use `ResourceLoader.load_threaded_request()`, wait
   for the 1.5 second transition gate before logical commit, emit a load-start
   signal for Presentation, and timeout after 10 seconds with one retry before
@@ -145,5 +179,7 @@ This epic is complete when:
 
 ## Next Step
 
-Continue later SceneManagement stories: real platform profiler evidence,
-low-memory UI prompt routing, and optional shader arena polish.
+The Main Dash gate already names `area_02_sewer`, but no registered playable
+scene currently fulfils that route. The next bounded slice should build one
+generated Sewer entry/Dash validation room with a real gap, reset and exit,
+without turning it into another text-led tutorial.

@@ -21,10 +21,13 @@ func _run() -> void:
 	var boss: CharacterBody2D = arena.get_node_or_null(
 		"CrownWardenBoss"
 	) as CharacterBody2D
+	var sprite: AnimatedSprite2D = arena.get_node_or_null(
+		"CrownWardenBoss/Sprite"
+	) as AnimatedSprite2D
 	var presentation: CombatPresentation = arena.get_node_or_null(
 		"CombatPresentation"
 	) as CombatPresentation
-	if boss == null or presentation == null:
+	if boss == null or sprite == null or presentation == null:
 		_fail("runtime_nodes_missing")
 		return
 	boss.call("set_autonomous_attacks_enabled", false)
@@ -54,7 +57,12 @@ func _run() -> void:
 		or not bool(transition.get("active", false))
 		or absf(float(transition.get("remaining_sec", 0.0)) - 2.5) > 0.001
 		or int(transition.get("start_count", 0)) != 1
-		or String(transition.get("animation", "")) != "hurt"
+		or String(transition.get("animation", "")) != "phase_transition"
+		or String(sprite.animation) != "phase_transition"
+		or not sprite.is_playing()
+		or sprite.sprite_frames == null
+		or not sprite.sprite_frames.has_animation(&"phase_transition")
+		or sprite.sprite_frames.get_frame_count(&"phase_transition") != 3
 		or collision == null
 		or String(collision.call("get_hurtbox_state")) != "gone"
 		or presentation.get_active_boss_phase_overlay_count() != 1
@@ -88,6 +96,7 @@ func _run() -> void:
 		).get("active", true))
 		or String(boss.call("get_attack_phase")) != "idle"
 		or String(collision.call("get_hurtbox_state")) != "normal"
+		or String(sprite.animation) != "idle"
 		or not bool(boss.call("request_attack", &"talon_dive"))
 	):
 		_fail("phase_two_transition_recovery_failed")

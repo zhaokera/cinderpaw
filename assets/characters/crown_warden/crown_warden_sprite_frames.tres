@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=25 format=3]
+[gd_resource type="SpriteFrames" load_steps=28 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/characters/crown_warden/idle/crown_warden_idle_000.png" id="1_idle0"]
 [ext_resource type="Texture2D" path="res://assets/characters/crown_warden/idle/crown_warden_idle_001.png" id="2_idle1"]
@@ -24,6 +24,9 @@
 [ext_resource type="Texture2D" path="res://assets/characters/crown_warden/death/crown_warden_death_000.png" id="22_death0"]
 [ext_resource type="Texture2D" path="res://assets/characters/crown_warden/death/crown_warden_death_001.png" id="23_death1"]
 [ext_resource type="Texture2D" path="res://assets/characters/crown_warden/death/crown_warden_death_002.png" id="24_death2"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/phase_transition/crown_warden_phase_transition_000.png" id="25_transition0"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/phase_transition/crown_warden_phase_transition_001.png" id="26_transition1"]
+[ext_resource type="Texture2D" path="res://assets/characters/crown_warden/phase_transition/crown_warden_phase_transition_002.png" id="27_transition2"]
 
 [resource]
 animations = [{
@@ -61,6 +64,11 @@ animations = [{
 "loop": false,
 "name": &"hurt",
 "speed": 8.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("25_transition0")}, {"duration": 1.0, "texture": ExtResource("26_transition1")}, {"duration": 1.0, "texture": ExtResource("27_transition2")}],
+"loop": true,
+"name": &"phase_transition",
+"speed": 6.0
 }, {
 "frames": [{"duration": 1.0, "texture": ExtResource("22_death0")}, {"duration": 1.0, "texture": ExtResource("23_death1")}, {"duration": 1.0, "texture": ExtResource("24_death2")}],
 "loop": false,
