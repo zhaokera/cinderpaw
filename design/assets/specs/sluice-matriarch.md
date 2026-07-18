@@ -11,7 +11,8 @@ low, long organic silhouette must read as a mutated industrial leech and not a
 scaled rat. The first production slice supported one readable pressure-lunge
 attack, a faster second phase, hurt feedback, and a persistent death state.
 Story173 extends the same identity with a pressure-geyser pattern and a
-dedicated shared recovery animation.
+dedicated shared recovery animation. Story174 adds a distinct Phase II
+pressure-transformation loop for the invulnerable rules-change window.
 
 ## Visual Contract
 
@@ -19,8 +20,8 @@ dedicated shared recovery animation.
 |-------|-------|
 | Runtime type | `AnimatedSprite2D + SpriteFrames` |
 | Runtime canvas | `192x192` transparent RGBA PNG per frame |
-| Animations | `idle`, `run`, `attack_tell`, `attack`, `geyser_tell`, `geyser_attack`, `attack_recovery`, `hurt`, `death` |
-| Frame count | Exactly 3 frames per animation, 27 frames total |
+| Animations | `idle`, `run`, `attack_tell`, `attack`, `geyser_tell`, `geyser_attack`, `attack_recovery`, `phase_transition`, `hurt`, `death` |
+| Frame count | Exactly 3 frames per animation, 30 frames total |
 | Facing | Authored facing right; gameplay runtime uses `flip_h` |
 | Anchor | Shared center pivot and ground baseline on every frame |
 | Naming | `sluice_matriarch_<animation>_000.png` through `_002.png` |
@@ -42,6 +43,8 @@ dedicated shared recovery animation.
   Arena VFX owns the warning ring and damaging vertical column.
 - `attack_recovery` moves through recoil, sag, and return for both attack
   families instead of holding the final active frame.
+- `phase_transition` cycles compressed, lifted and fully pressurized cyan-white
+  silhouettes throughout the `2.5s` invulnerable Phase II transformation.
 - `hurt` compresses the head and clamps. `death` settles the body flat and
   remains visible as a non-damaging arena corpse after victory.
 - The arena backdrop cocoon remains environmental depth; the transparent boss
@@ -58,6 +61,7 @@ dedicated shared recovery animation.
 | `geyser_tell` | 10 | no |
 | `geyser_attack` | 18 | no |
 | `attack_recovery` | 10 | no |
+| `phase_transition` | 6 | yes |
 | `hurt` | 8 | no |
 | `death` | 5 | no |
 
@@ -76,11 +80,14 @@ imported through Godot 4.7.
 Story173's extension prompt and processing record lives at
 `assets/characters/sluice_matriarch/source/sluice_matriarch_geyser_recovery_sheet_imagegen_20260718.md`.
 
+Story174's transition prompt and processing record lives at
+`assets/characters/sluice_matriarch/source/sluice_matriarch_phase_transition_sheet_imagegen_20260718.md`.
+
 ## Validation
 
 - Every runtime frame is RGBA `192x192`, has transparent corners, a non-empty
   subject, continuous naming, and no visible magenta fringe.
-- All nine gameplay states contain exactly three frames in the mounted
+- All ten gameplay states contain exactly three frames in the mounted
   `SpriteFrames` resource.
 - The pressure-lunge startup uses `attack_tell` with no active hitbox; active
   frames use `attack`, move the body, and route `16` damage through shared

@@ -6452,3 +6452,37 @@
   exact prompts, alpha intermediate, normalized runtime textures, six aligned
   transparent frames, import sidecars, asset spec and manifest entries.
 - Blockers: None for Story015.
+
+## Session Extract -- Player Abilities Story173 2026-07-18
+
+- Delivery checkpoint: Story173 and its real-hit damage correction are complete
+  and pushed as `d7fa81dc` and `012db3be`; the broader complete-game goal remains
+  active.
+- Runtime: Boss3 now alternates pressure lunge and a floor-targeted pressure
+  geyser with authored Phase I/II timing, independent hitbox damage `14`, three
+  generated warning/active VFX frames and three generated boss tell/attack/
+  recovery frames.
+- Verification: focused `report_1928` passed `1/1`; bounded regression
+  `report_1927` passed `12/12`; post-review real-collision regression
+  `report_1930` passed `5/5`. MCP runs `72` and `73` proved scheduler timing,
+  visibility, hitbox activation and actual player HP `100 -> 86` with clean
+  logs and a non-empty screenshot.
+- Blockers: None for Story173.
+
+## Session Extract -- Player Abilities Story174 2026-07-18
+
+- Delivery checkpoint: Story174 is complete as a bounded Boss3 Phase II
+  readability slice. The broader complete-game goal remains active.
+- Runtime: crossing `60/120` HP waits for the current attack recovery, then runs
+  one `2.5s` invulnerable `phase_transition`; attacks and movement stop, all
+  hitboxes close, the Hurtbox becomes `gone`, and idle/normal collision plus the
+  Phase II geyser schedule resume at the exact boundary.
+- Presentation: a dedicated generated three-frame `192x192` looping boss
+  animation routes one signal to the existing HUD, CombatPresentation overlay/
+  debris path and `sfx_boss_phase` audio event.
+- Verification: RED `report_1931`; clean focused GREEN `report_1933` `1/1`;
+  final related `report_1935` `14/14`, all with no authoritative errors or
+  orphans. Godot `4.7-stable` plus MCP `3.0.2` run `r256409167-74` verified the
+  `2.49s/2.50s` boundary, three frames at `6 FPS`, rejected damage, 32 debris,
+  Phase II HUD/audio, clean logs and a non-empty `1278x718` screenshot.
+- Blockers: None for Story174.

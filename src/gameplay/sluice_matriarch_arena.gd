@@ -134,8 +134,8 @@ func apply_damage(target_id: int, final_damage: int, metadata: Dictionary = {}) 
 		or final_damage <= 0
 	):
 		return false
-	_boss.call("apply_damage", final_damage, metadata)
-	return true
+	var result: Variant = _boss.call("apply_damage", final_damage, metadata)
+	return bool(result) if result is bool else true
 
 
 ## Injects the SceneManager adapter and reapplies the requested arena spawn.
@@ -762,16 +762,40 @@ func _on_boss3_defeated() -> void:
 
 
 func _on_boss3_phase_transition_started(
-	_entity_id: int,
-	_phase: int,
-	_metadata: Dictionary
+	entity_id: int,
+	phase: int,
+	metadata: Dictionary
 ) -> void:
-	if _boss == null or _boss_defeated:
+	if _boss == null or _boss_defeated or entity_id != BOSS_ENTITY_ID:
 		return
-	_on_boss3_health_changed(
-		int(_boss.call("get_current_hp")),
-		int(_boss.call("get_max_hp"))
-	)
+	var presentation_metadata: Dictionary = metadata.duplicate(true)
+	if not presentation_metadata.has("world_position"):
+		presentation_metadata["world_position"] = _boss.global_position
+	if not presentation_metadata.has("position"):
+		presentation_metadata["position"] = _boss.global_position
+	if _combat_presentation != null:
+		_combat_presentation.on_boss_phase_transition_started(
+			entity_id,
+			phase,
+			presentation_metadata
+		)
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system != null and audio_system.has_method(
+		"on_boss_phase_transition_started"
+	):
+		audio_system.call(
+			"on_boss_phase_transition_started",
+			entity_id,
+			phase,
+			presentation_metadata
+		)
+	if _hud != null:
+		_hud.update_boss_hp(
+			int(_boss.call("get_current_hp")),
+			int(_boss.call("get_max_hp")),
+			phase,
+			BOSS_DISPLAY_NAME
+		)
 
 
 func _on_boss3_attack_landed(

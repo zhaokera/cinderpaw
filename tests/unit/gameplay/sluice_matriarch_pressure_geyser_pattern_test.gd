@@ -95,7 +95,7 @@ func test_pressure_geyser_is_telegraphed_damaging_only_when_active_and_recovers(
 
 	boss.call("reset_encounter")
 	boss.call("apply_damage", 61, {"source": &"story173_phase_two"})
-	boss.call("advance_attack_frames", 5)
+	boss.call("advance_phase_transition", 2.5)
 	assert_bool(bool(boss.call("request_attack_pattern", PRESSURE_GEYSER_ID))).is_true()
 	var phase_two: Dictionary = boss.call("get_attack_diagnostics")
 	assert_int(int(phase_two.get("current_phase", 0))).is_equal(2)

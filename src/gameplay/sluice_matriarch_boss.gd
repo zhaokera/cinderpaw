@@ -14,6 +14,7 @@ const MAX_HP: int = 120
 const PHASE_ONE: int = 1
 const PHASE_TWO: int = 2
 const PHASE_TWO_HP_THRESHOLD: float = 0.5
+const PHASE_TRANSITION_DURATION_SEC: float = 2.5
 const PRESSURE_LUNGE_ID: StringName = &"pressure_lunge"
 const PRESSURE_GEYSER_ID: StringName = &"pressure_geyser"
 const ATTACK_PATTERN_IDS: Array[StringName] = [
@@ -61,6 +62,7 @@ const ANIMATION_ATTACK: StringName = &"attack"
 const ANIMATION_GEYSER_TELL: StringName = &"geyser_tell"
 const ANIMATION_GEYSER_ATTACK: StringName = &"geyser_attack"
 const ANIMATION_ATTACK_RECOVERY: StringName = &"attack_recovery"
+const ANIMATION_PHASE_TRANSITION: StringName = &"phase_transition"
 const ANIMATION_HURT: StringName = &"hurt"
 const ANIMATION_DEATH: StringName = &"death"
 const HEALTH_COMPONENT_SCRIPT: Script = preload("res://src/core/health_component.gd")
@@ -70,7 +72,15 @@ const STATUS_EFFECT_COMPONENT_SCRIPT: Script = preload(
 	"res://src/core/status_effect_component.gd"
 )
 
-enum State { IDLE, HIT, ATTACK_TELL, ATTACK_ACTIVE, ATTACK_RECOVERY, DEAD }
+enum State {
+	IDLE,
+	HIT,
+	ATTACK_TELL,
+	ATTACK_ACTIVE,
+	ATTACK_RECOVERY,
+	PHASE_TRANSITION,
+	DEAD,
+}
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
 @onready var _geyser_sprite: AnimatedSprite2D = $PressureGeyser
@@ -88,6 +98,9 @@ var _geyser_target_x: float = 0.0
 var _defeated: bool = false
 var _current_phase: int = PHASE_ONE
 var _phase_two_pending: bool = false
+var _phase_transition_remaining_sec: float = 0.0
+var _phase_transition_start_count: int = 0
+var _last_phase_transition_metadata: Dictionary = {}
 var _attack_target: Node = null
 var _damage_calculator_adapter: Object = null
 var _last_hit_metadata: Dictionary = {}
@@ -117,6 +130,9 @@ func _physics_process(delta: float) -> void:
 		_status_effects.advance_time(delta)
 	if _defeated:
 		return
+	if _state == State.PHASE_TRANSITION:
+		_process_phase_transition(delta)
+		return
 	_attack_cooldown_timer = maxi(0, _attack_cooldown_timer - 1)
 	match _state:
 		State.IDLE:
@@ -129,6 +145,8 @@ func _physics_process(delta: float) -> void:
 			_process_attack_active()
 		State.ATTACK_RECOVERY:
 			_process_attack_recovery()
+		State.PHASE_TRANSITION:
+			return
 		State.DEAD:
 			return
 
@@ -211,11 +229,17 @@ func advance_attack_frames(frames: int) -> void:
 				pass
 
 
-func apply_damage(final_damage: int, metadata: Dictionary = {}) -> void:
-	if _defeated or _health == null or final_damage <= 0:
-		return
+func apply_damage(final_damage: int, metadata: Dictionary = {}) -> bool:
+	if (
+		_defeated
+		or _state == State.PHASE_TRANSITION
+		or _health == null
+		or final_damage <= 0
+	):
+		return false
 	_last_hit_metadata = metadata.duplicate(true)
 	_health.apply_damage(final_damage, metadata)
+	return true
 
 
 func reset_encounter() -> void:
@@ -223,6 +247,9 @@ func reset_encounter() -> void:
 	_state = State.IDLE
 	_current_phase = PHASE_ONE
 	_phase_two_pending = false
+	_phase_transition_remaining_sec = 0.0
+	_phase_transition_start_count = 0
+	_last_phase_transition_metadata.clear()
 	_hit_timer = 0
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
@@ -251,6 +278,9 @@ func mark_defeated_from_progress() -> void:
 	_defeated = true
 	_state = State.DEAD
 	_phase_two_pending = false
+	_phase_transition_remaining_sec = 0.0
+	_phase_transition_start_count = 0
+	_last_phase_transition_metadata.clear()
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
 	_current_pattern_id = &""
@@ -308,12 +338,36 @@ func get_attack_phase() -> StringName:
 			return &"active"
 		State.ATTACK_RECOVERY:
 			return &"recovery"
+		State.PHASE_TRANSITION:
+			return &"phase_transition"
 		State.HIT:
 			return &"hurt"
 		State.DEAD:
 			return &"dead"
 		_:
 			return &"idle"
+
+
+## Advances the active phase window without depending on rendered frames.
+func advance_phase_transition(delta_sec: float) -> void:
+	if _state != State.PHASE_TRANSITION:
+		return
+	_process_phase_transition(maxf(0.0, delta_sec))
+
+
+func is_phase_transition_active() -> bool:
+	return _state == State.PHASE_TRANSITION
+
+
+func get_phase_transition_diagnostics() -> Dictionary:
+	return {
+		"active": is_phase_transition_active(),
+		"remaining_sec": _phase_transition_remaining_sec,
+		"duration_sec": PHASE_TRANSITION_DURATION_SEC,
+		"start_count": _phase_transition_start_count,
+		"animation": String(ANIMATION_PHASE_TRANSITION),
+		"metadata": _last_phase_transition_metadata.duplicate(true),
+	}
 
 
 func is_defeated() -> bool:
@@ -346,6 +400,8 @@ func get_pressure_lunge_diagnostics() -> Dictionary:
 		"animation": String(_sprite.animation) if _sprite != null else "",
 		"current_phase": _current_phase,
 		"phase_two_pending": _phase_two_pending,
+		"phase_transition_active": is_phase_transition_active(),
+		"phase_transition_remaining_sec": _phase_transition_remaining_sec,
 		"attack_sequence_id": _attack_sequence_id,
 		"attack_startup_frames": ATTACK_TELL_FRAMES,
 		"attack_damage": ATTACK_DAMAGE,
@@ -373,6 +429,8 @@ func get_attack_diagnostics() -> Dictionary:
 		"animation": String(_sprite.animation) if _sprite != null else "",
 		"current_phase": _current_phase,
 		"phase_two_pending": _phase_two_pending,
+		"phase_transition_active": is_phase_transition_active(),
+		"phase_transition_remaining_sec": _phase_transition_remaining_sec,
 		"attack_sequence_id": _attack_sequence_id,
 		"startup_frames": _startup_frames_for(pattern_id),
 		"active_frames": _active_frames_for(pattern_id),
@@ -530,6 +588,8 @@ func _on_core_hp_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:
 	if current_hp <= 0 or _defeated:
 		return
 	_maybe_enter_phase_two(current_hp, max_hp)
+	if _state == State.PHASE_TRANSITION:
+		return
 	if _sprite != null:
 		_sprite.modulate = HIT_MODULATE
 	if _is_attack_chain_active():
@@ -549,6 +609,7 @@ func _die() -> void:
 	_defeated = true
 	_state = State.DEAD
 	_phase_two_pending = false
+	_phase_transition_remaining_sec = 0.0
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
 	_current_pattern_id = &""
@@ -602,18 +663,61 @@ func _enter_phase_two() -> void:
 		return
 	_current_phase = PHASE_TWO
 	_phase_two_pending = false
-	_attack_cooldown_timer = mini(
-		_attack_cooldown_timer,
-		PHASE_TWO_ATTACK_COOLDOWN_FRAMES
-	)
+	_phase_transition_remaining_sec = PHASE_TRANSITION_DURATION_SEC
+	_phase_transition_start_count += 1
+	_attack_timer = 0
+	_attack_cooldown_timer = 0
+	_current_pattern_id = &""
+	_state = State.PHASE_TRANSITION
+	velocity = Vector2.ZERO
+	_reset_geyser_visual()
+	if _collision != null:
+		_collision.deactivate_all_hitboxes()
+		_collision.set_hurtbox_state(CollisionComponent.HURTBOX_STATE_GONE)
 	if _sprite != null:
 		_sprite.modulate = PHASE_TWO_MODULATE
-	on_boss_phase_transition_started.emit(ENTITY_ID, PHASE_TWO, {
+	_play_animation(ANIMATION_PHASE_TRANSITION, true)
+	_last_phase_transition_metadata = {
 		"boss_id": BOSS_ID,
+		"display_name": "Sluice Matriarch",
+		"previous_phase": PHASE_ONE,
 		"hp_percentage": float(get_current_hp()) / float(MAX_HP),
+		"transition_duration_sec": PHASE_TRANSITION_DURATION_SEC,
+		"transition_animation": String(ANIMATION_PHASE_TRANSITION),
+		"world_position": global_position,
+		"position": global_position,
+		"next_attack_id": String(_next_attack_pattern_id()),
 		"lunge_step_px": PHASE_TWO_LUNGE_STEP_PX,
 		"attack_cooldown_frames": PHASE_TWO_ATTACK_COOLDOWN_FRAMES,
-	})
+	}
+	on_boss_phase_transition_started.emit(
+		ENTITY_ID,
+		PHASE_TWO,
+		_last_phase_transition_metadata.duplicate(true)
+	)
+
+
+func _process_phase_transition(delta_sec: float) -> void:
+	velocity = Vector2.ZERO
+	_play_animation(ANIMATION_PHASE_TRANSITION)
+	_phase_transition_remaining_sec = maxf(
+		0.0,
+		_phase_transition_remaining_sec - maxf(0.0, delta_sec)
+	)
+	if _phase_transition_remaining_sec > 0.0:
+		return
+	_finish_phase_two_transition()
+
+
+func _finish_phase_two_transition() -> void:
+	_state = State.IDLE
+	_attack_cooldown_timer = PHASE_TWO_ATTACK_COOLDOWN_FRAMES
+	if _collision != null:
+		_collision.deactivate_all_hitboxes()
+		_collision.set_hurtbox_state(CollisionComponent.HURTBOX_STATE_NORMAL)
+	if _sprite != null:
+		_sprite.modulate = PHASE_TWO_MODULATE
+	_play_animation(ANIMATION_IDLE, true)
 
 
 func _is_attack_chain_active() -> bool:

@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 170 stories tracked
+> **Stories**: 174 stories tracked
 
 ## Overview
 
@@ -210,6 +210,8 @@ recording the reward in progression state.
 | 170 | Neon Rooftops Central Tower Parry-Laser Motion Readability | Visual/Feel + Frame Animation Contract | Complete | ADR-0001/0002/0004/0005/0010/0018 |
 | 171 | Central Tower Local Minimap Continuity | Integration + UI + Exploration + Save | Complete | ADR-0001/0002/0007/0008/0011/0013/0015/0021 |
 | 172 | Crown Observatory Wall-Climb Epilogue Ascent | Integration + Gameplay + Exploration + Save | Complete | ADR-0001/0002/0007/0008/0013/0015/0021 |
+| 173 | Sluice Matriarch Pressure Geyser Pattern | Attack Pattern + Frame Animation + VFX | Complete | ADR-0002/0004/0005/0006 |
+| 174 | Sluice Matriarch Phase II Transition Readability | Integration + Gameplay Runtime + Frame Animation | Complete | ADR-0002/0004/0005/0006/0010/0019/0020 |
 
 ## Definition of Done
 
@@ -229,7 +231,7 @@ This epic is complete when:
 
 ## Next Step
 
-Story172 closes Boss4's Wall Climb reward payoff with a generated-art,
-retryable Crown Observatory ascent and gates Scrap Roost Recall behind one real
-climb plus the high signal endpoint. Select the next bounded player-visible ACT
-gap after reviewing the completed four-Boss route and post-Boss pacing.
+Story174 closes Boss3's half-health rules-change feedback with one generated
+three-frame invulnerable transition while preserving the lunge/geyser schedule.
+Select the next bounded player-visible combat or traversal gap after reviewing
+the completed four-Boss route and post-Boss pacing.
