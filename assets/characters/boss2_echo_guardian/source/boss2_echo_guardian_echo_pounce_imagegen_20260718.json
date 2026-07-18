@@ -1,0 +1,62 @@
+{
+  "asset_id": "boss2_echo_guardian_echo_pounce_frames",
+  "date": "2026-07-18",
+  "generator": "built-in image generation",
+  "use_case": "stylized-concept",
+  "reference": "res://assets/characters/boss2_echo_guardian/source/boss2_echo_guardian_sprite_sheet_imagegen_20260626.png",
+  "sources": {
+    "tell": "res://assets/characters/boss2_echo_guardian/source/boss2_echo_guardian_echo_pounce_tell_sheet_imagegen_20260718.png",
+    "tell_alpha": "res://assets/characters/boss2_echo_guardian/source/boss2_echo_guardian_echo_pounce_tell_sheet_alpha_20260718.png",
+    "active": "res://assets/characters/boss2_echo_guardian/source/boss2_echo_guardian_echo_pounce_sheet_imagegen_20260718.png",
+    "active_alpha": "res://assets/characters/boss2_echo_guardian/source/boss2_echo_guardian_echo_pounce_sheet_alpha_20260718.png"
+  },
+  "runtime_frames": {
+    "echo_pounce_tell": [
+      "res://assets/characters/boss2_echo_guardian/echo_pounce_tell/boss2_echo_guardian_echo_pounce_tell_000.png",
+      "res://assets/characters/boss2_echo_guardian/echo_pounce_tell/boss2_echo_guardian_echo_pounce_tell_001.png",
+      "res://assets/characters/boss2_echo_guardian/echo_pounce_tell/boss2_echo_guardian_echo_pounce_tell_002.png"
+    ],
+    "echo_pounce": [
+      "res://assets/characters/boss2_echo_guardian/echo_pounce/boss2_echo_guardian_echo_pounce_000.png",
+      "res://assets/characters/boss2_echo_guardian/echo_pounce/boss2_echo_guardian_echo_pounce_001.png",
+      "res://assets/characters/boss2_echo_guardian/echo_pounce/boss2_echo_guardian_echo_pounce_002.png"
+    ],
+    "echo_pounce_recovery": [
+      "res://assets/characters/boss2_echo_guardian/echo_pounce_recovery/boss2_echo_guardian_echo_pounce_recovery_000.png",
+      "res://assets/characters/boss2_echo_guardian/echo_pounce_recovery/boss2_echo_guardian_echo_pounce_recovery_001.png",
+      "res://assets/characters/boss2_echo_guardian/echo_pounce_recovery/boss2_echo_guardian_echo_pounce_recovery_002.png"
+    ]
+  },
+  "prompts": {
+    "tell": "Create exactly three sequential anticipation frames for the existing side-view Echo Guardian cyber-feline boss. Preserve its gunmetal armor, brass trim, violet cat-eye core, proportions and crisp pixel-art rendering. Arrange exactly three equal cells on a flat #00ff00 chroma-key background with identical scale, ground baseline and anchor: lower shoulders and fix the gaze on a landing point; coil deeper while the violet core brightens; reach maximum compact tension with restrained violet echo arcs. This is a pounce tell only: no jump, strike, slash, projectile, landing impact, text, watermark or frame border.",
+    "active": "Create exactly three sequential landing frames for the same side-view Echo Guardian cyber-feline boss, preserving its gunmetal armor, brass trim, violet cat-eye core, proportions and crisp pixel-art rendering. Arrange exactly three equal cells on a flat #00ff00 chroma-key background with identical scale, ground baseline and anchor: compact descending airborne pose; all-four-paw landing impact with a tight violet echo pulse; low stable rebound after impact. Face left in every cell. No forward slash, projectile, long travel streak, text, watermark or frame border."
+  },
+  "processing": {
+    "tell_detected_key": "#0df80c",
+    "active_detected_key": "#10ec17",
+    "source_size": [2172, 724],
+    "cell_size": [724, 724],
+    "alpha_method": "Border-derived chroma key, transparent matte and despill.",
+    "tell_normalization": "Each equal cell was point-resized to a 150x150 working image and composited on a transparent 160x128 canvas with one shared floor baseline and anchor.",
+    "active_normalization": "Each equal cell was point-resized to a 145x145 working image and composited on a transparent 160x128 canvas with one shared landing center and floor baseline.",
+    "recovery_derivation": "The three authored tell frames were exported in reverse order as a rise-to-stand recovery sequence."
+  },
+  "hashes": {
+    "tell_source_sha256": "b3ec709ba7af95e17ac24a71721a94cbf68f278d7eb37de31b0e650b1d0e1be3",
+    "tell_alpha_sha256": "e22264572b88bd420ae04e6fbfb3e761b35abb8d6d989975e2be78272084538f",
+    "active_source_sha256": "779e251a51cec6368f97f3c653a2458f5f2b5fff794167c9f6d7af74cad084a6",
+    "active_alpha_sha256": "77f74c3e4a3647bbff74a2edfba69c45e47ce09cd9e2eb123bb49214f65649f1"
+  },
+  "constraints": {
+    "animations": [
+      "echo_pounce_tell",
+      "echo_pounce",
+      "echo_pounce_recovery"
+    ],
+    "frames_per_animation": 3,
+    "frame_size": [160, 128],
+    "transparent_background": true,
+    "continuous_naming": true,
+    "gameplay_role": "Boss2 fixed-location secondary attack startup, landing and recovery"
+  }
+}

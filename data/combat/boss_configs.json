@@ -64,6 +64,55 @@
 				"size": {"x": 960, "y": 540}
 			}
 		},
+		"boss_02_echo_guardian": {
+			"boss_id": "boss_02_echo_guardian",
+			"display_name": "Echo Guardian",
+			"max_hp": 36,
+			"phases": [
+				{
+					"phase_id": 1,
+					"hp_threshold": 1.0,
+					"attack_patterns": ["echo_swipe", "echo_pounce"],
+					"attack_speed_modifier": 1.0,
+					"special_attacks": [],
+					"transition_animation": "idle",
+					"arena_changes": []
+				},
+				{
+					"phase_id": 2,
+					"hp_threshold": 0.5,
+					"attack_patterns": ["echo_swipe", "echo_pounce"],
+					"attack_speed_modifier": 1.2,
+					"special_attacks": [],
+					"transition_animation": "idle",
+					"arena_changes": []
+				}
+			],
+			"summon_rules": {
+				"phase_id": 99,
+				"summon_id": "none",
+				"summon_interval_sec": 999.0,
+				"summon_max_count": 1
+			},
+			"desperation_rules": {
+				"phase_id": 2,
+				"hp_threshold": 0.15,
+				"defense_modifier": 1.0
+			},
+			"parry_rules": {
+				"damage_multiplier": 5.0,
+				"enter_stun": false
+			},
+			"defeat_rewards": {
+				"ability_unlock": "double_jump",
+				"currency": 0,
+				"skill_points": 0
+			},
+			"arena_bounds": {
+				"position": {"x": -160, "y": -128},
+				"size": {"x": 320, "y": 256}
+			}
+		},
 		"boss_04_crown_warden": {
 			"boss_id": "boss_04_crown_warden",
 			"display_name": "Crown Warden",

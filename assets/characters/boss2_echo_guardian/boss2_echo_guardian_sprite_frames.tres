@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=19 format=3]
+[gd_resource type="SpriteFrames" load_steps=28 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/idle/boss2_echo_guardian_idle_000.png" id="1_idle0"]
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/idle/boss2_echo_guardian_idle_001.png" id="2_idle1"]
@@ -12,6 +12,15 @@
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/attack_tell/boss2_echo_guardian_attack_tell_000.png" id="13_tell0"]
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/attack_tell/boss2_echo_guardian_attack_tell_001.png" id="14_tell1"]
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/attack_tell/boss2_echo_guardian_attack_tell_002.png" id="15_tell2"]
+[ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/echo_pounce_tell/boss2_echo_guardian_echo_pounce_tell_000.png" id="16_pounce_tell0"]
+[ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/echo_pounce_tell/boss2_echo_guardian_echo_pounce_tell_001.png" id="17_pounce_tell1"]
+[ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/echo_pounce_tell/boss2_echo_guardian_echo_pounce_tell_002.png" id="18_pounce_tell2"]
+[ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/echo_pounce/boss2_echo_guardian_echo_pounce_000.png" id="19_pounce0"]
+[ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/echo_pounce/boss2_echo_guardian_echo_pounce_001.png" id="20_pounce1"]
+[ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/echo_pounce/boss2_echo_guardian_echo_pounce_002.png" id="21_pounce2"]
+[ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/echo_pounce_recovery/boss2_echo_guardian_echo_pounce_recovery_000.png" id="22_pounce_recovery0"]
+[ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/echo_pounce_recovery/boss2_echo_guardian_echo_pounce_recovery_001.png" id="23_pounce_recovery1"]
+[ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/echo_pounce_recovery/boss2_echo_guardian_echo_pounce_recovery_002.png" id="24_pounce_recovery2"]
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/hurt/boss2_echo_guardian_hurt_000.png" id="7_hurt0"]
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/hurt/boss2_echo_guardian_hurt_001.png" id="8_hurt1"]
 [ext_resource type="Texture2D" path="res://assets/characters/boss2_echo_guardian/hurt/boss2_echo_guardian_hurt_002.png" id="9_hurt2"]
@@ -62,6 +71,48 @@ animations = [{
 "loop": false,
 "name": &"attack_tell",
 "speed": 18.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("16_pounce_tell0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_pounce_tell1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_pounce_tell2")
+}],
+"loop": false,
+"name": &"echo_pounce_tell",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("19_pounce0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("20_pounce1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("21_pounce2")
+}],
+"loop": false,
+"name": &"echo_pounce",
+"speed": 30.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("22_pounce_recovery0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_pounce_recovery1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("24_pounce_recovery2")
+}],
+"loop": false,
+"name": &"echo_pounce_recovery",
+"speed": 12.0
 }, {
 "frames": [{
 "duration": 1.0,

@@ -212,6 +212,7 @@ recording the reward in progression state.
 | 172 | Crown Observatory Wall-Climb Epilogue Ascent | Integration + Gameplay + Exploration + Save | Complete | ADR-0001/0002/0007/0008/0013/0015/0021 |
 | 173 | Sluice Matriarch Pressure Geyser Pattern | Attack Pattern + Frame Animation + VFX | Complete | ADR-0002/0004/0005/0006 |
 | 174 | Sluice Matriarch Phase II Transition Readability | Integration + Gameplay Runtime + Frame Animation | Complete | ADR-0002/0004/0005/0006/0010/0019/0020 |
+| 175 | Echo Guardian Secondary Attack Playable Loop | Attack Pattern + Frame Animation + Data Integration | Complete | ADR-0002/0004/0005/0006/0010/0018 |
 
 ## Definition of Done
 
@@ -231,7 +232,8 @@ This epic is complete when:
 
 ## Next Step
 
-Story174 closes Boss3's half-health rules-change feedback with one generated
-three-frame invulnerable transition while preserving the lunge/geyser schedule.
-Select the next bounded player-visible combat or traversal gap after reviewing
-the completed four-Boss route and post-Boss pacing.
+Story175 gives Echo Guardian a deterministic fixed-location pounce with three
+generated animation states while preserving its opening swipe and progression
+contracts. The next bounded player-visible debt is Crown Warden's Phase II
+transition, which currently holds on the final hurt frame during the rules-change
+window.

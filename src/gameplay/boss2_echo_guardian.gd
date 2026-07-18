@@ -11,6 +11,8 @@ signal on_boss_phase_transition_started(entity_id: int, phase: int, metadata: Di
 const ENTITY_ID: int = 2200
 const BOSS_ID: StringName = &"boss_02_echo_guardian"
 const DISPLAY_NAME: String = "Echo Guardian"
+const ENEMY_STATS_PATH: String = "res://data/combat/enemy_stats.json"
+const BOSS_CONFIG_PATH: String = "res://data/combat/boss_configs.json"
 const MAX_HP: int = 36
 const PHASE_ONE: int = 1
 const PHASE_TWO: int = 2
@@ -33,6 +35,15 @@ const ATTACK_HITBOX_SIZE: Vector2 = Vector2(72, 34)
 const ATTACK_HITBOX_OFFSET: Vector2 = Vector2(56, -38)
 const ATTACK_DAMAGE: int = 14
 const ATTACK_HIT_FRAME: int = 99
+const SWIPE_PATTERN_ID: StringName = &"echo_swipe"
+const POUNCE_PATTERN_ID: StringName = &"echo_pounce"
+const POUNCE_HITBOX_ID: StringName = &"boss2_echo_pounce"
+const POUNCE_STARTUP_FRAMES: int = 18
+const POUNCE_ACTIVE_FRAMES: int = 6
+const POUNCE_RECOVERY_FRAMES: int = 18
+const POUNCE_DAMAGE: int = 12
+const POUNCE_HITBOX_SIZE: Vector2 = Vector2(100, 48)
+const POUNCE_HITBOX_OFFSET: Vector2 = Vector2(0, -24)
 const BOSS2_HURTBOX_SIZE: Vector2 = Vector2(78, 72)
 const HIT_FLASH_FRAMES: int = 5
 const NORMAL_MODULATE: Color = Color.WHITE
@@ -41,8 +52,13 @@ const ANIMATION_IDLE: StringName = &"idle"
 const ANIMATION_RUN: StringName = &"run"
 const ANIMATION_ATTACK_TELL: StringName = &"attack_tell"
 const ANIMATION_ATTACK: StringName = &"attack"
+const ANIMATION_POUNCE_TELL: StringName = &"echo_pounce_tell"
+const ANIMATION_POUNCE: StringName = &"echo_pounce"
+const ANIMATION_POUNCE_RECOVERY: StringName = &"echo_pounce_recovery"
 const ANIMATION_HURT: StringName = &"hurt"
 const ANIMATION_DEATH: StringName = &"death"
+const FOCUS_TELL_DEFAULT_POSITION: Vector2 = Vector2(0, -48)
+const POUNCE_TELL_WORLD_Y_OFFSET: float = -24.0
 const HEALTH_COMPONENT_SCRIPT: Script = preload("res://src/core/health_component.gd")
 const COLLISION_COMPONENT_SCRIPT: Script = preload("res://src/core/collision_component.gd")
 const COMBAT_COMPONENT_SCRIPT: Script = preload("res://src/core/combat_component.gd")
@@ -80,12 +96,23 @@ var _audio_chase_active: bool = false
 var _last_audio_hp: int = MAX_HP
 var _target_focus_mode_active: bool = false
 var _focus_windup_extension_frames: int = 0
+var _attack_patterns: Dictionary = {}
+var _phase_speed_modifiers: Dictionary = {
+	PHASE_ONE: 1.0,
+	PHASE_TWO: 1.2,
+}
+var _current_attack_pattern_id: StringName = SWIPE_PATTERN_ID
+var _next_attack_pattern_index: int = 0
+var _locked_pounce_position: Vector2 = Vector2.ZERO
+var _loaded_enemy_stats: bool = false
+var _loaded_boss_config: bool = false
 
 
 func _ready() -> void:
 	_default_collision_layer = collision_layer
 	_default_collision_mask = collision_mask
 	_arena_anchor_position = global_position
+	_load_data_config()
 	_ensure_core_components()
 	_setup_core_components()
 	_last_audio_hp = get_current_hp()
@@ -175,19 +202,28 @@ func request_attack() -> bool:
 			or not _has_valid_attack_target():
 		return false
 	_face_attack_target()
+	_current_attack_pattern_id = _next_pattern_id()
+	if _current_attack_pattern_id == &"":
+		return false
+	if _current_attack_pattern_id == POUNCE_PATTERN_ID:
+		_lock_pounce_target()
+	else:
+		_locked_pounce_position = Vector2.ZERO
 	_attack_sequence_id += 1
-	_current_attack_startup_frames = _next_attack_startup_frames()
+	_current_attack_startup_frames = _attack_startup_frames_for(
+		_current_attack_pattern_id
+	)
 	_attack_timer = _current_attack_startup_frames
 	_state = State.ATTACK_TELL
 	_behavior_phase = &"startup"
 	_audio_chase_active = false
-	if _collision != null:
-		_collision.deactivate_hitbox(ATTACK_HITBOX_ID)
-	_play_animation(ANIMATION_ATTACK_TELL, true)
-	_begin_focus_attack_tell(ATTACK_TELL_FRAMES)
+	_deactivate_attack_hitboxes()
+	_play_animation(_tell_animation_for(_current_attack_pattern_id), true)
+	_begin_pattern_attack_tell()
 	_emit_boss2_audio_event(&"attack_startup", {
 		"attack_sequence_id": _attack_sequence_id,
 		"attack_phase": &"startup",
+		"pattern_id": _current_attack_pattern_id,
 	})
 	return true
 
@@ -260,6 +296,7 @@ func reset_encounter() -> void:
 	_encounter_active = true
 	_defeated = false
 	_state = State.IDLE
+	_reset_attack_pattern_sequence()
 	_stop_focus_attack_tell()
 	_behavior_phase = &"idle"
 	global_position = _arena_anchor_position
@@ -290,6 +327,7 @@ func reset_encounter() -> void:
 func mark_defeated_from_progress() -> void:
 	_defeated = true
 	_state = State.DEAD
+	_locked_pounce_position = Vector2.ZERO
 	_stop_focus_attack_tell()
 	_behavior_phase = &"defeated"
 	_attack_timer = 0
@@ -368,6 +406,7 @@ func restore_respawn_snapshot(snapshot: Dictionary) -> void:
 	global_position = _read_vector2(snapshot.get("global_position", global_position), global_position)
 	_defeated = false
 	_state = State.IDLE
+	_reset_attack_pattern_sequence()
 	_stop_focus_attack_tell()
 	_behavior_phase = &"idle"
 	_current_phase = PHASE_ONE
@@ -408,14 +447,34 @@ func get_current_attack_sequence_id() -> int:
 	return _attack_sequence_id
 
 
+func get_current_attack_pattern_id() -> StringName:
+	return _current_attack_pattern_id
+
+
 func get_current_attack_startup_frames() -> int:
 	if _is_attack_chain_active():
 		return _current_attack_startup_frames
-	return _next_attack_startup_frames()
+	return _attack_startup_frames_for(_peek_next_pattern_id())
 
 
 func get_attack_startup_frames() -> int:
 	return get_current_attack_startup_frames()
+
+
+func get_current_attack_active_frames() -> int:
+	return _pattern_timing_frames(
+		_current_attack_pattern_id,
+		"active_frames",
+		ATTACK_ACTIVE_FRAMES
+	)
+
+
+func get_current_attack_recovery_frames() -> int:
+	return _pattern_timing_frames(
+		_current_attack_pattern_id,
+		"recovery_frames",
+		ATTACK_RECOVERY_FRAMES
+	)
 
 
 func set_target_focus_mode(active: bool, metadata: Dictionary = {}) -> bool:
@@ -436,13 +495,23 @@ func set_target_focus_mode(active: bool, metadata: Dictionary = {}) -> bool:
 
 
 func get_focus_windup_diagnostics() -> Dictionary:
+	var pattern_id: StringName = (
+		_current_attack_pattern_id
+		if _is_attack_chain_active()
+		else _peek_next_pattern_id()
+	)
 	return {
 		"focus_mode_active": _target_focus_mode_active,
-		"base_startup_frames": ATTACK_TELL_FRAMES,
+		"base_startup_frames": _pattern_timing_frames(
+			pattern_id,
+			"startup_frames",
+			ATTACK_TELL_FRAMES
+		),
 		"windup_extension_frames": _focus_windup_extension_frames,
 		"current_attack_startup_frames": get_current_attack_startup_frames(),
 		"attack_phase": String(get_attack_phase()),
 		"attack_sequence_id": _attack_sequence_id,
+		"pattern_id": pattern_id,
 	}
 
 
@@ -502,6 +571,31 @@ func get_auto_pressure_diagnostics() -> Dictionary:
 	}
 
 
+func get_secondary_attack_diagnostics() -> Dictionary:
+	var tell_visible: bool = false
+	var tell_global_x: float = INF
+	var tell_node: Node2D = _focus_attack_tell as Node2D
+	if tell_node != null:
+		tell_visible = tell_node.visible
+		tell_global_x = tell_node.global_position.x
+	return {
+		"loaded_enemy_stats": _loaded_enemy_stats,
+		"loaded_boss_config": _loaded_boss_config,
+		"current_pattern_id": _current_attack_pattern_id,
+		"next_pattern_id": _peek_next_pattern_id(),
+		"locked_pounce_position": _locked_pounce_position,
+		"landing_tell_visible": (
+			tell_visible and _current_attack_pattern_id == POUNCE_PATTERN_ID
+		),
+		"landing_tell_global_x": tell_global_x,
+		"phase_speed_modifier": _current_phase_speed_modifier(),
+		"startup_frames": get_current_attack_startup_frames(),
+		"active_frames": get_current_attack_active_frames(),
+		"recovery_frames": get_current_attack_recovery_frames(),
+		"hitbox_id": _current_hitbox_id(),
+	}
+
+
 func _process_idle(auto_attack: bool = true) -> void:
 	velocity = Vector2.ZERO
 	_update_sprite_facing()
@@ -551,21 +645,27 @@ func _enter_attack_active() -> void:
 	_stop_focus_attack_tell()
 	_state = State.ATTACK_ACTIVE
 	_behavior_phase = &"active"
-	_attack_timer = ATTACK_ACTIVE_FRAMES
+	_attack_timer = get_current_attack_active_frames()
 	_audio_chase_active = false
-	_play_animation(ANIMATION_ATTACK, true)
+	if _current_attack_pattern_id == POUNCE_PATTERN_ID:
+		global_position.x = _locked_pounce_position.x
+		velocity = Vector2.ZERO
+	_play_animation(_active_animation_for(_current_attack_pattern_id), true)
+	var hitbox_id: StringName = _current_hitbox_id()
 	_emit_boss2_audio_event(&"attack_active", {
 		"attack_sequence_id": _attack_sequence_id,
 		"attack_phase": &"active",
-		"hitbox_id": ATTACK_HITBOX_ID,
+		"pattern_id": _current_attack_pattern_id,
+		"hitbox_id": hitbox_id,
+		"locked_position": _locked_pounce_position,
 	})
-	if _collision == null:
+	if _collision == null or hitbox_id == &"":
 		return
 	_collision.activate_hitbox(
-		ATTACK_HITBOX_ID,
-		ATTACK_ACTIVE_FRAMES,
-		Vector2(_facing * ATTACK_HITBOX_OFFSET.x, ATTACK_HITBOX_OFFSET.y),
-		ATTACK_HITBOX_SIZE,
+		hitbox_id,
+		get_current_attack_active_frames(),
+		_current_hitbox_offset(),
+		_current_hitbox_size(),
 		_build_attack_metadata()
 	)
 
@@ -573,7 +673,7 @@ func _enter_attack_active() -> void:
 func _process_attack_active() -> void:
 	_behavior_phase = &"active"
 	velocity = Vector2.ZERO
-	_play_animation(ANIMATION_ATTACK)
+	_play_animation(_active_animation_for(_current_attack_pattern_id))
 	_attack_timer -= 1
 	if _attack_timer <= 0:
 		_enter_attack_recovery()
@@ -582,14 +682,17 @@ func _process_attack_active() -> void:
 func _enter_attack_recovery() -> void:
 	_state = State.ATTACK_RECOVERY
 	_behavior_phase = &"recovery"
-	_attack_timer = ATTACK_RECOVERY_FRAMES
-	if _collision != null:
-		_collision.deactivate_hitbox(ATTACK_HITBOX_ID)
+	_attack_timer = get_current_attack_recovery_frames()
+	_deactivate_attack_hitboxes()
+	if _current_attack_pattern_id == POUNCE_PATTERN_ID:
+		_play_animation(ANIMATION_POUNCE_RECOVERY, true)
 
 
 func _process_attack_recovery() -> void:
 	_behavior_phase = &"recovery"
 	velocity = Vector2.ZERO
+	if _current_attack_pattern_id == POUNCE_PATTERN_ID:
+		_play_animation(ANIMATION_POUNCE_RECOVERY)
 	_attack_timer -= 1
 	if _attack_timer <= 0:
 		_state = State.IDLE
@@ -676,6 +779,7 @@ func _die(_metadata: Dictionary) -> void:
 	_behavior_phase = &"defeated"
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
+	_locked_pounce_position = Vector2.ZERO
 	_pending_phase_two_hp_percentage = -1.0
 	if _collision != null:
 		_collision.deactivate_all_hitboxes()
@@ -708,15 +812,19 @@ func _on_core_attack_hit(metadata: Dictionary) -> void:
 
 
 func _build_attack_metadata() -> Dictionary:
+	var pattern: Dictionary = _current_pattern()
+	var hitbox_id: StringName = _current_hitbox_id()
 	return {
 		"source": &"boss2_echo_guardian",
-		"attack_type": &"light",
-		"weapon_id": ATTACK_HITBOX_ID,
+		"attack_type": StringName(String(pattern.get("attack_type", "light"))),
+		"weapon_id": hitbox_id,
 		"combo_index": 0,
 		"hit_frame": ATTACK_HIT_FRAME,
 		"attack_power": 0,
 		"enemy_defense": 0,
 		"attack_sequence_id": _attack_sequence_id,
+		"pattern_id": _current_attack_pattern_id,
+		"locked_position": _locked_pounce_position,
 		"injected_damage_params": _build_enemy_damage_params(),
 	}
 
@@ -729,26 +837,32 @@ func _emit_boss2_audio_event(event_id: StringName, metadata: Dictionary = {}) ->
 	event_metadata["position"] = global_position
 	event_metadata["behavior_phase"] = _behavior_phase
 	event_metadata["attack_phase"] = get_attack_phase()
+	event_metadata["pattern_id"] = _current_attack_pattern_id
 	event_metadata["phase"] = _current_phase
 	event_metadata["facing"] = _facing
 	boss2_audio_event_requested.emit(event_id, event_metadata)
 
 
 func _build_enemy_damage_params() -> Dictionary:
-	return {
-		"entries": {
-			String(ATTACK_HITBOX_ID): {
-				"weapon_base": ATTACK_DAMAGE,
-				"combo_multipliers": {
-					"0": 1.0,
-				},
-				"special_move": {
-					"multiplier": 1.0,
-					"hits": 1,
-				},
+	var entries: Dictionary = {}
+	for pattern_value: Variant in _attack_patterns.values():
+		if not pattern_value is Dictionary:
+			continue
+		var pattern: Dictionary = Dictionary(pattern_value)
+		var hitbox_id: String = String(pattern.get("hitbox_id", ""))
+		if hitbox_id == "":
+			continue
+		entries[hitbox_id] = {
+			"weapon_base": maxi(1, int(pattern.get("damage", 1))),
+			"combo_multipliers": {
+				"0": 1.0,
 			},
-		},
-	}
+			"special_move": {
+				"multiplier": 1.0,
+				"hits": 1,
+			},
+		}
+	return {"entries": entries}
 
 
 func _can_auto_attack_target() -> bool:
@@ -831,7 +945,7 @@ func _build_phase_transition_metadata(previous_phase: int, hp_percentage: float)
 		"world_position": global_position + Vector2(0, -56),
 		"position": global_position,
 		"source": &"boss2_echo_guardian",
-		"attack_speed_modifier": 1.2,
+		"attack_speed_modifier": _current_phase_speed_modifier(),
 		"chase_step_px": _current_chase_step_px(),
 		"attack_cooldown_frames": _current_attack_cooldown_frames(),
 	}
@@ -847,6 +961,259 @@ func _current_attack_cooldown_frames() -> int:
 	if _current_phase >= PHASE_TWO:
 		return PHASE_TWO_ATTACK_COOLDOWN_FRAMES
 	return ATTACK_COOLDOWN_FRAMES
+
+
+func _load_data_config() -> void:
+	_attack_patterns = _build_default_attack_patterns()
+	_loaded_enemy_stats = false
+	_loaded_boss_config = false
+	var enemy_entry: Dictionary = _read_data_entry(
+		&"enemy_stats",
+		BOSS_ID,
+		ENEMY_STATS_PATH
+	)
+	if not enemy_entry.is_empty():
+		var parsed_patterns: Dictionary = {}
+		for pattern_value: Variant in Array(enemy_entry.get("attack_patterns", [])):
+			if not pattern_value is Dictionary:
+				continue
+			var normalized: Dictionary = _normalize_attack_pattern(
+				Dictionary(pattern_value)
+			)
+			var pattern_id: String = String(normalized.get("pattern_id", ""))
+			if pattern_id != "":
+				parsed_patterns[pattern_id] = normalized
+		if (
+			parsed_patterns.has(String(SWIPE_PATTERN_ID))
+			and parsed_patterns.has(String(POUNCE_PATTERN_ID))
+		):
+			_attack_patterns = parsed_patterns
+			_loaded_enemy_stats = true
+
+	var boss_config: Dictionary = _read_data_entry(
+		&"boss_configs",
+		BOSS_ID,
+		BOSS_CONFIG_PATH
+	)
+	var phases: Array = Array(boss_config.get("phases", []))
+	if StringName(String(boss_config.get("boss_id", ""))) == BOSS_ID \
+			and phases.size() == 2:
+		for phase_value: Variant in phases:
+			if not phase_value is Dictionary:
+				continue
+			var phase: Dictionary = Dictionary(phase_value)
+			var phase_id: int = int(phase.get("phase_id", 0))
+			if phase_id != PHASE_ONE and phase_id != PHASE_TWO:
+				continue
+			_phase_speed_modifiers[phase_id] = maxf(
+				0.01,
+				float(phase.get("attack_speed_modifier", 1.0))
+			)
+		_loaded_boss_config = true
+
+
+func _read_data_entry(
+	domain: StringName,
+	entry_id: StringName,
+	fallback_path: String
+) -> Dictionary:
+	var data_manager: Node = get_node_or_null("/root/DataManager")
+	if data_manager != null and data_manager.has_method("get_entry"):
+		var entry_value: Variant = data_manager.call("get_entry", domain, entry_id)
+		if entry_value is Dictionary and not Dictionary(entry_value).is_empty():
+			return Dictionary(entry_value).duplicate(true)
+	if not FileAccess.file_exists(fallback_path):
+		return {}
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(fallback_path))
+	if not parsed is Dictionary:
+		return {}
+	return Dictionary(Dictionary(parsed).get("entries", {})).get(
+		String(entry_id),
+		{}
+	) as Dictionary
+
+
+func _normalize_attack_pattern(raw: Dictionary) -> Dictionary:
+	var hitbox: Dictionary = Dictionary(raw.get("hitbox_config", {}))
+	return {
+		"pattern_id": String(raw.get("pattern_id", "")),
+		"startup_frames": maxi(1, int(raw.get("startup_frames", 1))),
+		"active_frames": maxi(1, int(raw.get("active_frames", 1))),
+		"recovery_frames": maxi(1, int(raw.get("recovery_frames", 1))),
+		"damage": maxi(1, int(raw.get("damage", 1))),
+		"attack_type": String(raw.get("attack_type", "light")),
+		"apply_phase_speed_modifier": bool(raw.get(
+			"apply_phase_speed_modifier",
+			false
+		)),
+		"hitbox_id": String(hitbox.get("hitbox_id", "")),
+		"hitbox_offset": _read_config_vector2(
+			hitbox.get("offset", {}),
+			Vector2.ZERO
+		),
+		"hitbox_size": _read_config_vector2(
+			hitbox.get("size", {}),
+			Vector2(64, 48)
+		),
+	}
+
+
+func _build_default_attack_patterns() -> Dictionary:
+	return {
+		String(SWIPE_PATTERN_ID): {
+			"pattern_id": String(SWIPE_PATTERN_ID),
+			"startup_frames": ATTACK_TELL_FRAMES,
+			"active_frames": ATTACK_ACTIVE_FRAMES,
+			"recovery_frames": ATTACK_RECOVERY_FRAMES,
+			"damage": ATTACK_DAMAGE,
+			"attack_type": "light",
+			"apply_phase_speed_modifier": false,
+			"hitbox_id": String(ATTACK_HITBOX_ID),
+			"hitbox_offset": ATTACK_HITBOX_OFFSET,
+			"hitbox_size": ATTACK_HITBOX_SIZE,
+		},
+		String(POUNCE_PATTERN_ID): {
+			"pattern_id": String(POUNCE_PATTERN_ID),
+			"startup_frames": POUNCE_STARTUP_FRAMES,
+			"active_frames": POUNCE_ACTIVE_FRAMES,
+			"recovery_frames": POUNCE_RECOVERY_FRAMES,
+			"damage": POUNCE_DAMAGE,
+			"attack_type": "light",
+			"apply_phase_speed_modifier": true,
+			"hitbox_id": String(POUNCE_HITBOX_ID),
+			"hitbox_offset": POUNCE_HITBOX_OFFSET,
+			"hitbox_size": POUNCE_HITBOX_SIZE,
+		},
+	}
+
+
+func _ordered_pattern_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for pattern_id: StringName in [SWIPE_PATTERN_ID, POUNCE_PATTERN_ID]:
+		if _attack_patterns.has(String(pattern_id)):
+			result.append(pattern_id)
+	return result
+
+
+func _peek_next_pattern_id() -> StringName:
+	var pattern_ids: Array[StringName] = _ordered_pattern_ids()
+	if pattern_ids.is_empty():
+		return &""
+	return pattern_ids[_next_attack_pattern_index % pattern_ids.size()]
+
+
+func _next_pattern_id() -> StringName:
+	var selected: StringName = _peek_next_pattern_id()
+	if selected == &"":
+		return selected
+	var pattern_count: int = _ordered_pattern_ids().size()
+	_next_attack_pattern_index = (
+		(_next_attack_pattern_index + 1) % pattern_count
+		if pattern_count > 0
+		else 0
+	)
+	return selected
+
+
+func _current_pattern() -> Dictionary:
+	return Dictionary(_attack_patterns.get(String(_current_attack_pattern_id), {}))
+
+
+func _pattern_timing_frames(
+	pattern_id: StringName,
+	field: String,
+	fallback: int
+) -> int:
+	var pattern: Dictionary = Dictionary(_attack_patterns.get(String(pattern_id), {}))
+	var base_frames: int = maxi(1, int(pattern.get(field, fallback)))
+	if (
+		field != "active_frames"
+		and _current_phase >= PHASE_TWO
+		and bool(pattern.get("apply_phase_speed_modifier", false))
+	):
+		return maxi(1, roundi(float(base_frames) / _current_phase_speed_modifier()))
+	return base_frames
+
+
+func _attack_startup_frames_for(pattern_id: StringName) -> int:
+	return _pattern_timing_frames(
+		pattern_id,
+		"startup_frames",
+		ATTACK_TELL_FRAMES
+	) + _focus_windup_extension_frames
+
+
+func _current_phase_speed_modifier() -> float:
+	return maxf(0.01, float(_phase_speed_modifiers.get(_current_phase, 1.0)))
+
+
+func _current_hitbox_id() -> StringName:
+	return StringName(String(_current_pattern().get("hitbox_id", "")))
+
+
+func _current_hitbox_offset() -> Vector2:
+	var value: Variant = _current_pattern().get(
+		"hitbox_offset",
+		ATTACK_HITBOX_OFFSET
+	)
+	var offset: Vector2 = value as Vector2 if value is Vector2 else ATTACK_HITBOX_OFFSET
+	return Vector2(_facing * offset.x, offset.y)
+
+
+func _current_hitbox_size() -> Vector2:
+	var value: Variant = _current_pattern().get("hitbox_size", ATTACK_HITBOX_SIZE)
+	return value as Vector2 if value is Vector2 else ATTACK_HITBOX_SIZE
+
+
+func _tell_animation_for(pattern_id: StringName) -> StringName:
+	return ANIMATION_POUNCE_TELL if pattern_id == POUNCE_PATTERN_ID else ANIMATION_ATTACK_TELL
+
+
+func _active_animation_for(pattern_id: StringName) -> StringName:
+	return ANIMATION_POUNCE if pattern_id == POUNCE_PATTERN_ID else ANIMATION_ATTACK
+
+
+func _lock_pounce_target() -> void:
+	var half_hitbox_width: float = _current_hitbox_size().x * 0.5
+	var min_landing_x: float = _arena_min_x() + half_hitbox_width
+	var max_landing_x: float = _arena_max_x() - half_hitbox_width
+	_locked_pounce_position = Vector2(
+		clampf(_attack_target.global_position.x, min_landing_x, max_landing_x),
+		global_position.y
+	)
+
+
+func _deactivate_attack_hitboxes() -> void:
+	if _collision == null:
+		return
+	_collision.deactivate_hitbox(ATTACK_HITBOX_ID)
+	_collision.deactivate_hitbox(POUNCE_HITBOX_ID)
+
+
+func _reset_attack_pattern_sequence() -> void:
+	_current_attack_pattern_id = SWIPE_PATTERN_ID
+	_next_attack_pattern_index = 0
+	_locked_pounce_position = Vector2.ZERO
+	var tell_node: Node2D = _focus_attack_tell as Node2D
+	if tell_node != null:
+		tell_node.position = FOCUS_TELL_DEFAULT_POSITION
+
+
+func _begin_pattern_attack_tell() -> void:
+	var tell_node: Node2D = _focus_attack_tell as Node2D
+	if tell_node != null:
+		if _current_attack_pattern_id == POUNCE_PATTERN_ID:
+			tell_node.global_position = Vector2(
+				_locked_pounce_position.x,
+				_locked_pounce_position.y + POUNCE_TELL_WORLD_Y_OFFSET
+			)
+		else:
+			tell_node.position = FOCUS_TELL_DEFAULT_POSITION
+	_begin_focus_attack_tell(_pattern_timing_frames(
+		_current_attack_pattern_id,
+		"startup_frames",
+		ATTACK_TELL_FRAMES
+	))
 
 
 func _begin_focus_attack_tell(base_duration_frames: int) -> void:
@@ -866,10 +1233,6 @@ func _advance_focus_attack_tell() -> void:
 func _stop_focus_attack_tell() -> void:
 	if _focus_attack_tell != null:
 		_focus_attack_tell.call("stop")
-
-
-func _next_attack_startup_frames() -> int:
-	return ATTACK_TELL_FRAMES + _focus_windup_extension_frames
 
 
 func _is_attack_chain_active() -> bool:
@@ -956,6 +1319,18 @@ func _read_vector2(value: Variant, fallback: Vector2) -> Vector2:
 	if value is Vector2:
 		return value
 	return fallback
+
+
+func _read_config_vector2(value: Variant, fallback: Vector2) -> Vector2:
+	if value is Vector2:
+		return value
+	if not value is Dictionary:
+		return fallback
+	var source: Dictionary = Dictionary(value)
+	return Vector2(
+		float(source.get("x", fallback.x)),
+		float(source.get("y", fallback.y))
+	)
 
 
 func _read_int(value: Variant, fallback: int) -> int:

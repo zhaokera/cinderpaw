@@ -223,6 +223,52 @@
 				}
 			]
 		},
+		"boss_02_echo_guardian": {
+			"max_hp": 36,
+			"patrol_speed": 0,
+			"attack_patterns": [
+				{
+					"pattern_id": "echo_swipe",
+					"startup_frames": 8,
+					"active_frames": 4,
+					"recovery_frames": 14,
+					"damage": 14,
+					"damage_type": "physical",
+					"attack_type": "light",
+					"apply_phase_speed_modifier": false,
+					"hitbox_config": {
+						"hitbox_id": "boss2_echo_swipe",
+						"offset": {"x": 56, "y": -38},
+						"size": {"x": 72, "y": 34}
+					},
+					"vulnerability_window": {
+						"start_frame": 4,
+						"size_frames": 4
+					},
+					"base_weight": 1.0
+				},
+				{
+					"pattern_id": "echo_pounce",
+					"startup_frames": 18,
+					"active_frames": 6,
+					"recovery_frames": 18,
+					"damage": 12,
+					"damage_type": "electric",
+					"attack_type": "light",
+					"apply_phase_speed_modifier": true,
+					"hitbox_config": {
+						"hitbox_id": "boss2_echo_pounce",
+						"offset": {"x": 0, "y": -24},
+						"size": {"x": 100, "y": 48}
+					},
+					"vulnerability_window": {
+						"start_frame": 10,
+						"size_frames": 8
+					},
+					"base_weight": 1.0
+				}
+			]
+		},
 		"boss_04_crown_warden": {
 			"max_hp": 160,
 			"patrol_speed": 0,

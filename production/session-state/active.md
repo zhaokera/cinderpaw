@@ -6486,3 +6486,29 @@
   `2.49s/2.50s` boundary, three frames at `6 FPS`, rejected damage, 32 debris,
   Phase II HUD/audio, clean logs and a non-empty `1278x718` screenshot.
 - Blockers: None for Story174.
+
+## Session Extract -- Player Abilities Story175 2026-07-18
+
+- Delivery checkpoint: Story175 is complete as a bounded Echo Guardian attack
+  variety slice. The broader complete-game goal remains active.
+- Runtime: Boss2 now starts with its unchanged swipe and alternates with a
+  fixed-location echo pounce. The pounce locks/clamps target X at startup,
+  lands without tracking later movement, enables one `100x48` hitbox for six
+  frames, deals `12` once and returns to swipe.
+- Data: Enemy stats own `18/6/18` pounce timing and damage; Boss config owns
+  both phase patterns and the Phase II `1.2` speed modifier. Focus adds the
+  existing six startup frames, yielding `21/6/15` in Phase II.
+- Presentation: built-in image generation produced tell and landing source
+  strips plus alpha intermediates. Nine transparent `160x128` runtime frames
+  mount as three non-looping `AnimatedSprite2D + SpriteFrames` animations; the
+  existing Focus warning moves to the committed landing point.
+- Verification: RED `report_1936`; damage-contract correction `report_1937`;
+  focused GREEN `report_1938` `1/1`; bounded Boss2 regression `report_1939`
+  `6/6`; fresh pre-push `report_1940` `6/6`; targeted Main smoke exit `0`.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`, run
+  `r270691445-77`. Runtime proved startup lock, player movement independence,
+  one real `12`-damage hit, recovery cleanup, three-frame resources, non-empty
+  `1278x718` screenshot, info-only game logs, zero editor errors and clean stop.
+- Next: replace Crown Warden's hurt-frame Phase II hold with a dedicated
+  generated transition animation while preserving Story163 timing and logic.
+- Blockers: None for Story175.
