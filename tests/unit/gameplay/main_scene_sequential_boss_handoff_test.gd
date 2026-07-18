@@ -16,6 +16,7 @@ func after_test() -> void:
 			scene.get_parent().remove_child(scene)
 		scene.free()
 	_spawned_scenes.clear()
+	_stop_runtime_audio()
 
 
 func test_rat_king_victory_restore_hands_main_encounter_to_boss2_once() -> void:
@@ -115,3 +116,17 @@ func _assert_rat_king_encounter(diagnostics: Dictionary) -> void:
 	assert_bool(bool(diagnostics.get("boss2_room_seals_enabled", true))).is_false()
 	assert_bool(bool(diagnostics.get("boss2_camera_lock_enabled", true))).is_false()
 	assert_str(String(diagnostics.get("boss_hud_label", ""))).contains("垃圾桶鼠王")
+
+
+func _stop_runtime_audio() -> void:
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system == null:
+		return
+	if audio_system.has_method("stop_all_runtime_audio"):
+		audio_system.call("stop_all_runtime_audio")
+		return
+	for child: Node in audio_system.get_children():
+		if child is AudioStreamPlayer:
+			(child as AudioStreamPlayer).stop()
+		elif child is AudioStreamPlayer2D:
+			(child as AudioStreamPlayer2D).stop()

@@ -8,6 +8,8 @@ extends CharacterBody2D
 signal enemy_health_changed(current_hp: int, max_hp: int)
 signal enemy_defeated
 signal enemy_attack_landed(damage: int, hit_position: Vector2, is_crit: bool)
+signal phase_one_intro_started(entity_id: int, metadata: Dictionary)
+signal phase_one_intro_finished(entity_id: int, metadata: Dictionary)
 
 const GRAVITY: float = 800.0
 const BOSS_ENTITY_ID: int = 2
@@ -30,6 +32,7 @@ const BOSS_HURTBOX_SIZE: Vector2 = Vector2(72, 86)
 const NORMAL_MODULATE: Color = Color.WHITE
 const HIT_MODULATE: Color = Color(1.0, 0.88, 0.88, 1.0)
 const ANIMATION_IDLE: StringName = &"idle"
+const ANIMATION_PHASE_ONE_INTRO: StringName = &"phase_1_intro"
 const ANIMATION_ATTACK_TELL: StringName = &"attack_tell"
 const ANIMATION_ATTACK: StringName = &"attack"
 const ANIMATION_HURT: StringName = &"hurt"
@@ -53,7 +56,16 @@ const STATUS_EFFECT_COMPONENT_SCRIPT_PATH: String = "res://src/core/status_effec
 const BOSS_CONFIG_COMPONENT_SCRIPT_PATH: String = "res://src/core/boss_config_component.gd"
 const AI_COMPONENT_SCRIPT_PATH: String = "res://src/core/ai_component.gd"
 
-enum State { IDLE, HIT, ATTACK_TELL, ATTACK_ACTIVE, ATTACK_RECOVERY, PHASE_TRANSITION, DEAD }
+enum State {
+	IDLE,
+	INTRO,
+	HIT,
+	ATTACK_TELL,
+	ATTACK_ACTIVE,
+	ATTACK_RECOVERY,
+	PHASE_TRANSITION,
+	DEAD,
+}
 
 var _state: State = State.IDLE
 var _facing: float = -1.0
@@ -61,6 +73,12 @@ var _hit_timer: int = 0
 var _attack_timer: int = 0
 var _attack_cooldown_timer: int = 0
 var _contact_damage_timer: int = 0
+var _phase_one_intro_played_this_attempt: bool = false
+var _phase_one_intro_duration_sec: float = 0.0
+var _phase_one_intro_remaining_sec: float = 0.0
+var _phase_one_intro_started_count: int = 0
+var _phase_one_intro_completed_count: int = 0
+var _phase_one_intro_cancelled_count: int = 0
 var _last_enemy_attack_metadata: Dictionary = {}
 var _active_attack_metadata: Dictionary = {}
 var _attack_target: Node = null
@@ -101,6 +119,8 @@ func _physics_process(delta: float) -> void:
 	match _state:
 		State.IDLE:
 			_process_idle(delta)
+		State.INTRO:
+			_process_phase_one_intro(delta)
 		State.HIT:
 			_process_hit(delta)
 		State.ATTACK_TELL:
@@ -113,6 +133,39 @@ func _physics_process(delta: float) -> void:
 			_process_phase_transition(delta)
 		State.DEAD:
 			return
+
+
+## Starts the authored Phase-I entrance once for the current Boss attempt.
+func request_phase_one_intro() -> bool:
+	if _phase_one_intro_played_this_attempt or _state != State.IDLE:
+		return false
+	if is_defeated() or get_current_phase() != 1:
+		return false
+	var duration_sec: float = _get_animation_duration_sec(ANIMATION_PHASE_ONE_INTRO)
+	if duration_sec <= 0.0:
+		return false
+	_phase_one_intro_played_this_attempt = true
+	_phase_one_intro_duration_sec = duration_sec
+	_phase_one_intro_remaining_sec = duration_sec
+	_phase_one_intro_started_count += 1
+	_state = State.INTRO
+	_stop_focus_attack_tell()
+	_hit_timer = 0
+	_attack_timer = 0
+	_active_attack_metadata.clear()
+	velocity = Vector2.ZERO
+	if _collision != null:
+		_collision.deactivate_all_hitboxes()
+	_sprite.modulate = NORMAL_MODULATE
+	_play_character_animation(ANIMATION_PHASE_ONE_INTRO, true)
+	phase_one_intro_started.emit(BOSS_ENTITY_ID, {
+		"boss_id": BOSS_ID,
+		"display_name": BOSS_DISPLAY_NAME,
+		"animation": ANIMATION_PHASE_ONE_INTRO,
+		"duration_sec": duration_sec,
+		"frame_count": _sprite.sprite_frames.get_frame_count(ANIMATION_PHASE_ONE_INTRO),
+	})
+	return true
 
 
 func request_attack() -> bool:
@@ -162,11 +215,20 @@ func advance_attack_frames(frames: int) -> void:
 
 
 func advance_boss_runtime(delta_sec: float) -> void:
+	var safe_delta: float = maxf(0.0, delta_sec)
+	if _state == State.INTRO:
+		_phase_one_intro_remaining_sec = maxf(
+			0.0,
+			_phase_one_intro_remaining_sec - safe_delta
+		)
+		if _phase_one_intro_remaining_sec <= 0.0:
+			_complete_phase_one_intro()
+		return
 	if _boss_config == null:
 		return
 	var was_transition_active: bool = _boss_config.is_transition_active()
-	_boss_config.advance_transition(maxf(0.0, delta_sec))
-	_boss_config.advance_time(maxf(0.0, delta_sec))
+	_boss_config.advance_transition(safe_delta)
+	_boss_config.advance_time(safe_delta)
 	if was_transition_active and not _boss_config.is_transition_active() and _state == State.PHASE_TRANSITION:
 		_state = State.IDLE
 		_sprite.modulate = NORMAL_MODULATE
@@ -181,7 +243,7 @@ func take_damage() -> void:
 
 
 func apply_damage(final_damage: int, metadata: Dictionary = {}) -> void:
-	if _state == State.DEAD or _health == null:
+	if _state == State.DEAD or _state == State.INTRO or _health == null:
 		return
 	if _boss_config != null and _boss_config.is_invulnerable():
 		return
@@ -383,6 +445,30 @@ func get_focus_attack_tell_diagnostics() -> Dictionary:
 	return Dictionary(_focus_attack_tell.call("get_diagnostics"))
 
 
+## Returns the deterministic Phase-I entrance state for tests and MCP inspection.
+func get_phase_one_intro_diagnostics() -> Dictionary:
+	var frames: SpriteFrames = _sprite.sprite_frames if _sprite != null else null
+	var has_intro: bool = frames != null and frames.has_animation(ANIMATION_PHASE_ONE_INTRO)
+	return {
+		"active": _state == State.INTRO,
+		"played_this_attempt": _phase_one_intro_played_this_attempt,
+		"animation": String(_sprite.animation) if _sprite != null else "",
+		"frame": _sprite.frame if _sprite != null else -1,
+		"playing": _sprite.is_playing() if _sprite != null else false,
+		"frame_count": frames.get_frame_count(ANIMATION_PHASE_ONE_INTRO) if has_intro else 0,
+		"loop": frames.get_animation_loop(ANIMATION_PHASE_ONE_INTRO) if has_intro else false,
+		"speed_fps": frames.get_animation_speed(ANIMATION_PHASE_ONE_INTRO) if has_intro else 0.0,
+		"duration_sec": _phase_one_intro_duration_sec,
+		"remaining_sec": _phase_one_intro_remaining_sec,
+		"started_count": _phase_one_intro_started_count,
+		"completed_count": _phase_one_intro_completed_count,
+		"cancelled_count": _phase_one_intro_cancelled_count,
+		"phase": get_current_phase(),
+		"state": int(_state),
+		"active_hitbox_count": _collision.get_active_hitbox_count() if _collision != null else 0,
+	}
+
+
 ## Returns the SpriteFrames animation that presents one AI attack pattern.
 func get_attack_animation_for_pattern(pattern_id: StringName) -> StringName:
 	var animation_name: StringName = StringName(ATTACK_PATTERN_TO_ANIMATION.get(
@@ -427,8 +513,11 @@ func capture_respawn_snapshot() -> Dictionary:
 
 
 func restore_respawn_snapshot(snapshot: Dictionary) -> void:
+	_cancel_phase_one_intro(&"respawn_reset")
 	global_position = _read_vector2(snapshot.get("global_position", global_position), global_position)
 	_state = State.IDLE
+	_phase_one_intro_played_this_attempt = false
+	_phase_one_intro_remaining_sec = 0.0
 	_stop_focus_attack_tell()
 	_facing = _read_float(snapshot.get("facing", _facing), _facing)
 	_hit_timer = 0
@@ -459,6 +548,7 @@ func restore_respawn_snapshot(snapshot: Dictionary) -> void:
 
 
 func mark_defeated_from_progress() -> void:
+	_cancel_phase_one_intro(&"progress_defeated")
 	_state = State.DEAD
 	_stop_focus_attack_tell()
 	_hit_timer = 0
@@ -493,6 +583,14 @@ func _process_idle(delta: float) -> void:
 	move_and_slide()
 	_update_sprite_facing()
 	_play_character_animation(ANIMATION_IDLE)
+
+
+func _process_phase_one_intro(delta: float) -> void:
+	velocity.x = 0.0
+	velocity.y += GRAVITY * delta
+	move_and_slide()
+	_update_sprite_facing()
+	_play_character_animation(ANIMATION_PHASE_ONE_INTRO)
 
 
 func _process_hit(delta: float) -> void:
@@ -737,6 +835,7 @@ func _on_core_hp_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:
 func _on_core_death(_entity_id: int, _metadata: Dictionary) -> void:
 	if _state == State.DEAD:
 		return
+	_cancel_phase_one_intro(&"death")
 	_state = State.DEAD
 	_stop_focus_attack_tell()
 	if _collision != null:
@@ -756,6 +855,7 @@ func _on_boss_phase_transition_started(
 ) -> void:
 	if _state == State.DEAD:
 		return
+	_cancel_phase_one_intro(&"phase_transition")
 	var animation_name: StringName = StringName(String(metadata.get("transition_animation", "")))
 	if animation_name == &"" or _sprite.sprite_frames == null:
 		return
@@ -870,6 +970,51 @@ func _play_character_animation(animation_name: StringName, restart: bool = false
 		_sprite.frame = 0
 		_sprite.frame_progress = 0.0
 	_sprite.play(animation_name)
+
+
+func _complete_phase_one_intro() -> void:
+	if _state != State.INTRO:
+		return
+	_phase_one_intro_remaining_sec = 0.0
+	_phase_one_intro_completed_count += 1
+	_state = State.IDLE
+	_sprite.modulate = NORMAL_MODULATE
+	_play_character_animation(ANIMATION_IDLE, true)
+	phase_one_intro_finished.emit(BOSS_ENTITY_ID, {
+		"animation": ANIMATION_PHASE_ONE_INTRO,
+		"completed": true,
+		"reason": &"completed",
+	})
+
+
+func _cancel_phase_one_intro(reason: StringName) -> void:
+	if _state != State.INTRO:
+		return
+	_phase_one_intro_remaining_sec = 0.0
+	_phase_one_intro_cancelled_count += 1
+	_state = State.IDLE
+	_sprite.modulate = NORMAL_MODULATE
+	_play_character_animation(ANIMATION_IDLE, true)
+	phase_one_intro_finished.emit(BOSS_ENTITY_ID, {
+		"animation": ANIMATION_PHASE_ONE_INTRO,
+		"completed": false,
+		"reason": reason,
+	})
+
+
+func _get_animation_duration_sec(animation_name: StringName) -> float:
+	if _sprite == null or _sprite.sprite_frames == null:
+		return 0.0
+	var frames: SpriteFrames = _sprite.sprite_frames
+	if not frames.has_animation(animation_name):
+		return 0.0
+	var speed_fps: float = frames.get_animation_speed(animation_name)
+	if speed_fps <= 0.0:
+		return 0.0
+	var duration_sec: float = 0.0
+	for frame_index: int in range(frames.get_frame_count(animation_name)):
+		duration_sec += frames.get_frame_duration(animation_name, frame_index) / speed_fps
+	return duration_sec
 
 
 func _read_vector2(value: Variant, fallback: Vector2) -> Vector2:

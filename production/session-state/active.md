@@ -191,6 +191,17 @@
   evidence from the stories validated at that time.
 
 ## Last Completed Task
+- Combat Presentation Story 036: Rat King Phase-I Runtime Intro -- 真实 Main
+  现在在每次存活的 Phase-I Boss attempt 首个 physics tick 自然进入现有
+  三帧 `phase_1_intro`，时长从 SpriteFrames 计算为 `0.75s`。登场期间 Boss
+  无敌、AI/攻击 Hitbox 关闭，但玩家控制保持可用；完成后只交接一次到
+  `idle` 和正常攻击 startup，Retry 重播，已击败存档跳过。RED
+  `report_1915`；focused GREEN `report_1917` `1/1`；final related
+  `report_1921` `11/11`，exit `0` 且 clean teardown。Godot 4.7 / MCP 3.0.2
+  run `r237489661-70` 未强制播放动画或关闭 physics，自然观察 frame `0→1`、
+  HP `300/300`、无 active Hitbox、玩家未锁、结束后 `claw_swipe/startup`；
+  非空 `1278x718` 截图、3 条 info-only game log、0 editor error、clean stop。
+
 - Combat Presentation Story 035: Rat King Phase-I Authored Intro Frames -- 用
   Rat King 原始精灵表作身份参考，生成蓄势、红芯点燃、抬冠前伸三帧，替换
   原先与 idle 逐帧完全相同的临时素材。三帧保持透明 `192x192`、共同

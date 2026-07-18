@@ -40,6 +40,7 @@ const DEFAULT_NEW_GAME_SPAWN_POINT: StringName = &"default"
 const RAT_KING_BOSS_ID: String = "boss_01_rat_king"
 const RAT_KING_BOSS_DISPLAY_NAME: String = "垃圾桶鼠王"
 const RAT_KING_DEFEATED_FLAG: StringName = &"boss_rat_king_defeated"
+const RAT_KING_PHASE_ONE_INTRO_PROCESS_PRIORITY: int = -100
 const RAT_KING_ATTACK_SOURCE: StringName = &"rat_king_claw"
 const RAT_MINION_ATTACK_SOURCE: StringName = &"rat_minion_bite"
 const BOSS2_ATTACK_SOURCE: StringName = &"boss2_echo_swipe"
@@ -240,6 +241,8 @@ var _boss2_room_seals_enabled: bool = false
 var _boss2_room_seal_reason: StringName = &"not_initialized"
 var _boss2_death_presentation_pending: bool = false
 var _boss2_death_presentation_remaining_sec: float = 0.0
+var _rat_king_phase_one_intro_pending: bool = true
+var _rat_king_phase_one_intro_request_reason: StringName = &"pending"
 var _crown_warden_hub_return_notification_pending: bool = false
 var _act_completion_state: StringName = &"idle"
 var _act_completion_delay_remaining_sec: float = 0.0
@@ -248,6 +251,7 @@ var _act_completion_autosave_succeeded: bool = false
 
 
 func _ready() -> void:
+	process_physics_priority = RAT_KING_PHASE_ONE_INTRO_PROCESS_PRIORITY
 	_setup_skill_tree_manager()
 	_setup_weapon_component()
 	_ensure_summons_container()
@@ -341,6 +345,11 @@ func _process(delta: float) -> void:
 	_update_main_minimap_player_marker()
 	advance_boss2_death_presentation(delta)
 	advance_act_completion(delta)
+
+
+func _physics_process(_delta: float) -> void:
+	if _rat_king_phase_one_intro_pending:
+		request_rat_king_phase_one_intro()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -786,6 +795,12 @@ func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
 	cleanup_arena_mutations()
 	var enemy_snapshot: Dictionary = Dictionary(snapshot.get("enemy", {}))
 	_enemy.restore_respawn_snapshot(enemy_snapshot)
+	_rat_king_phase_one_intro_pending = not bool(
+		_world_progress_flags.get(String(RAT_KING_DEFEATED_FLAG), false)
+	)
+	_rat_king_phase_one_intro_request_reason = (
+		&"retry_pending" if _rat_king_phase_one_intro_pending else &"rat_king_defeated"
+	)
 	var boss2: Node = _get_boss2_echo_guardian()
 	if boss2 != null:
 		if _is_boss2_echo_guardian_defeated():
@@ -888,6 +903,48 @@ func apply_damage(target_id: int, final_damage: int, metadata: Dictionary = {}) 
 		return false
 	minion.call("apply_damage", final_damage, metadata)
 	return true
+
+
+## Requests the natural Rat King entrance for the current Boss attempt.
+func request_rat_king_phase_one_intro() -> bool:
+	_rat_king_phase_one_intro_pending = false
+	if not is_instance_valid(_enemy):
+		_rat_king_phase_one_intro_request_reason = &"enemy_missing"
+		return false
+	if bool(_world_progress_flags.get(String(RAT_KING_DEFEATED_FLAG), false)) \
+			or not _enemy.visible \
+			or (_enemy.has_method("is_defeated") and bool(_enemy.call("is_defeated"))):
+		_rat_king_phase_one_intro_request_reason = &"rat_king_defeated"
+		return false
+	if _game_flow.get_flow_state() in [&"victory_pending", &"victory"]:
+		_rat_king_phase_one_intro_request_reason = &"victory_active"
+		return false
+	if not _enemy.has_method("get_current_phase") \
+			or int(_enemy.call("get_current_phase")) != 1:
+		_rat_king_phase_one_intro_request_reason = &"not_phase_one"
+		return false
+	if not _enemy.has_method("request_phase_one_intro"):
+		_rat_king_phase_one_intro_request_reason = &"intro_api_missing"
+		return false
+	var started: bool = bool(_enemy.call("request_phase_one_intro"))
+	_rat_king_phase_one_intro_request_reason = &"started" if started else &"already_started"
+	return started
+
+
+## Returns the Main-owned activation context plus Rat King intro diagnostics.
+func get_rat_king_phase_one_intro_diagnostics() -> Dictionary:
+	var diagnostics: Dictionary = {}
+	if is_instance_valid(_enemy) and _enemy.has_method("get_phase_one_intro_diagnostics"):
+		diagnostics = Dictionary(_enemy.call("get_phase_one_intro_diagnostics"))
+	diagnostics["pending"] = _rat_king_phase_one_intro_pending
+	diagnostics["request_reason"] = String(_rat_king_phase_one_intro_request_reason)
+	diagnostics["game_flow_state"] = String(_game_flow.get_flow_state())
+	diagnostics["player_control_locked"] = _game_flow.is_player_control_locked()
+	diagnostics["rat_king_defeated"] = bool(
+		_world_progress_flags.get(String(RAT_KING_DEFEATED_FLAG), false)
+	)
+	diagnostics["rat_king_visible"] = _enemy.visible if is_instance_valid(_enemy) else false
+	return diagnostics
 
 
 func apply_arena_changes(boss_id: StringName, phase: int, changes: Array) -> void:
@@ -2738,6 +2795,8 @@ func _refresh_boss_hud(enemy_current_hp: int = -1, enemy_max_hp: int = -1) -> vo
 func _sync_rat_king_defeated_state() -> void:
 	if not bool(_world_progress_flags.get(String(RAT_KING_DEFEATED_FLAG), false)):
 		return
+	_rat_king_phase_one_intro_pending = false
+	_rat_king_phase_one_intro_request_reason = &"rat_king_defeated"
 	cleanup_temporary_summons()
 	cleanup_arena_mutations()
 	if is_instance_valid(_enemy):

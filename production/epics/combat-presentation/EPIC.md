@@ -208,3 +208,9 @@ The three transparent `192x192` frames retain one baseline, unique hashes and
 the existing SpriteFrames path/state without changing Boss gameplay or adding
 the still-separate production activation flow. Evidence is recorded in
 `production/qa/evidence/rat-king-phase-one-authored-intro-2026-07-18.md`.
+Story036 connects that authored animation to the real Main lifecycle. Every
+live Phase-I Boss attempt now enters a data-derived `0.75s` intro state once;
+damage, AI and attack Hitboxes are gated while player control remains live.
+Completion hands off to normal attack startup, retry re-arms the state and
+defeated saves skip it. Evidence is recorded in
+`production/qa/evidence/rat-king-phase-one-runtime-intro-2026-07-18.md`.
