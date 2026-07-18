@@ -14,6 +14,9 @@ const ANIMATIONS: Array[StringName] = [
 	&"run",
 	&"attack_tell",
 	&"attack",
+	&"geyser_tell",
+	&"geyser_attack",
+	&"attack_recovery",
 	&"hurt",
 	&"death",
 ]

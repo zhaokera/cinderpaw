@@ -1,0 +1,39 @@
+[gd_resource type="SpriteFrames" load_steps=7 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/sluice_matriarch_arena/pressure_geyser/warning/pressure_geyser_warning_000.png" id="1_warning0"]
+[ext_resource type="Texture2D" path="res://assets/environment/sluice_matriarch_arena/pressure_geyser/warning/pressure_geyser_warning_001.png" id="2_warning1"]
+[ext_resource type="Texture2D" path="res://assets/environment/sluice_matriarch_arena/pressure_geyser/warning/pressure_geyser_warning_002.png" id="3_warning2"]
+[ext_resource type="Texture2D" path="res://assets/environment/sluice_matriarch_arena/pressure_geyser/active/pressure_geyser_active_000.png" id="4_active0"]
+[ext_resource type="Texture2D" path="res://assets/environment/sluice_matriarch_arena/pressure_geyser/active/pressure_geyser_active_001.png" id="5_active1"]
+[ext_resource type="Texture2D" path="res://assets/environment/sluice_matriarch_arena/pressure_geyser/active/pressure_geyser_active_002.png" id="6_active2"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_warning0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_warning1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_warning2")
+}],
+"loop": false,
+"name": &"warning",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_active0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_active1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_active2")
+}],
+"loop": true,
+"name": &"active",
+"speed": 18.0
+}]

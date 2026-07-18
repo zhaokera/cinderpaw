@@ -8,8 +8,10 @@ Status: Implemented playable Boss3 core
 
 Sluice Matriarch is Boss3 at the end of the Old Factory Tailrace route. Her
 low, long organic silhouette must read as a mutated industrial leech and not a
-scaled rat. The first production slice supports one readable pressure-lunge
+scaled rat. The first production slice supported one readable pressure-lunge
 attack, a faster second phase, hurt feedback, and a persistent death state.
+Story173 extends the same identity with a pressure-geyser pattern and a
+dedicated shared recovery animation.
 
 ## Visual Contract
 
@@ -17,8 +19,8 @@ attack, a faster second phase, hurt feedback, and a persistent death state.
 |-------|-------|
 | Runtime type | `AnimatedSprite2D + SpriteFrames` |
 | Runtime canvas | `192x192` transparent RGBA PNG per frame |
-| Animations | `idle`, `run`, `attack_tell`, `attack`, `hurt`, `death` |
-| Frame count | Exactly 3 frames per animation, 18 frames total |
+| Animations | `idle`, `run`, `attack_tell`, `attack`, `geyser_tell`, `geyser_attack`, `attack_recovery`, `hurt`, `death` |
+| Frame count | Exactly 3 frames per animation, 27 frames total |
 | Facing | Authored facing right; gameplay runtime uses `flip_h` |
 | Anchor | Shared center pivot and ground baseline on every frame |
 | Naming | `sluice_matriarch_<animation>_000.png` through `_002.png` |
@@ -35,6 +37,11 @@ attack, a faster second phase, hurt feedback, and a persistent death state.
 - `attack` extends a pale organic pressure lance and broadens the silhouette;
   the runtime also moves the body toward Cinderpaw so the attack is not a
   static sprite swap.
+- `geyser_tell` braces the clamps and raises signal-red spines;
+  `geyser_attack` commits the planted pressure-release pose, while the separate
+  Arena VFX owns the warning ring and damaging vertical column.
+- `attack_recovery` moves through recoil, sag, and return for both attack
+  families instead of holding the final active frame.
 - `hurt` compresses the head and clamps. `death` settles the body flat and
   remains visible as a non-damaging arena corpse after victory.
 - The arena backdrop cocoon remains environmental depth; the transparent boss
@@ -48,11 +55,15 @@ attack, a faster second phase, hurt feedback, and a persistent death state.
 | `run` | 7 | yes |
 | `attack_tell` | 8 | no |
 | `attack` | 12 | no |
+| `geyser_tell` | 10 | no |
+| `geyser_attack` | 18 | no |
+| `attack_recovery` | 10 | no |
 | `hurt` | 8 | no |
 | `death` | 5 | no |
 
 The gameplay controller, not animation completion, owns the deterministic
-`18` startup, `6` active, and `18` recovery frame windows.
+lunge `18/6/18` windows and geyser Phase I `24/10/24` and Phase II `18/10/18`
+windows.
 
 ## Pipeline
 
@@ -62,11 +73,14 @@ The retained built-in image-generation source was magenta-keyed to alpha,
 split as a `3x6` sheet, normalized to one `192x192` canvas contract, and
 imported through Godot 4.7.
 
+Story173's extension prompt and processing record lives at
+`assets/characters/sluice_matriarch/source/sluice_matriarch_geyser_recovery_sheet_imagegen_20260718.md`.
+
 ## Validation
 
 - Every runtime frame is RGBA `192x192`, has transparent corners, a non-empty
   subject, continuous naming, and no visible magenta fringe.
-- All six gameplay states contain exactly three frames in the mounted
+- All nine gameplay states contain exactly three frames in the mounted
   `SpriteFrames` resource.
 - The pressure-lunge startup uses `attack_tell` with no active hitbox; active
   frames use `attack`, move the body, and route `16` damage through shared

@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=19 format=3]
+[gd_resource type="SpriteFrames" load_steps=28 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/idle/sluice_matriarch_idle_000.png" id="1_idle0"]
 [ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/idle/sluice_matriarch_idle_001.png" id="2_idle1"]
@@ -18,6 +18,15 @@
 [ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/death/sluice_matriarch_death_000.png" id="16_death0"]
 [ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/death/sluice_matriarch_death_001.png" id="17_death1"]
 [ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/death/sluice_matriarch_death_002.png" id="18_death2"]
+[ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/geyser_tell/sluice_matriarch_geyser_tell_000.png" id="19_geyser_tell0"]
+[ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/geyser_tell/sluice_matriarch_geyser_tell_001.png" id="20_geyser_tell1"]
+[ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/geyser_tell/sluice_matriarch_geyser_tell_002.png" id="21_geyser_tell2"]
+[ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/geyser_attack/sluice_matriarch_geyser_attack_000.png" id="22_geyser_attack0"]
+[ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/geyser_attack/sluice_matriarch_geyser_attack_001.png" id="23_geyser_attack1"]
+[ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/geyser_attack/sluice_matriarch_geyser_attack_002.png" id="24_geyser_attack2"]
+[ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/attack_recovery/sluice_matriarch_attack_recovery_000.png" id="25_recovery0"]
+[ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/attack_recovery/sluice_matriarch_attack_recovery_001.png" id="26_recovery1"]
+[ext_resource type="Texture2D" path="res://assets/characters/sluice_matriarch/attack_recovery/sluice_matriarch_attack_recovery_002.png" id="27_recovery2"]
 
 [resource]
 animations = [{
@@ -76,6 +85,48 @@ animations = [{
 "loop": false,
 "name": &"attack",
 "speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("19_geyser_tell0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("20_geyser_tell1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("21_geyser_tell2")
+}],
+"loop": false,
+"name": &"geyser_tell",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("22_geyser_attack0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_geyser_attack1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("24_geyser_attack2")
+}],
+"loop": false,
+"name": &"geyser_attack",
+"speed": 18.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("25_recovery0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("26_recovery1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("27_recovery2")
+}],
+"loop": false,
+"name": &"attack_recovery",
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,

@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/sluice_matriarch_boss.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/characters/sluice_matriarch.tscn" id="2_character"]
+[ext_resource type="SpriteFrames" path="res://assets/environment/sluice_matriarch_arena/pressure_geyser/pressure_geyser_sprite_frames.tres" id="3_geyser_frames"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(164, 70)
@@ -21,6 +22,14 @@ shape = SubResource("RectangleShape2D_body")
 [node name="Sprite" parent="." instance=ExtResource("2_character")]
 position = Vector2(0, -112)
 scale = Vector2(1.25, 1.25)
+
+[node name="PressureGeyser" type="AnimatedSprite2D" parent="."]
+top_level = true
+z_index = 24
+visible = false
+texture_filter = 1
+sprite_frames = ExtResource("3_geyser_frames")
+animation = &"warning"
 
 [node name="HurtboxArea" type="Area2D" parent="."]
 collision_layer = 2

@@ -1,4 +1,4 @@
-## Playable Boss3 core with one telegraphed pressure-lunge attack.
+## Playable Boss3 with alternating pressure-lunge and pressure-geyser attacks.
 class_name SluiceMatriarchBoss
 extends CharacterBody2D
 
@@ -14,19 +14,40 @@ const MAX_HP: int = 120
 const PHASE_ONE: int = 1
 const PHASE_TWO: int = 2
 const PHASE_TWO_HP_THRESHOLD: float = 0.5
+const PRESSURE_LUNGE_ID: StringName = &"pressure_lunge"
+const PRESSURE_GEYSER_ID: StringName = &"pressure_geyser"
+const ATTACK_PATTERN_IDS: Array[StringName] = [
+	PRESSURE_LUNGE_ID,
+	PRESSURE_GEYSER_ID,
+]
 const ATTACK_TELL_FRAMES: int = 18
 const ATTACK_ACTIVE_FRAMES: int = 6
 const ATTACK_RECOVERY_FRAMES: int = 18
+const PHASE_ONE_GEYSER_TELL_FRAMES: int = 24
+const PHASE_TWO_GEYSER_TELL_FRAMES: int = 18
+const GEYSER_ACTIVE_FRAMES: int = 10
+const PHASE_ONE_GEYSER_RECOVERY_FRAMES: int = 24
+const PHASE_TWO_GEYSER_RECOVERY_FRAMES: int = 18
 const PHASE_ONE_ATTACK_COOLDOWN_FRAMES: int = 42
 const PHASE_TWO_ATTACK_COOLDOWN_FRAMES: int = 28
 const PHASE_ONE_LUNGE_STEP_PX: float = 14.0
 const PHASE_TWO_LUNGE_STEP_PX: float = 20.0
 const ARENA_MIN_X: float = 320.0
 const ARENA_MAX_X: float = 1160.0
+const ARENA_VISIBLE_MIN_X: float = 40.0
+const ARENA_VISIBLE_MAX_X: float = 1240.0
 const ATTACK_HITBOX_ID: StringName = &"sluice_matriarch_pressure_lunge"
 const ATTACK_HITBOX_SIZE: Vector2 = Vector2(138, 70)
 const ATTACK_HITBOX_OFFSET: Vector2 = Vector2(112, -42)
 const ATTACK_DAMAGE: int = 16
+const GEYSER_HITBOX_ID: StringName = &"sluice_matriarch_pressure_geyser"
+const GEYSER_HITBOX_SIZE: Vector2 = Vector2(144, 110)
+const GEYSER_HITBOX_Y_OFFSET: float = -55.0
+const GEYSER_WARNING_WIDTH_PX: float = 176.0
+const GEYSER_TARGET_MIN_X: float = 128.0
+const GEYSER_TARGET_MAX_X: float = 1152.0
+const GEYSER_VISUAL_CENTER_Y: float = 496.0
+const GEYSER_DAMAGE: int = 14
 const ATTACK_HIT_FRAME: int = 99
 const BOSS_HURTBOX_SIZE: Vector2 = Vector2(170, 76)
 const HIT_FLASH_FRAMES: int = 5
@@ -37,6 +58,9 @@ const ANIMATION_IDLE: StringName = &"idle"
 const ANIMATION_RUN: StringName = &"run"
 const ANIMATION_ATTACK_TELL: StringName = &"attack_tell"
 const ANIMATION_ATTACK: StringName = &"attack"
+const ANIMATION_GEYSER_TELL: StringName = &"geyser_tell"
+const ANIMATION_GEYSER_ATTACK: StringName = &"geyser_attack"
+const ANIMATION_ATTACK_RECOVERY: StringName = &"attack_recovery"
 const ANIMATION_HURT: StringName = &"hurt"
 const ANIMATION_DEATH: StringName = &"death"
 const HEALTH_COMPONENT_SCRIPT: Script = preload("res://src/core/health_component.gd")
@@ -49,6 +73,7 @@ const STATUS_EFFECT_COMPONENT_SCRIPT: Script = preload(
 enum State { IDLE, HIT, ATTACK_TELL, ATTACK_ACTIVE, ATTACK_RECOVERY, DEAD }
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
+@onready var _geyser_sprite: AnimatedSprite2D = $PressureGeyser
 
 var _state: State = State.IDLE
 var _facing: float = -1.0
@@ -56,6 +81,10 @@ var _hit_timer: int = 0
 var _attack_timer: int = 0
 var _attack_cooldown_timer: int = 0
 var _attack_sequence_id: int = 0
+var _next_pattern_index: int = 0
+var _current_pattern_id: StringName = &""
+var _attack_history: Array[StringName] = []
+var _geyser_target_x: float = 0.0
 var _defeated: bool = false
 var _current_phase: int = PHASE_ONE
 var _phase_two_pending: bool = false
@@ -78,6 +107,7 @@ func _ready() -> void:
 	_arena_anchor_position = global_position
 	_ensure_core_components()
 	_setup_core_components()
+	_reset_geyser_visual()
 	_play_animation(ANIMATION_IDLE, true)
 	boss_health_changed.emit(get_current_hp(), MAX_HP)
 
@@ -116,20 +146,50 @@ func set_damage_calculator_adapter(damage_calculator_adapter: Object) -> void:
 
 
 func request_attack() -> bool:
+	return _request_attack_pattern(&"", false)
+
+
+## Explicit requests bypass cooldown for deterministic tests and runtime probes.
+func request_attack_pattern(pattern_id: StringName) -> bool:
+	return _request_attack_pattern(pattern_id, true)
+
+
+func _request_attack_pattern(pattern_id: StringName, explicit_request: bool) -> bool:
 	if (
 		_defeated
 		or _state != State.IDLE
-		or _attack_cooldown_timer > 0
+		or (not explicit_request and _attack_cooldown_timer > 0)
 		or not _has_valid_attack_target()
 	):
 		return false
+	var selected_pattern: StringName = (
+		pattern_id if explicit_request else _next_attack_pattern_id()
+	)
+	if not ATTACK_PATTERN_IDS.has(selected_pattern):
+		return false
+	_current_pattern_id = selected_pattern
+	_next_pattern_index = (
+		ATTACK_PATTERN_IDS.find(selected_pattern) + 1
+	) % ATTACK_PATTERN_IDS.size()
+	_attack_history.append(selected_pattern)
+	if _attack_history.size() > 6:
+		_attack_history.pop_front()
 	_face_attack_target()
 	_attack_sequence_id += 1
-	_attack_timer = ATTACK_TELL_FRAMES
+	_attack_timer = _current_attack_startup_frames()
 	_state = State.ATTACK_TELL
 	if _collision != null:
-		_collision.deactivate_hitbox(ATTACK_HITBOX_ID)
-	_play_animation(ANIMATION_ATTACK_TELL, true)
+		_collision.deactivate_all_hitboxes()
+	if _current_pattern_id == PRESSURE_GEYSER_ID:
+		_geyser_target_x = clampf(
+			(_attack_target as Node2D).global_position.x,
+			GEYSER_TARGET_MIN_X,
+			GEYSER_TARGET_MAX_X
+		)
+		_set_geyser_visual(&"warning", true)
+	else:
+		_reset_geyser_visual()
+	_play_animation(_current_tell_animation(), true)
 	return true
 
 
@@ -166,6 +226,10 @@ func reset_encounter() -> void:
 	_hit_timer = 0
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
+	_next_pattern_index = 0
+	_current_pattern_id = &""
+	_attack_history.clear()
+	_reset_geyser_visual()
 	_last_hit_metadata.clear()
 	_last_enemy_attack_metadata.clear()
 	global_position = _arena_anchor_position
@@ -189,6 +253,8 @@ func mark_defeated_from_progress() -> void:
 	_phase_two_pending = false
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
+	_current_pattern_id = &""
+	_reset_geyser_visual()
 	velocity = Vector2.ZERO
 	if _health != null:
 		_health.configure(ENTITY_ID, MAX_HP, 0, 0, 0, false)
@@ -227,7 +293,11 @@ func get_current_phase() -> int:
 
 
 func get_current_attack_startup_frames() -> int:
-	return ATTACK_TELL_FRAMES
+	return _startup_frames_for(_diagnostic_pattern_id())
+
+
+func get_current_attack_pattern_id() -> StringName:
+	return _current_pattern_id
 
 
 func get_attack_phase() -> StringName:
@@ -292,6 +362,41 @@ func get_pressure_lunge_diagnostics() -> Dictionary:
 	}
 
 
+func get_attack_diagnostics() -> Dictionary:
+	var pattern_id: StringName = _diagnostic_pattern_id()
+	var hitbox_id: StringName = _hitbox_id_for(_current_pattern_id)
+	return {
+		"attack_phase": String(get_attack_phase()),
+		"current_attack_id": String(_current_pattern_id),
+		"next_attack_id": String(_next_attack_pattern_id()),
+		"attack_history": _string_attack_history(),
+		"animation": String(_sprite.animation) if _sprite != null else "",
+		"current_phase": _current_phase,
+		"phase_two_pending": _phase_two_pending,
+		"attack_sequence_id": _attack_sequence_id,
+		"startup_frames": _startup_frames_for(pattern_id),
+		"active_frames": _active_frames_for(pattern_id),
+		"recovery_frames": _recovery_frames_for(pattern_id),
+		"attack_damage": _damage_for(pattern_id),
+		"hitbox_id": String(hitbox_id),
+		"hitbox_active": (
+			_collision != null
+			and hitbox_id != &""
+			and _collision.is_hitbox_active(hitbox_id)
+		),
+		"geyser_visible": _geyser_sprite != null and _geyser_sprite.visible,
+		"geyser_animation": (
+			String(_geyser_sprite.animation) if _geyser_sprite != null else ""
+		),
+		"geyser_target_x": _geyser_target_x,
+		"safe_space_px": _geyser_safe_space_px(),
+		"attack_cooldown_frames": _current_attack_cooldown_frames(),
+		"facing": _facing,
+		"defeated": _defeated,
+		"arena_anchor_position": _arena_anchor_position,
+	}
+
+
 func _process_idle() -> void:
 	velocity = Vector2.ZERO
 	_update_sprite_facing()
@@ -315,7 +420,7 @@ func _process_hit() -> void:
 func _process_attack_tell() -> void:
 	velocity = Vector2.ZERO
 	_update_sprite_facing()
-	_play_animation(ANIMATION_ATTACK_TELL)
+	_play_animation(_current_tell_animation())
 	_attack_timer -= 1
 	if _attack_timer <= 0:
 		_enter_attack_active()
@@ -323,27 +428,31 @@ func _process_attack_tell() -> void:
 
 func _enter_attack_active() -> void:
 	_state = State.ATTACK_ACTIVE
-	_attack_timer = ATTACK_ACTIVE_FRAMES
-	_play_animation(ANIMATION_ATTACK, true)
+	_attack_timer = _active_frames_for(_current_pattern_id)
+	_play_animation(_current_active_animation(), true)
+	if _current_pattern_id == PRESSURE_GEYSER_ID:
+		_set_geyser_visual(&"active", true)
 	if _collision != null:
+		var hitbox_id: StringName = _hitbox_id_for(_current_pattern_id)
 		_collision.activate_hitbox(
-			ATTACK_HITBOX_ID,
-			ATTACK_ACTIVE_FRAMES,
-			Vector2(_facing * ATTACK_HITBOX_OFFSET.x, ATTACK_HITBOX_OFFSET.y),
-			ATTACK_HITBOX_SIZE,
+			hitbox_id,
+			_attack_timer,
+			_current_hitbox_offset(),
+			_hitbox_size_for(_current_pattern_id),
 			_build_attack_metadata()
 		)
 
 
 func _process_attack_active() -> void:
 	var start_x: float = global_position.x
-	global_position.x = clampf(
-		global_position.x + _facing * _current_lunge_step_px(),
-		ARENA_MIN_X,
-		ARENA_MAX_X
-	)
+	if _current_pattern_id == PRESSURE_LUNGE_ID:
+		global_position.x = clampf(
+			global_position.x + _facing * _current_lunge_step_px(),
+			ARENA_MIN_X,
+			ARENA_MAX_X
+		)
 	velocity = Vector2((global_position.x - start_x) * 60.0, 0.0)
-	_play_animation(ANIMATION_ATTACK)
+	_play_animation(_current_active_animation())
 	_attack_timer -= 1
 	if _attack_timer <= 0:
 		_enter_attack_recovery()
@@ -351,19 +460,23 @@ func _process_attack_active() -> void:
 
 func _enter_attack_recovery() -> void:
 	_state = State.ATTACK_RECOVERY
-	_attack_timer = ATTACK_RECOVERY_FRAMES
+	_attack_timer = _recovery_frames_for(_current_pattern_id)
 	velocity = Vector2.ZERO
 	if _collision != null:
-		_collision.deactivate_hitbox(ATTACK_HITBOX_ID)
+		_collision.deactivate_all_hitboxes()
+	_set_geyser_visual(&"warning", false)
+	_play_animation(ANIMATION_ATTACK_RECOVERY, true)
 
 
 func _process_attack_recovery() -> void:
 	velocity = Vector2.ZERO
+	_play_animation(ANIMATION_ATTACK_RECOVERY)
 	_attack_timer -= 1
 	if _attack_timer > 0:
 		return
 	_state = State.IDLE
 	_attack_cooldown_timer = _current_attack_cooldown_frames()
+	_current_pattern_id = &""
 	_play_animation(ANIMATION_IDLE, true)
 	_apply_pending_phase_two_if_ready()
 
@@ -438,6 +551,8 @@ func _die() -> void:
 	_phase_two_pending = false
 	_attack_timer = 0
 	_attack_cooldown_timer = 0
+	_current_pattern_id = &""
+	_reset_geyser_visual()
 	velocity = Vector2.ZERO
 	if _collision != null:
 		_collision.deactivate_all_hitboxes()
@@ -551,10 +666,13 @@ func _current_attack_cooldown_frames() -> int:
 
 
 func _build_attack_metadata() -> Dictionary:
+	var hitbox_id: StringName = _hitbox_id_for(_current_pattern_id)
 	return {
 		"source": BOSS_ID,
-		"attack_type": &"light",
-		"weapon_id": ATTACK_HITBOX_ID,
+		"attack_type": (
+			&"special" if _current_pattern_id == PRESSURE_GEYSER_ID else &"light"
+		),
+		"weapon_id": hitbox_id,
 		"combo_index": 0,
 		"hit_frame": ATTACK_HIT_FRAME,
 		"attack_power": 0,
@@ -566,12 +684,127 @@ func _build_attack_metadata() -> Dictionary:
 
 
 func _build_enemy_damage_params() -> Dictionary:
+	var hitbox_id: StringName = _hitbox_id_for(_current_pattern_id)
 	return {
 		"entries": {
-			String(ATTACK_HITBOX_ID): {
-				"weapon_base": ATTACK_DAMAGE,
+			String(hitbox_id): {
+				"weapon_base": _damage_for(_current_pattern_id),
 				"combo_multipliers": {"0": 1.0},
 				"special_move": {"multiplier": 1.0, "hits": 1},
 			},
 		},
 	}
+
+
+func _next_attack_pattern_id() -> StringName:
+	return ATTACK_PATTERN_IDS[_next_pattern_index % ATTACK_PATTERN_IDS.size()]
+
+
+func _diagnostic_pattern_id() -> StringName:
+	return _current_pattern_id if _current_pattern_id != &"" else _next_attack_pattern_id()
+
+
+func _current_attack_startup_frames() -> int:
+	return _startup_frames_for(_current_pattern_id)
+
+
+func _startup_frames_for(pattern_id: StringName) -> int:
+	if pattern_id != PRESSURE_GEYSER_ID:
+		return ATTACK_TELL_FRAMES
+	return (
+		PHASE_TWO_GEYSER_TELL_FRAMES
+		if _current_phase == PHASE_TWO
+		else PHASE_ONE_GEYSER_TELL_FRAMES
+	)
+
+
+func _active_frames_for(pattern_id: StringName) -> int:
+	return GEYSER_ACTIVE_FRAMES if pattern_id == PRESSURE_GEYSER_ID else ATTACK_ACTIVE_FRAMES
+
+
+func _recovery_frames_for(pattern_id: StringName) -> int:
+	if pattern_id != PRESSURE_GEYSER_ID:
+		return ATTACK_RECOVERY_FRAMES
+	return (
+		PHASE_TWO_GEYSER_RECOVERY_FRAMES
+		if _current_phase == PHASE_TWO
+		else PHASE_ONE_GEYSER_RECOVERY_FRAMES
+	)
+
+
+func _damage_for(pattern_id: StringName) -> int:
+	return GEYSER_DAMAGE if pattern_id == PRESSURE_GEYSER_ID else ATTACK_DAMAGE
+
+
+func _hitbox_id_for(pattern_id: StringName) -> StringName:
+	match pattern_id:
+		PRESSURE_LUNGE_ID:
+			return ATTACK_HITBOX_ID
+		PRESSURE_GEYSER_ID:
+			return GEYSER_HITBOX_ID
+		_:
+			return &""
+
+
+func _hitbox_size_for(pattern_id: StringName) -> Vector2:
+	return GEYSER_HITBOX_SIZE if pattern_id == PRESSURE_GEYSER_ID else ATTACK_HITBOX_SIZE
+
+
+func _current_hitbox_offset() -> Vector2:
+	if _current_pattern_id == PRESSURE_GEYSER_ID:
+		return Vector2(
+			_geyser_target_x - global_position.x,
+			GEYSER_HITBOX_Y_OFFSET
+		)
+	return Vector2(_facing * ATTACK_HITBOX_OFFSET.x, ATTACK_HITBOX_OFFSET.y)
+
+
+func _current_tell_animation() -> StringName:
+	return (
+		ANIMATION_GEYSER_TELL
+		if _current_pattern_id == PRESSURE_GEYSER_ID
+		else ANIMATION_ATTACK_TELL
+	)
+
+
+func _current_active_animation() -> StringName:
+	return (
+		ANIMATION_GEYSER_ATTACK
+		if _current_pattern_id == PRESSURE_GEYSER_ID
+		else ANIMATION_ATTACK
+	)
+
+
+func _set_geyser_visual(animation_name: StringName, should_show: bool) -> void:
+	if _geyser_sprite == null:
+		return
+	_geyser_sprite.visible = should_show
+	if not should_show:
+		_geyser_sprite.stop()
+		return
+	_geyser_sprite.global_position = Vector2(
+		_geyser_target_x,
+		GEYSER_VISUAL_CENTER_Y
+	)
+	_geyser_sprite.play(animation_name)
+
+
+func _reset_geyser_visual() -> void:
+	_geyser_target_x = 0.0
+	_set_geyser_visual(&"warning", false)
+
+
+func _geyser_safe_space_px() -> float:
+	if _geyser_target_x <= 0.0:
+		return ARENA_VISIBLE_MAX_X - ARENA_VISIBLE_MIN_X
+	var half_width: float = GEYSER_WARNING_WIDTH_PX * 0.5
+	var left_space: float = _geyser_target_x - half_width - ARENA_VISIBLE_MIN_X
+	var right_space: float = ARENA_VISIBLE_MAX_X - _geyser_target_x - half_width
+	return maxf(0.0, maxf(left_space, right_space))
+
+
+func _string_attack_history() -> Array[String]:
+	var result: Array[String] = []
+	for pattern_id: StringName in _attack_history:
+		result.append(String(pattern_id))
+	return result

@@ -242,4 +242,10 @@ func _stop_runtime_audio_players() -> void:
 		audio_system.call("stop_ambient", 0.0)
 	for child: Node in audio_system.get_children():
 		if child is AudioStreamPlayer:
-			(child as AudioStreamPlayer).stop()
+			var audio_player := child as AudioStreamPlayer
+			audio_player.stop()
+			audio_player.stream = null
+		if child is AudioStreamPlayer2D:
+			var spatial_player := child as AudioStreamPlayer2D
+			spatial_player.stop()
+			spatial_player.stream = null
