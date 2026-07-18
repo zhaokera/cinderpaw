@@ -191,6 +191,16 @@
   evidence from the stories validated at that time.
 
 ## Last Completed Task
+- Combat Presentation Story 035: Rat King Phase-I Authored Intro Frames -- 用
+  Rat King 原始精灵表作身份参考，生成蓄势、红芯点燃、抬冠前伸三帧，替换
+  原先与 idle 逐帧完全相同的临时素材。三帧保持透明 `192x192`、共同
+  `y=191` 基线和唯一哈希，不修改 SpriteFrames 路径、Boss 控制器、AI、
+  伤害、碰撞或阶段时序。RED `report_1911`；focused GREEN
+  `report_1912` `1/1`；bounded related `report_1914` `8/8`，exit `0` 且
+  clean teardown。Godot 4.7 / MCP 3.0.2 run `r233397649-69` 在真实 Main
+  中播放 `/root/Main/Enemy/Sprite` 到第 2 帧，验证三帧哈希、非循环状态、
+  非空 `1278x718` 截图、info-only game log、0 editor error 和 clean stop。
+
 - Combat Presentation Story 034: Old Factory Environment Cohesion -- 以现有
   Factory 美术为参考生成 assembly/furnace/condenser/tailrace 四张不透明
   `1280x720` 背景，并用 24 个 `scale=(1,1)` 的 Sprite2D 覆盖完整

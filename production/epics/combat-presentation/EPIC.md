@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 34 stories tracked
+> **Stories**: 35 stories tracked
 
 ## Overview
 
@@ -74,6 +74,7 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 032 | Rat Minion Attack Tell Frame Animation | Visual/Feel + Frame Animation Contract | Complete | ADR-0001, ADR-0002, ADR-0004, ADR-0005, ADR-0006 |
 | 033 | Old Factory Steam Vent Motion Readability | Visual/Feel + Hazard Telegraph Contract | Complete | ADR-0002, ADR-0004, ADR-0010, ADR-0018 |
 | 034 | Old Factory Environment Cohesion | Visual/Environment Cohesion Contract | Complete | ADR-0004, ADR-0010, ADR-0018 |
+| 035 | Rat King Phase-I Authored Intro Frames | Visual/Frame Animation | Complete | ADR-0005, ADR-0010, ADR-0011 |
 
 ## Definition of Done
 
@@ -87,7 +88,7 @@ This epic is complete when:
 
 ## Completion Evidence
 
-Combat Presentation has all 34 tracked stories complete, but the Epic remains
+Combat Presentation has all 35 tracked stories complete, but the Epic remains
 In Progress until the Main-scene real hitstop/input handoff is extended to
 independent player-facing combat scenes. Story014 adds the
 first Rat King boss frame-animation asset slice so the MVP boss no longer exists
@@ -201,3 +202,9 @@ identities. Twenty-four unscaled Sprite2D plates cover the complete `30080px`
 route without changing foreground collision, encounters, hazards or save state.
 Evidence is recorded in
 `production/qa/evidence/old-factory-environment-cohesion-2026-07-17.md`.
+Story035 replaces the Rat King's idle-identical three-frame `phase_1_intro`
+with an image-generated crouch, red-core ignition and forward-threat sequence.
+The three transparent `192x192` frames retain one baseline, unique hashes and
+the existing SpriteFrames path/state without changing Boss gameplay or adding
+the still-separate production activation flow. Evidence is recorded in
+`production/qa/evidence/rat-king-phase-one-authored-intro-2026-07-18.md`.
