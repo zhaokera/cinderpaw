@@ -123,6 +123,12 @@ const FACTORY_ROUTE_SPAWN_POINT: StringName = &"factory_gate_entry"
 const FACTORY_ROUTE_UNLOCKED_FLAG: StringName = &"area_03_factory_unlocked"
 const FACTORY_ROUTE_ENTRY_PROMPT: String = "Enter Factory Route"
 const FACTORY_ROUTE_RETURN_PROMPT: String = "Return to Factory Route"
+const SEWER_ROUTE_SCENE_ID: StringName = &"area_02_sewer"
+const SEWER_ROUTE_SPAWN_POINT: StringName = &"default"
+const SEWER_RETURN_SPAWN_POINT: StringName = &"sewer_return"
+const SEWER_ROUTE_ENTRY_NODE_PATH: NodePath = ^"SewerRouteEntry"
+const SEWER_RETURN_SPAWN_NODE_PATH: NodePath = ^"SewerReturnSpawn"
+const DASH_GATE_NODE_PATH: NodePath = ^"DashExplorationGate"
 const MAIN_MINIMAP_WORLD_BOUNDS: Rect2 = Rect2(0, 0, 1280, 720)
 const MAIN_MINIMAP_REVEAL_DURATION_SEC: float = 1.0
 const MAIN_MINIMAP_REGIONS: Array[Dictionary] = [
@@ -265,6 +271,7 @@ var _act_completion_state: StringName = &"idle"
 var _act_completion_delay_remaining_sec: float = 0.0
 var _act_completion_autosave_request_count: int = 0
 var _act_completion_autosave_succeeded: bool = false
+var _sewer_route_transition_requested: bool = false
 
 
 func _ready() -> void:
@@ -314,6 +321,7 @@ func _ready() -> void:
 		_player.dash_started.connect(_on_player_dash_started)
 	if _player.has_signal("double_jump_started"):
 		_player.double_jump_started.connect(_on_player_double_jump_started)
+	_connect_sewer_route_entry()
 	_connect_player_focus_mode_signal()
 	_enemy.enemy_health_changed.connect(_on_enemy_health_changed)
 	_enemy.enemy_defeated.connect(_on_enemy_defeated)
@@ -1188,6 +1196,9 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_unlocked_abilities = _read_string_name_array(
 		snapshot.get("unlocked_abilities", _unlocked_abilities)
 	)
+	_world_progress_flags = Dictionary(
+		snapshot.get("world_flags", _world_progress_flags)
+	).duplicate(true)
 	_sync_player_unlocked_abilities()
 	_sync_exploration_gates()
 	_inventory_items = _read_string_name_array(snapshot.get("inventory", _inventory_items))
@@ -1195,7 +1206,6 @@ func restore_no_loss_state(snapshot: Dictionary) -> void:
 	_current_weapon_id = StringName(String(weapon_state.get("current_weapon", String(_current_weapon_id))))
 	_acquired_weapons = _read_string_name_array(weapon_state.get("acquired", _acquired_weapons))
 	_weapon_levels = Dictionary(weapon_state.get("levels", _weapon_levels)).duplicate(true)
-	_world_progress_flags = Dictionary(snapshot.get("world_flags", _world_progress_flags)).duplicate(true)
 	_restore_last_savepoint_from_dictionary(Dictionary(snapshot.get("last_savepoint", {})))
 	_sync_weapon_component_from_runtime_state()
 	_hud.update_currency(_currency_amount)
@@ -1580,12 +1590,68 @@ func request_factory_route_transition(provider: Node = null) -> bool:
 		return false
 	if scene_manager.has_method("has_scene") and not bool(scene_manager.call("has_scene", target_scene_id)):
 		return false
-	if not _ensure_factory_route_runtime_scene_root(scene_manager):
+	if not _ensure_runtime_scene_root(scene_manager):
 		return false
 	if not _request_scene_manager_transition(target_scene_id, spawn_point):
 		return false
 	route_shell.call("set_transition_requested", true)
 	return true
+
+
+## Enters the registered Sewer only after the real Main Dash gate is open.
+func request_sewer_route_transition(provider: Node = null) -> bool:
+	if _sewer_route_transition_requested:
+		return false
+	var request_provider: Node = _player if provider == null else provider
+	if request_provider != _player:
+		return false
+	var dash_gate: Node = get_node_or_null(DASH_GATE_NODE_PATH)
+	if (
+		dash_gate == null
+		or not dash_gate.has_method("is_unlocked")
+		or not bool(dash_gate.call("is_unlocked"))
+		or not _player.has_ability(&"dash")
+	):
+		return false
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if not _is_valid_scene_manager(scene_manager):
+		return false
+	if scene_manager.has_method("is_loading") \
+			and bool(scene_manager.call("is_loading")):
+		return false
+	if not bool(scene_manager.call("has_scene", SEWER_ROUTE_SCENE_ID)):
+		return false
+	if not _ensure_runtime_scene_root(scene_manager):
+		return false
+	_seed_sewer_route_state(scene_manager)
+	var accepted: bool = _request_scene_manager_transition(
+		SEWER_ROUTE_SCENE_ID,
+		SEWER_ROUTE_SPAWN_POINT
+	)
+	_sewer_route_transition_requested = accepted
+	if accepted:
+		_player.set_control_locked(true)
+	return accepted
+
+
+func get_sewer_route_handoff_diagnostics() -> Dictionary:
+	var dash_gate: Node = get_node_or_null(DASH_GATE_NODE_PATH)
+	var entry: Area2D = get_node_or_null(SEWER_ROUTE_ENTRY_NODE_PATH) as Area2D
+	return {
+		"target_scene_id": String(SEWER_ROUTE_SCENE_ID),
+		"spawn_point": String(SEWER_ROUTE_SPAWN_POINT),
+		"return_spawn_point": String(SEWER_RETURN_SPAWN_POINT),
+		"dash_gate_unlocked": (
+			bool(dash_gate.call("is_unlocked"))
+			if dash_gate != null and dash_gate.has_method("is_unlocked")
+			else false
+		),
+		"entry_present": entry != null,
+		"entry_overlapping_player": (
+			entry.overlaps_body(_player) if entry != null else false
+		),
+		"transition_requested": _sewer_route_transition_requested,
+	}
 
 
 func get_skill_points() -> int:
@@ -1966,6 +2032,9 @@ func _on_scene_manager_changed(old_scene: StringName, new_scene: StringName) -> 
 	if audio_system != null:
 		_dispatch_audio_event(&"on_scene_changed", [old_scene, new_scene])
 	_apply_scene_manager_spawn_point(new_scene)
+	if new_scene == StringName(MAIN_SCENE_ID):
+		_sewer_route_transition_requested = false
+		_refresh_player_control_lock()
 	_sync_scrap_roost_return_hub()
 	_sync_crown_warden_victory_return_hub()
 	_sync_four_boss_act_completion()
@@ -2059,6 +2128,8 @@ func _move_player_to_spawn_point(spawn_point: StringName) -> bool:
 	var spawn_node: Node2D = null
 	if spawn_point == SCRAP_ROOST_SAVEPOINT_ID:
 		spawn_node = get_node_or_null(SCRAP_ROOST_SAVEPOINT_NODE_PATH) as Node2D
+	elif spawn_point == SEWER_RETURN_SPAWN_POINT:
+		spawn_node = get_node_or_null(SEWER_RETURN_SPAWN_NODE_PATH) as Node2D
 	if spawn_node == null:
 		return false
 	_player.global_position = spawn_node.global_position
@@ -2527,6 +2598,12 @@ func _sync_exploration_gates() -> void:
 			gate.call("set_ability_provider", _player)
 		elif gate.has_method("refresh_gate_state"):
 			gate.call("refresh_gate_state")
+		var persistent_flag: String = "gate_%s_unlocked" % _exploration_gate_id(gate)
+		if (
+			bool(_world_progress_flags.get(persistent_flag, false))
+			and gate.has_method("set_gate_unlocked")
+		):
+			gate.call("set_gate_unlocked", true)
 
 
 func _get_hidden_double_jump_reward_source() -> Node:
@@ -3480,7 +3557,7 @@ func _process_factory_route_transition_shell_contact() -> void:
 		request_factory_route_transition(_player)
 
 
-func _ensure_factory_route_runtime_scene_root(scene_manager: Object) -> bool:
+func _ensure_runtime_scene_root(scene_manager: Object) -> bool:
 	if scene_manager == null or not scene_manager.has_method("configure_runtime_scene_root"):
 		return true
 	if scene_manager.has_method("is_runtime_scene_swap_enabled") \
@@ -3492,6 +3569,37 @@ func _ensure_factory_route_runtime_scene_root(scene_manager: Object) -> bool:
 	if runtime_root == null:
 		return false
 	return bool(scene_manager.call("configure_runtime_scene_root", runtime_root, self))
+
+
+func _connect_sewer_route_entry() -> void:
+	var entry: Area2D = get_node_or_null(SEWER_ROUTE_ENTRY_NODE_PATH) as Area2D
+	if entry != null and not entry.body_entered.is_connected(
+		_on_sewer_route_entry_body_entered
+	):
+		entry.body_entered.connect(_on_sewer_route_entry_body_entered)
+
+
+func _on_sewer_route_entry_body_entered(body: Node2D) -> void:
+	if body == _player:
+		request_sewer_route_transition(_player)
+
+
+func _seed_sewer_route_state(scene_manager: Object) -> void:
+	if not scene_manager.has_method("set_scene_state"):
+		return
+	var sewer_state: Dictionary = {}
+	if scene_manager.has_method("get_scene_state"):
+		sewer_state = Dictionary(scene_manager.call(
+			"get_scene_state",
+			SEWER_ROUTE_SCENE_ID,
+		))
+	var unlocked_abilities: Array = Array(sewer_state.get("unlocked_abilities", []))
+	for ability_id: StringName in _unlocked_abilities:
+		var ability_string: String = String(ability_id)
+		if not unlocked_abilities.has(ability_string):
+			unlocked_abilities.append(ability_string)
+	sewer_state["unlocked_abilities"] = unlocked_abilities
+	scene_manager.call("set_scene_state", SEWER_ROUTE_SCENE_ID, sewer_state)
 
 
 func _has_factory_service_lift_returned_to_scrap_roost() -> bool:

@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 19 stories tracked; future stories planned
+> **Stories**: 20 stories tracked; future stories planned
 
 ## Overview
 
@@ -56,6 +56,9 @@ Story019 replaces the immediate Rat-King-to-Echo-Guardian chain with a persisted
 safe intermission and a generated challenge beacon. New runs activate Boss2 only
 after a nearby real interaction, while legacy saves retain the historical
 automatic handoff.
+Story020 registers Main's previously dead `area_02_sewer` target and adds an
+image-generated Sewer Dash room with a real gap, animated exhaust reset, one
+physical Dash proof and a deterministic return to `main/sewer_return`.
 
 ## Governing ADRs
 
@@ -100,6 +103,7 @@ automatic handoff.
 | 017 | Scrap Roost Dodge Trial | Gameplay / Integration | Complete | ADR-0004, ADR-0007 |
 | 018 | Scrap Roost Rat King Approach | Gameplay / Integration | Complete | ADR-0004, ADR-0007 |
 | 019 | Rat King Victory Echo Challenge Intermission | Gameplay / Pacing / Visual / Save | Complete | ADR-0007, ADR-0021 |
+| 020 | Sewer Dash Route Entry | Gameplay / Traversal / Visual | Complete | ADR-0004, ADR-0007 |
 
 ## Definition of Done
 
@@ -134,6 +138,11 @@ This epic is complete when:
   Continue. A generated challenge beacon and nearby real interaction atomically
   start Echo Guardian, while saves without either Story019 flag retain legacy
   automatic activation.
+- Main's Dash gate opens a registered Sewer route only for the production
+  Dash-enabled Player. A generated environment, real open gap and animated
+  exhaust reject a normal jump, accept one real Dash and return through
+  SceneManager to `main/sewer_return` without bypassing the later Double Jump
+  requirement for the Factory route.
 - Async scene change requests use `ResourceLoader.load_threaded_request()`, wait
   for the 1.5 second transition gate before logical commit, emit a load-start
   signal for Presentation, and timeout after 10 seconds with one retry before
@@ -179,7 +188,7 @@ This epic is complete when:
 
 ## Next Step
 
-The Main Dash gate already names `area_02_sewer`, but no registered playable
-scene currently fulfils that route. The next bounded slice should build one
-generated Sewer entry/Dash validation room with a real gap, reset and exit,
-without turning it into another text-led tutorial.
+Deepen the Sewer only with a bounded player-facing ACT payoff such as one compact
+combat/reward room or a Double-Jump-gated forward junction. Do not connect the
+current Dash entry directly to the Factory until the GDD's Double Jump condition
+is genuinely satisfied.

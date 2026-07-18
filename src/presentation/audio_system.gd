@@ -60,6 +60,11 @@ const DEFAULT_SCENE_AUDIO_CUES: Dictionary = {
 		"ambient_id": &"amb_street",
 		"crossfade_sec": DEFAULT_SCENE_CROSSFADE_SEC,
 	},
+	"area_02_sewer": {
+		"music_id": &"mus_sewer",
+		"ambient_id": &"amb_sewer",
+		"crossfade_sec": DEFAULT_SCENE_CROSSFADE_SEC,
+	},
 	"area_03_factory": {
 		"music_id": &"mus_factory",
 		"ambient_id": &"amb_factory",

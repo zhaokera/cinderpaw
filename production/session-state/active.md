@@ -6668,3 +6668,38 @@
   validation room behind Main's existing Dash gate; keep it a playable route,
   not another text-led tutorial.
 - Blockers: None for Story019.
+
+## Session Extract -- Scene Management Story020 2026-07-19
+
+- Delivery checkpoint: Story020 is complete locally after uploaded baseline
+  `24fa759`; the broader complete-game goal remains active and this Story has
+  not been committed or pushed.
+- Runtime: Main's real Dash gate now enters registered
+  `area_02_sewer/default`. The generated Sewer route has a `92px` open gap and
+  separate four-frame active exhaust. A real jump/exhaust contact performs one
+  local no-loss reset; a right-facing Dash from the authored band crosses once,
+  disables the hazard and permits a one-shot return to `main/sewer_return`.
+- Persistence: the return preserves abilities and writes
+  `area_02_sewer_unlocked` plus `sewer_dash_route_crossed`. It deliberately does
+  not route to Factory because the GDD requires Double Jump for that connection.
+- Verification: intentional RED `report_1974`; focused GREEN `report_1976`
+  `1/1`; bounded related GREEN `report_1977` six suites and `35/35`, zero errors,
+  failures, flaky cases, skips or orphans and exit `0`. MCP then exposed the
+  returned-Gate restore ordering issue; regression RED `report_1978` failed the
+  new assertion and post-fix focused GREEN `report_1979` passed `1/1`. No full
+  suite was run.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`,
+  accepted run `r294836394-94`. Physical Main movement/Dash entered Sewer,
+  physical jump reset once, physical Dash crossed once and physical movement
+  returned to Main at `0px` spawn error. The `1278x718` screenshot was non-empty,
+  game logs were info-only, editor errors empty and stop restored `ready`.
+  Post-fix run `r295492330-95` restored the Dash gate as unlocked with collision
+  disabled while Cinderpaw was `735px` away; logs remained clean and stop again
+  restored `ready`.
+- Assets: built-in image generation retained the exact initial and three edit
+  prompts plus the opaque `1672x941` source; `sips` normalized the imported
+  opaque RGB `1280x720` runtime plate. The hazard reuses existing four-frame
+  steam `SpriteFrames`.
+- Next: add bounded Sewer ACT depth or a Double-Jump-gated forward junction;
+  do not bypass the GDD's Sewer-to-Factory ability requirement.
+- Blockers: None for Story020.

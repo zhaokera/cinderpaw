@@ -1,6 +1,14 @@
 {
 	"_meta": {"version": "1.0", "domain": "scene_registry"},
 	"entries": {
+		"area_02_sewer": {
+			"scene_id": "area_02_sewer",
+			"path": "res://scenes/areas/sewer.tscn",
+			"type": "area",
+			"preload": false,
+			"default_spawn": "default",
+			"display_name": "Sewer Dash Channel"
+		},
 		"area_01_scrap_roost_dodge_trial": {
 			"scene_id": "area_01_scrap_roost_dodge_trial",
 			"path": "res://scenes/areas/scrap_roost_dodge_trial.tscn",
