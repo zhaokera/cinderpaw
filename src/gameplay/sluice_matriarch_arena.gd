@@ -25,6 +25,8 @@ const AERIAL_ATTACK_REWARD_REVEAL_DURATION_SEC: float = 0.55
 const PLAYER_LIGHT_DAMAGE: int = 12
 const BOSS_PRESSURE_LUNGE_HITBOX_ID: StringName = &"sluice_matriarch_pressure_lunge"
 const BOSS_PRESSURE_LUNGE_DAMAGE: int = 16
+const BOSS_PRESSURE_GEYSER_HITBOX_ID: StringName = &"sluice_matriarch_pressure_geyser"
+const BOSS_PRESSURE_GEYSER_DAMAGE: int = 14
 const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component.gd")
 const BACKGROUND_TEXTURE_PATH: String = (
 	"res://assets/environment/sluice_matriarch_arena/"
@@ -104,11 +106,12 @@ func calculate_damage(
 	_injected_damage_params: Dictionary = {},
 	_data_manager: Object = null
 ) -> Dictionary:
-	var damage: int = (
-		BOSS_PRESSURE_LUNGE_DAMAGE
-		if weapon_id == BOSS_PRESSURE_LUNGE_HITBOX_ID
-		else PLAYER_LIGHT_DAMAGE
-	)
+	var damage: int = PLAYER_LIGHT_DAMAGE
+	match weapon_id:
+		BOSS_PRESSURE_LUNGE_HITBOX_ID:
+			damage = BOSS_PRESSURE_LUNGE_DAMAGE
+		BOSS_PRESSURE_GEYSER_HITBOX_ID:
+			damage = BOSS_PRESSURE_GEYSER_DAMAGE
 	return {
 		"final_damage": damage,
 		"base_damage": damage,

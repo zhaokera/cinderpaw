@@ -6,6 +6,8 @@ const ARENA_SCENE: PackedScene = preload(
 )
 const LIGHT_HITBOX_ID: StringName = &"cat_claw_light"
 const PRESSURE_LUNGE_HITBOX_ID: StringName = &"sluice_matriarch_pressure_lunge"
+const PRESSURE_GEYSER_PATTERN_ID: StringName = &"pressure_geyser"
+const PRESSURE_GEYSER_HITBOX_ID: StringName = &"sluice_matriarch_pressure_geyser"
 
 
 class PhysicsProbe extends Node:
@@ -173,6 +175,44 @@ func test_real_pressure_lunge_uses_the_same_three_frame_presentation_path() -> v
 		"last_boss_attack_metadata",
 		{}
 	)).get("damage", 0))).is_equal(16)
+
+
+func test_real_pressure_geyser_uses_the_authored_fourteen_damage_path() -> void:
+	assert_that(presentation).is_not_null()
+	if presentation == null:
+		return
+	var player_hp_before: int = player.get_current_hp()
+	assert_bool(bool(boss.call(
+		"request_attack_pattern",
+		PRESSURE_GEYSER_PATTERN_ID
+	))).is_true()
+	boss.call("advance_attack_frames", 24)
+	assert_bool(boss_collision.is_hitbox_active(PRESSURE_GEYSER_HITBOX_ID)).is_true()
+	boss_collision.process_detection_frame({
+		PRESSURE_GEYSER_HITBOX_ID: [collision.get_hurtbox()],
+	})
+
+	var applied_damage: int = player_hp_before - player.get_current_hp()
+	assert_int(applied_damage).is_equal(14)
+	if applied_damage != 14:
+		return
+	assert_bool(get_tree().paused).is_true()
+	assert_bool(presentation.is_gameplay_hitstop_active()).is_true()
+	var damage_snapshot: Dictionary = presentation.get_last_damage_number_snapshot()
+	assert_str(String(damage_snapshot.get("text", ""))).is_equal("14")
+	var boss_metadata: Dictionary = boss.call("get_last_enemy_attack_metadata")
+	assert_int(int(boss_metadata.get("damage_applied", 0))).is_equal(14)
+	var arena_diagnostics: Dictionary = arena.call("get_boss3_combat_diagnostics")
+	assert_int(int(Dictionary(arena_diagnostics.get(
+		"last_boss_attack_metadata",
+		{}
+	)).get("damage", 0))).is_equal(14)
+
+	if not get_tree().paused:
+		return
+	while presentation.is_gameplay_hitstop_active():
+		await get_tree().process_frame
+	assert_bool(get_tree().paused).is_false()
 
 
 func test_dodged_pressure_lunge_does_not_emit_damage_feedback_or_hitstop() -> void:

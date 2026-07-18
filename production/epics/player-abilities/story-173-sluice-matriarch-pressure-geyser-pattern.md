@@ -79,6 +79,11 @@ Detection; ADR-0005 Combat State Machine; ADR-0006 AI Framework.
   active, and recovery diagnostics matched the Story contract, game/editor
   logs were clean, and the non-empty `1278x718` screenshot is retained at
   `reports/visual/cinderpaw-mcp-sluice-matriarch-pressure-geyser-pattern-20260718.png`.
+- Post-review real-hit regression: `reports/report_1929/results.xml` reproduced
+  the Arena fallback damage `12`; `reports/report_1930/results.xml` passed the
+  corrected real-collision suite `5/5` with `0` errors, failures, skipped,
+  flaky tests, or orphans. MCP run token `73` then proved player HP `100 -> 86`,
+  damage number `14`, and Boss/Arena `damage_applied=14` with clean logs.
 - Full evidence:
   `production/qa/evidence/sluice-matriarch-pressure-geyser-pattern-2026-07-18.md`.
 

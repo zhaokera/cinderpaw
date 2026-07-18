@@ -25,6 +25,12 @@ behavior remain unchanged.
 - The related audio fixture now releases both `AudioStreamPlayer` and
   `AudioStreamPlayer2D` streams, removing the prior test-process resource leak
   without changing gameplay audio behavior.
+- Post-review real-hit RED `reports/report_1929/results.xml` proved that the
+  Arena adapter mapped the new geyser hitbox to the `12`-damage player-light
+  fallback despite the authored `14` metadata. The narrow ID mapping fix made
+  `reports/report_1930/results.xml` pass the real-collision suite `5/5` with
+  `0` errors, failures, skipped, flaky tests, or engine orphans while preserving
+  lunge `16` and player-light `12`.
 
 ## Asset Generation And Import
 
@@ -62,6 +68,10 @@ behavior remain unchanged.
 - Final run token `72` launched live with `current_run_errors=[]`. The game log
   contained only the MCP helper registration line, and the editor log contained
   `0` rows after the shadowed-parameter warning was corrected and reloaded.
+- Post-review run token `73` used the live Boss and Player CollisionComponents:
+  the active geyser reduced player HP `100 -> 86`, showed damage number `14`,
+  and reported `damage_applied=14` in both Boss and Arena metadata. Game output
+  remained helper-info-only and editor logs contained `0` rows.
 - Runtime screenshot:
   `reports/visual/cinderpaw-mcp-sluice-matriarch-pressure-geyser-pattern-20260718.png`.
   It is a non-empty `1278x718` RGB PNG that visibly shows the active pressure
