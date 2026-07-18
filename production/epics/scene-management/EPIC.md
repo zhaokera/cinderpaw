@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 20 stories tracked; future stories planned
+> **Stories**: 21 stories tracked; future stories planned
 
 ## Overview
 
@@ -59,6 +59,9 @@ automatic handoff.
 Story020 registers Main's previously dead `area_02_sewer` target and adds an
 image-generated Sewer Dash room with a real gap, animated exhaust reset, one
 physical Dash proof and a deterministic return to `main/sewer_return`.
+Story021 extends that route with an image-generated pressure chamber, a
+frame-animated Sluice Leech, warning/active back-pressure beat, defeat-gated
+seal, one-shot Gears cache and persisted clear state without unlocking Factory.
 
 ## Governing ADRs
 
@@ -104,6 +107,7 @@ physical Dash proof and a deterministic return to `main/sewer_return`.
 | 018 | Scrap Roost Rat King Approach | Gameplay / Integration | Complete | ADR-0004, ADR-0007 |
 | 019 | Rat King Victory Echo Challenge Intermission | Gameplay / Pacing / Visual / Save | Complete | ADR-0007, ADR-0021 |
 | 020 | Sewer Dash Route Entry | Gameplay / Traversal / Visual | Complete | ADR-0004, ADR-0007 |
+| 021 | Sewer Pressure Ambush | Gameplay / Combat / Visual / Persistence | Complete | ADR-0004, ADR-0007 |
 
 ## Definition of Done
 
@@ -188,7 +192,6 @@ This epic is complete when:
 
 ## Next Step
 
-Deepen the Sewer only with a bounded player-facing ACT payoff such as one compact
-combat/reward room or a Double-Jump-gated forward junction. Do not connect the
-current Dash entry directly to the Factory until the GDD's Double Jump condition
-is genuinely satisfied.
+Continue the Sewer with one bounded exploration payoff, secret or visible
+Double-Jump-gated forward junction. Do not connect it to Factory until the GDD's
+Double Jump condition is genuinely satisfied.

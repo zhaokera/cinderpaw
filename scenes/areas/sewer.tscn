@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/sewer_dash_route.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -7,6 +7,10 @@
 [ext_resource type="Script" path="res://src/presentation/combat_presentation.gd" id="5_combat"]
 [ext_resource type="Script" path="res://src/gameplay/hitstop_input_bridge.gd" id="6_bridge"]
 [ext_resource type="SpriteFrames" path="res://assets/environment/old_factory_steam_vent/factory_steam_vent_sprite_frames.tres" id="7_steam_frames"]
+[ext_resource type="Texture2D" path="res://assets/environment/sewer_pressure_chamber/sewer_pressure_chamber_background_1280x720.png" id="8_pressure_background"]
+[ext_resource type="Script" path="res://src/feature/underground_salvage_cache.gd" id="9_cache"]
+[ext_resource type="Texture2D" path="res://assets/environment/underground_passage/prop_underground_salvage_cache_256x256.png" id="10_cache_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/underground_passage/prop_underground_seal_gate_256x384.png" id="11_seal_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_left_platform"]
 size = Vector2(588, 40)
@@ -26,6 +30,18 @@ size = Vector2(170, 200)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_exit"]
 size = Vector2(100, 180)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_deep_floor"]
+size = Vector2(1280, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pressure"]
+size = Vector2(118, 220)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_seal"]
+size = Vector2(56, 720)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cache"]
+radius = 96.0
+
 [node name="SewerDashRoute" type="Node2D"]
 script = ExtResource("1_script")
 
@@ -38,11 +54,27 @@ texture = ExtResource("3_background")
 expand_mode = 1
 stretch_mode = 6
 
+[node name="PressureChamberBackground" type="TextureRect" parent="."]
+z_index = -100
+offset_left = 1280.0
+offset_right = 2560.0
+offset_bottom = 720.0
+mouse_filter = 2
+texture = ExtResource("8_pressure_background")
+expand_mode = 1
+stretch_mode = 6
+
 [node name="EntrySpawn" type="Node2D" parent="."]
 position = Vector2(140, 417)
 
 [node name="RightLandingSpawn" type="Node2D" parent="."]
 position = Vector2(742, 431)
+
+[node name="PressureChamberSpawn" type="Marker2D" parent="."]
+position = Vector2(1420, 431)
+
+[node name="SluiceLeechSpawn" type="Marker2D" parent="."]
+position = Vector2(1810, 455)
 
 [node name="LeftPlatform" type="StaticBody2D" parent="."]
 position = Vector2(294, 461)
@@ -60,6 +92,14 @@ collision_mask = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RightPlatform"]
 shape = SubResource("RectangleShape2D_right_platform")
 
+[node name="PressureChamberFloor" type="StaticBody2D" parent="."]
+position = Vector2(1920, 475)
+collision_layer = 16
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PressureChamberFloor"]
+shape = SubResource("RectangleShape2D_deep_floor")
+
 [node name="LeftWall" type="StaticBody2D" parent="."]
 position = Vector2(20, 360)
 collision_layer = 16
@@ -69,7 +109,7 @@ collision_mask = 0
 shape = SubResource("RectangleShape2D_wall")
 
 [node name="RightWall" type="StaticBody2D" parent="."]
-position = Vector2(1260, 360)
+position = Vector2(2540, 360)
 collision_layer = 16
 collision_mask = 0
 
@@ -102,8 +142,78 @@ collision_mask = 1
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FallZone"]
 shape = SubResource("RectangleShape2D_fall_zone")
 
+[node name="PressureBackflowHazard" type="Area2D" parent="."]
+z_index = 18
+position = Vector2(1345, 410)
+collision_layer = 16
+collision_mask = 1
+monitorable = false
+
+[node name="SteamAnimation" type="AnimatedSprite2D" parent="PressureBackflowHazard"]
+z_index = 1
+position = Vector2(0, 82)
+scale = Vector2(0.72, 0.72)
+sprite_frames = ExtResource("7_steam_frames")
+animation = &"safe"
+autoplay = "safe"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PressureBackflowHazard"]
+shape = SubResource("RectangleShape2D_pressure")
+disabled = true
+
+[node name="PressureRoomSeal" type="StaticBody2D" parent="."]
+z_index = 18
+position = Vector2(2360, 360)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Visual" type="Sprite2D" parent="PressureRoomSeal"]
+texture_filter = 1
+scale = Vector2(0.72, 0.92)
+texture = ExtResource("11_seal_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PressureRoomSeal"]
+shape = SubResource("RectangleShape2D_seal")
+
+[node name="SewerPressureCache" type="Node2D" parent="."]
+z_index = 24
+position = Vector2(2180, 455)
+script = ExtResource("9_cache")
+cache_id = &"sewer_pressure_salvage"
+reward_source = &"sewer_pressure_ambush"
+reward_gears = 15
+claim_radius_px = 96.0
+locked_prompt_text = "Pressure lock"
+available_prompt_text = "+15 Gears"
+claimed_prompt_text = "Secured"
+
+[node name="Visual" type="Sprite2D" parent="SewerPressureCache"]
+position = Vector2(0, -56)
+texture_filter = 1
+scale = Vector2(0.62, 0.62)
+texture = ExtResource("10_cache_texture")
+
+[node name="InteractionArea" type="Area2D" parent="SewerPressureCache"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SewerPressureCache/InteractionArea"]
+shape = SubResource("CircleShape2D_cache")
+
+[node name="PromptLabel" type="Label" parent="SewerPressureCache"]
+visible = false
+offset_left = -110.0
+offset_top = -154.0
+offset_right = 110.0
+offset_bottom = -120.0
+theme_override_colors/font_color = Color(1, 0.78, 0.32, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "+15 Gears"
+horizontal_alignment = 1
+
 [node name="ExitArea" type="Area2D" parent="."]
-position = Vector2(1190, 405)
+position = Vector2(2490, 405)
 collision_layer = 0
 collision_mask = 1
 
@@ -117,7 +227,7 @@ position = Vector2(140, 417)
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 1280
+limit_right = 2560
 limit_bottom = 720
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0

@@ -3599,6 +3599,7 @@ func _seed_sewer_route_state(scene_manager: Object) -> void:
 		if not unlocked_abilities.has(ability_string):
 			unlocked_abilities.append(ability_string)
 	sewer_state["unlocked_abilities"] = unlocked_abilities
+	sewer_state["currency"] = _currency_amount
 	scene_manager.call("set_scene_state", SEWER_ROUTE_SCENE_ID, sewer_state)
 
 

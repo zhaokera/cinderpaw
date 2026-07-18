@@ -120,6 +120,11 @@ func test_real_dash_enters_sewer_resets_failed_jump_and_returns_once() -> void:
 	var crossed: Dictionary = Dictionary(sewer.call("get_sewer_route_diagnostics"))
 	assert_bool(bool(crossed.get("dash_crossed", false))).is_true()
 	assert_int(int(crossed.get("successful_dash_crossings", 0))).is_equal(1)
+	# Story021 owns the new deep-room fight; this regression stays on Dash/round trip.
+	var return_ready_state: Dictionary = Dictionary(sewer.call("get_local_state"))
+	return_ready_state["sewer_pressure_ambush_cleared"] = true
+	sewer.call("set_local_state", return_ready_state)
+	sewer_player.respawn_at(Vector2(2380.0, 431.0), 1.0)
 	assert_bool(await _reach_sewer_exit(sewer, sewer_player)).is_true()
 	assert_str(String(_scene_manager.call("get_pending_scene"))).is_equal(
 		String(MAIN_SCENE_ID)
