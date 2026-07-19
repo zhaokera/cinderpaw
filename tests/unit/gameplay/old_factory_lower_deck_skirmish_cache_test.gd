@@ -104,6 +104,54 @@ func test_lower_deck_skirmish_requires_overdrive_clear_but_not_cache_claim() -> 
 	assert_str(String(lift.get("prompt_text", ""))).is_equal("Call lift")
 
 
+func test_production_process_auto_activates_lower_deck_after_overdrive_clear() -> void:
+	var destination: Node = _factory_scene_with_overdrive_duo_cleared(false)
+	assert_that(destination).is_not_null()
+	if destination == null:
+		return
+
+	var player: Node2D = destination.get_node_or_null(FACTORY_PLAYER_NAME) as Node2D
+	assert_that(player).is_not_null()
+	if player == null:
+		return
+
+	var before: Dictionary = destination.call("get_factory_lower_deck_skirmish_diagnostics")
+	assert_bool(bool(before.get("available", false))).is_true()
+	assert_bool(bool(before.get("active", true))).is_false()
+	player.global_position.x = float(before.get("activation_x", 0.0)) - 1.0
+	destination.call("_process", 0.0)
+	assert_bool(bool(
+		destination.call("get_factory_lower_deck_skirmish_diagnostics").get(
+			"active",
+			true
+		)
+	)).is_false()
+	player.global_position.x = float(before.get("activation_x", 0.0)) + 1.0
+
+	# Exercise the production frame loop; do not call the activation API directly.
+	destination.call("_process", 0.0)
+
+	var active: Dictionary = destination.call("get_factory_lower_deck_skirmish_diagnostics")
+	assert_bool(bool(active.get("active", false))).is_true()
+	assert_bool(bool(active.get("enemy_visible", false))).is_true()
+	assert_bool(bool(active.get("enemy_has_target", false))).is_true()
+	assert_bool(bool(active.get("enemy_physics_enabled", false))).is_true()
+	assert_bool(bool(active.get("enemy_process_enabled", false))).is_true()
+	assert_bool(bool(active.get("pressure_hazard_active", false))).is_true()
+	assert_str(String(
+		destination.call("get_factory_route_objective_diagnostics").get(
+			"objective_id",
+			""
+		)
+	)).is_equal("clear_lower_deck_skirmish")
+	assert_str(String(
+		destination.call("get_factory_service_lift_diagnostics").get(
+			"prompt_text",
+			""
+		)
+	)).is_equal("Call lift")
+
+
 func test_lower_deck_skirmish_defeat_unlocks_independent_reward_cache_and_persists() -> void:
 	var destination: Node = _factory_scene_with_overdrive_duo_cleared(false)
 	assert_that(destination).is_not_null()

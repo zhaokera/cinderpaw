@@ -1511,6 +1511,7 @@ func _process(_delta: float) -> void:
 	_try_auto_activate_checkpoint_forward_patrol()
 	_try_auto_activate_checkpoint_rear_ambush()
 	_try_auto_activate_checkpoint_overdrive_duo()
+	try_activate_factory_lower_deck_skirmish(_player)
 	_try_auto_activate_forward_pressure_beacon_ambush()
 	_try_auto_activate_forward_pressure_overrun()
 	_try_auto_activate_forward_pressure_breaker()

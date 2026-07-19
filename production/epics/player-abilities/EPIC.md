@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 174 stories tracked
+> **Stories**: 177 stories tracked
 
 ## Overview
 
@@ -214,6 +214,7 @@ recording the reward in progression state.
 | 174 | Sluice Matriarch Phase II Transition Readability | Integration + Gameplay Runtime + Frame Animation | Complete | ADR-0002/0004/0005/0006/0010/0019/0020 |
 | 175 | Echo Guardian Secondary Attack Playable Loop | Attack Pattern + Frame Animation + Data Integration | Complete | ADR-0002/0004/0005/0006/0010/0018 |
 | 176 | Crown Warden Dedicated Phase Transition Frame Animation | Visual/Feel + Frame Animation + Data Integration | Complete | ADR-0002/0004/0005/0006/0010/0019/0020 |
+| 177 | Old Factory Lower Deck Skirmish Production-Input Handoff | Integration + Gameplay Runtime + Production Input | Complete | ADR-0004/0005/0006/0007/0018/0021 |
 
 ## Definition of Done
 
@@ -226,6 +227,8 @@ This epic is complete when:
   abilities exactly once.
 - Dash, double jump, aerial attack, wall climb, parry, and future ability
   consumers are connected to gameplay input/presentation as their stories land.
+- Authored optional encounters are reachable through production movement and
+  interaction paths rather than test-only direct API calls.
 - Player-visible 2D ability states use `AnimatedSprite2D` + `SpriteFrames` and
   pass MCP runtime checks.
 - Logic and integration stories have passing focused tests plus risk-appropriate
@@ -233,8 +236,9 @@ This epic is complete when:
 
 ## Next Step
 
-Story176 replaces Crown Warden's final-hurt-frame Phase II hold with a dedicated
-generated three-frame loop while preserving Story163's full combat contract.
-The next bounded slice should come from a short player-visible critical-path
-audit and prioritize playable ACT depth or encounter variety over another
-presentation-only pass.
+Story177 closes the first production-input gap into the authored Old Factory
+Lower Deck chain. The next bounded functional slice should make Main's
+post-lift Factory return choose `return_checkpoint` when that checkpoint is
+active while preserving `factory_gate_entry` as the fallback. A separate
+image-generated presentation Story can then add a visible service-lift body and
+arrival/departure animation without coupling scene-flow behavior to art work.
