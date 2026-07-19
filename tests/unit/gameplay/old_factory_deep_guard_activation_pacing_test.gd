@@ -56,8 +56,8 @@ func test_deep_guard_stays_idle_until_player_reaches_route_pressure_point() -> v
 	assert_bool(bool(destination.call("try_activate_factory_deep_guard", player))).is_false()
 	assert_bool(bool(destination.call("is_factory_deep_guard_activated"))).is_false()
 
-	await _defeat_guard(destination, FACTORY_ENTRY_GUARD_NAME, &"unit_test_entry_clear")
 	player.global_position.x = float(diagnostics.get("deep_guard_activation_x", 0.0)) - 24.0
+	await _defeat_guard(destination, FACTORY_ENTRY_GUARD_NAME, &"unit_test_entry_clear")
 	assert_bool(bool(destination.call("try_activate_factory_deep_guard", player))).is_false()
 	assert_bool(bool(destination.call("is_factory_deep_guard_activated"))).is_false()
 

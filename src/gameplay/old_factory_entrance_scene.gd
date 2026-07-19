@@ -58,8 +58,8 @@ const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_RUNOFF_OUTLET_SER
 const FACTORY_TAILRACE_EXIT_SLUICE_LEECH_ENTITY_ID: int = 2146
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
 const FACTORY_ENTRY_GUARD_ACTIVATION_X: float = 520.0
-const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
-const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
+const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 1184.0
+const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1600.0
 const FACTORY_CHECKPOINT_FORWARD_PATROL_ACTIVATION_X: float = 900.0
 const FACTORY_CHECKPOINT_REAR_AMBUSH_ACTIVATION_X: float = 1108.0
 const FACTORY_CHECKPOINT_OVERDRIVE_DUO_ACTIVATION_X: float = 1196.0
@@ -1161,6 +1161,11 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 		as Area2D
 )
 @onready var _deep_endpoint: Node = get_node_or_null("FactoryDeepRouteEndpoint")
+@onready var _deep_route_gate: Node2D = get_node_or_null("FactoryDeepRouteGate") as Node2D
+@onready var _deep_route_gate_collision: CollisionShape2D = (
+	get_node_or_null("FactoryDeepRouteGate/StaticBody2D/CollisionShape2D")
+		as CollisionShape2D
+)
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
 @onready var _post_bulkhead_background: TextureRect = (
 	get_node_or_null("PostBulkheadBackground") as TextureRect
@@ -1208,6 +1213,7 @@ var _kill_feedback_count: int = 0
 var _encounter_cleared: bool = false
 var _entry_guard_activated: bool = false
 var _cache_claimed: bool = false
+var _interact_input_was_pressed: bool = false
 var _deep_guard_activated: bool = false
 var _deep_guard_defeated: bool = false
 var _deep_route_cleared: bool = false
@@ -1474,10 +1480,25 @@ func _ready() -> void:
 	_request_factory_audio()
 
 
+## Routes the current Factory interaction to the nearest available entry-route prop.
+func handle_factory_interact_input() -> bool:
+	if try_claim_factory_cache(_player):
+		return true
+	if try_activate_factory_deep_route_endpoint(_player):
+		return true
+	return try_activate_factory_service_lift(_player)
+
+
 func _process(_delta: float) -> void:
+	var interact_pressed: bool = Input.is_action_pressed(&"interact")
+	if interact_pressed and not _interact_input_was_pressed:
+		handle_factory_interact_input()
+	_interact_input_was_pressed = interact_pressed
 	_factory_hazard_respawn_grace_frames = maxi(_factory_hazard_respawn_grace_frames - 1, 0)
 	_snap_return_checkpoint_spawn_if_needed()
 	_try_auto_activate_factory_entry_guard()
+	_try_auto_activate_factory_deep_guard()
+	_try_auto_activate_factory_spark_rat()
 	_try_auto_activate_checkpoint_forward_patrol()
 	_try_auto_activate_checkpoint_rear_ambush()
 	_try_auto_activate_checkpoint_overdrive_duo()
@@ -4630,6 +4651,7 @@ func try_activate_factory_deep_route_endpoint(provider: Node = null) -> bool:
 		return false
 	_deep_route_cleared = true
 	_sync_deep_route_state()
+	_sync_spark_rat_state()
 	_refresh_factory_route_objective()
 	return true
 
@@ -7115,6 +7137,12 @@ func get_factory_deep_route_diagnostics() -> Dictionary:
 			else false
 		),
 		"deep_route_cleared": _deep_route_cleared,
+		"route_gate_present": _deep_route_gate != null,
+		"route_gate_visible": _deep_route_gate.visible if _deep_route_gate != null else false,
+		"route_gate_blocking": _is_factory_deep_route_gate_blocking(),
+		"route_gate_position": (
+			_deep_route_gate.global_position if _deep_route_gate != null else Vector2.ZERO
+		),
 		"endpoint_present": _deep_endpoint != null,
 		"endpoint_available": (
 			bool(_deep_endpoint.call("is_available"))
@@ -15498,6 +15526,7 @@ func _sync_room_clear_state() -> void:
 
 
 func _sync_deep_route_state() -> void:
+	_sync_factory_deep_route_gate_state()
 	if _deep_endpoint != null:
 		if _deep_endpoint.has_method("set_available"):
 			_deep_endpoint.call("set_available", _deep_guard_defeated)
@@ -15525,6 +15554,23 @@ func _sync_deep_route_state() -> void:
 			deep_guard.set_deferred("collision_mask", 0)
 			_set_deep_guard_attack_target(null)
 		_set_factory_guard_hurtbox_active(deep_guard, _deep_guard_activated)
+
+
+func _sync_factory_deep_route_gate_state() -> void:
+	var opened: bool = _deep_route_cleared
+	if _deep_route_gate != null:
+		_deep_route_gate.visible = not opened
+	if _deep_route_gate_collision != null:
+		_deep_route_gate_collision.set_deferred("disabled", opened)
+
+
+func _is_factory_deep_route_gate_blocking() -> bool:
+	return (
+		_deep_route_gate != null
+		and _deep_route_gate.visible
+		and _deep_route_gate_collision != null
+		and not _deep_route_gate_collision.disabled
+	)
 
 
 func _sync_spark_rat_state() -> void:
@@ -20943,6 +20989,14 @@ func _grant_factory_hazard_respawn_grace() -> void:
 
 func _try_auto_activate_factory_entry_guard() -> void:
 	try_activate_factory_entry_guard(_player)
+
+
+func _try_auto_activate_factory_deep_guard() -> void:
+	try_activate_factory_deep_guard(_player)
+
+
+func _try_auto_activate_factory_spark_rat() -> void:
+	try_activate_factory_spark_rat(_player)
 
 
 func _is_factory_entry_guard_activation_provider_in_range(provider: Node) -> bool:

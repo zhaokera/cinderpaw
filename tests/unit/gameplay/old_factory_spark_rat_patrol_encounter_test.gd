@@ -113,7 +113,9 @@ func test_spark_rat_activates_after_endpoint_open_and_can_be_defeated() -> void:
 		return
 
 	await _open_deep_route_endpoint(destination, player)
-	assert_bool(bool(destination.call("try_activate_factory_spark_rat", player))).is_true()
+	var pending_diagnostics: Dictionary = destination.call("get_factory_spark_rat_diagnostics")
+	player.global_position.x = float(pending_diagnostics.get("activation_x", 0.0)) + 8.0
+	await get_tree().process_frame
 	assert_bool(bool(destination.call("try_activate_factory_spark_rat", player))).is_false()
 
 	var active_diagnostics: Dictionary = destination.call("get_factory_spark_rat_diagnostics")
