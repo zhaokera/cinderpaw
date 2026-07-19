@@ -157,6 +157,10 @@ func test_factory_entrance_player_attack_damages_room_combat_object() -> void:
 	assert_bool(player.has_method("get_collision_component")).is_true()
 	assert_bool(enemy.has_method("get_collision_component")).is_true()
 	assert_bool(enemy.has_method("get_current_hp")).is_true()
+	assert_bool(destination.has_method("try_activate_factory_entry_guard")).is_true()
+	var staging: Dictionary = destination.call("get_factory_arrival_staging_diagnostics")
+	(player as Node2D).global_position.x = float(staging.get("entry_guard_activation_x", 0.0)) + 1.0
+	assert_bool(bool(destination.call("try_activate_factory_entry_guard", player))).is_true()
 
 	var enemy_start_hp: int = int(enemy.call("get_current_hp"))
 	player.global_position = (enemy as Node2D).global_position + Vector2(-42, -26)

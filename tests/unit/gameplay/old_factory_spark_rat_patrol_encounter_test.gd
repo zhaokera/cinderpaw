@@ -75,7 +75,7 @@ func test_factory_spark_rat_character_assets_follow_frame_animation_rules() -> v
 			assert_bool(FileAccess.file_exists(frame_path)).is_true()
 
 
-func test_old_factory_mounts_spark_rat_visible_but_inactive_until_deep_route_opens() -> void:
+func test_old_factory_hides_inactive_spark_rat_until_deep_route_opens() -> void:
 	var destination: Node = _instantiate_factory_scene()
 	assert_that(destination).is_not_null()
 	if destination == null:
@@ -93,7 +93,7 @@ func test_old_factory_mounts_spark_rat_visible_but_inactive_until_deep_route_ope
 
 	var diagnostics: Dictionary = destination.call("get_factory_spark_rat_diagnostics")
 	assert_bool(bool(diagnostics.get("present", false))).is_true()
-	assert_bool(bool(diagnostics.get("visible", false))).is_true()
+	assert_bool(bool(diagnostics.get("visible", true))).is_false()
 	assert_bool(bool(diagnostics.get("active", true))).is_false()
 	assert_bool(bool(diagnostics.get("defeated", true))).is_false()
 	assert_int(int(diagnostics.get("entity_id", 0))).is_equal(FACTORY_SPARK_RAT_ENTITY_ID)

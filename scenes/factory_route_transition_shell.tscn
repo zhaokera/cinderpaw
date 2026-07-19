@@ -602,14 +602,14 @@ scale = Vector2(0.68, 0.68)
 texture = ExtResource("2_factory_shell")
 
 [node name="FactoryGateEntrySpawn" type="Marker2D" parent="."]
-position = Vector2(136, 456)
+position = Vector2(216, 456)
 
 [node name="CombatEnemySpawnMarker" type="Marker2D" parent="."]
 position = Vector2(900, 482)
 
 [node name="Player" parent="." instance=ExtResource("4_player")]
 z_index = 20
-position = Vector2(136, 456)
+position = Vector2(216, 456)
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0

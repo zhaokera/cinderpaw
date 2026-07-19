@@ -40,7 +40,7 @@ func test_factory_room_contains_generated_deep_route_endpoint_without_placeholde
 	assert_that(endpoint).is_not_null()
 	if endpoint == null:
 		return
-	assert_bool(endpoint.visible).is_true()
+	assert_bool(endpoint.visible).is_false()
 	assert_bool(endpoint.has_method("get_endpoint_id")).is_true()
 	assert_bool(endpoint.has_method("get_visual_texture_path")).is_true()
 	assert_bool(endpoint.has_method("is_available")).is_true()
@@ -63,7 +63,7 @@ func test_factory_deep_route_uses_second_animated_rat_guard() -> void:
 	assert_that(guard).is_not_null()
 	if guard == null:
 		return
-	assert_bool(guard.visible).is_true()
+	assert_bool(guard.visible).is_false()
 	assert_bool(guard.has_method("get_entity_id")).is_true()
 	assert_int(int(guard.call("get_entity_id"))).is_equal(FACTORY_DEEP_GUARD_ENTITY_ID)
 	_assert_character_animation_contract(destination, FACTORY_DEEP_GUARD_NAME, [

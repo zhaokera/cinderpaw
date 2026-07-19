@@ -64,7 +64,7 @@ func after_test() -> void:
 	_spawned_nodes.clear()
 
 
-func test_service_lift_is_visible_locked_until_spark_rat_clear_then_activates_once() -> void:
+func test_service_lift_stays_hidden_until_spark_rat_clear_then_activates_once() -> void:
 	assert_bool(FileAccess.file_exists(SERVICE_LIFT_TEXTURE_PATH)).is_true()
 	var destination: Node = _instantiate_factory_scene()
 	assert_that(destination).is_not_null()

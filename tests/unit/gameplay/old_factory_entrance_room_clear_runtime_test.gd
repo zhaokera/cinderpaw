@@ -51,7 +51,7 @@ func test_factory_entrance_has_double_jump_cache_platform_and_generated_cache_pr
 	assert_float(player.global_position.y - cache.global_position.y).is_greater_equal(
 		MIN_DOUBLE_JUMP_ROUTE_DELTA_Y
 	)
-	assert_bool(cache.visible).is_true()
+	assert_bool(cache.visible).is_false()
 	assert_bool(cache.has_method("get_cache_id")).is_true()
 	assert_bool(cache.has_method("get_visual_texture_path")).is_true()
 	assert_str(String(cache.call("get_cache_id"))).is_equal("old_factory_entrance_cache")
@@ -88,6 +88,7 @@ func test_factory_cache_unlocks_after_enemy_defeat_and_claims_once() -> void:
 
 	assert_bool(bool(destination.call("is_encounter_cleared"))).is_true()
 	assert_bool(bool(cache.call("is_claim_available"))).is_true()
+	assert_bool(cache.visible).is_true()
 	player.global_position = cache.global_position
 	assert_bool(bool(destination.call("try_claim_factory_cache", player))).is_true()
 	assert_bool(bool(destination.call("try_claim_factory_cache", player))).is_false()
@@ -128,6 +129,12 @@ func test_factory_cache_state_restores_room_clear_and_claimed_state() -> void:
 	assert_bool(local_state.has("factory_cache_claimed")).is_true()
 	assert_bool(bool(local_state.get("encounter_cleared", false))).is_true()
 	assert_bool(bool(local_state.get("factory_cache_claimed", false))).is_true()
+	assert_bool(bool(local_state.get("factory_entry_guard_activated", false))).is_true()
+	var enemy: Node = destination.get_node_or_null(FACTORY_ENEMY_NAME)
+	assert_that(enemy).is_not_null()
+	if enemy != null:
+		var collision: Node = enemy.call("get_collision_component") as Node
+		assert_str(String(collision.call("get_hurtbox_state"))).is_equal("gone")
 
 
 func _instantiate_factory_scene() -> Node:

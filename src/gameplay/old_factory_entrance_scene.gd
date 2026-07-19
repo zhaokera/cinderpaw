@@ -57,6 +57,7 @@ const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_RUNOFF_OUTLET_SER
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_RUNOFF_COIL_ENTITY_ID: int = 2145
 const FACTORY_TAILRACE_EXIT_SLUICE_LEECH_ENTITY_ID: int = 2146
 const FACTORY_SPARK_RAT_BITE_DAMAGE_FALLBACK: int = 9
+const FACTORY_ENTRY_GUARD_ACTIVATION_X: float = 520.0
 const FACTORY_DEEP_GUARD_ACTIVATION_X: float = 980.0
 const FACTORY_SPARK_RAT_ACTIVATION_X: float = 1140.0
 const FACTORY_CHECKPOINT_FORWARD_PATROL_ACTIVATION_X: float = 900.0
@@ -1205,6 +1206,7 @@ var _last_enemy_hit_metadata: Dictionary = {}
 var _kill_feedback_emitted_by_entity: Dictionary = {}
 var _kill_feedback_count: int = 0
 var _encounter_cleared: bool = false
+var _entry_guard_activated: bool = false
 var _cache_claimed: bool = false
 var _deep_guard_activated: bool = false
 var _deep_guard_defeated: bool = false
@@ -1475,6 +1477,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	_factory_hazard_respawn_grace_frames = maxi(_factory_hazard_respawn_grace_frames - 1, 0)
 	_snap_return_checkpoint_spawn_if_needed()
+	_try_auto_activate_factory_entry_guard()
 	_try_auto_activate_checkpoint_forward_patrol()
 	_try_auto_activate_checkpoint_rear_ambush()
 	_try_auto_activate_checkpoint_overdrive_duo()
@@ -2003,6 +2006,20 @@ func try_activate_factory_deep_guard(provider: Node = null) -> bool:
 	_deep_guard_activated = true
 	_sync_deep_route_state()
 	_refresh_factory_route_objective()
+	return true
+
+
+## Wakes the entrance guard only after the player commits past the safe arrival space.
+func try_activate_factory_entry_guard(provider: Node = null) -> bool:
+	if _get_valid_node2d(_enemy) == null or _encounter_cleared or _entry_guard_activated:
+		return false
+	var activation_provider: Node = provider
+	if activation_provider == null:
+		activation_provider = _player
+	if not _is_factory_entry_guard_activation_provider_in_range(activation_provider):
+		return false
+	_entry_guard_activated = true
+	_sync_entry_guard_state()
 	return true
 
 
@@ -4689,7 +4706,7 @@ func apply_factory_steam_vent_contact(hazard: Area2D, target: Node) -> bool:
 	_factory_hazard_contact_cooldowns[cooldown_key] = (
 		_factory_hazard_elapsed_sec + _get_hazard_cooldown_sec(hazard)
 	)
-	_update_route_label("Steam vent hit")
+	_refresh_factory_route_objective()
 	return true
 
 
@@ -4723,6 +4740,7 @@ func get_local_state() -> Dictionary:
 		"unlocked_abilities": _get_player_unlocked_ability_strings(),
 		"currency": _currency_amount,
 		"encounter_cleared": _encounter_cleared,
+		"factory_entry_guard_activated": _entry_guard_activated,
 		"factory_cache_claimed": _cache_claimed,
 		"factory_deep_guard_activated": _deep_guard_activated,
 		"factory_deep_guard_defeated": _deep_guard_defeated,
@@ -5294,6 +5312,10 @@ func set_local_state(state: Dictionary) -> void:
 	_restore_player_unlocked_abilities(state)
 	_currency_amount = maxi(0, int(state.get("currency", _currency_amount)))
 	_encounter_cleared = bool(state.get("encounter_cleared", false))
+	_entry_guard_activated = bool(state.get(
+		"factory_entry_guard_activated",
+		_encounter_cleared
+	))
 	_cache_claimed = bool(state.get("factory_cache_claimed", false))
 	_deep_guard_activated = bool(state.get("factory_deep_guard_activated", false))
 	_deep_guard_defeated = bool(state.get("factory_deep_guard_defeated", false))
@@ -6681,6 +6703,7 @@ func set_local_state(state: Dictionary) -> void:
 		_service_lift_exit_requested = false
 		_last_service_lift_exit_rejected_reason = &""
 		_last_service_lift_exit_request = {}
+	_sync_entry_guard_state()
 	_sync_room_clear_state()
 	_sync_deep_route_state()
 	_sync_spark_rat_state()
@@ -12983,6 +13006,62 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 	}
 
 
+## Returns the first-screen reveal sequence used by tests and MCP acceptance probes.
+func get_factory_arrival_staging_diagnostics() -> Dictionary:
+	var entry_guard: Node2D = _get_valid_node2d(_enemy)
+	var deep_guard: Node2D = _get_valid_node2d(_deep_guard)
+	var spark_rat: Node2D = _get_valid_node2d(_spark_rat)
+	var cache_prompt := (
+		_cache.get_node_or_null("PromptLabel") as Label
+		if _cache != null
+		else null
+	)
+	var endpoint_prompt := (
+		_deep_endpoint.get_node_or_null("PromptLabel") as Label
+		if _deep_endpoint != null
+		else null
+	)
+	var lift_prompt := (
+		_service_lift.get_node_or_null("PromptLabel") as Label
+		if _service_lift != null
+		else null
+	)
+	var route_label := get_node_or_null("RouteLabel") as Label
+	return {
+		"entry_guard_activation_x": FACTORY_ENTRY_GUARD_ACTIVATION_X,
+		"entry_guard_activated": _entry_guard_activated,
+		"entry_guard_instance_valid": entry_guard != null,
+		"entry_guard_visible": entry_guard.visible if entry_guard != null else false,
+		"entry_guard_has_target": (
+			bool(entry_guard.call("has_attack_target"))
+			if entry_guard != null and entry_guard.has_method("has_attack_target")
+			else false
+		),
+		"entry_guard_physics_enabled": (
+			entry_guard.is_physics_processing() if entry_guard != null else false
+		),
+		"entry_guard_collision_layer": (
+			entry_guard.collision_layer if entry_guard != null else 0
+		),
+		"cache_visible": _cache.visible if _cache != null else false,
+		"cache_prompt_visible": (
+			cache_prompt.is_visible_in_tree() if cache_prompt != null else false
+		),
+		"deep_guard_visible": deep_guard.visible if deep_guard != null else false,
+		"deep_endpoint_visible": _deep_endpoint.visible if _deep_endpoint != null else false,
+		"deep_endpoint_prompt_visible": (
+			endpoint_prompt.is_visible_in_tree() if endpoint_prompt != null else false
+		),
+		"spark_rat_visible": spark_rat.visible if spark_rat != null else false,
+		"service_lift_visible": _service_lift.visible if _service_lift != null else false,
+		"service_lift_prompt_visible": (
+			lift_prompt.is_visible_in_tree() if lift_prompt != null else false
+		),
+		"route_label_text": route_label.text if route_label != null else "",
+		"route_objective_id": String(_get_factory_route_objective_id()),
+	}
+
+
 func _get_deep_route_unlock_vfx_snapshot() -> Dictionary:
 	if _deep_endpoint == null or not _deep_endpoint.has_method("get_unlock_vfx_snapshot"):
 		return {}
@@ -13465,8 +13544,7 @@ func _bind_enemy_to_player() -> void:
 		&"old_factory_entrance",
 		FACTORY_ENTRY_GUARD_ENTITY_ID,
 		&"factory_patrol",
-		_on_factory_enemy_defeated,
-		_player
+		_on_factory_enemy_defeated
 	)
 	_bind_factory_guard(
 		_deep_guard,
@@ -13790,6 +13868,7 @@ func _bind_enemy_to_player() -> void:
 		&"factory_tailrace_exit_sluice_leech",
 		_on_factory_tailrace_exit_sluice_leech_defeated
 	)
+	_sync_entry_guard_state()
 
 
 func _setup_factory_cache() -> void:
@@ -14473,8 +14552,11 @@ func _dispatch_factory_combat_audio(
 
 
 func _on_factory_enemy_defeated() -> void:
+	_entry_guard_activated = true
 	_encounter_cleared = true
+	_sync_entry_guard_state()
 	_sync_room_clear_state()
+	_sync_deep_route_state()
 	_refresh_factory_route_objective()
 
 
@@ -15402,14 +15484,17 @@ func _sync_room_clear_state() -> void:
 			_cache.call("set_available", _encounter_cleared)
 		if _cache.has_method("set_claimed"):
 			_cache.call("set_claimed", _cache_claimed)
+		_cache.visible = _encounter_cleared
 	if _encounter_cleared:
 		_refresh_factory_route_objective()
-	if _enemy != null and _encounter_cleared and _cache_claimed:
-		_enemy.visible = false
-		_enemy.set_physics_process(false)
-		_enemy.set_process(false)
-		_enemy.set_deferred("collision_layer", 0)
-		_enemy.set_deferred("collision_mask", 0)
+	var entry_guard: Node2D = _get_valid_node2d(_enemy)
+	if entry_guard != null and _encounter_cleared and _cache_claimed:
+		entry_guard.visible = false
+		entry_guard.set_physics_process(false)
+		entry_guard.set_process(false)
+		entry_guard.set_deferred("collision_layer", 0)
+		entry_guard.set_deferred("collision_mask", 0)
+		_set_factory_guard_hurtbox_active(entry_guard, false)
 
 
 func _sync_deep_route_state() -> void:
@@ -15418,49 +15503,56 @@ func _sync_deep_route_state() -> void:
 			_deep_endpoint.call("set_available", _deep_guard_defeated)
 		if _deep_endpoint.has_method("set_activated"):
 			_deep_endpoint.call("set_activated", _deep_route_cleared)
-	if _deep_guard != null and _deep_guard_defeated:
-		_deep_guard.visible = false
-		_deep_guard.set_physics_process(false)
-		_deep_guard.set_process(false)
-		_deep_guard.set_deferred("collision_layer", 0)
-		_deep_guard.set_deferred("collision_mask", 0)
-	elif _deep_guard != null:
-		_deep_guard.visible = true
-		_deep_guard.set_physics_process(_deep_guard_activated)
-		_deep_guard.set_process(_deep_guard_activated)
+		_deep_endpoint.visible = _deep_guard_defeated or _deep_route_cleared
+	var deep_guard: Node2D = _get_valid_node2d(_deep_guard)
+	if deep_guard != null and _deep_guard_defeated:
+		deep_guard.visible = false
+		deep_guard.set_physics_process(false)
+		deep_guard.set_process(false)
+		deep_guard.set_deferred("collision_layer", 0)
+		deep_guard.set_deferred("collision_mask", 0)
+		_set_factory_guard_hurtbox_active(deep_guard, false)
+	elif deep_guard != null:
+		deep_guard.visible = _encounter_cleared
+		deep_guard.set_physics_process(_deep_guard_activated)
+		deep_guard.set_process(_deep_guard_activated)
 		if _deep_guard_activated:
-			_deep_guard.set_deferred("collision_layer", FACTORY_RAT_MINION_COLLISION_LAYER)
-			_deep_guard.set_deferred("collision_mask", FACTORY_RAT_MINION_COLLISION_MASK)
+			deep_guard.set_deferred("collision_layer", FACTORY_RAT_MINION_COLLISION_LAYER)
+			deep_guard.set_deferred("collision_mask", FACTORY_RAT_MINION_COLLISION_MASK)
 			_set_deep_guard_attack_target(_player)
 		else:
-			_deep_guard.set_deferred("collision_layer", 0)
-			_deep_guard.set_deferred("collision_mask", 0)
+			deep_guard.set_deferred("collision_layer", 0)
+			deep_guard.set_deferred("collision_mask", 0)
 			_set_deep_guard_attack_target(null)
+		_set_factory_guard_hurtbox_active(deep_guard, _deep_guard_activated)
 
 
 func _sync_spark_rat_state() -> void:
-	if _spark_rat == null:
+	var spark_rat: Node2D = _get_valid_node2d(_spark_rat)
+	if spark_rat == null:
 		return
 	if _spark_rat_defeated:
-		_spark_rat.visible = false
-		_spark_rat.set_physics_process(false)
-		_spark_rat.set_process(false)
-		_spark_rat.collision_layer = 0
-		_spark_rat.collision_mask = 0
+		spark_rat.visible = false
+		spark_rat.set_physics_process(false)
+		spark_rat.set_process(false)
+		spark_rat.collision_layer = 0
+		spark_rat.collision_mask = 0
 		_set_spark_rat_attack_target(null)
+		_set_factory_guard_hurtbox_active(spark_rat, false)
 		return
-	_spark_rat.visible = true
+	spark_rat.visible = _deep_route_cleared or _spark_rat_activated
 	var active: bool = _deep_route_cleared and _spark_rat_activated
-	_spark_rat.set_physics_process(active)
-	_spark_rat.set_process(active)
+	spark_rat.set_physics_process(active)
+	spark_rat.set_process(active)
 	if active:
-		_spark_rat.collision_layer = FACTORY_RAT_MINION_COLLISION_LAYER
-		_spark_rat.collision_mask = FACTORY_RAT_MINION_COLLISION_MASK
+		spark_rat.collision_layer = FACTORY_RAT_MINION_COLLISION_LAYER
+		spark_rat.collision_mask = FACTORY_RAT_MINION_COLLISION_MASK
 		_set_spark_rat_attack_target(_player)
 	else:
-		_spark_rat.collision_layer = 0
-		_spark_rat.collision_mask = 0
+		spark_rat.collision_layer = 0
+		spark_rat.collision_mask = 0
 		_set_spark_rat_attack_target(null)
+	_set_factory_guard_hurtbox_active(spark_rat, active)
 
 
 func _sync_return_patrol_state() -> void:
@@ -17717,6 +17809,11 @@ func _sync_lower_deck_forward_pressure_route_handoff_marker_state() -> void:
 func _sync_service_lift_state() -> void:
 	if _service_lift == null:
 		return
+	_service_lift.visible = (
+		_spark_rat_defeated
+		or _service_lift_activated
+		or _service_lift_exit_requested
+	)
 	if _service_lift.has_method("set"):
 		if _is_checkpoint_overdrive_duo_blocking_service_lift():
 			_service_lift.set("locked_prompt_text", "Clear overdrive duo")
@@ -20844,6 +20941,71 @@ func _grant_factory_hazard_respawn_grace() -> void:
 		)
 
 
+func _try_auto_activate_factory_entry_guard() -> void:
+	try_activate_factory_entry_guard(_player)
+
+
+func _is_factory_entry_guard_activation_provider_in_range(provider: Node) -> bool:
+	return (
+		provider != null
+		and provider is Node2D
+		and (provider as Node2D).global_position.x >= FACTORY_ENTRY_GUARD_ACTIVATION_X
+	)
+
+
+func _sync_entry_guard_state() -> void:
+	var entry_guard: Node2D = _get_valid_node2d(_enemy)
+	if entry_guard == null:
+		return
+	if _encounter_cleared:
+		var defeated_in_runtime: bool = (
+			entry_guard.has_method("get_current_hp")
+			and int(entry_guard.call("get_current_hp")) <= 0
+		)
+		entry_guard.visible = defeated_in_runtime and not _cache_claimed
+		entry_guard.set_physics_process(false)
+		entry_guard.set_process(false)
+		entry_guard.collision_layer = 0
+		entry_guard.collision_mask = 0
+		_set_entry_guard_attack_target(null)
+		_set_factory_guard_hurtbox_active(entry_guard, false)
+		return
+	entry_guard.visible = true
+	entry_guard.set_physics_process(_entry_guard_activated)
+	entry_guard.set_process(_entry_guard_activated)
+	entry_guard.collision_layer = (
+		FACTORY_RAT_MINION_COLLISION_LAYER if _entry_guard_activated else 0
+	)
+	entry_guard.collision_mask = (
+		FACTORY_RAT_MINION_COLLISION_MASK if _entry_guard_activated else 0
+	)
+	_set_entry_guard_attack_target(_player if _entry_guard_activated else null)
+	_set_factory_guard_hurtbox_active(entry_guard, _entry_guard_activated)
+
+
+func _set_factory_guard_hurtbox_active(guard: Node, active: bool) -> void:
+	if guard == null or not is_instance_valid(guard):
+		return
+	if not guard.has_method("get_collision_component"):
+		return
+	var collision: CollisionComponent = (
+		guard.call("get_collision_component") as CollisionComponent
+	)
+	if collision == null:
+		return
+	collision.set_hurtbox_state(
+		CollisionComponent.HURTBOX_STATE_NORMAL
+		if active
+		else CollisionComponent.HURTBOX_STATE_GONE
+	)
+
+
+func _set_entry_guard_attack_target(attack_target: Node) -> void:
+	var entry_guard: Node2D = _get_valid_node2d(_enemy)
+	if entry_guard != null and entry_guard.has_method("set_attack_target"):
+		entry_guard.call("set_attack_target", attack_target)
+
+
 func _bind_factory_guard(
 	guard: Node,
 	owner_id: StringName,
@@ -20865,13 +21027,15 @@ func _bind_factory_guard(
 
 
 func _set_deep_guard_attack_target(attack_target: Node) -> void:
-	if _deep_guard != null and _deep_guard.has_method("set_attack_target"):
-		_deep_guard.call("set_attack_target", attack_target)
+	var deep_guard: Node2D = _get_valid_node2d(_deep_guard)
+	if deep_guard != null and deep_guard.has_method("set_attack_target"):
+		deep_guard.call("set_attack_target", attack_target)
 
 
 func _set_spark_rat_attack_target(attack_target: Node) -> void:
-	if _spark_rat != null and _spark_rat.has_method("set_attack_target"):
-		_spark_rat.call("set_attack_target", attack_target)
+	var spark_rat: Node2D = _get_valid_node2d(_spark_rat)
+	if spark_rat != null and spark_rat.has_method("set_attack_target"):
+		spark_rat.call("set_attack_target", attack_target)
 
 
 func _set_return_spark_rat_attack_target(attack_target: Node) -> void:

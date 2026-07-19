@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 22 stories tracked; future stories planned
+> **Stories**: 23 stories tracked; future stories planned
 
 ## Overview
 
@@ -66,6 +66,10 @@ Story022 converts that chamber's upper ledge into the GDD-required physical
 Double-Jump junction, makes Sewer the first-entry owner for Factory, preserves
 the low Main return and narrows Main's old Factory shell to a post-service-lift
 shortcut.
+Story023 turns that first Factory arrival into a readable ACT beat: one visible
+but initially inert entrance Rat wakes only after the pressure line, later
+encounters and prompts reveal in progression order, and steam feedback no
+longer overwrites the current objective.
 
 ## Governing ADRs
 
@@ -113,6 +117,7 @@ shortcut.
 | 020 | Sewer Dash Route Entry | Gameplay / Traversal / Visual | Complete | ADR-0004, ADR-0007 |
 | 021 | Sewer Pressure Ambush | Gameplay / Combat / Visual / Persistence | Complete | ADR-0004, ADR-0007 |
 | 022 | Sewer Double-Jump Factory Junction | Gameplay / Traversal / Visual / Persistence | Complete | ADR-0004, ADR-0007 |
+| 023 | Factory Arrival Encounter Staging | Gameplay / Pacing / Visual / Persistence | Complete | ADR-0004, ADR-0007 |
 
 ## Definition of Done
 
@@ -156,6 +161,10 @@ This epic is complete when:
   a generated high-platform Factory entrance. Dash cannot reach it; one real
   Double Jump unlocks the physical gate and transfers abilities, prior Sewer
   progress and Gears to `area_03_factory/factory_gate_entry` exactly once.
+- First Factory arrival shows one frame-animated entrance guard and one current
+  objective. The guard remains non-blocking and inert until the player crosses
+  the authored pressure line; deeper enemies, rewards and exits reveal only
+  when their existing progression stage becomes relevant.
 - Async scene change requests use `ResourceLoader.load_threaded_request()`, wait
   for the 1.5 second transition gate before logical commit, emit a load-start
   signal for Presentation, and timeout after 10 seconds with one retry before
@@ -201,6 +210,7 @@ This epic is complete when:
 
 ## Next Step
 
-Continue from the first Factory arrival with one bounded ACT room objective or
-arrival safeguard. Preserve the Sewer-owned first-entry route and keep Main's
-Factory shell limited to the established post-service-lift return shortcut.
+Continue from the staged Factory entrance clear with one bounded physical route
+or combat payoff that advances the playable Factory loop. Preserve the
+Sewer-owned first-entry route and keep Main's Factory shell limited to the
+established post-service-lift return shortcut.
