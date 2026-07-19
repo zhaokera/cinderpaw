@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 25 stories tracked; future stories planned
+> **Stories**: 26 stories tracked; future stories planned
 
 ## Overview
 
@@ -78,6 +78,9 @@ Story025 completes the first Factory return loop: the service-lift contract
 restores Return Patrol from a real serialized snapshot, its `+15 Gears` cache is
 reachable through production input, contact repairs the Factory savepoint and
 crossing the next commitment line activates the frame-animated Forward Patrol.
+Story026 resolves the overlapping post-overdrive interaction: the first real
+input claims the optional `+25 Gears` cache, a held input cannot chain actions,
+and only a later rising edge requests the service lift through SceneManager.
 
 ## Governing ADRs
 
@@ -128,6 +131,7 @@ crossing the next commitment line activates the frame-animated Forward Patrol.
 | 023 | Factory Arrival Encounter Staging | Gameplay / Pacing / Visual / Persistence | Complete | ADR-0004, ADR-0007 |
 | 024 | Factory Cache Detour and Deep Route Real-Input Loop | Gameplay / Traversal / Combat / Input | Complete | ADR-0004, ADR-0007 |
 | 025 | Factory Service-Lift Return and Reentry Checkpoint Loop | Gameplay / Combat / Input / Persistence | Complete | ADR-0004, ADR-0007, ADR-0021 |
+| 026 | Factory Overdrive Cache and Service-Lift Input Priority | Integration / Input / SceneManager | Complete | ADR-0004, ADR-0007 |
 
 ## Definition of Done
 
@@ -183,6 +187,10 @@ This epic is complete when:
   serialized pre-return latch is false. Defeating it exposes a one-shot
   `+15 Gears` cache and contact repair station; crossing `x=900` after repair
   activates the frame-animated Forward Patrol.
+- When the overdrive reward cache and service lift are simultaneously eligible,
+  one rising-edge interaction claims the optional `+25 Gears` reward without
+  exiting. A held input cannot chain actions; only a later rising edge can
+  request `main/scrap_roost`, while lift-only use remains valid.
 - Async scene change requests use `ResourceLoader.load_threaded_request()`, wait
   for the 1.5 second transition gate before logical commit, emit a load-start
   signal for Presentation, and timeout after 10 seconds with one retry before
@@ -228,7 +236,6 @@ This epic is complete when:
 
 ## Next Step
 
-Continue with one bounded post-checkpoint interaction-priority slice. Resolve
-the overlapping overdrive reward/service-lift action so the first interaction
-claims its reward and only a later eligible action exits, while keeping the
-rear/overdrive commitment lines and world prompts readable.
+Audit and close the next bounded production-input/SceneManager handoff after
+the Factory checkpoint chain. Preserve the optional service-lift contract and
+the already-authored Lower Deck progression instead of expanding Story026.

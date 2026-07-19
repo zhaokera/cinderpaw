@@ -1493,6 +1493,8 @@ func handle_factory_interact_input() -> bool:
 		return true
 	if try_claim_factory_return_patrol_reward_cache(_player):
 		return true
+	if try_claim_factory_checkpoint_overdrive_reward_cache(_player):
+		return true
 	return try_activate_factory_service_lift(_player)
 
 
