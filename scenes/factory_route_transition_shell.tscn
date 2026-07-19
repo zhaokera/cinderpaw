@@ -1,4 +1,4 @@
-[gd_scene load_steps=58 format=3]
+[gd_scene load_steps=60 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/old_factory_entrance_scene.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/factory_route_transition/factory_route_transition_shell.png" id="2_factory_shell"]
@@ -14,6 +14,8 @@
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_deep_route/vfx/factory_deep_route_unlock_spark.png" id="12_unlock_vfx"]
 [ext_resource type="PackedScene" path="res://src/gameplay/factory_spark_rat.tscn" id="13_spark_rat"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_service_lift/factory_service_lift_console.png" id="14_service_lift_texture"]
+[ext_resource type="SpriteFrames" path="res://assets/environment/old_factory_service_lift/factory_service_lift_sprite_frames.tres" id="14_service_lift_frames"]
+[ext_resource type="Script" path="res://src/presentation/factory_service_lift_animation.gd" id="14_service_lift_animation_script"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_return_patrol_reward_cache/env_old_factory_return_patrol_reward_cache_claimable_256.png" id="15_return_cache_texture"]
 [ext_resource type="Texture2D" path="res://assets/environment/old_factory_return_checkpoint/old_factory_return_checkpoint.png" id="16_return_checkpoint_texture"]
 [ext_resource type="Script" path="res://src/feature/savepoint_runtime.gd" id="17_savepoint_script"]
@@ -3056,8 +3058,17 @@ activated_prompt_text = "Lift online"
 unlock_vfx_texture = ExtResource("12_unlock_vfx")
 
 [node name="Visual" type="Sprite2D" parent="FactoryServiceLift"]
-scale = Vector2(0.72, 0.72)
+position = Vector2(-108, 18)
+scale = Vector2(0.58, 0.58)
 texture = ExtResource("14_service_lift_texture")
+
+[node name="LiftAnimation" type="AnimatedSprite2D" parent="FactoryServiceLift"]
+z_index = -1
+texture_filter = 1
+position = Vector2(28, -55)
+sprite_frames = ExtResource("14_service_lift_frames")
+animation = &"docked_idle"
+script = ExtResource("14_service_lift_animation_script")
 
 [node name="PromptLabel" type="Label" parent="FactoryServiceLift"]
 z_index = 4

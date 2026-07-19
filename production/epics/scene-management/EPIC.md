@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 27 stories tracked; future stories planned
+> **Stories**: 28 stories tracked; future stories planned
 
 ## Overview
 
@@ -85,6 +85,10 @@ Story027 routes the completed Main shortcut back to the repaired Factory
 checkpoint, explicitly falls back to the gate when that checkpoint is absent,
 and prevents the older repair station from downgrading a deeper Factory
 savepoint during reentry.
+Story028 replaces the service lift's console-only presentation with an
+image-generated, frame-animated freight car. Arrival, docked idle and departure
+remain transient presentation over the existing input, save and SceneManager
+contracts.
 
 ## Governing ADRs
 
@@ -137,6 +141,7 @@ savepoint during reentry.
 | 025 | Factory Service-Lift Return and Reentry Checkpoint Loop | Gameplay / Combat / Input / Persistence | Complete | ADR-0004, ADR-0007, ADR-0021 |
 | 026 | Factory Overdrive Cache and Service-Lift Input Priority | Integration / Input / SceneManager | Complete | ADR-0004, ADR-0007 |
 | 027 | Main Factory Return Checkpoint Reentry | Integration / SceneManager / Persistence | Complete | ADR-0007, ADR-0021 |
+| 028 | Old Factory Service Lift Frame Animation | Visual / Integration | Complete | ADR-0004, ADR-0007 |
 
 ## Definition of Done
 
@@ -200,6 +205,11 @@ This epic is complete when:
   requests `area_03_factory/return_checkpoint`; absent checkpoint state resets
   the shell to `factory_gate_entry`, and touching the older checkpoint cannot
   overwrite an already-recorded deeper same-Factory savepoint.
+- The visible Factory service lift uses generated, aligned `arrive`,
+  `docked_idle` and `depart` frames through `AnimatedSprite2D + SpriteFrames`.
+  Accepted exits animate without delaying SceneManager; rejected/restored exits
+  cannot replay departure, and the existing console/input/spawn contracts stay
+  intact.
 - Async scene change requests use `ResourceLoader.load_threaded_request()`, wait
   for the 1.5 second transition gate before logical commit, emit a load-start
   signal for Presentation, and timeout after 10 seconds with one retry before
@@ -245,7 +255,6 @@ This epic is complete when:
 
 ## Next Step
 
-Create a separate player-visible service-lift presentation Story. Generate,
-import and wire aligned multi-frame `arrive`, `docked_idle` and `depart` states
-without changing Story026 input priority, Story027 spawn selection or the
-already-authored Lower Deck progression.
+Select the next bounded player-facing ACT depth or encounter-variety slice from
+the approved GDD/Epic backlog. Prefer playable combat or traversal progress over
+another presentation-only pass unless a visible blocker prevents acceptance.

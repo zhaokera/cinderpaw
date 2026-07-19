@@ -157,6 +157,7 @@ func test_service_lift_does_not_activate_when_scene_manager_rejects_exit() -> vo
 	assert_bool(bool(rejected.get("exit_requested", true))).is_false()
 	assert_str(String(rejected.get("exit_rejected_reason", ""))).is_equal("scene_manager_loading")
 	assert_int(int(rejected.get("unlock_feedback_spawn_count", -1))).is_equal(0)
+	assert_bool(String(rejected.get("visual_state", "")) != "depart").is_true()
 
 
 func _instantiate_factory_scene() -> Node:

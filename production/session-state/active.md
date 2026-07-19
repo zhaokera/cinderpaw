@@ -6726,3 +6726,32 @@
 - Assets: no new visual asset was needed. The next separate visual Story should
   generate and wire service-lift `arrive`, `docked_idle` and `depart` frames.
 - Blockers: None for Story027.
+
+## Session Extract -- Scene Management Story028 2026-07-19
+
+- Delivery checkpoint: Story028 is complete after uploaded Story027 commit
+  `6d16d8e6`; the broader complete-game goal remains active.
+- Runtime: the Old Factory handoff now shows a real image-generated freight
+  lift through `AnimatedSprite2D + SpriteFrames`. First reveal plays `arrive`,
+  then `docked_idle`; only an accepted `main/scrap_roost` request starts
+  `depart`. The original console and `96px` interaction anchor remain.
+- Recovery: non-looping departure holds its last frame across repeated sync,
+  restored exit snapshots do not replay it, and endpoint tint mirrors locked,
+  available and activated states without new save fields.
+- Verification: intentional RED `report_2040`; initial GREEN `report_2041`;
+  review regression RED/GREEN `report_2043/report_2044`; final focused related
+  `report_2045` `5/5`, zero errors, failures, flaky cases, skips or orphans and
+  clean exit `0`. Story027 destination remained `3/3` green in `report_2042`.
+  No full suite ran.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`,
+  accepted run `r364813803-125`. Runtime proved the live node, Nearest filter,
+  three frames per state, loop modes, `arrive -> docked_idle`, real-input
+  `depart`, pending `main/scrap_roost`, and stopped final frame. The saved
+  `1278x718` screenshot is non-empty, game logs were info-only, editor logs
+  empty and stop restored `ready`.
+- Assets: built-in image generation retained exact prompt, RGB/alpha sheets,
+  connected-component processing record, nine transparent `384x384` runtime
+  paths, preview, SpriteFrames, spec and manifest entry.
+- Next: select a bounded player-facing ACT depth or encounter-variety Story;
+  prefer playable combat/traversal progress over another presentation-only pass.
+- Blockers: None for Story028.

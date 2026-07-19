@@ -1,0 +1,56 @@
+[gd_resource type="SpriteFrames" load_steps=10 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_service_lift/arrive/factory_service_lift_arrive_000.png" id="1_arrive0"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_service_lift/arrive/factory_service_lift_arrive_001.png" id="2_arrive1"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_service_lift/arrive/factory_service_lift_arrive_002.png" id="3_arrive2"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_service_lift/docked_idle/factory_service_lift_docked_idle_000.png" id="4_idle0"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_service_lift/docked_idle/factory_service_lift_docked_idle_001.png" id="5_idle1"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_service_lift/docked_idle/factory_service_lift_docked_idle_002.png" id="6_idle2"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_service_lift/depart/factory_service_lift_depart_000.png" id="7_depart0"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_service_lift/depart/factory_service_lift_depart_001.png" id="8_depart1"]
+[ext_resource type="Texture2D" path="res://assets/environment/old_factory_service_lift/depart/factory_service_lift_depart_002.png" id="9_depart2"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_arrive0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_arrive1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_arrive2")
+}],
+"loop": false,
+"name": &"arrive",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_depart0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_depart1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_depart2")
+}],
+"loop": false,
+"name": &"depart",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_idle0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_idle1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_idle2")
+}],
+"loop": true,
+"name": &"docked_idle",
+"speed": 4.0
+}]

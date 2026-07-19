@@ -1172,6 +1172,9 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload("res://src/core/weapon_component
 		as CollisionShape2D
 )
 @onready var _service_lift: Node = get_node_or_null("FactoryServiceLift")
+@onready var _service_lift_animation: AnimatedSprite2D = (
+	get_node_or_null("FactoryServiceLift/LiftAnimation") as AnimatedSprite2D
+)
 @onready var _post_bulkhead_background: TextureRect = (
 	get_node_or_null("PostBulkheadBackground") as TextureRect
 )
@@ -12909,6 +12912,7 @@ func get_factory_route_objective_diagnostics() -> Dictionary:
 func get_factory_service_lift_diagnostics() -> Dictionary:
 	var route_label := get_node_or_null("RouteLabel") as Label
 	var unlock_vfx_snapshot: Dictionary = _get_service_lift_unlock_vfx_snapshot()
+	var visual_snapshot: Dictionary = _get_service_lift_animation_snapshot()
 	var available: bool = _is_service_lift_available()
 	return {
 		"present": _service_lift != null,
@@ -12940,6 +12944,22 @@ func get_factory_service_lift_diagnostics() -> Dictionary:
 		"unlock_feedback_active": int(unlock_vfx_snapshot.get("active_count", 0)) > 0,
 		"unlock_feedback_played": bool(unlock_vfx_snapshot.get("played", false)),
 		"unlock_feedback_spawn_count": int(unlock_vfx_snapshot.get("spawn_count", 0)),
+		"visual_present": bool(visual_snapshot.get("present", false)),
+		"visual_state": String(visual_snapshot.get("state", "")),
+		"visual_animation": String(visual_snapshot.get("animation", "")),
+		"visual_visible": bool(visual_snapshot.get("visible", false)),
+		"visual_visible_in_tree": bool(visual_snapshot.get("visible_in_tree", false)),
+		"visual_playing": bool(visual_snapshot.get("playing", false)),
+		"visual_frame": int(visual_snapshot.get("frame", 0)),
+		"visual_frame_counts": Dictionary(visual_snapshot.get("frame_counts", {})).duplicate(true),
+		"visual_loop_modes": Dictionary(visual_snapshot.get("loop_modes", {})).duplicate(true),
+		"visual_modulate": visual_snapshot.get("modulate", Color.WHITE),
+		"visual_sprite_frames_path": String(visual_snapshot.get("sprite_frames_path", "")),
+		"visual_asset_source": String(visual_snapshot.get("asset_source", "")),
+		"visual_asset_spec_path": String(visual_snapshot.get("asset_spec_path", "")),
+		"visual_generation_manifest_path": String(
+			visual_snapshot.get("asset_manifest_path", "")
+		),
 	}
 
 
@@ -13121,6 +13141,26 @@ func _get_service_lift_unlock_vfx_snapshot() -> Dictionary:
 	return {}
 
 
+func _get_service_lift_animation_snapshot() -> Dictionary:
+	if (
+		_service_lift_animation == null
+		or not _service_lift_animation.has_method("get_diagnostics")
+	):
+		return {}
+	var snapshot_variant: Variant = _service_lift_animation.call("get_diagnostics")
+	if snapshot_variant is Dictionary:
+		return (snapshot_variant as Dictionary).duplicate(true)
+	return {}
+
+
+func _begin_service_lift_departure() -> void:
+	if (
+		_service_lift_animation != null
+		and _service_lift_animation.has_method("begin_departure")
+	):
+		_service_lift_animation.call("begin_departure")
+
+
 func _get_lower_deck_breach_relay_activation_vfx_snapshot() -> Dictionary:
 	if (
 		_lower_deck_breach_relay == null
@@ -13227,6 +13267,7 @@ func _request_service_lift_scene_exit() -> bool:
 		"pending_scene": _get_scene_manager_pending_scene(),
 		"pending_spawn_point": _get_scene_manager_pending_spawn_point(),
 	}
+	_begin_service_lift_departure()
 	return true
 
 
@@ -17877,11 +17918,12 @@ func _sync_lower_deck_forward_pressure_route_handoff_marker_state() -> void:
 func _sync_service_lift_state() -> void:
 	if _service_lift == null:
 		return
-	_service_lift.visible = (
+	var lift_present: bool = (
 		_spark_rat_defeated
 		or _service_lift_activated
 		or _service_lift_exit_requested
 	)
+	_service_lift.visible = lift_present
 	if _service_lift.has_method("set"):
 		if _is_checkpoint_overdrive_duo_blocking_service_lift():
 			_service_lift.set("locked_prompt_text", "Clear overdrive duo")
@@ -17891,16 +17933,28 @@ func _sync_service_lift_state() -> void:
 			_service_lift.set("locked_prompt_text", "Clear forward patrol")
 		else:
 			_service_lift.set("locked_prompt_text", "Clear patrol")
+	var lift_available: bool = (
+		_spark_rat_defeated
+		and not _is_return_patrol_blocking_service_lift()
+		and not _is_checkpoint_forward_patrol_blocking_service_lift()
+		and not _is_checkpoint_rear_ambush_blocking_service_lift()
+		and not _is_checkpoint_overdrive_duo_blocking_service_lift()
+	)
 	if _service_lift.has_method("set_available"):
-		_service_lift.call("set_available", (
-			_spark_rat_defeated
-			and not _is_return_patrol_blocking_service_lift()
-			and not _is_checkpoint_forward_patrol_blocking_service_lift()
-			and not _is_checkpoint_rear_ambush_blocking_service_lift()
-			and not _is_checkpoint_overdrive_duo_blocking_service_lift()
-		))
+		_service_lift.call("set_available", lift_available)
 	if _service_lift.has_method("set_activated"):
 		_service_lift.call("set_activated", _service_lift_activated)
+	if (
+		_service_lift_animation != null
+		and _service_lift_animation.has_method("sync_endpoint_state")
+	):
+		_service_lift_animation.call(
+			"sync_endpoint_state",
+			lift_present,
+			_service_lift_exit_requested,
+			lift_available,
+			_service_lift_activated
+		)
 
 
 func _update_route_label(text_value: String) -> void:
