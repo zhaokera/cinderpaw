@@ -28,6 +28,7 @@ class FakeFactorySceneManager:
 	var runtime_root_configured: bool = false
 	var runtime_scene_root: Node = null
 	var current_scene_node: Node = null
+	var scene_states: Dictionary = {}
 	var known_scenes: Dictionary = {
 		"main": true,
 		"area_03_factory": true,
@@ -51,6 +52,9 @@ class FakeFactorySceneManager:
 
 	func get_current_scene() -> StringName:
 		return current_scene
+
+	func get_scene_state(scene_id: StringName) -> Dictionary:
+		return Dictionary(scene_states.get(String(scene_id), {})).duplicate(true)
 
 	func is_runtime_scene_swap_enabled() -> bool:
 		return runtime_root_configured
@@ -110,7 +114,7 @@ func test_scene_registry_contains_loadable_factory_route_shell() -> void:
 	assert_bool(load(FACTORY_SCENE_PATH) is PackedScene).is_true()
 
 
-func test_high_platform_route_trigger_requests_factory_shell_after_gate_unlocked() -> void:
+func test_main_factory_shell_only_returns_after_service_lift_handoff() -> void:
 	var scene_manager := FakeFactorySceneManager.new()
 	assert_bool(bool(scene.call("configure_scene_manager_runtime", scene_manager))).is_true()
 	var route_shell: Node = _get_route_shell(scene)
@@ -131,6 +135,16 @@ func test_high_platform_route_trigger_requests_factory_shell_after_gate_unlocked
 	player.call("set_airborne", true)
 	assert_bool(bool(player.call("request_double_jump"))).is_true()
 	assert_str(String(gate.call("get_gate_state"))).is_equal(String(STATE_UNLOCKED))
+	assert_bool(bool(route_shell.call("is_route_available"))).is_false()
+	assert_bool(bool(scene.call("request_factory_route_transition", player))).is_false()
+	assert_array(scene_manager.request_calls).is_empty()
+
+	scene_manager.scene_states[String(FACTORY_SCENE_ID)] = {
+		"factory_service_lift_exit_requested": true,
+		"factory_service_lift_exit_scene_id": "main",
+		"factory_service_lift_exit_spawn_point": "scrap_roost",
+	}
+	scene.call("set_world_progress_flag", &"area_03_factory_unlocked", true)
 	assert_bool(bool(route_shell.call("is_route_available"))).is_true()
 
 	player.global_position = (route_shell as Node2D).global_position

@@ -121,6 +121,7 @@ const FOUR_BOSS_ACT_COMPLETION_DELAY_SEC: float = 2.5
 const FACTORY_ROUTE_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_ROUTE_SPAWN_POINT: StringName = &"factory_gate_entry"
 const FACTORY_ROUTE_UNLOCKED_FLAG: StringName = &"area_03_factory_unlocked"
+const SEWER_FACTORY_ROUTE_REACHED_FLAG: StringName = &"sewer_factory_route_reached"
 const FACTORY_ROUTE_ENTRY_PROMPT: String = "Enter Factory Route"
 const FACTORY_ROUTE_RETURN_PROMPT: String = "Return to Factory Route"
 const SEWER_ROUTE_SCENE_ID: StringName = &"area_02_sewer"
@@ -1545,6 +1546,10 @@ func get_boss2_victory_route_handoff_diagnostics() -> Dictionary:
 			if route_shell != null and route_shell.has_method("is_route_available")
 			else false
 		),
+		"sewer_factory_route_reached": bool(_world_progress_flags.get(
+			String(SEWER_FACTORY_ROUTE_REACHED_FLAG),
+			false
+		)),
 		"factory_route_transition_requested": (
 			bool(route_shell.call("is_transition_requested"))
 			if route_shell != null and route_shell.has_method("is_transition_requested")
@@ -1778,7 +1783,8 @@ func set_world_progress_flag(flag_id: StringName, enabled: bool = true) -> void:
 		refresh_boss2_camera_lock()
 		refresh_rat_king_camera_choreography()
 		refresh_boss2_room_seals()
-	if flag_id == FACTORY_ROUTE_UNLOCKED_FLAG:
+	if flag_id == FACTORY_ROUTE_UNLOCKED_FLAG \
+			or flag_id == SEWER_FACTORY_ROUTE_REACHED_FLAG:
 		_sync_factory_route_transition_shell()
 		_sync_scrap_roost_return_hub()
 
@@ -3539,7 +3545,12 @@ func _sync_factory_route_transition_shell() -> void:
 	var route_shell: Node = _get_factory_route_transition_shell()
 	if route_shell == null:
 		return
-	var available: bool = bool(_world_progress_flags.get(String(FACTORY_ROUTE_UNLOCKED_FLAG), false))
+	# The Main shell is a post-service-lift return shortcut. First Factory entry
+	# belongs to the physical Double Jump junction inside the Sewer.
+	var available: bool = (
+		bool(_world_progress_flags.get(String(FACTORY_ROUTE_UNLOCKED_FLAG), false))
+		and _has_factory_service_lift_returned_to_scrap_roost()
+	)
 	var prompt_text: String = (
 		FACTORY_ROUTE_RETURN_PROMPT
 		if available and _has_factory_service_lift_returned_to_scrap_roost()

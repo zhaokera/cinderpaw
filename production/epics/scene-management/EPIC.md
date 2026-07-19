@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 21 stories tracked; future stories planned
+> **Stories**: 22 stories tracked; future stories planned
 
 ## Overview
 
@@ -62,6 +62,10 @@ physical Dash proof and a deterministic return to `main/sewer_return`.
 Story021 extends that route with an image-generated pressure chamber, a
 frame-animated Sluice Leech, warning/active back-pressure beat, defeat-gated
 seal, one-shot Gears cache and persisted clear state without unlocking Factory.
+Story022 converts that chamber's upper ledge into the GDD-required physical
+Double-Jump junction, makes Sewer the first-entry owner for Factory, preserves
+the low Main return and narrows Main's old Factory shell to a post-service-lift
+shortcut.
 
 ## Governing ADRs
 
@@ -108,6 +112,7 @@ seal, one-shot Gears cache and persisted clear state without unlocking Factory.
 | 019 | Rat King Victory Echo Challenge Intermission | Gameplay / Pacing / Visual / Save | Complete | ADR-0007, ADR-0021 |
 | 020 | Sewer Dash Route Entry | Gameplay / Traversal / Visual | Complete | ADR-0004, ADR-0007 |
 | 021 | Sewer Pressure Ambush | Gameplay / Combat / Visual / Persistence | Complete | ADR-0004, ADR-0007 |
+| 022 | Sewer Double-Jump Factory Junction | Gameplay / Traversal / Visual / Persistence | Complete | ADR-0004, ADR-0007 |
 
 ## Definition of Done
 
@@ -147,6 +152,10 @@ This epic is complete when:
   exhaust reject a normal jump, accept one real Dash and return through
   SceneManager to `main/sewer_return` without bypassing the later Double Jump
   requirement for the Factory route.
+- The cleared Sewer pressure chamber preserves its low Main return and exposes
+  a generated high-platform Factory entrance. Dash cannot reach it; one real
+  Double Jump unlocks the physical gate and transfers abilities, prior Sewer
+  progress and Gears to `area_03_factory/factory_gate_entry` exactly once.
 - Async scene change requests use `ResourceLoader.load_threaded_request()`, wait
   for the 1.5 second transition gate before logical commit, emit a load-start
   signal for Presentation, and timeout after 10 seconds with one retry before
@@ -192,6 +201,6 @@ This epic is complete when:
 
 ## Next Step
 
-Continue the Sewer with one bounded exploration payoff, secret or visible
-Double-Jump-gated forward junction. Do not connect it to Factory until the GDD's
-Double Jump condition is genuinely satisfied.
+Continue from the first Factory arrival with one bounded ACT room objective or
+arrival safeguard. Preserve the Sewer-owned first-entry route and keep Main's
+Factory shell limited to the established post-service-lift return shortcut.

@@ -25,6 +25,26 @@ const PRESSURE_AMBUSH_CLEARED_FLAG: String = "sewer_pressure_ambush_cleared"
 const PRESSURE_CACHE_CLAIMED_FLAG: String = "sewer_pressure_cache_claimed"
 const SEWER_PLAYER_LIGHT_DAMAGE: int = 12
 const PRESSURE_REWARD_GEARS: int = 15
+const FACTORY_SCENE_ID: StringName = &"area_03_factory"
+const FACTORY_SPAWN_POINT: StringName = &"factory_gate_entry"
+const FACTORY_UNLOCKED_FLAG: String = "area_03_factory_unlocked"
+const SEWER_FACTORY_GATE_UNLOCKED_FLAG: String = (
+	"sewer_factory_high_platform_unlocked"
+)
+const SEWER_FACTORY_ROUTE_REACHED_FLAG: String = "sewer_factory_route_reached"
+const SEWER_FACTORY_GATE_ID: StringName = &"double_jump_high_platform"
+const FACTORY_PLATFORM_TOP_Y: float = 350.0
+const FACTORY_PLATFORM_TEXTURE_PATH: String = (
+	"res://assets/environment/old_factory_route_platform/"
+	+ "env_old_factory_route_entry_platform_320x96.png"
+)
+const FACTORY_GATE_TEXTURE_PATH: String = (
+	"res://assets/environment/high_platform_gate/high_platform_gate_marker.png"
+)
+const FACTORY_ROUTE_TEXTURE_PATH: String = (
+	"res://assets/environment/factory_route_transition/"
+	+ "factory_route_transition_shell.png"
+)
 const PRESSURE_BACKGROUND_PATH: String = (
 	"res://assets/environment/sewer_pressure_chamber/"
 	+ "sewer_pressure_chamber_background_1280x720.png"
@@ -62,6 +82,18 @@ const WEAPON_COMPONENT_SCRIPT: Script = preload(
 @onready var _pressure_cache_prompt: Label = (
 	$SewerPressureCache/PromptLabel as Label
 )
+@onready var _factory_high_platform_shape: CollisionShape2D = (
+	$SewerFactoryHighPlatform/CollisionShape2D as CollisionShape2D
+)
+@onready var _factory_high_platform_visual: Sprite2D = (
+	$SewerFactoryHighPlatform/Visual as Sprite2D
+)
+@onready var _factory_double_jump_gate: ExplorationGate = (
+	$SewerFactoryDoubleJumpGate as ExplorationGate
+)
+@onready var _factory_route_shell: RouteTransitionShell = (
+	$SewerFactoryRouteShell as RouteTransitionShell
+)
 @onready var _hud: HUDManager = $HUD
 @onready var _combat_presentation: CombatPresentation = $CombatPresentation
 @onready var _hitstop_input_bridge: HitstopInputBridge = $HitstopInputBridge
@@ -93,6 +125,8 @@ var _last_player_hit_metadata: Dictionary = {}
 var _last_enemy_hit_metadata: Dictionary = {}
 var _kill_feedback_emitted: bool = false
 var _kill_feedback_count: int = 0
+var _factory_gate_unlocked: bool = false
+var _factory_route_reached: bool = false
 
 
 func _ready() -> void:
@@ -112,6 +146,7 @@ func _ready() -> void:
 	_hud.update_currency(_currency_amount)
 	_sync_hazard_state()
 	_sync_pressure_ambush_state()
+	_sync_factory_junction_state()
 	if auto_configure_runtime_services:
 		configure_scene_manager_runtime(get_node_or_null("/root/SceneManager"))
 
@@ -127,6 +162,7 @@ func _physics_process(_delta: float) -> void:
 	_advance_pressure_warning()
 	_process_pressure_cache_contact()
 	_sync_pressure_cache_prompt_visibility()
+	_process_factory_route_contact()
 	if _player.global_position.y > FALL_RESET_Y:
 		_queue_reset(&"fall")
 		return
@@ -164,6 +200,8 @@ func get_local_state() -> Dictionary:
 		PRESSURE_AMBUSH_CLEARED_FLAG: _pressure_ambush_cleared,
 		PRESSURE_CACHE_CLAIMED_FLAG: _pressure_cache_claimed,
 		"sewer_pressure_reward_claim_count": _reward_claim_count,
+		SEWER_FACTORY_GATE_UNLOCKED_FLAG: _factory_gate_unlocked,
+		SEWER_FACTORY_ROUTE_REACHED_FLAG: _factory_route_reached,
 	}
 
 
@@ -202,9 +240,18 @@ func set_local_state(state: Dictionary) -> void:
 		1 if _pressure_cache_claimed else 0
 	)))
 	_kill_feedback_emitted = _pressure_ambush_cleared
+	_factory_route_reached = bool(state.get(
+		SEWER_FACTORY_ROUTE_REACHED_FLAG,
+		false
+	))
+	_factory_gate_unlocked = bool(state.get(
+		SEWER_FACTORY_GATE_UNLOCKED_FLAG,
+		_factory_route_reached
+	)) or _factory_route_reached
 	_restore_pressure_ambush_enemy()
 	_sync_hazard_state()
 	_sync_pressure_ambush_state()
+	_sync_factory_junction_state()
 	_hud.update_currency(_currency_amount)
 	if _dash_crossed:
 		_player.respawn_at(RIGHT_RESPAWN_POSITION, 1.0)
@@ -316,6 +363,50 @@ func get_sewer_act_depth_diagnostics() -> Dictionary:
 	}
 
 
+## Returns stable Story022 physical gate, route, and persistence evidence.
+func get_sewer_factory_junction_diagnostics() -> Dictionary:
+	var gate_visual: Sprite2D = _factory_double_jump_gate.get_node_or_null(
+		"Visual"
+	) as Sprite2D
+	return {
+		"gate_id": String(SEWER_FACTORY_GATE_ID),
+		"gate_state": String(_factory_double_jump_gate.get_gate_state()),
+		"gate_unlocked": _factory_gate_unlocked,
+		"gate_collision_blocking": (
+			_factory_double_jump_gate.is_collision_blocking()
+		),
+		"gate_texture_path": (
+			gate_visual.texture.resource_path
+			if gate_visual != null and gate_visual.texture != null
+			else ""
+		),
+		"platform_top_y": FACTORY_PLATFORM_TOP_Y,
+		"platform_collision_enabled": (
+			_factory_high_platform_shape != null
+			and not _factory_high_platform_shape.disabled
+		),
+		"platform_texture_path": (
+			_factory_high_platform_visual.texture.resource_path
+			if _factory_high_platform_visual.texture != null
+			else ""
+		),
+		"route_available": _factory_route_shell.is_route_available(),
+		"route_reached": _factory_route_reached,
+		"route_texture_path": _factory_route_shell.get_visual_texture_path(),
+		"target_scene_id": String(FACTORY_SCENE_ID),
+		"spawn_point": String(FACTORY_SPAWN_POINT),
+		"transition_requested": _transition_requested,
+		"transition_request_count": _transition_request_count,
+		"last_transition_target_scene": String(_last_transition_target_scene),
+		"currency": _currency_amount,
+		"player_position": _player.global_position,
+		"player_has_double_jump": _player.has_ability(&"double_jump"),
+		"platform_expected_texture_path": FACTORY_PLATFORM_TEXTURE_PATH,
+		"gate_expected_texture_path": FACTORY_GATE_TEXTURE_PATH,
+		"route_expected_texture_path": FACTORY_ROUTE_TEXTURE_PATH,
+	}
+
+
 ## Activates the one-enemy pressure ambush after the Dash landing.
 func try_activate_pressure_ambush(provider: Node = null) -> bool:
 	var activation_provider: Node = _player if provider == null else provider
@@ -401,6 +492,10 @@ func _connect_runtime_signals() -> void:
 	_player.player_died.connect(_on_player_died)
 	_player.attack_landed.connect(_on_player_attack_landed)
 	_player.dash_started.connect(_on_player_dash_started)
+	_player.double_jump_started.connect(_on_player_double_jump_started)
+	_factory_double_jump_gate.gate_state_changed.connect(
+		_on_factory_gate_state_changed
+	)
 	$SewerExhaustHazard.body_entered.connect(_on_hazard_body_entered)
 	$FallZone.body_entered.connect(_on_fall_zone_body_entered)
 	$PressureBackflowHazard.body_entered.connect(
@@ -461,6 +556,32 @@ func _on_player_dash_started(
 	_dash_proof_frames_remaining = DASH_PROOF_FRAMES if valid_start else 0
 
 
+func _on_player_double_jump_started(
+	texture: Texture2D,
+	world_position: Vector2,
+	facing: float
+) -> void:
+	_combat_presentation.on_double_jump_event(texture, world_position, facing)
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system != null and audio_system.has_method("on_double_jump_event"):
+		audio_system.call(
+			"on_double_jump_event",
+			texture,
+			world_position,
+			facing
+		)
+
+
+func _on_factory_gate_state_changed(
+	gate_id: StringName,
+	state: StringName
+) -> void:
+	if gate_id != SEWER_FACTORY_GATE_ID or state != ExplorationGate.STATE_UNLOCKED:
+		return
+	_factory_gate_unlocked = true
+	_sync_factory_junction_state()
+
+
 func _on_hazard_body_entered(body: Node2D) -> void:
 	if body != _player or _transition_requested or _dash_crossed:
 		return
@@ -492,6 +613,7 @@ func _on_sluice_leech_defeated() -> void:
 	_pressure_warning_frames_remaining = 0
 	_pressure_hazard_active = false
 	_sync_pressure_ambush_state()
+	_sync_factory_junction_state()
 
 
 func _on_sluice_leech_attack_landed(
@@ -572,6 +694,109 @@ func _reset_attempt() -> void:
 	_player.respawn_at(respawn_position, 1.0)
 	_player.set_control_locked(false)
 	_reset_pending = false
+
+
+func _sync_factory_junction_state() -> void:
+	if not is_node_ready():
+		return
+	_factory_double_jump_gate.set_ability_provider(_player)
+	_factory_double_jump_gate.set_gate_unlocked(_factory_gate_unlocked)
+	_factory_route_shell.set_route_available(
+		_pressure_ambush_cleared and _factory_gate_unlocked
+	)
+
+
+func _process_factory_route_contact() -> void:
+	if (
+		not _pressure_ambush_cleared
+		or not _factory_gate_unlocked
+		or not _factory_route_shell.is_route_available()
+	):
+		return
+	if _factory_route_shell.is_provider_in_transition_range(_player):
+		_request_factory_transition()
+
+
+func _request_factory_transition() -> bool:
+	if (
+		_transition_requested
+		or not _pressure_ambush_cleared
+		or not _factory_gate_unlocked
+		or not _factory_route_shell.can_request_transition(_player)
+		or not _is_valid_scene_manager(_scene_manager)
+	):
+		return false
+	if _scene_manager.has_method("is_loading") \
+			and bool(_scene_manager.call("is_loading")):
+		return false
+	if not bool(_scene_manager.call("has_scene", FACTORY_SCENE_ID)):
+		return false
+	if not _ensure_runtime_scene_root():
+		return false
+	var accepted: bool = bool(_scene_manager.call(
+		"request_scene_change",
+		FACTORY_SCENE_ID,
+		FACTORY_SPAWN_POINT,
+	))
+	_transition_requested = accepted
+	if not accepted:
+		return false
+	_seed_factory_handoff_state()
+	_factory_route_reached = true
+	_transition_request_count += 1
+	_last_transition_target_scene = FACTORY_SCENE_ID
+	_factory_route_shell.set_transition_requested(true)
+	_seed_main_factory_handoff_state()
+	_player.set_control_locked(true)
+	return true
+
+
+func _seed_factory_handoff_state() -> void:
+	if not _scene_manager.has_method("set_scene_state"):
+		return
+	var factory_state: Dictionary = {}
+	if _scene_manager.has_method("get_scene_state"):
+		factory_state = Dictionary(_scene_manager.call(
+			"get_scene_state",
+			FACTORY_SCENE_ID,
+		))
+	_merge_current_player_progress(factory_state)
+	_scene_manager.call("set_scene_state", FACTORY_SCENE_ID, factory_state)
+
+
+func _seed_main_factory_handoff_state() -> void:
+	if (
+		not _scene_manager.has_method("get_scene_state")
+		or not _scene_manager.has_method("set_scene_state")
+	):
+		return
+	var main_state: Dictionary = Dictionary(_scene_manager.call(
+		"get_scene_state",
+		MAIN_SCENE_ID,
+	))
+	_merge_current_player_progress(main_state)
+	var world_flags: Dictionary = Dictionary(
+		main_state.get("world_flags", {})
+	).duplicate(true)
+	world_flags[SEWER_UNLOCKED_FLAG] = true
+	world_flags[DASH_ROUTE_CROSSED_FLAG] = _dash_crossed
+	world_flags[PRESSURE_AMBUSH_CLEARED_FLAG] = _pressure_ambush_cleared
+	world_flags[PRESSURE_CACHE_CLAIMED_FLAG] = _pressure_cache_claimed
+	world_flags[FACTORY_UNLOCKED_FLAG] = true
+	world_flags[SEWER_FACTORY_ROUTE_REACHED_FLAG] = true
+	main_state["world_flags"] = world_flags
+	_scene_manager.call("set_scene_state", MAIN_SCENE_ID, main_state)
+
+
+func _merge_current_player_progress(target_state: Dictionary) -> void:
+	var unlocked_abilities: Array = Array(
+		target_state.get("unlocked_abilities", [])
+	)
+	for ability_id: String in _get_player_unlocked_ability_strings():
+		if not unlocked_abilities.has(ability_id):
+			unlocked_abilities.append(ability_id)
+	target_state["unlocked_abilities"] = unlocked_abilities
+	target_state["currency"] = _currency_amount
 
 
 func _request_main_return() -> bool:

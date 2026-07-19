@@ -1384,6 +1384,7 @@ var _factory_return_checkpoint_spawn_snap_frames: int = 0
 var _factory_game_flow: GameFlowController = null
 var _weapon_component: WeaponComponent = null
 var _scene_manager: Object = null
+var _currency_amount: int = 0
 
 
 func _ready() -> void:
@@ -4720,6 +4721,7 @@ func _restore_player_unlocked_abilities(state: Dictionary) -> void:
 func get_local_state() -> Dictionary:
 	return {
 		"unlocked_abilities": _get_player_unlocked_ability_strings(),
+		"currency": _currency_amount,
 		"encounter_cleared": _encounter_cleared,
 		"factory_cache_claimed": _cache_claimed,
 		"factory_deep_guard_activated": _deep_guard_activated,
@@ -5290,6 +5292,7 @@ func set_local_state(state: Dictionary) -> void:
 	_last_factory_tailrace_underground_rejected_reason = &""
 	_last_factory_tailrace_underground_request.clear()
 	_restore_player_unlocked_abilities(state)
+	_currency_amount = maxi(0, int(state.get("currency", _currency_amount)))
 	_encounter_cleared = bool(state.get("encounter_cleared", false))
 	_cache_claimed = bool(state.get("factory_cache_claimed", false))
 	_deep_guard_activated = bool(state.get("factory_deep_guard_activated", false))
@@ -12881,6 +12884,7 @@ func get_factory_entrance_diagnostics() -> Dictionary:
 	var enemy_sprite := get_node_or_null("FactoryRatMinion/Sprite") as AnimatedSprite2D
 	return {
 		"scene_id": String(get_meta("scene_id", String(FACTORY_SCENE_ID))),
+		"currency": _currency_amount,
 		"has_spawn": _spawn != null,
 		"has_player": _player != null,
 		"has_enemy": _enemy != null,

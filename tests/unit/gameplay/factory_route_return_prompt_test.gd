@@ -92,8 +92,8 @@ func test_factory_route_prompt_changes_to_return_after_service_lift_roundtrip() 
 
 	_scene.call("set_world_progress_flag", FACTORY_ROUTE_UNLOCKED_FLAG, true)
 	var initial: Dictionary = _scene.call("get_boss2_victory_route_handoff_diagnostics")
-	assert_bool(bool(initial.get("factory_route_available", false))).is_true()
-	assert_str(String(initial.get("factory_route_prompt_text", ""))).is_equal("Enter Factory Route")
+	assert_bool(bool(initial.get("factory_route_available", true))).is_false()
+	assert_str(String(initial.get("factory_route_prompt_text", ""))).is_equal("Factory route locked")
 
 	scene_manager.scene_states[String(FACTORY_SCENE_ID)] = {
 		"factory_service_lift_exit_requested": true,
@@ -139,5 +139,5 @@ func test_factory_route_prompt_ignores_incomplete_return_state_and_locked_route(
 
 	_scene.call("set_world_progress_flag", FACTORY_ROUTE_UNLOCKED_FLAG, true)
 	var incomplete: Dictionary = _scene.call("get_boss2_victory_route_handoff_diagnostics")
-	assert_bool(bool(incomplete.get("factory_route_available", false))).is_true()
-	assert_str(String(incomplete.get("factory_route_prompt_text", ""))).is_equal("Enter Factory Route")
+	assert_bool(bool(incomplete.get("factory_route_available", true))).is_false()
+	assert_str(String(incomplete.get("factory_route_prompt_text", ""))).is_equal("Factory route locked")

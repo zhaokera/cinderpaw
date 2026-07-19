@@ -92,7 +92,7 @@ func after_test() -> void:
 	_scene = null
 
 
-func test_boss2_victory_reward_handoff_opens_factory_route_transition() -> void:
+func test_boss2_victory_handoff_points_to_sewer_factory_junction() -> void:
 	var scene_manager := FakeFactorySceneManager.new()
 	assert_bool(bool(_scene.call("configure_scene_manager_runtime", scene_manager))).is_true()
 	assert_bool(_scene.has_method("get_boss2_victory_route_handoff_diagnostics")).is_true()
@@ -152,22 +152,14 @@ func test_boss2_victory_reward_handoff_opens_factory_route_transition() -> void:
 	assert_str(String(gate.call("get_gate_state"))).is_equal(String(STATE_UNLOCKED))
 
 	var unlocked: Dictionary = _scene.call("get_boss2_victory_route_handoff_diagnostics")
-	assert_bool(bool(unlocked.get("factory_route_available", false))).is_true()
-	assert_str(String(unlocked.get("factory_route_prompt_text", ""))).is_equal("Enter Factory Route")
+	assert_bool(bool(unlocked.get("factory_route_available", true))).is_false()
+	assert_bool(bool(unlocked.get("sewer_factory_route_reached", true))).is_false()
+	assert_str(String(unlocked.get("factory_route_prompt_text", ""))).is_equal("Factory route locked")
 
 	player.global_position = route_shell.global_position
-	assert_bool(bool(_scene.call("request_factory_route_transition", player))).is_true()
-	assert_bool(scene_manager.runtime_root_configured).is_true()
-	assert_that(scene_manager.current_scene_node).is_same(_scene)
-	assert_int(scene_manager.request_calls.size()).is_equal(1)
-	assert_str(String(scene_manager.request_calls[0].get("scene_id", ""))).is_equal(String(FACTORY_SCENE_ID))
-	assert_str(String(scene_manager.request_calls[0].get("spawn_point", ""))).is_equal(String(FACTORY_SPAWN_POINT))
-
-	var transitioned: Dictionary = _scene.call("get_boss2_victory_route_handoff_diagnostics")
-	assert_bool(bool(transitioned.get("factory_route_transition_requested", false))).is_true()
-	assert_bool(bool(_scene.get_node("HUD").call("is_scene_transition_visible"))).is_true()
-	assert_str(String(_scene.get_node("HUD").call("get_scene_transition_label_text"))).is_equal(
-		FACTORY_DISPLAY_NAME
-	)
 	assert_bool(bool(_scene.call("request_factory_route_transition", player))).is_false()
-	assert_int(scene_manager.request_calls.size()).is_equal(1)
+	assert_array(scene_manager.request_calls).is_empty()
+
+	var blocked_shortcut: Dictionary = _scene.call("get_boss2_victory_route_handoff_diagnostics")
+	assert_bool(bool(blocked_shortcut.get("factory_route_transition_requested", true))).is_false()
+	assert_bool(bool(_scene.get_node("HUD").call("is_scene_transition_visible"))).is_false()
