@@ -173,8 +173,13 @@ const FACTORY_OBJECTIVE_REACH_DEEP_GUARD: StringName = &"reach_deep_guard"
 const FACTORY_OBJECTIVE_OPEN_DEEP_ROUTE: StringName = &"open_deep_route_endpoint"
 const FACTORY_OBJECTIVE_DEFEAT_SPARK_RAT: StringName = &"defeat_spark_rat_patrol"
 const FACTORY_OBJECTIVE_ROUTE_CLEARED: StringName = &"factory_route_cleared"
+const FACTORY_OBJECTIVE_CALL_SERVICE_LIFT: StringName = &"call_service_lift"
 const FACTORY_OBJECTIVE_CLEAR_RETURN_PATROL: StringName = &"clear_return_patrol"
 const FACTORY_OBJECTIVE_RETURN_PATROL_CLEARED: StringName = &"return_patrol_cleared"
+const FACTORY_OBJECTIVE_REPAIR_RETURN_CHECKPOINT: StringName = &"repair_return_checkpoint"
+const FACTORY_OBJECTIVE_ADVANCE_FROM_RETURN_CHECKPOINT: StringName = (
+	&"advance_from_return_checkpoint"
+)
 const FACTORY_OBJECTIVE_CLEAR_CHECKPOINT_FORWARD_PATROL: StringName = &"clear_checkpoint_forward_patrol"
 const FACTORY_OBJECTIVE_CHECKPOINT_FORWARD_ROUTE_OPENED: StringName = &"checkpoint_forward_route_opened"
 const FACTORY_OBJECTIVE_CLEAR_CHECKPOINT_REAR_AMBUSH: StringName = &"clear_checkpoint_rear_ambush"
@@ -1480,11 +1485,13 @@ func _ready() -> void:
 	_request_factory_audio()
 
 
-## Routes the current Factory interaction to the nearest available entry-route prop.
+## Routes the current Factory interaction to the nearest available progression prop.
 func handle_factory_interact_input() -> bool:
 	if try_claim_factory_cache(_player):
 		return true
 	if try_activate_factory_deep_route_endpoint(_player):
+		return true
+	if try_claim_factory_return_patrol_reward_cache(_player):
 		return true
 	return try_activate_factory_service_lift(_player)
 
@@ -1817,7 +1824,7 @@ func try_activate_factory_return_checkpoint(provider: Node = null) -> bool:
 				else Vector2.ZERO,
 			{}
 		)
-	_update_route_label("Factory Savepoint Secured")
+	_refresh_factory_route_objective()
 	return true
 
 
@@ -5345,10 +5352,13 @@ func set_local_state(state: Dictionary) -> void:
 	_spark_rat_activated = bool(state.get("factory_spark_rat_activated", false))
 	_spark_rat_defeated = bool(state.get("factory_spark_rat_defeated", false))
 	_return_patrol_defeated = bool(state.get("factory_return_patrol_defeated", false))
-	_return_patrol_activated = bool(state.get(
-		"factory_return_patrol_activated",
-		_is_service_lift_return_contract_in_state(state) and not _return_patrol_defeated
-	))
+	_return_patrol_activated = (
+		bool(state.get("factory_return_patrol_activated", false))
+		or (
+			_is_service_lift_return_contract_in_state(state)
+			and not _return_patrol_defeated
+		)
+	)
 	_checkpoint_forward_patrol_activated = bool(state.get(
 		"factory_checkpoint_forward_patrol_activated",
 		false
@@ -12910,7 +12920,7 @@ func get_factory_service_lift_diagnostics() -> Dictionary:
 		"expected_endpoint_id": String(FACTORY_SERVICE_LIFT_ENDPOINT_ID),
 		"texture_path": _get_service_lift_texture_path(),
 		"prompt_text": _get_service_lift_prompt_text(),
-		"route_cleared": is_factory_route_objective_complete(),
+		"route_cleared": _spark_rat_defeated,
 		"route_label_text": route_label.text if route_label != null else "",
 		"exit_requested": _service_lift_exit_requested,
 		"exit_target_scene_id": String(FACTORY_SERVICE_LIFT_EXIT_SCENE_ID),
@@ -14612,6 +14622,7 @@ func _on_factory_return_spark_rat_defeated() -> void:
 	_last_service_lift_exit_rejected_reason = &""
 	_sync_return_patrol_state()
 	_sync_return_patrol_reward_cache_state()
+	_sync_return_checkpoint_state()
 	_sync_service_lift_state()
 	_refresh_factory_route_objective()
 
@@ -15239,10 +15250,10 @@ func _on_factory_return_checkpoint_activated(
 		context
 	)
 	_sync_return_checkpoint_state()
-	if _is_checkpoint_route_chain_started():
-		_refresh_factory_route_objective()
+	if _factory_return_checkpoint_spawn_snap_frames > 0:
+		_update_route_label(FACTORY_RETURN_CHECKPOINT_RESPAWN_LABEL)
 	else:
-		_update_route_label("Factory Savepoint Secured")
+		_refresh_factory_route_objective()
 
 
 func _on_factory_lower_deck_breach_relay_activated(
@@ -18243,9 +18254,11 @@ func _get_factory_route_objective_id() -> StringName:
 	if _checkpoint_forward_patrol_defeated:
 		return FACTORY_OBJECTIVE_CLEAR_CHECKPOINT_REAR_AMBUSH
 	if _return_patrol_defeated:
-		return FACTORY_OBJECTIVE_RETURN_PATROL_CLEARED
+		if not _return_checkpoint_activated:
+			return FACTORY_OBJECTIVE_REPAIR_RETURN_CHECKPOINT
+		return FACTORY_OBJECTIVE_ADVANCE_FROM_RETURN_CHECKPOINT
 	if _spark_rat_defeated:
-		return FACTORY_OBJECTIVE_ROUTE_CLEARED
+		return FACTORY_OBJECTIVE_CALL_SERVICE_LIFT
 	if _deep_route_cleared:
 		return FACTORY_OBJECTIVE_DEFEAT_SPARK_RAT
 	if _deep_guard_defeated:
@@ -18339,10 +18352,16 @@ func _get_factory_route_objective_text(objective_id: StringName) -> String:
 			return "Defeat Spark Rat Patrol"
 		FACTORY_OBJECTIVE_ROUTE_CLEARED:
 			return "Factory Route Cleared"
+		FACTORY_OBJECTIVE_CALL_SERVICE_LIFT:
+			return "Call Service Lift"
 		FACTORY_OBJECTIVE_CLEAR_RETURN_PATROL:
 			return "Clear Return Patrol"
 		FACTORY_OBJECTIVE_RETURN_PATROL_CLEARED:
 			return "Return Patrol Cleared"
+		FACTORY_OBJECTIVE_REPAIR_RETURN_CHECKPOINT:
+			return "Repair Factory Savepoint"
+		FACTORY_OBJECTIVE_ADVANCE_FROM_RETURN_CHECKPOINT:
+			return "Savepoint Secured - Advance Right"
 		FACTORY_OBJECTIVE_CLEAR_CHECKPOINT_FORWARD_PATROL:
 			return "Clear Forward Patrol"
 		FACTORY_OBJECTIVE_CHECKPOINT_FORWARD_ROUTE_OPENED:

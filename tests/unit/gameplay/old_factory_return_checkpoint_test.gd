@@ -179,7 +179,9 @@ func test_return_checkpoint_activation_records_scene_local_checkpoint() -> void:
 	var route: Dictionary = destination.call("get_factory_route_objective_diagnostics")
 	var last_checkpoint: Dictionary = Dictionary(diagnostics.get("last_checkpoint", {}))
 	assert_bool(bool(diagnostics.get("activated", false))).is_true()
-	assert_str(String(route.get("route_label_text", ""))).is_equal("Factory Savepoint Secured")
+	assert_str(String(route.get("route_label_text", ""))).is_equal(
+		"Savepoint Secured - Advance Right"
+	)
 	assert_str(String(last_checkpoint.get("id", ""))).is_equal("old_factory_return_checkpoint")
 	assert_str(String(last_checkpoint.get("scene_id", ""))).is_equal("area_03_factory")
 	assert_str(String(last_checkpoint.get("spawn_point", ""))).is_equal("return_checkpoint")

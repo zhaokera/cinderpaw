@@ -12,7 +12,7 @@ const FACTORY_DEEP_ENDPOINT_NAME: String = "FactoryDeepRouteEndpoint"
 const FACTORY_SPARK_RAT_NAME: String = "FactorySparkRat"
 const FACTORY_SERVICE_LIFT_NAME: String = "FactoryServiceLift"
 const FACTORY_SPARK_RAT_ENTITY_ID: int = 2102
-const OBJECTIVE_ROUTE_CLEARED: String = "factory_route_cleared"
+const OBJECTIVE_CALL_SERVICE_LIFT: String = "call_service_lift"
 
 var _spawned_nodes: Array[Node] = []
 
@@ -105,8 +105,8 @@ func test_service_lift_stays_hidden_until_spark_rat_clear_then_activates_once() 
 	assert_int(int(repeated_diagnostics.get("unlock_feedback_spawn_count", 0))).is_equal(spawn_count)
 
 	var objective: Dictionary = destination.call("get_factory_route_objective_diagnostics")
-	assert_str(String(objective.get("objective_id", ""))).is_equal(OBJECTIVE_ROUTE_CLEARED)
-	assert_bool(bool(objective.get("complete", false))).is_true()
+	assert_str(String(objective.get("objective_id", ""))).is_equal(OBJECTIVE_CALL_SERVICE_LIFT)
+	assert_bool(bool(objective.get("complete", true))).is_false()
 
 	var local_state: Dictionary = destination.call("get_local_state")
 	assert_bool(bool(local_state.get("factory_service_lift_activated", false))).is_true()

@@ -89,7 +89,7 @@ func test_return_patrol_does_not_spawn_on_first_factory_clear() -> void:
 	assert_bool(bool(lift.get("available", false))).is_true()
 	assert_str(String(lift.get("prompt_text", ""))).is_equal("Call lift")
 	var objective: Dictionary = destination.call("get_factory_route_objective_diagnostics")
-	assert_str(String(objective.get("objective_id", ""))).is_equal("factory_route_cleared")
+	assert_str(String(objective.get("objective_id", ""))).is_equal("call_service_lift")
 
 
 func test_return_patrol_activates_from_service_lift_return_contract_and_locks_lift() -> void:
@@ -169,9 +169,9 @@ func test_return_patrol_defeat_persists_and_reenables_service_lift_exit() -> voi
 	assert_bool(bool(patrol.get("visible", true))).is_false()
 	assert_bool(bool(patrol.get("defeated", false))).is_true()
 	var objective: Dictionary = destination.call("get_factory_route_objective_diagnostics")
-	assert_str(String(objective.get("objective_id", ""))).is_equal("return_patrol_cleared")
-	assert_str(String(objective.get("route_label_text", ""))).is_equal("Return Patrol Cleared")
-	assert_bool(bool(objective.get("complete", false))).is_true()
+	assert_str(String(objective.get("objective_id", ""))).is_equal("repair_return_checkpoint")
+	assert_str(String(objective.get("route_label_text", ""))).is_equal("Repair Factory Savepoint")
+	assert_bool(bool(objective.get("complete", true))).is_false()
 
 	var local_state: Dictionary = destination.call("get_local_state")
 	assert_bool(bool(local_state.get("factory_return_patrol_activated", false))).is_true()
