@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/scene-management.md
 > **Architecture Module**: SceneManager
 > **Status**: In Progress
-> **Stories**: 26 stories tracked; future stories planned
+> **Stories**: 27 stories tracked; future stories planned
 
 ## Overview
 
@@ -81,6 +81,10 @@ crossing the next commitment line activates the frame-animated Forward Patrol.
 Story026 resolves the overlapping post-overdrive interaction: the first real
 input claims the optional `+25 Gears` cache, a held input cannot chain actions,
 and only a later rising edge requests the service lift through SceneManager.
+Story027 routes the completed Main shortcut back to the repaired Factory
+checkpoint, explicitly falls back to the gate when that checkpoint is absent,
+and prevents the older repair station from downgrading a deeper Factory
+savepoint during reentry.
 
 ## Governing ADRs
 
@@ -132,6 +136,7 @@ and only a later rising edge requests the service lift through SceneManager.
 | 024 | Factory Cache Detour and Deep Route Real-Input Loop | Gameplay / Traversal / Combat / Input | Complete | ADR-0004, ADR-0007 |
 | 025 | Factory Service-Lift Return and Reentry Checkpoint Loop | Gameplay / Combat / Input / Persistence | Complete | ADR-0004, ADR-0007, ADR-0021 |
 | 026 | Factory Overdrive Cache and Service-Lift Input Priority | Integration / Input / SceneManager | Complete | ADR-0004, ADR-0007 |
+| 027 | Main Factory Return Checkpoint Reentry | Integration / SceneManager / Persistence | Complete | ADR-0007, ADR-0021 |
 
 ## Definition of Done
 
@@ -191,6 +196,10 @@ This epic is complete when:
   one rising-edge interaction claims the optional `+25 Gears` reward without
   exiting. A held input cannot chain actions; only a later rising edge can
   request `main/scrap_roost`, while lift-only use remains valid.
+- After the complete service-lift return and repair contract, Main's shortcut
+  requests `area_03_factory/return_checkpoint`; absent checkpoint state resets
+  the shell to `factory_gate_entry`, and touching the older checkpoint cannot
+  overwrite an already-recorded deeper same-Factory savepoint.
 - Async scene change requests use `ResourceLoader.load_threaded_request()`, wait
   for the 1.5 second transition gate before logical commit, emit a load-start
   signal for Presentation, and timeout after 10 seconds with one retry before
@@ -236,6 +245,7 @@ This epic is complete when:
 
 ## Next Step
 
-Audit and close the next bounded production-input/SceneManager handoff after
-the Factory checkpoint chain. Preserve the optional service-lift contract and
-the already-authored Lower Deck progression instead of expanding Story026.
+Create a separate player-visible service-lift presentation Story. Generate,
+import and wire aligned multi-frame `arrive`, `docked_idle` and `depart` states
+without changing Story026 input priority, Story027 spawn selection or the
+already-authored Lower Deck progression.

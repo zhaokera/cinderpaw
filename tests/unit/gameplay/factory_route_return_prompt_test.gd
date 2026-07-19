@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 const MAIN_SCENE: PackedScene = preload("res://scenes/main.tscn")
 const FACTORY_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_SPAWN_POINT: StringName = &"factory_gate_entry"
+const FACTORY_RETURN_CHECKPOINT_SPAWN_POINT: StringName = &"return_checkpoint"
 const FACTORY_ROUTE_UNLOCKED_FLAG: StringName = &"area_03_factory_unlocked"
 const FACTORY_ROUTE_TRIGGER_NAME: String = "FactoryRouteTransitionShell"
 
@@ -120,6 +121,47 @@ func test_factory_route_prompt_changes_to_return_after_service_lift_roundtrip() 
 	)
 	assert_str(String(scene_manager.request_calls[0].get("spawn_point", ""))).is_equal(
 		String(FACTORY_SPAWN_POINT)
+	)
+
+
+## Scene Management Story027: use the repaired Factory checkpoint on later returns.
+func test_factory_route_return_prefers_activated_return_checkpoint() -> void:
+	var scene_manager := FakeFactorySceneManager.new()
+	assert_bool(bool(_scene.call("configure_scene_manager_runtime", scene_manager))).is_true()
+
+	scene_manager.scene_states[String(FACTORY_SCENE_ID)] = {
+		"factory_service_lift_exit_requested": true,
+		"factory_service_lift_exit_scene_id": "main",
+		"factory_service_lift_exit_spawn_point": "scrap_roost",
+		"factory_return_checkpoint_activated": true,
+		"last_return_checkpoint": {
+			"id": "old_factory_return_checkpoint",
+			"scene_id": "area_03_factory",
+			"spawn_point": "return_checkpoint",
+		},
+	}
+	_scene.call("set_world_progress_flag", FACTORY_ROUTE_UNLOCKED_FLAG, true)
+
+	var returned: Dictionary = _scene.call("get_boss2_victory_route_handoff_diagnostics")
+	assert_bool(bool(returned.get("factory_route_available", false))).is_true()
+	assert_str(String(returned.get("factory_route_prompt_text", ""))).is_equal(
+		"Return to Factory Route"
+	)
+	assert_str(String(returned.get("factory_route_spawn_point", ""))).is_equal(
+		String(FACTORY_RETURN_CHECKPOINT_SPAWN_POINT)
+	)
+
+	var route_shell: Node2D = _scene.get_node_or_null(FACTORY_ROUTE_TRIGGER_NAME) as Node2D
+	var player: Node2D = _scene.get_node_or_null("Player") as Node2D
+	assert_that(route_shell).is_not_null()
+	assert_that(player).is_not_null()
+	if route_shell == null or player == null:
+		return
+	player.global_position = route_shell.global_position
+	assert_bool(bool(_scene.call("request_factory_route_transition", player))).is_true()
+	assert_int(scene_manager.request_calls.size()).is_equal(1)
+	assert_str(String(scene_manager.request_calls[0].get("spawn_point", ""))).is_equal(
+		String(FACTORY_RETURN_CHECKPOINT_SPAWN_POINT)
 	)
 
 

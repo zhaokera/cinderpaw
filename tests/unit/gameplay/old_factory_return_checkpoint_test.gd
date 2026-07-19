@@ -14,6 +14,8 @@ const THREAD_LOAD_LOADED: int = 3
 const TRANSITION_SECONDS: float = 1.5
 const FACTORY_PLAYER_NAME: String = "Player"
 const FACTORY_RETURN_CHECKPOINT_NAME: String = "FactoryReturnCheckpoint"
+const FACTORY_LOWER_DECK_BREACH_RELAY_ID: String = "old_factory_lower_deck_breach_relay"
+const FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT: String = "lower_deck_breach_relay"
 const FACTORY_RETURN_CHECKPOINT_TEXTURE_PATH: String = (
 	"res://assets/environment/old_factory_return_checkpoint/"
 	+ "old_factory_return_checkpoint.png"
@@ -290,6 +292,49 @@ func test_scene_manager_return_checkpoint_spawn_moves_player_to_checkpoint() -> 
 	var route: Dictionary = destination.call("get_factory_route_objective_diagnostics")
 	assert_float(player.global_position.distance_to(checkpoint.global_position)).is_less_equal(1.0)
 	assert_str(String(route.get("route_label_text", ""))).is_equal("Returned to Factory Savepoint")
+
+
+## Scene Management Story027: reentry must not downgrade a deeper Factory savepoint.
+func test_return_checkpoint_reentry_preserves_deeper_factory_savepoint() -> void:
+	var destination: Node = _instantiate_factory_scene()
+	assert_that(destination).is_not_null()
+	if destination == null:
+		return
+
+	destination.call("set_local_state", _service_lift_return_state().merged({
+		"factory_return_patrol_defeated": true,
+		"factory_return_checkpoint_activated": true,
+		"last_return_checkpoint": {
+			"id": FACTORY_LOWER_DECK_BREACH_RELAY_ID,
+			"scene_id": String(FACTORY_SCENE_ID),
+			"spawn_point": FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT,
+			"position": Vector2(1200, 380),
+		},
+	}, true))
+
+	var player: Node2D = destination.get_node_or_null(FACTORY_PLAYER_NAME) as Node2D
+	var checkpoint: Node2D = destination.get_node_or_null(
+		FACTORY_RETURN_CHECKPOINT_NAME
+	) as Node2D
+	assert_that(player).is_not_null()
+	assert_that(checkpoint).is_not_null()
+	if player == null or checkpoint == null:
+		return
+	player.global_position = checkpoint.global_position
+	assert_bool(bool(destination.call(
+		"try_activate_factory_return_checkpoint",
+		player
+	))).is_true()
+
+	var last_checkpoint: Dictionary = Dictionary(
+		destination.call("get_local_state").get("last_return_checkpoint", {})
+	)
+	assert_str(String(last_checkpoint.get("id", ""))).is_equal(
+		FACTORY_LOWER_DECK_BREACH_RELAY_ID
+	)
+	assert_str(String(last_checkpoint.get("spawn_point", ""))).is_equal(
+		FACTORY_LOWER_DECK_BREACH_RELAY_SPAWN_POINT
+	)
 
 
 func test_non_boss_death_runtime_swaps_to_factory_checkpoint_spawn() -> void:

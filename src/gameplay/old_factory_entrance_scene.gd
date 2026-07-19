@@ -15245,13 +15245,21 @@ func _on_factory_return_checkpoint_activated(
 	context: Dictionary
 ) -> void:
 	_return_checkpoint_activated = true
-	_last_return_checkpoint = _build_return_checkpoint_snapshot(
-		savepoint_id,
-		scene_id,
-		spawn_point,
-		world_position,
-		context
+	var existing_scene_id: String = String(_last_return_checkpoint.get("scene_id", ""))
+	var existing_spawn_point: String = String(_last_return_checkpoint.get("spawn_point", ""))
+	var preserve_deeper_factory_checkpoint: bool = (
+		existing_scene_id == String(FACTORY_SCENE_ID)
+		and not existing_spawn_point.is_empty()
+		and existing_spawn_point != String(FACTORY_RETURN_CHECKPOINT_SPAWN_POINT)
 	)
+	if not preserve_deeper_factory_checkpoint:
+		_last_return_checkpoint = _build_return_checkpoint_snapshot(
+			savepoint_id,
+			scene_id,
+			spawn_point,
+			world_position,
+			context
+		)
 	_sync_return_checkpoint_state()
 	if _factory_return_checkpoint_spawn_snap_frames > 0:
 		_update_route_label(FACTORY_RETURN_CHECKPOINT_RESPAWN_LABEL)

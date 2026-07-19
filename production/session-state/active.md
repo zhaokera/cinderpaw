@@ -6703,3 +6703,26 @@
 - Next: add bounded Sewer ACT depth or a Double-Jump-gated forward junction;
   do not bypass the GDD's Sewer-to-Factory ability requirement.
 - Blockers: None for Story020.
+
+## Session Extract -- Scene Management Story027 2026-07-19
+
+- Delivery checkpoint: Story027 is complete after uploaded baseline `807ba079`;
+  the broader complete-game goal remains active.
+- Runtime: Main now selects `area_03_factory/return_checkpoint` only when the
+  complete service-lift return contract and dedicated repaired-checkpoint flag
+  both exist. Missing checkpoint state explicitly resets the shell to
+  `factory_gate_entry`; Sewer remains the first-entry owner.
+- Persistence: re-triggering the older Factory repair station no longer
+  overwrites an already-recorded deeper same-Factory checkpoint.
+- Verification: route RED/GREEN `report_2034/report_2035`, deeper-checkpoint
+  RED/GREEN `report_2037/report_2038`, and final bounded regression
+  `report_2039` `17/17`, with zero final errors, failures, flaky cases, skips or
+  orphans. No full suite ran.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`,
+  accepted run `r360343098-123`. Real `move_right` crossed Main's authored
+  trigger, pending and current spawn were both `return_checkpoint`, the Factory
+  label read `Returned to Factory Savepoint`, the `1278x718` screenshot was
+  non-empty, logs were clean and stop restored `ready`.
+- Assets: no new visual asset was needed. The next separate visual Story should
+  generate and wire service-lift `arrive`, `docked_idle` and `depart` frames.
+- Blockers: None for Story027.

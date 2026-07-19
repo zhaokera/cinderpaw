@@ -120,6 +120,7 @@ const FOUR_BOSS_ACT_COMPLETION_FLAG: StringName = &"four_boss_act_completion_see
 const FOUR_BOSS_ACT_COMPLETION_DELAY_SEC: float = 2.5
 const FACTORY_ROUTE_SCENE_ID: StringName = &"area_03_factory"
 const FACTORY_ROUTE_SPAWN_POINT: StringName = &"factory_gate_entry"
+const FACTORY_ROUTE_RETURN_CHECKPOINT_SPAWN_POINT: StringName = &"return_checkpoint"
 const FACTORY_ROUTE_UNLOCKED_FLAG: StringName = &"area_03_factory_unlocked"
 const SEWER_FACTORY_ROUTE_REACHED_FLAG: StringName = &"sewer_factory_route_reached"
 const FACTORY_ROUTE_ENTRY_PROMPT: String = "Enter Factory Route"
@@ -3547,16 +3548,23 @@ func _sync_factory_route_transition_shell() -> void:
 		return
 	# The Main shell is a post-service-lift return shortcut. First Factory entry
 	# belongs to the physical Double Jump junction inside the Sewer.
+	var service_lift_returned: bool = _has_factory_service_lift_returned_to_scrap_roost()
 	var available: bool = (
 		bool(_world_progress_flags.get(String(FACTORY_ROUTE_UNLOCKED_FLAG), false))
-		and _has_factory_service_lift_returned_to_scrap_roost()
+		and service_lift_returned
 	)
 	var prompt_text: String = (
 		FACTORY_ROUTE_RETURN_PROMPT
-		if available and _has_factory_service_lift_returned_to_scrap_roost()
+		if available and service_lift_returned
 		else FACTORY_ROUTE_ENTRY_PROMPT
 	)
+	var spawn_point: StringName = (
+		FACTORY_ROUTE_RETURN_CHECKPOINT_SPAWN_POINT
+		if service_lift_returned and _has_factory_return_checkpoint_activated()
+		else FACTORY_ROUTE_SPAWN_POINT
+	)
 	route_shell.set("available_prompt_text", prompt_text)
+	route_shell.set("spawn_point", spawn_point)
 	route_shell.call("set_route_available", available)
 
 
@@ -3627,6 +3635,22 @@ func _has_factory_service_lift_returned_to_scrap_roost() -> bool:
 		and String(factory_state.get("factory_service_lift_exit_scene_id", "")) == MAIN_SCENE_ID
 		and String(factory_state.get("factory_service_lift_exit_spawn_point", "")) == "scrap_roost"
 	)
+
+
+func _has_factory_return_checkpoint_activated() -> bool:
+	var scene_manager: Object = _resolve_scene_manager_for_runtime()
+	if scene_manager == null or not scene_manager.has_method("get_scene_state"):
+		return false
+	var factory_state_variant: Variant = scene_manager.call(
+		"get_scene_state",
+		FACTORY_ROUTE_SCENE_ID
+	)
+	if not factory_state_variant is Dictionary:
+		return false
+	return bool((factory_state_variant as Dictionary).get(
+		"factory_return_checkpoint_activated",
+		false
+	))
 
 
 func _connect_exploration_gate_signal(gate: Node) -> void:
