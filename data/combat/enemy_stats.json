@@ -156,6 +156,8 @@
 					"recovery_frames": 24,
 					"damage": 14,
 					"damage_type": "physical",
+					"lunge_speed": 720,
+					"attack_range_px": 320,
 					"hitbox_config": {
 						"hitbox_id": "rat_king_charge",
 						"offset": {"x": 84, "y": -44},

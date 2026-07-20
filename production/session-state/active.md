@@ -6755,3 +6755,32 @@
 - Next: select a bounded player-facing ACT depth or encounter-variety Story;
   prefer playable combat/traversal progress over another presentation-only pass.
 - Blockers: None for Story028.
+
+## Session Extract -- Player Abilities Story178 2026-07-20
+
+- Delivery checkpoint: Story178 is complete locally after uploaded Story028
+  commit `b70d1aad`; the broader complete-game goal remains active.
+- Runtime: Rat King now chooses `charge` from the authored `260px` Main opening,
+  locks facing during its `20`-frame startup and moves at data-driven `720px/s`
+  through its existing `8` active frames. Horizontal collision stops motion;
+  the existing `rat_king_charge` hitbox, damage, timing and generated animation
+  remain unchanged.
+- Recovery: recovery/completion, death, respawn restore, progress defeat and
+  phase transition clear active charge locomotion. Phases without `charge` do
+  not acquire it as a gap closer.
+- Verification: intentional RED `report_2047`; focused GREEN `report_2048`
+  `1/1`; bounded related GREEN `report_2049` and fresh pre-push `report_2050`
+  both `15/15`, with zero failures, errors, flaky cases, skips or orphans.
+  Main headless ran `180` frames and exited `0`, with only shutdown cleanup
+  diagnostics. No full suite ran.
+- MCP: Godot `4.7-stable`, plugin/server `3.0.2`, session `cinderpaw@af5f`,
+  accepted run `r367146508-130`. Natural Main runtime closed the opening gap;
+  a deterministic probe confirmed locked-left movement, `-720` velocity,
+  active charge animation/hitbox and clean game/editor logs. The saved opaque
+  `1278x718` screenshot is non-empty and stop restored `ready`.
+- Assets: no new visual asset was needed; Story178 reuses the existing
+  image-generated Rat King `charge` SpriteFrames.
+- Next: wire the visible Lower Deck reward cache to production `interact`, then
+  address Boss3 retry pacing and the obscured pressure-valve presentation as
+  separate bounded Stories.
+- Blockers: None for Story178.

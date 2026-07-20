@@ -19,6 +19,9 @@ const FALLBACK_MAX_HP: int = 300
 const HIT_FLASH_FRAMES: int = 6
 const CONTACT_DAMAGE_COOLDOWN_FRAMES: int = 45
 const ATTACK_RANGE_PX: float = 110.0
+const CHARGE_PATTERN_ID: StringName = &"charge"
+const DEFAULT_CHARGE_LUNGE_SPEED: float = 720.0
+const DEFAULT_CHARGE_ACQUIRE_RANGE_PX: float = 320.0
 const ATTACK_TELL_FRAMES: int = 8
 const ATTACK_ACTIVE_FRAMES: int = 4
 const ATTACK_RECOVERY_FRAMES: int = 14
@@ -82,6 +85,15 @@ var _phase_one_intro_cancelled_count: int = 0
 var _last_enemy_attack_metadata: Dictionary = {}
 var _active_attack_metadata: Dictionary = {}
 var _attack_target: Node = null
+var _charge_lunge_speed: float = DEFAULT_CHARGE_LUNGE_SPEED
+var _charge_acquire_range_px: float = DEFAULT_CHARGE_ACQUIRE_RANGE_PX
+var _charge_config_loaded_from_data: bool = false
+var _charge_locked_direction: float = 0.0
+var _charge_motion_active: bool = false
+var _charge_blocked: bool = false
+var _charge_distance_px: float = 0.0
+var _charge_collision_count: int = 0
+var _charge_stop_reason: StringName = &"idle"
 var _health: HealthComponent = null
 var _collision: CollisionComponent = null
 var _combat: CombatComponent = null
@@ -104,6 +116,7 @@ var _ai_component_script: Script = load(AI_COMPONENT_SCRIPT_PATH) as Script
 
 
 func _ready() -> void:
+	_load_charge_locomotion_config()
 	_ensure_core_components()
 	_setup_core_components()
 	_play_character_animation(ANIMATION_IDLE, true)
@@ -169,6 +182,8 @@ func request_phase_one_intro() -> bool:
 
 
 func request_attack() -> bool:
+	if _should_use_charge_gap_closer():
+		return request_attack_pattern(CHARGE_PATTERN_ID)
 	if _ai != null and _ai.has_attack_patterns():
 		var selected_pattern: Dictionary = _ai.select_attack_pattern()
 		var pattern_id: StringName = StringName(selected_pattern.get("pattern_id", &""))
@@ -191,6 +206,7 @@ func request_attack_pattern(pattern_id: StringName) -> bool:
 	if not _ai.start_attack_by_pattern_id(pattern_id):
 		return false
 	_face_attack_target()
+	_prepare_charge_locomotion(pattern_id)
 	velocity = Vector2.ZERO
 	_active_attack_metadata.clear()
 	_state = State.ATTACK_TELL
@@ -207,9 +223,9 @@ func advance_attack_frames(frames: int) -> void:
 			State.ATTACK_TELL:
 				_process_attack_tell(1.0 / 60.0)
 			State.ATTACK_ACTIVE:
-				_process_ai_attack(1.0 / 60.0)
+				_process_attack_active(1.0 / 60.0)
 			State.ATTACK_RECOVERY:
-				_process_ai_attack(1.0 / 60.0)
+				_process_attack_recovery(1.0 / 60.0)
 			_:
 				pass
 
@@ -496,6 +512,27 @@ func get_attack_speed_modifier() -> float:
 	return _ai.get_attack_speed_modifier()
 
 
+func get_charge_locomotion_diagnostics() -> Dictionary:
+	return {
+		"loaded_from_data": _charge_config_loaded_from_data,
+		"lunge_speed": _charge_lunge_speed,
+		"acquire_range_px": _charge_acquire_range_px,
+		"locked_direction": _charge_locked_direction,
+		"motion_active": _charge_motion_active,
+		"blocked": _charge_blocked,
+		"distance_px": _charge_distance_px,
+		"collision_count": _charge_collision_count,
+		"stop_reason": String(_charge_stop_reason),
+		"velocity_x": velocity.x,
+		"position": global_position,
+		"target_distance_px": (
+			absf(_attack_target.global_position.x - global_position.x)
+			if is_instance_valid(_attack_target)
+			else -1.0
+		),
+	}
+
+
 func get_last_enemy_attack_metadata() -> Dictionary:
 	return _last_enemy_attack_metadata.duplicate(true)
 
@@ -514,6 +551,7 @@ func capture_respawn_snapshot() -> Dictionary:
 
 func restore_respawn_snapshot(snapshot: Dictionary) -> void:
 	_cancel_phase_one_intro(&"respawn_reset")
+	_reset_charge_locomotion(&"respawn_reset")
 	global_position = _read_vector2(snapshot.get("global_position", global_position), global_position)
 	_state = State.IDLE
 	_phase_one_intro_played_this_attempt = false
@@ -549,6 +587,7 @@ func restore_respawn_snapshot(snapshot: Dictionary) -> void:
 
 func mark_defeated_from_progress() -> void:
 	_cancel_phase_one_intro(&"progress_defeated")
+	_reset_charge_locomotion(&"progress_defeated")
 	_state = State.DEAD
 	_stop_focus_attack_tell()
 	_hit_timer = 0
@@ -627,15 +666,92 @@ func _enter_attack_active() -> void:
 		)
 
 
-func _process_attack_active(_delta: float) -> void:
-	velocity.x = 0.0
+func _process_attack_active(delta: float) -> void:
+	if _is_current_charge_pattern():
+		_process_charge_motion(delta)
+	else:
+		velocity.x = 0.0
 	_play_character_animation(_current_attack_animation())
-	_process_ai_attack(_delta)
+	_process_ai_attack(delta)
+
+
+func _process_charge_motion(delta: float) -> void:
+	if not _charge_motion_active:
+		_charge_motion_active = true
+		_charge_stop_reason = &"active"
+	var previous_x: float = global_position.x
+	if _charge_blocked:
+		velocity.x = 0.0
+	else:
+		velocity.x = _charge_locked_direction * _charge_lunge_speed
+	velocity.y += GRAVITY * delta
+	move_and_slide()
+	var horizontal_step: float = absf(global_position.x - previous_x)
+	_charge_distance_px += horizontal_step
+	var expected_step: float = absf(_charge_lunge_speed * delta)
+	if (
+		not _charge_blocked
+		and expected_step > 0.0
+		and horizontal_step + 0.5 < expected_step
+		and _has_horizontal_slide_collision()
+	):
+		_charge_blocked = true
+		_charge_collision_count += 1
+		_charge_stop_reason = &"collision"
+		velocity.x = 0.0
+	_update_sprite_facing()
 
 
 func _process_attack_recovery(_delta: float) -> void:
+	_end_charge_motion(&"recovery")
 	velocity.x = 0.0
 	_process_ai_attack(_delta)
+
+
+func _prepare_charge_locomotion(pattern_id: StringName) -> void:
+	if pattern_id != CHARGE_PATTERN_ID:
+		_reset_charge_locomotion(&"different_pattern")
+		return
+	_charge_locked_direction = _facing
+	_charge_motion_active = false
+	_charge_blocked = false
+	_charge_distance_px = 0.0
+	_charge_collision_count = 0
+	_charge_stop_reason = &"startup"
+
+
+func _end_charge_motion(reason: StringName) -> void:
+	if not _charge_motion_active:
+		return
+	_charge_motion_active = false
+	velocity.x = 0.0
+	if _charge_stop_reason != &"collision":
+		_charge_stop_reason = reason
+
+
+func _reset_charge_locomotion(reason: StringName) -> void:
+	_charge_locked_direction = 0.0
+	_charge_motion_active = false
+	_charge_blocked = false
+	_charge_distance_px = 0.0
+	_charge_collision_count = 0
+	_charge_stop_reason = reason
+	velocity.x = 0.0
+
+
+func _is_current_charge_pattern() -> bool:
+	return (
+		_ai != null
+		and _ai.get_current_attack_pattern_id() == CHARGE_PATTERN_ID
+	)
+
+
+func _has_horizontal_slide_collision() -> bool:
+	for collision_index: int in range(get_slide_collision_count()):
+		var collision: KinematicCollision2D = get_slide_collision(collision_index)
+		if collision != null and absf(collision.get_normal().x) >= 0.5:
+			return true
+	return false
 
 
 func _process_ai_attack(_delta: float) -> void:
@@ -667,6 +783,7 @@ func _sync_state_from_ai_attack() -> void:
 		&"recovery":
 			_state = State.ATTACK_RECOVERY
 			_attack_timer = ATTACK_RECOVERY_FRAMES
+			_end_charge_motion(&"recovery")
 			_play_character_animation(_current_attack_animation())
 		_:
 			_finish_ai_attack_if_needed()
@@ -675,6 +792,7 @@ func _sync_state_from_ai_attack() -> void:
 func _finish_ai_attack_if_needed() -> void:
 	if _state != State.ATTACK_TELL and _state != State.ATTACK_ACTIVE and _state != State.ATTACK_RECOVERY:
 		return
+	_end_charge_motion(&"complete")
 	_state = State.IDLE
 	_stop_focus_attack_tell()
 	_attack_timer = 0
@@ -787,6 +905,42 @@ func _setup_ai_component() -> void:
 	_apply_current_boss_phase_to_ai()
 
 
+func _load_charge_locomotion_config() -> void:
+	var data_manager: Node = get_node_or_null("/root/DataManager")
+	if data_manager == null or not data_manager.has_method("get_entry"):
+		return
+	var entry_variant: Variant = data_manager.call(
+		"get_entry",
+		&"enemy_stats",
+		BOSS_ID
+	)
+	if not entry_variant is Dictionary:
+		return
+	var patterns: Array = Array((entry_variant as Dictionary).get(
+		"attack_patterns",
+		[]
+	))
+	for pattern_variant: Variant in patterns:
+		if not pattern_variant is Dictionary:
+			continue
+		var pattern: Dictionary = pattern_variant as Dictionary
+		if StringName(String(pattern.get("pattern_id", ""))) != CHARGE_PATTERN_ID:
+			continue
+		_charge_lunge_speed = maxf(
+			1.0,
+			float(pattern.get("lunge_speed", DEFAULT_CHARGE_LUNGE_SPEED))
+		)
+		_charge_acquire_range_px = maxf(
+			ATTACK_RANGE_PX,
+			float(pattern.get(
+				"attack_range_px",
+				DEFAULT_CHARGE_ACQUIRE_RANGE_PX
+			))
+		)
+		_charge_config_loaded_from_data = true
+		return
+
+
 func _apply_current_boss_phase_to_ai() -> void:
 	if _ai == null or _boss_config == null or not _boss_config.has_boss_config():
 		return
@@ -836,6 +990,7 @@ func _on_core_death(_entity_id: int, _metadata: Dictionary) -> void:
 	if _state == State.DEAD:
 		return
 	_cancel_phase_one_intro(&"death")
+	_reset_charge_locomotion(&"death")
 	_state = State.DEAD
 	_stop_focus_attack_tell()
 	if _collision != null:
@@ -856,6 +1011,7 @@ func _on_boss_phase_transition_started(
 	if _state == State.DEAD:
 		return
 	_cancel_phase_one_intro(&"phase_transition")
+	_reset_charge_locomotion(&"phase_transition")
 	var animation_name: StringName = StringName(String(metadata.get("transition_animation", "")))
 	if animation_name == &"" or _sprite.sprite_frames == null:
 		return
@@ -934,14 +1090,33 @@ func _damage_for_hitbox(hitbox_id: StringName) -> int:
 
 
 func _can_auto_attack_target() -> bool:
-	if _attack_target == null or _attack_cooldown_timer > 0:
+	if _should_use_charge_gap_closer():
+		return true
+	if not is_instance_valid(_attack_target) or _attack_cooldown_timer > 0:
 		return false
 	var to_target: Vector2 = _attack_target.global_position - global_position
 	return absf(to_target.x) <= ATTACK_RANGE_PX and absf(to_target.y) <= 70.0
 
 
+func _should_use_charge_gap_closer() -> bool:
+	if (
+		_ai == null
+		or _state != State.IDLE
+		or _attack_cooldown_timer > 0
+		or not is_instance_valid(_attack_target)
+		or not _ai.get_current_attack_pattern_ids().has(CHARGE_PATTERN_ID)
+	):
+		return false
+	var to_target: Vector2 = _attack_target.global_position - global_position
+	return (
+		absf(to_target.x) > ATTACK_RANGE_PX
+		and absf(to_target.x) <= _charge_acquire_range_px
+		and absf(to_target.y) <= 70.0
+	)
+
+
 func _face_attack_target() -> void:
-	if _attack_target != null:
+	if is_instance_valid(_attack_target):
 		var delta_x: float = _attack_target.global_position.x - global_position.x
 		if absf(delta_x) > 1.0:
 			_facing = signf(delta_x)

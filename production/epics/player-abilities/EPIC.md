@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 177 stories tracked
+> **Stories**: 178 stories tracked
 
 ## Overview
 
@@ -215,6 +215,7 @@ recording the reward in progression state.
 | 175 | Echo Guardian Secondary Attack Playable Loop | Attack Pattern + Frame Animation + Data Integration | Complete | ADR-0002/0004/0005/0006/0010/0018 |
 | 176 | Crown Warden Dedicated Phase Transition Frame Animation | Visual/Feel + Frame Animation + Data Integration | Complete | ADR-0002/0004/0005/0006/0010/0019/0020 |
 | 177 | Old Factory Lower Deck Skirmish Production-Input Handoff | Integration + Gameplay Runtime + Production Input | Complete | ADR-0004/0005/0006/0007/0018/0021 |
+| 178 | Rat King Committed Charge Locomotion | Attack Pattern + Collision + Data Integration | Complete | ADR-0002/0003/0004/0005/0006/0018 |
 
 ## Definition of Done
 
@@ -236,9 +237,10 @@ This epic is complete when:
 
 ## Next Step
 
-Story177 closes the first production-input gap into the authored Old Factory
-Lower Deck chain. The next bounded functional slice should make Main's
-post-lift Factory return choose `return_checkpoint` when that checkpoint is
-active while preserving `factory_gate_entry` as the fallback. A separate
-image-generated presentation Story can then add a visible service-lift body and
-arrival/departure animation without coupling scene-flow behavior to art work.
+Story178 turns Rat King's authored `charge` into a committed, collision-aware
+gap closer while preserving its generated SpriteFrames, timing, damage and
+hitbox. The next bounded functional slice should connect the visible Old Factory
+Lower Deck reward cache to production `interact`, so its Parry gate and existing
+route content become reachable without test-only API calls. Boss3 death/retry
+pacing and a dedicated image-generated pressure-valve animation should follow
+as separate gameplay and presentation Stories.
