@@ -106,4 +106,8 @@ image-generated/imported assets already present in the Godot import pipeline:
 - Story233 incoming production handoff: a fresh cache-claim edge makes this
   hatch visible, available, monitoring, monitorable and collision-blocking at
   `(16080,392)`, but held input leaves it unopened with zero unlock VFX in MCP
-  run `r196920539-37`. Fresh hatch-open input remains Story234.
+  run `r196920539-37`.
+- Story234 production closure: stale held and released no-input states remain
+  closed. One fresh production edge opens the hatch once, clears collision,
+  hides the world prompt, plays one unlock spark and applies the authored child
+  pose `(48,-136)`, `6deg`, effective z `23` in MCP run `r198694429-38`.

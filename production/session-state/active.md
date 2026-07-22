@@ -8598,3 +8598,30 @@
 - Next: Story234 fresh production Story123 hatch-open input and Story124
   spillway waiting handoff. Story181 remains blocked only on external image2
   connectivity.
+
+## Session Extract -- Player Abilities Story234 2026-07-22
+
+- Runtime/input: held `interact` from outside Story123's radius remains stale;
+  release/no-input remains closed. One fresh production edge opens the hatch
+  once, disables monitoring/collision, hides the world prompt and records the
+  persisted opened state.
+- Visual/handoff: the door root stays `(16080,392)` while child `Visual` moves
+  to `(48,-136)`, rotates `6deg` and resolves at effective z `23` below
+  Cinderpaw z `26`. Unlock spark spawns once. Story124 becomes visible and
+  available but remains inactive/idle/non-contacting/uncrossed through held,
+  stationary and no-input threshold placement.
+- TDD: canonical RED `report_2399`; initial GREEN `report_2400`; initial related
+  `report_2401` `7/7`; VFX diagnostic RED/GREEN `report_2402`/`report_2403`;
+  final five-suite related `report_2404` passed `7/7`. Updated smoke printed
+  `story234_production_smoke=passed frames=180`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r198694429-38`, used real `interact`, confirmed active VFX diagnostics and
+  Story124 guards, produced helper-only game logs, empty editor delta after
+  cursor `2`, released inputs, two non-empty RGB `1278x718` screenshots and a
+  clean stop.
+- Assets: existing imported image-generated deep bulkhead, unlock spark,
+  spillway, four-frame steam vent and Cinderpaw assets were sufficient. Reuse
+  was recorded in the manifest; no generation/import was required.
+- Next: Story235 real Story124 positive-x movement, physical steam timing/damage
+  and crossing into the Sluice Leech handoff. Story181 remains blocked only on
+  external image2 connectivity.

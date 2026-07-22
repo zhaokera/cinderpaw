@@ -56,9 +56,10 @@
     interact edge, keeps the unlocked exit hatch closed while that edge remains
     held, and preserves the Story124 lock for 180 frames
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_reward_cache_smoke.gd`)
-13. Old Factory service sluice tailrace relay runoff pincer exit hatch appears
-    after the pincer reward cache is claimed, opens once, clears collision, and
-    persists opened state
+13. Old Factory service sluice tailrace relay runoff pincer exit hatch rejects
+    stale/no-input interaction, opens once through a fresh production edge,
+    applies its lifted z-safe pose, clears collision and leaves Story124 visible
+    but waiting through 180 held/stationary/no-input-threshold frames
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_smoke.gd`)
 14. Old Factory service sluice tailrace relay runoff pincer exit spillway
     activates after the exit hatch opens, uses active-only steam contact,

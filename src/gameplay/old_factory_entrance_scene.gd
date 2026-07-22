@@ -1458,6 +1458,8 @@ var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outle
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_coil_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_reward_cache_claimed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_opened: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_crossed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_elapsed_sec: float = 0.0
@@ -1891,6 +1893,25 @@ func _try_handle_nearest_factory_lower_deck_progression_interact(
 			),
 		})
 
+	var overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch := (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch
+		as Node2D
+	)
+	if (
+		overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch
+		!= null
+		and _is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_available()
+		and _is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_provider_in_range(
+			provider_node
+		)
+	):
+		candidates.append({
+			"position": overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch.global_position,
+			"interact_method": (
+				&"try_open_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch"
+			),
+		})
+
 	var nearest_distance_squared: float = INF
 	var nearest_interact_method: StringName = &""
 	for candidate: Dictionary in candidates:
@@ -1999,6 +2020,9 @@ func _process(_delta: float) -> void:
 	)
 	var overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_was_available: bool = (
 		_is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_available()
+	)
+	var overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_was_available: bool = (
+		_is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_available()
 	)
 	var interact_pressed: bool = Input.is_action_pressed(&"interact")
 	if interact_pressed and not _interact_input_was_pressed:
@@ -2120,7 +2144,9 @@ func _process(_delta: float) -> void:
 	_auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer(
 		overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_was_available
 	)
-	_auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway()
+	_auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway(
+		overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_was_available
+	)
 	advance_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_time(
 		_delta
 	)
@@ -2159,6 +2185,7 @@ func _process(_delta: float) -> void:
 	_track_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_player_x()
 	_track_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_player_x()
 	_track_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_player_x()
+	_track_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_player_x()
 
 
 func calculate_damage(
@@ -10682,7 +10709,7 @@ func get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_
 			"texture_path",
 			""
 		)),
-		"unlock_feedback_active": bool(unlock_vfx_snapshot.get("active", false)),
+		"unlock_feedback_active": int(unlock_vfx_snapshot.get("active_count", 0)) > 0,
 		"unlock_feedback_played": bool(unlock_vfx_snapshot.get("played", false)),
 		"unlock_feedback_spawn_count": int(unlock_vfx_snapshot.get("spawn_count", 0)),
 		"right_wall_x": _get_factory_route_right_wall_x(),
@@ -28213,19 +28240,43 @@ func _track_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pin
 
 
 func _auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway(
+	was_available: bool
 ) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_activated
 		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_crossed
 	):
 		return
 	if (
-		not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_opened
+		_player == null
+		or not _player is Node2D
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_opened
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_RUNOFF_PINCER_EXIT_SPILLWAY_ACTIVATION_X
 	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway(
 		_player
 	)
+
+
+func _track_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_player_x(
+) -> void:
+	if _player == null or not _player is Node2D:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_player_x_initialized = true
 
 
 func _auto_complete_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway(

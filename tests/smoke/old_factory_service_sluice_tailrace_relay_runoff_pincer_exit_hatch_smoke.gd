@@ -1,15 +1,20 @@
 extends SceneTree
 
-
-const FACTORY_SCENE := "res://scenes/factory_route_transition_shell.tscn"
-const PINCER_EXIT_HATCH_DIAGNOSTICS := (
+const FACTORY_SCENE := preload("res://scenes/factory_route_transition_shell.tscn")
+const INTERACT_ACTION: StringName = &"interact"
+const MOVE_RIGHT_ACTION: StringName = &"move_right"
+const FRAME_COUNT: int = 180
+const HATCH_PATH: NodePath = (
+	^"FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerExitHatch"
+)
+const SPILLWAY_DUCT_PATH: NodePath = (
+	^"FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerExitSpillwayDuct"
+)
+const HATCH_DIAGNOSTICS: String = (
 	"get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_diagnostics"
 )
-const PINCER_EXIT_HATCH_OPEN := (
-	"try_open_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch"
-)
-const PINCER_EXIT_HATCH_STATE_KEY := (
-	"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_opened"
+const SPILLWAY_DIAGNOSTICS: String = (
+	"get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_diagnostics"
 )
 
 
@@ -18,116 +23,159 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	var packed := load(FACTORY_SCENE) as PackedScene
-	if packed == null:
-		push_error("Failed to load factory route transition shell")
-		quit(1)
+	_release_gameplay_actions()
+	var factory: Node = FACTORY_SCENE.instantiate()
+	root.add_child(factory)
+	await process_frame
+	await process_frame
+	factory.set_process(false)
+	factory.call("set_local_state", _pincer_exit_hatch_ready_state())
+
+	var player := factory.get_node_or_null("Player") as PlayerController
+	var hatch := factory.get_node_or_null(HATCH_PATH) as Node2D
+	var visual := hatch.get_node_or_null("Visual") as Sprite2D if hatch != null else null
+	var prompt := hatch.get_node_or_null("PromptLabel") as Label if hatch != null else null
+	var duct := factory.get_node_or_null(SPILLWAY_DUCT_PATH) as Sprite2D
+	if player == null or hatch == null or visual == null or prompt == null or duct == null:
+		_fail(factory, "missing Story234 runtime nodes")
+		return
+	player.set_physics_process(false)
+	player.global_position = hatch.global_position + Vector2(-160.0, 64.0)
+	player.velocity = Vector2.ZERO
+
+	Input.action_press(INTERACT_ACTION)
+	factory.call("_process", 0.0)
+	player.global_position = hatch.global_position + Vector2(0.0, 64.0)
+	factory.call("_process", 0.0)
+	var hatch_state: Dictionary = factory.call(HATCH_DIAGNOSTICS)
+	if bool(hatch_state.get("opened", false)):
+		_fail(factory, "stale interact opened Story123")
 		return
 
-	var scene := packed.instantiate()
-	root.add_child(scene)
-	await process_frame
-	await process_frame
+	Input.action_release(INTERACT_ACTION)
+	factory.call("_process", 0.0)
+	factory.call("_process", 0.0)
+	hatch_state = factory.call(HATCH_DIAGNOSTICS)
+	if bool(hatch_state.get("opened", false)):
+		_fail(factory, "no-input placement opened Story123")
+		return
 
-	for method_name: String in [
-		PINCER_EXIT_HATCH_DIAGNOSTICS,
-		PINCER_EXIT_HATCH_OPEN,
-	]:
-		if not scene.has_method(method_name):
-			push_error("Factory scene missing pincer exit hatch method: %s" % method_name)
-			_cleanup_and_quit(scene, 1)
+	Input.action_press(INTERACT_ACTION)
+	factory.call("_process", 0.0)
+	hatch_state = factory.call(HATCH_DIAGNOSTICS)
+	if not bool(hatch_state.get("opened", false)):
+		_fail(factory, "fresh production interact did not open Story123")
+		return
+
+	for frame: int in range(FRAME_COUNT):
+		factory.call("_process", 1.0 / 60.0)
+		hatch_state = factory.call(HATCH_DIAGNOSTICS)
+		var spillway_frame: Dictionary = factory.call(SPILLWAY_DIAGNOSTICS)
+		if not bool(hatch_state.get("opened", false)):
+			_fail(factory, "Story123 lost opened state at frame %d" % frame)
 			return
+		if bool(spillway_frame.get("active", false)) \
+				or bool(spillway_frame.get("crossed", false)) \
+				or bool(spillway_frame.get("hazard_contact_active", false)):
+			_fail(factory, "Story124 advanced during Story234 frame %d" % frame)
+			return
+		await process_frame
 
-	scene.call("set_local_state", _tailrace_runoff_pincer_cache_claimed_state())
-	await process_frame
-
-	var diagnostics: Dictionary = scene.call(PINCER_EXIT_HATCH_DIAGNOSTICS)
-	if not bool(diagnostics.get("present", false)):
-		push_error("Tailrace runoff pincer exit hatch is not present")
-		_cleanup_and_quit(scene, 1)
-		return
-	if not bool(diagnostics.get("pincer_reward_cache_claimed", false)):
-		push_error("Tailrace runoff pincer exit hatch did not see claimed cache")
-		_cleanup_and_quit(scene, 1)
-		return
-	if not bool(diagnostics.get("visible", false)):
-		push_error("Tailrace runoff pincer exit hatch is hidden after cache claim")
-		_cleanup_and_quit(scene, 1)
-		return
-	if not bool(diagnostics.get("available", false)):
-		push_error("Tailrace runoff pincer exit hatch is not available")
-		_cleanup_and_quit(scene, 1)
-		return
-	if not bool(diagnostics.get("collision_blocking", false)):
-		push_error("Tailrace runoff pincer exit hatch is not blocking before open")
-		_cleanup_and_quit(scene, 1)
-		return
-	if String(diagnostics.get("route_label_text", "")) != "Open Tailrace Runoff Exit":
-		push_error("Tailrace runoff pincer exit hatch pre-open label is wrong")
-		_cleanup_and_quit(scene, 1)
+	Input.action_release(INTERACT_ACTION)
+	factory.call("_process", 0.0)
+	var spillway_state: Dictionary = factory.call(SPILLWAY_DIAGNOSTICS)
+	player.global_position = Vector2(
+		float(spillway_state.get("activation_x", 0.0)) + 4.0,
+		410.0
+	)
+	player.velocity = Vector2.ZERO
+	factory.call("_process", 0.0)
+	spillway_state = factory.call(SPILLWAY_DIAGNOSTICS)
+	if bool(spillway_state.get("active", false)):
+		_fail(factory, "no-input activation-x placement started Story124")
 		return
 
-	var player := scene.get_node_or_null("Player") as Node2D
-	if player == null:
-		push_error("Factory scene missing Player")
-		_cleanup_and_quit(scene, 1)
-		return
-	player.global_position = diagnostics.get("position", Vector2.ZERO) as Vector2
-
-	if not bool(scene.call(PINCER_EXIT_HATCH_OPEN, player)):
-		push_error("Tailrace runoff pincer exit hatch open failed")
-		_cleanup_and_quit(scene, 1)
-		return
-	if bool(scene.call(PINCER_EXIT_HATCH_OPEN, player)):
-		push_error("Tailrace runoff pincer exit hatch opened twice")
-		_cleanup_and_quit(scene, 1)
+	player.global_position = Vector2(
+		float(spillway_state.get("exit_x", 0.0)) + 4.0,
+		410.0
+	)
+	player.velocity = Vector2.ZERO
+	factory.call("_process", 0.0)
+	spillway_state = factory.call(SPILLWAY_DIAGNOSTICS)
+	if bool(spillway_state.get("active", false)) \
+			or bool(spillway_state.get("crossed", false)):
+		_fail(factory, "no-input exit-x placement consumed Story124")
 		return
 
-	diagnostics = scene.call(PINCER_EXIT_HATCH_DIAGNOSTICS)
-	if not bool(diagnostics.get("opened", false)):
-		push_error("Tailrace runoff pincer exit hatch did not persist opened")
-		_cleanup_and_quit(scene, 1)
-		return
-	if bool(diagnostics.get("available", true)):
-		push_error("Tailrace runoff pincer exit hatch remains available after open")
-		_cleanup_and_quit(scene, 1)
-		return
-	if bool(diagnostics.get("collision_blocking", true)):
-		push_error("Tailrace runoff pincer exit hatch remains blocking after open")
-		_cleanup_and_quit(scene, 1)
-		return
-	if int(diagnostics.get("unlock_feedback_spawn_count", 0)) != 1:
-		push_error("Tailrace runoff pincer exit hatch unlock VFX did not spawn once")
-		_cleanup_and_quit(scene, 1)
-		return
-	if String(diagnostics.get("route_label_text", "")) != "Tailrace Runoff Exit Opened":
-		push_error("Tailrace runoff pincer exit hatch open label is wrong")
-		_cleanup_and_quit(scene, 1)
+	player.global_position = hatch.global_position + Vector2(0.0, 64.0)
+	Input.action_press(INTERACT_ACTION)
+	factory.call("_process", 0.0)
+	Input.action_release(INTERACT_ACTION)
+	factory.call("_process", 0.0)
+
+	hatch_state = factory.call(HATCH_DIAGNOSTICS)
+	spillway_state = factory.call(SPILLWAY_DIAGNOSTICS)
+	var unlock_vfx: Dictionary = hatch.call("get_unlock_vfx_snapshot")
+	if (
+		not bool(hatch_state.get("opened", false))
+		or bool(hatch_state.get("available", true))
+		or bool(hatch_state.get("collision_blocking", true))
+		or String(hatch_state.get("prompt_text", "")) != "Tailrace Exit Open"
+		or String(hatch_state.get("route_label_text", "")) != "Tailrace Runoff Exit Opened"
+		or prompt.visible
+		or visual.position.y > -120.0
+		or absf(rad_to_deg(visual.rotation)) < 6.0
+		or hatch.z_index + visual.z_index <= duct.z_index
+		or hatch.z_index + visual.z_index >= player.z_index
+		or int(unlock_vfx.get("spawn_count", 0)) != 1
+		or not bool(spillway_state.get("available", false))
+		or not bool(spillway_state.get("visible", false))
+		or bool(spillway_state.get("active", false))
+		or bool(spillway_state.get("crossed", false))
+		or String(spillway_state.get("phase", "")) != "idle"
+		or bool(spillway_state.get("hazard_contact_active", false))
+	):
+		_fail(factory, "Story234 terminal contract failed")
 		return
 
-	var local_state: Dictionary = scene.call("get_local_state")
-	if not bool(local_state.get(PINCER_EXIT_HATCH_STATE_KEY, false)):
-		push_error("Tailrace runoff pincer exit hatch opened state missing")
-		_cleanup_and_quit(scene, 1)
+	var local_state: Dictionary = factory.call("get_local_state")
+	if not bool(local_state.get(
+		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_opened",
+		false
+	)) or bool(local_state.get(
+		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_activated",
+		true
+	)):
+		_fail(factory, "Story234 terminal state did not persist")
 		return
 
-	print("service_sluice_tailrace_relay_runoff_pincer_exit_hatch_smoke=passed")
-	_cleanup_and_quit(scene, 0)
+	print("story234_production_smoke=passed frames=%d" % FRAME_COUNT)
+	_cleanup_and_quit(factory, 0)
 
 
-func _tailrace_runoff_pincer_cache_claimed_state() -> Dictionary:
+func _pincer_exit_hatch_ready_state() -> Dictionary:
 	return {
 		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_reward_cache_claimed": true,
-		"last_return_checkpoint": {
-			"id": "old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay",
-			"scene_id": "area_03_factory",
-			"spawn_point": "lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay",
-			"position": Vector2(13480, 382),
-		},
+		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_opened": false,
+		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_activated": false,
+		"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_crossed": false,
+		"factory_service_lift_activated": false,
+		"factory_service_lift_exit_requested": false,
 	}
 
 
-func _cleanup_and_quit(scene: Node, exit_code: int) -> void:
-	scene.queue_free()
+func _fail(factory: Node, message: String) -> void:
+	push_error(message)
+	_cleanup_and_quit(factory, 1)
+
+
+func _release_gameplay_actions() -> void:
+	Input.action_release(INTERACT_ACTION)
+	Input.action_release(MOVE_RIGHT_ACTION)
+
+
+func _cleanup_and_quit(factory: Node, exit_code: int) -> void:
+	_release_gameplay_actions()
+	factory.queue_free()
 	await process_frame
 	quit(exit_code)

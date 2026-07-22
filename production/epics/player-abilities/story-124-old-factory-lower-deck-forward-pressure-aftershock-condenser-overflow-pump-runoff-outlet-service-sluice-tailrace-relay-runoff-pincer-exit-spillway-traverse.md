@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -18,7 +18,7 @@
 `TR-respawn-004`
 
 **ADR Governing Implementation**: ADR-0004 Collision detection; ADR-0005
-Asset pipeline; ADR-0007 Scene management; ADR-0018 Player abilities;
+Combat state machine; ADR-0007 Scene management; ADR-0018 Player abilities;
 ADR-0021 Save system.
 
 Story123 opens the post-pincer exit hatch. Story124 turns that continuation
@@ -32,7 +32,7 @@ adding new enemies, rewards, savepoints, generated art, or systems.
 - [x] The spillway duct and vent are hidden, unavailable, non-contacting, and
   cannot activate until Story123's pincer exit hatch has opened.
 - [x] Once the hatch is opened, the spillway becomes visible and available;
-  crossing activation x `16560` starts route feedback
+  real positive-x production movement crossing activation x `16560` starts route feedback
   `Cross Tailrace Exit Spillway`.
 - [x] The spillway uses hazard id
   `old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_exit_spillway`,
@@ -67,6 +67,10 @@ replacement.
   remains a compact route beat, not a new gameplay system.
 - Ready state keeps the Story123 route label `Tailrace Runoff Exit Opened`;
   the new objective takes priority only while the spillway is active or crossed.
+- Production automatic activation requires the spillway to be available at
+  frame start, held `move_right`, initialized prior-x tracking and real positive
+  x displacement. Direct unit-level activation APIs retain their authored
+  Story124 contract.
 - Restored Story124 crossed state backfills the full runoff/service-sluice /
   tailrace / pincer reward / exit hatch chain so old saves do not replay stale
   combat, cache, or hatch beats.
@@ -100,3 +104,8 @@ image-generated/imported assets already present in the Godot import pipeline:
   non-empty `640x359` game screenshot.
 - Full evidence is recorded in
   `production/qa/evidence/old-factory-service-sluice-tailrace-relay-runoff-pincer-exit-spillway-2026-07-10.md`.
+- Story234 incoming production handoff opens Story123 through one fresh input
+  edge and leaves this spillway visible/available but inactive, idle,
+  non-contacting and uncrossed. Held input and no-input placement beyond both
+  thresholds remain waiting in MCP run `r198694429-38`; real movement/hazard
+  closure remains Story235.
