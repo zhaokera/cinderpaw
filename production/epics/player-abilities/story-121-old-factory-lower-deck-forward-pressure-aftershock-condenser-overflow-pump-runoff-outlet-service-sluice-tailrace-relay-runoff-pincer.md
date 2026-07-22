@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Frame Animation Contract
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -18,7 +18,7 @@
 `TR-respawn-004`
 
 **ADR Governing Implementation**: ADR-0004 Collision detection; ADR-0005
-Asset pipeline; ADR-0007 Scene management; ADR-0018 Player abilities;
+Combat state machine; ADR-0007 Scene management; ADR-0018 Player abilities;
 ADR-0021 Save system.
 
 Story120 crosses the runoff pocket after the Tailrace Relay. Story121 adds a
@@ -113,3 +113,11 @@ Godot frame-animation rule:
   non-empty `640x359` game screenshot showing the active pincer.
 - Full evidence is recorded in
   `production/qa/evidence/old-factory-service-sluice-tailrace-relay-runoff-pincer-2026-07-10.md`.
+- Story231 incoming handoff: `reports/report_2388/report_1/results.xml` passed
+  the Story121 regression inside a five-suite `7/7` related set. The updated
+  Story120 180-frame smoke and MCP 3.0.4 run `r192090587-32` confirmed Story121
+  becomes available after the crossing but remains inactive, hidden,
+  untargeted and non-processing after stationary/no-input threshold placement.
+- The Story121 regression now follows the established live death contract:
+  the most recently defeated enemy remains visible/processing during its
+  three-frame death hold while targeting, collision and physics are disabled.

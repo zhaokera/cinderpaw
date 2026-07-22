@@ -55,7 +55,7 @@ Story118.
   background right `14520`, ground right edge x `14600`, and at least 61 route
   floor visuals.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1.
+  under Godot 4.7 / Godot AI MCP 3.0.4.
 
 ## Out of Scope
 
@@ -114,3 +114,8 @@ environment traversal hazard, not a new player-visible character.
   3.0.4 run `r190526212-29` confirmed the runoff becomes visible/available but
   stays idle after relay activation, respawn and a no-input placement beyond
   activation x.
+- Story231 production closure: `reports/report_2384` recorded the two intended
+  movement-guard failures; `report_2385` passed focused `1/1`; `report_2388`
+  passed five related suites `7/7`. The updated 180-frame smoke and MCP 3.0.4
+  run `r192090587-32` verified real activation/crossing, four-frame steam,
+  exact physical HP `100 -> 92` damage and a waiting Story121 handoff.

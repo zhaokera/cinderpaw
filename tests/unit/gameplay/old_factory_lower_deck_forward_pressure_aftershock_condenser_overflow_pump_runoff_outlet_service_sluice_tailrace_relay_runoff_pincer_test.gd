@@ -203,6 +203,16 @@ func test_tailrace_relay_runoff_pincer_requires_both_defeats_and_restores_chain(
 	assert_that(player).is_not_null()
 	if player == null:
 		return
+	var spark_rat := destination.get_node_or_null(
+		TAILRACE_RELAY_RUNOFF_PINCER_SPARK_NODE_NAME
+	) as Node2D
+	var coil_rat := destination.get_node_or_null(
+		TAILRACE_RELAY_RUNOFF_PINCER_COIL_NODE_NAME
+	) as Node2D
+	assert_that(spark_rat).is_not_null()
+	assert_that(coil_rat).is_not_null()
+	if spark_rat == null or coil_rat == null:
+		return
 	player.global_position.x = TAILRACE_RELAY_RUNOFF_PINCER_ACTIVATION_X + 4.0
 	assert_bool(bool(destination.call(
 		"try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer",
@@ -220,7 +230,13 @@ func test_tailrace_relay_runoff_pincer_requires_both_defeats_and_restores_chain(
 	assert_bool(bool(half_cleared.get("cleared", true))).is_false()
 	assert_bool(bool(half_cleared.get("spark_defeated", false))).is_true()
 	assert_bool(bool(half_cleared.get("coil_defeated", true))).is_false()
-	assert_bool(bool(half_cleared.get("spark_visible", true))).is_false()
+	assert_bool(bool(half_cleared.get("spark_visible", false))).is_true()
+	assert_bool(bool(half_cleared.get("spark_process_enabled", false))).is_true()
+	assert_bool(bool(half_cleared.get("spark_physics_enabled", true))).is_false()
+	assert_bool(bool(half_cleared.get("spark_has_target", true))).is_false()
+	assert_str(String((spark_rat.get_node("Sprite") as AnimatedSprite2D).animation)).is_equal(
+		"death"
+	)
 	assert_bool(bool(half_cleared.get("coil_visible", false))).is_true()
 	assert_str(String(half_cleared.get("route_label_text", ""))).is_equal(
 		"Break Tailrace Runoff Pincer"
@@ -236,9 +252,19 @@ func test_tailrace_relay_runoff_pincer_requires_both_defeats_and_restores_chain(
 	assert_bool(bool(cleared.get("active", true))).is_false()
 	assert_bool(bool(cleared.get("cleared", false))).is_true()
 	assert_bool(bool(cleared.get("spark_visible", true))).is_false()
-	assert_bool(bool(cleared.get("coil_visible", true))).is_false()
+	assert_bool(bool(cleared.get("coil_visible", false))).is_true()
+	assert_bool(bool(cleared.get("spark_process_enabled", true))).is_false()
+	assert_bool(bool(cleared.get("coil_process_enabled", false))).is_true()
 	assert_bool(bool(cleared.get("spark_physics_enabled", true))).is_false()
 	assert_bool(bool(cleared.get("coil_physics_enabled", true))).is_false()
+	assert_bool(bool(cleared.get("spark_has_target", true))).is_false()
+	assert_bool(bool(cleared.get("coil_has_target", true))).is_false()
+	assert_str(String((spark_rat.get_node("Sprite") as AnimatedSprite2D).animation)).is_equal(
+		"death"
+	)
+	assert_str(String((coil_rat.get_node("Sprite") as AnimatedSprite2D).animation)).is_equal(
+		"death"
+	)
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
 		"Tailrace Runoff Pincer Cleared"
 	)

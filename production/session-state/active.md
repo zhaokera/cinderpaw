@@ -8523,3 +8523,29 @@
 - Next: Story120 real positive-x production activation, physical steam timing
   and crossing into Story121's pincer handoff. Story181 remains blocked only on
   external image2 connectivity.
+
+## Session Extract -- Player Abilities Story231 2026-07-22
+
+- Runtime/traverse: no-input x `13764` keeps Story120 idle. Real `move_right`
+  advances x `13754 -> 13775.667`, then runs four-frame
+  `grace -> warning -> active -> safe`. Active contact uses layer `16`, mask
+  `12`; real overlap applies exact HP `100 -> 92`, damage `8`, type `steam`
+  and the Story120 source while Cinderpaw shows `hurt`.
+- Handoff: no-input x `14324` cannot cross. Real movement advances x
+  `14314 -> 14335.111`, persists crossed state and leaves Story121 available
+  but inactive/hidden/untargeted/non-processing. No-input x `14644` and held
+  input without displacement do not activate the pincer.
+- TDD: canonical RED `report_2384` recorded two expected guard failures;
+  focused GREEN `report_2385` passed `1/1`; final five-suite related
+  `report_2388` passed `7/7`. Updated smoke printed
+  `story120_production_smoke=passed frames=180`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r192090587-32`, used real movement and physical overlap, helper-only game
+  log, empty editor delta after cursor `2`, released inputs, three non-empty
+  RGB `1278x718` screenshots and a clean stop/readiness state.
+- Assets: existing imported image-generated Factory, Cinderpaw, four-frame
+  steam vent, Spark Rat and Coil Rat assets were sufficient; no image
+  generation or manifest change.
+- Next: Story121 real positive-x production activation, shared physical attacks
+  and live Spark/Coil death closure into Story122's cache handoff. Story181
+  remains blocked only on external image2 connectivity.

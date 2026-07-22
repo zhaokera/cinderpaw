@@ -41,9 +41,10 @@
    prompt, enters real player death and revives at 50% HP while the revealed
    runoff stays idle without fresh positive-x input
    (`tests/smoke/old_factory_service_sluice_tailrace_relay_smoke.gd`)
-10. Old Factory service sluice tailrace relay runoff activates after the relay,
-   uses active-only steam contact, crosses the post-relay pocket, and persists
-   crossed state
+10. Old Factory service sluice tailrace relay runoff requires fresh real
+   `move_right`, runs four-frame steam phases, applies exact physical `8`
+   damage, guards stationary crossing, and leaves Story121 inactive for 180
+   frames
    (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_smoke.gd`)
 11. Old Factory service sluice tailrace relay runoff pincer activates after
     Story120, reveals frame-animated Spark/Coil Rats, requires both defeats,

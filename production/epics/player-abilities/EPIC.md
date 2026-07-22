@@ -268,6 +268,7 @@ recording the reward in progression state.
 | 228 | Old Factory Service Sluice Tailrace Production Hazard Traverse Ambush Handoff | Integration + Production Movement + Physical Hazard + Route Handoff | Complete | ADR-0004/0007/0018/0021 |
 | 229 | Old Factory Service Sluice Tailrace Ambush Production Combat Relay Handoff | Integration + Production Movement + Production Combat + Live Death + Route Handoff | Complete | ADR-0002/0004/0005/0007 |
 | 230 | Old Factory Service Sluice Tailrace Relay Production Contact Respawn Runoff Handoff | Integration + Production Movement + Contact Activation + Death/Respawn + Route Handoff | Complete | ADR-0004/0007/0018/0021 |
+| 231 | Old Factory Service Sluice Tailrace Relay Runoff Production Hazard Traverse Pincer Handoff | Integration + Production Movement + Physical Hazard + Route Handoff | Complete | ADR-0004/0007 |
 
 ## Definition of Done
 
@@ -289,11 +290,11 @@ This epic is complete when:
 
 ## Next Step
 
-Story230 now activates Story119 through real movement contact, persists the
-exact relay checkpoint, completes the real death/50% HP respawn loop, and
-leaves Story120 visible but idle behind a fresh positive-x input guard. The
-next Old Factory priority is Story120 production movement, physical steam
-damage and crossing into Story121's pincer handoff.
+Story231 now activates and completes Story120 through fresh real movement,
+applies exact physical steam damage through the four-frame vent cycle, and
+leaves Story121 available but inactive behind no-input and positive-displacement
+guards. The next Old Factory priority is Story121 production movement,
+shared-hit combat and live dual-death closure into Story122's cache handoff.
 Rat King Phase III's documented three-hit berserk combo remains the next
 independent Boss-depth slice, while Story181 remains blocked only on external
 image2 connectivity.
