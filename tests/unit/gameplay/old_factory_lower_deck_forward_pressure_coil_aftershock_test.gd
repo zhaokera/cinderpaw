@@ -161,8 +161,28 @@ func test_coil_aftershock_defeat_persists_without_replaying_route_chain() -> voi
 	)
 	assert_bool(bool(cleared.get("active", true))).is_false()
 	assert_bool(bool(cleared.get("cleared", false))).is_true()
-	assert_bool(bool(cleared.get("coil_visible", true))).is_false()
+	assert_bool(bool(cleared.get("coil_visible", false))).override_failure_message(
+		"Story037 keeps the completed Coil Rat death frames visible after combat ends"
+	).is_true()
 	assert_bool(bool(cleared.get("coil_physics_enabled", true))).is_false()
+	assert_bool(bool(cleared.get("coil_process_enabled", false))).is_true()
+	assert_bool(bool(cleared.get("coil_has_target", true))).is_false()
+	var defeated_coil := destination.get_node_or_null(
+		"FactoryLowerDeckForwardPressureCoilAftershockCoilRat"
+	) as CharacterBody2D
+	assert_that(defeated_coil).is_not_null()
+	if defeated_coil != null:
+		assert_str(String(
+			(defeated_coil.get_node("Sprite") as AnimatedSprite2D).animation
+		)).is_equal("death")
+		var defeated_collision := defeated_coil.call(
+			"get_collision_component"
+		) as CollisionComponent
+		assert_that(defeated_collision).is_not_null()
+		if defeated_collision != null:
+			assert_str(String(defeated_collision.get_hurtbox_state())).is_equal(
+				String(CollisionComponent.HURTBOX_STATE_GONE)
+			)
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
 		"Forward Pressure Coil Aftershock Cleared"
 	)

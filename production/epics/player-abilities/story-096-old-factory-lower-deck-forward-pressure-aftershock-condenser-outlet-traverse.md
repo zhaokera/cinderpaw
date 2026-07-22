@@ -117,6 +117,17 @@ The outlet vent reuses the imported image-generated steam vent hazard prop at
   the Story096 probe result, no new editor log entries after cursor `9`, and a
   non-empty `960x539` game screenshot showing the generated outlet duct,
   reused steam vent, and player.
+- Story215 handoff isolation:
+  `reports/report_2307/results.xml` passed the final bounded `6/6`; MCP 3.0.4
+  run `r151899297-9` proved the outlet becomes visible/available after
+  savepoint activation but remains `idle`, inactive, uncrossed and without
+  hazard contact through contact, no-input threshold teleport and respawn.
+  Story096 now requires a later fresh positive-x `move_right` frame.
+- Story216 production traversal:
+  `reports/report_2312/results.xml` passed the bounded `4/4`; MCP 3.0.4 run
+  `r153467824-10` used real `move_right` and production time to reach
+  `grace/warning/active`, applied a real `100 -> 92` steam overlap hit, crossed
+  x `5020.0`, disabled contact and exposed Story097 without starting it.
 
 ## Dependencies
 
@@ -130,4 +141,7 @@ diagnostics existed. Focused GREEN `reports/report_1237/` passed `2/2`;
 related GREEN `reports/report_1238/` passed `16/16`; final focused GREEN
 `reports/report_1239/` passed `2/2` after shortening private helper names for
 Godot editor reload stability. Headless smoke and Godot MCP runtime evidence
-passed under Godot 4.7 / Godot AI MCP 2.9.1.
+passed under Godot 4.7 / Godot AI MCP 2.9.1. Story215 adds a clean
+Godot 4.7 / MCP 3.0.4 proof that savepoint contact and respawn cannot silently
+consume Story096 before its production movement Story. Story216 now completes
+that production movement, hazard and crossing proof under the same versions.

@@ -31,6 +31,9 @@ const PHASE_ONE_GEYSER_RECOVERY_FRAMES: int = 24
 const PHASE_TWO_GEYSER_RECOVERY_FRAMES: int = 18
 const PHASE_ONE_ATTACK_COOLDOWN_FRAMES: int = 42
 const PHASE_TWO_ATTACK_COOLDOWN_FRAMES: int = 28
+const ATTACK_COMMIT_RANGE_PX: float = 300.0
+const PHASE_ONE_CHASE_SPEED_PX_SEC: float = 210.0
+const PHASE_TWO_CHASE_SPEED_PX_SEC: float = 270.0
 const PHASE_ONE_LUNGE_STEP_PX: float = 14.0
 const PHASE_TWO_LUNGE_STEP_PX: float = 20.0
 const ARENA_MIN_X: float = 320.0
@@ -74,6 +77,7 @@ const STATUS_EFFECT_COMPONENT_SCRIPT: Script = preload(
 
 enum State {
 	IDLE,
+	CHASE,
 	HIT,
 	ATTACK_TELL,
 	ATTACK_ACTIVE,
@@ -136,7 +140,9 @@ func _physics_process(delta: float) -> void:
 	_attack_cooldown_timer = maxi(0, _attack_cooldown_timer - 1)
 	match _state:
 		State.IDLE:
-			_process_idle()
+			_process_idle(delta)
+		State.CHASE:
+			_process_chase(delta)
 		State.HIT:
 			_process_hit()
 		State.ATTACK_TELL:
@@ -175,7 +181,10 @@ func request_attack_pattern(pattern_id: StringName) -> bool:
 func _request_attack_pattern(pattern_id: StringName, explicit_request: bool) -> bool:
 	if (
 		_defeated
-		or _state != State.IDLE
+		or (
+			_state != State.IDLE
+			and not (explicit_request and _state == State.CHASE)
+		)
 		or (not explicit_request and _attack_cooldown_timer > 0)
 		or not _has_valid_attack_target()
 	):
@@ -186,6 +195,7 @@ func _request_attack_pattern(pattern_id: StringName, explicit_request: bool) -> 
 	if not ATTACK_PATTERN_IDS.has(selected_pattern):
 		return false
 	_current_pattern_id = selected_pattern
+	velocity = Vector2.ZERO
 	_next_pattern_index = (
 		ATTACK_PATTERN_IDS.find(selected_pattern) + 1
 	) % ATTACK_PATTERN_IDS.size()
@@ -227,6 +237,18 @@ func advance_attack_frames(frames: int) -> void:
 				_process_hit()
 			_:
 				pass
+
+
+## Advances only idle/chase behavior for focused tests and MCP probes.
+func advance_chase_frames(frames: int) -> void:
+	for _index: int in range(maxi(0, frames)):
+		if _defeated or _state not in [State.IDLE, State.CHASE]:
+			return
+		_attack_cooldown_timer = maxi(0, _attack_cooldown_timer - 1)
+		if _state == State.IDLE:
+			_process_idle(1.0 / 60.0)
+		else:
+			_process_chase(1.0 / 60.0)
 
 
 func apply_damage(final_damage: int, metadata: Dictionary = {}) -> bool:
@@ -455,12 +477,55 @@ func get_attack_diagnostics() -> Dictionary:
 	}
 
 
-func _process_idle() -> void:
+func get_chase_diagnostics() -> Dictionary:
+	return {
+		"behavior_state": "chase" if _state == State.CHASE else String(get_attack_phase()),
+		"animation": String(_sprite.animation) if _sprite != null else "",
+		"target_valid": _has_valid_attack_target(),
+		"target_distance_px": _target_distance_px(),
+		"attack_commit_range_px": ATTACK_COMMIT_RANGE_PX,
+		"velocity_x": velocity.x,
+		"facing": _facing,
+		"current_phase": _current_phase,
+		"chase_speed_px_sec": _current_chase_speed_px_sec(),
+		"phase_one_chase_speed_px_sec": PHASE_ONE_CHASE_SPEED_PX_SEC,
+		"phase_two_chase_speed_px_sec": PHASE_TWO_CHASE_SPEED_PX_SEC,
+		"position": global_position,
+	}
+
+
+func _process_idle(delta: float) -> void:
 	velocity = Vector2.ZERO
 	_update_sprite_facing()
 	_play_animation(ANIMATION_IDLE)
-	if _attack_cooldown_timer <= 0 and _has_valid_attack_target():
+	if not _has_valid_attack_target():
+		return
+	if _target_distance_px() > ATTACK_COMMIT_RANGE_PX:
+		_state = State.CHASE
+		_process_chase(delta)
+		return
+	if _attack_cooldown_timer <= 0:
 		request_attack()
+
+
+func _process_chase(_delta: float) -> void:
+	if not _has_valid_attack_target():
+		_state = State.IDLE
+		velocity = Vector2.ZERO
+		_play_animation(ANIMATION_IDLE, true)
+		return
+	_face_attack_target()
+	if _target_distance_px() <= ATTACK_COMMIT_RANGE_PX:
+		_state = State.IDLE
+		velocity = Vector2.ZERO
+		_play_animation(ANIMATION_IDLE, true)
+		if _attack_cooldown_timer <= 0:
+			request_attack()
+		return
+	velocity = Vector2(_facing * _current_chase_speed_px_sec(), 0.0)
+	move_and_slide()
+	global_position.x = clampf(global_position.x, ARENA_MIN_X, ARENA_MAX_X)
+	_play_animation(ANIMATION_RUN)
 
 
 func _process_hit() -> void:
@@ -594,6 +659,7 @@ func _on_core_hp_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:
 		_sprite.modulate = HIT_MODULATE
 	if _is_attack_chain_active():
 		return
+	velocity = Vector2.ZERO
 	_hit_timer = HIT_FLASH_FRAMES
 	_state = State.HIT
 	_play_animation(ANIMATION_HURT, true)
@@ -688,6 +754,7 @@ func _enter_phase_two() -> void:
 		"position": global_position,
 		"next_attack_id": String(_next_attack_pattern_id()),
 		"lunge_step_px": PHASE_TWO_LUNGE_STEP_PX,
+		"chase_speed_px_sec": PHASE_TWO_CHASE_SPEED_PX_SEC,
 		"attack_cooldown_frames": PHASE_TWO_ATTACK_COOLDOWN_FRAMES,
 	}
 	on_boss_phase_transition_started.emit(
@@ -732,6 +799,12 @@ func _has_valid_attack_target() -> bool:
 	)
 
 
+func _target_distance_px() -> float:
+	if not _has_valid_attack_target():
+		return -1.0
+	return absf((_attack_target as Node2D).global_position.x - global_position.x)
+
+
 func _face_attack_target() -> void:
 	if not _has_valid_attack_target():
 		return
@@ -758,6 +831,14 @@ func _current_lunge_step_px() -> float:
 		PHASE_TWO_LUNGE_STEP_PX
 		if _current_phase == PHASE_TWO
 		else PHASE_ONE_LUNGE_STEP_PX
+	)
+
+
+func _current_chase_speed_px_sec() -> float:
+	return (
+		PHASE_TWO_CHASE_SPEED_PX_SEC
+		if _current_phase == PHASE_TWO
+		else PHASE_ONE_CHASE_SPEED_PX_SEC
 	)
 
 

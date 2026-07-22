@@ -159,12 +159,20 @@ func test_relief_defeat_persists_without_replaying_route_chain() -> void:
 	)
 	assert_bool(bool(defeated.get("active", true))).is_false()
 	assert_bool(bool(defeated.get("defeated", false))).is_true()
-	assert_bool(bool(defeated.get("enemy_visible", true))).is_false()
+	assert_bool(bool(defeated.get("enemy_visible", false))).is_true()
+	assert_str(String(
+		(defeated.get("pacing", {}) as Dictionary).get("current_animation", "")
+	)).is_equal("death")
 	assert_bool(bool(defeated.get("hazard_active", true))).is_false()
 	assert_str(String(defeated.get("route_label_text", ""))).is_equal(
 		"Forward Pressure Relief Ambush Cleared"
 	)
 	assert_bool(bool(destination.call("is_factory_route_objective_complete"))).is_true()
+	await get_tree().create_timer(0.5).timeout
+	defeated = destination.call(
+		"get_factory_lower_deck_forward_pressure_relief_ambush_diagnostics"
+	)
+	assert_bool(bool(defeated.get("enemy_visible", false))).is_true()
 
 	var local_state: Dictionary = destination.call("get_local_state")
 	assert_bool(bool(local_state.get(

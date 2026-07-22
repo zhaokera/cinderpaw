@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Frame Animation Contract
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -34,23 +34,27 @@ treated as secure.
 - [x] The skirmish stays locked until
   `factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed=true`;
   locked diagnostics report unavailable/hidden and activation returns `false`.
-- [x] Crossing activation x `9280` starts the skirmish, reveals the Spark Rat,
-  assigns the player target, enables process/physics, and advances route
-  feedback to `Clear Runoff Outlet Spark Rat`.
+- [x] Production activation at x `9280` additionally requires frame-start
+  availability, held `move_right` and fresh positive x displacement. Story110
+  crossing, restore, teleport and later stationary frames cannot start it.
+  Valid activation reveals the Spark Rat, assigns the player target, enables
+  process/physics, and advances route feedback to
+  `Clear Runoff Outlet Spark Rat`.
 - [x] The enemy uses the existing `FactorySparkRat` scene/script family with
   entity id `2141`.
 - [x] The visible enemy uses `AnimatedSprite2D + SpriteFrames`; `idle`, `run`,
   `attack_tell`, `attack`, `hurt`, and `death` each have at least `3` frames.
 - [x] The opening grace pacing for this encounter is `12` frames and exposes
   deterministic diagnostics for test and MCP probes.
-- [x] Defeating entity `2141` hides/disables the Spark Rat, persists activated,
-  defeated, and cleared state, and advances route feedback to
-  `Runoff Outlet Spark Rat Cleared`.
+- [x] Defeating entity `2141` disables its physics, collision, targeting, and
+  hurtbox while preserving the visible death animation until fade/removal;
+  activated, defeated, and cleared state persists and route feedback advances
+  to `Runoff Outlet Spark Rat Cleared`.
 - [x] Restoring the cleared state backfills the Story106/107/108/109/110 runoff
   chain so prior cache, gate, duct, exit skirmish, reward cache, and outlet
   traverse states do not replay.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1.
+  under Godot 4.7 / Godot AI MCP 3.0.4.
 
 ## Out of Scope
 
@@ -108,6 +112,23 @@ bound through `AnimatedSprite2D + SpriteFrames`.
   `current_run_errors=[]`, runtime Story111 activation diagnostics, six target
   animations at `3` frames each, and a non-empty `960x539` game screenshot with
   the Spark Rat visible in the target pocket.
+- Story222 stable-handoff closure: boundary RED
+  `reports/report_2348/results.xml` exposed stationary auto-start; final
+  focused `reports/report_2349/results.xml` passed `1/1`, seven-suite related
+  `reports/report_2350/results.xml` passed `11/11`, and Factory smoke exited
+  `0`. MCP 3.0.4 accepted run `r165369444-9` crossed Story110, then placed the
+  player at no-input x `9284` for two production frames while Story111 stayed
+  available/inactive/hidden/non-processing/non-physical/untargeted. All six
+  Spark Rat gameplay animations still reported three frames.
+- Story223 production combat closure: canonical RED
+  `reports/report_2351/results.xml` exposed Spark Rat z-order and downstream
+  production interaction gaps; focused `report_2352` passed `1/1`, six-suite
+  related `report_2353` passed `9/9`, and Factory smoke exited `0`. MCP 3.0.4
+  accepted run `r167485675-13` used actual `move_right` to activate entity
+  `2141`, then actual `attack` / `cat_claw_light` to finish HP `12 -> 0`.
+  Live `death` remained visible/process while target, physics, body collision
+  and hurtbox stopped; the Spark Rat rendered at z `24` between environment
+  `22` and Cinderpaw `26`.
 
 ## Dependencies
 
@@ -121,4 +142,7 @@ bound through `AnimatedSprite2D + SpriteFrames`.
 Story111 followed thin TDD: focused RED `reports/report_1300/` failed before
 runtime support existed, focused GREEN `reports/report_1309/` passed `2/2`, and
 related GREEN `reports/report_1310/` passed `8/8`. Headless smoke exited `0`.
-Godot MCP runtime validation passed under Godot 4.7 and Godot AI MCP 2.9.1.
+Godot MCP runtime validation passed under Godot 4.7. Story222 proves the
+production handoff remains stable until a later real movement frame; Story223
+adds current Godot AI MCP 3.0.4 evidence for that movement, physical light-hit
+death and live Story112 reveal.

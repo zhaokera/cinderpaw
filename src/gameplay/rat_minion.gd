@@ -10,7 +10,10 @@ const CHASE_SPEED: float = 96.0
 const GRAVITY: float = 800.0
 const MAX_HP: int = 24
 const DEFAULT_ENTITY_ID: int = 2000
-const HIT_FLASH_FRAMES: int = 5
+const HIT_FLASH_FRAMES: int = 3
+const MIN_HIT_REACTION_FRAMES: int = 5
+const DEATH_CORPSE_HOLD_SEC: float = 2.0
+const DEATH_FADE_SEC: float = 0.22
 const ATTACK_RANGE_PX: float = 58.0
 const ATTACK_TELL_FRAMES: int = 7
 const ATTACK_ACTIVE_FRAMES: int = 4
@@ -43,6 +46,7 @@ var _summon_owner_boss_id: StringName = &""
 var _summon_id: StringName = &"summon_minion"
 var _facing: float = -1.0
 var _hit_timer: int = 0
+var _hit_flash_timer: int = 0
 var _attack_timer: int = 0
 var _attack_cooldown_timer: int = 0
 var _attack_sequence_id: int = 0
@@ -233,6 +237,9 @@ func _process_hit(delta: float) -> void:
 	velocity.x = 0.0
 	velocity.y += GRAVITY * delta
 	move_and_slide()
+	_hit_flash_timer = maxi(_hit_flash_timer - 1, 0)
+	if _hit_flash_timer == 0:
+		_sprite.modulate = NORMAL_MODULATE
 	_hit_timer -= 1
 	if _hit_timer <= 0:
 		_sprite.modulate = NORMAL_MODULATE
@@ -328,7 +335,11 @@ func _on_core_hp_changed(_entity_id_value: int, current_hp: int, max_hp: int) ->
 	enemy_health_changed.emit(current_hp, max_hp)
 	if current_hp <= 0 or _state == State.DEAD:
 		return
-	_hit_timer = HIT_FLASH_FRAMES
+	_hit_timer = maxi(
+		MIN_HIT_REACTION_FRAMES,
+		_get_animation_duration_in_physics_frames(ANIMATION_HURT)
+	)
+	_hit_flash_timer = HIT_FLASH_FRAMES
 	_state = State.HIT
 	_sprite.modulate = HIT_MODULATE
 	_play_character_animation(ANIMATION_HURT, true)
@@ -347,13 +358,18 @@ func _die(_metadata: Dictionary) -> void:
 		_collision.set_hurtbox_state(&"gone")
 	_play_character_animation(ANIMATION_DEATH, true)
 	enemy_defeated.emit()
+	visible = true
+	set_process(true)
+	set_physics_process(false)
 	_sprite.modulate = NORMAL_MODULATE
 	set_deferred("collision_layer", 0)
 	set_deferred("collision_mask", 0)
 	if is_inside_tree():
 		var tween: Tween = create_tween()
-		tween.tween_interval(0.18)
-		tween.tween_property(_sprite, "modulate:a", 0.0, 0.22)
+		tween.tween_interval(
+			_get_animation_duration_seconds(ANIMATION_DEATH) + DEATH_CORPSE_HOLD_SEC
+		)
+		tween.tween_property(_sprite, "modulate:a", 0.0, DEATH_FADE_SEC)
 		tween.tween_callback(queue_free)
 	else:
 		queue_free()
@@ -451,6 +467,28 @@ func _play_character_animation(animation_name: StringName, restart: bool = false
 		_sprite.frame = 0
 		_sprite.frame_progress = 0.0
 	_sprite.play(animation_name)
+
+
+func _get_animation_duration_in_physics_frames(animation_name: StringName) -> int:
+	return ceili(
+		_get_animation_duration_seconds(animation_name)
+		* float(Engine.physics_ticks_per_second)
+	)
+
+
+func _get_animation_duration_seconds(animation_name: StringName) -> float:
+	if _sprite == null or _sprite.sprite_frames == null:
+		return 0.0
+	var frames: SpriteFrames = _sprite.sprite_frames
+	if not frames.has_animation(animation_name):
+		return 0.0
+	var speed_fps: float = frames.get_animation_speed(animation_name)
+	if speed_fps <= 0.0:
+		return 0.0
+	var duration_sec: float = 0.0
+	for frame_index: int in range(frames.get_frame_count(animation_name)):
+		duration_sec += frames.get_frame_duration(animation_name, frame_index) / speed_fps
+	return duration_sec
 
 
 func _get_movement_modifier() -> float:

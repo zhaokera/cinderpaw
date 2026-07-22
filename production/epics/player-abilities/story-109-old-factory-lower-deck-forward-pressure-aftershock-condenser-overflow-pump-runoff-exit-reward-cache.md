@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + UI/Visual Feel
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -45,15 +45,24 @@ next route marker.
   `old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_reward_cache`,
   persists the cache flag, and records feedback
   `Runoff Exit Cache Claimed +20 Gears`.
+- [x] The cache participates in the production nearest-cache router. Held
+  pre-clear input and no-input range placement do not claim it; release/rearm
+  plus fresh `Input.interact` claims once.
 - [x] Claiming the cache reveals the runoff exit gate with prompt
   `Open Runoff Exit Gate`; opening the gate succeeds once, disables blocking
   collision, and advances route feedback to
   `Overflow Pump Runoff Exit Gate Open`.
+- [x] The gate participates in the production nearest progression interaction
+  route. Held input from outside range stays stale; a later fresh in-range
+  `interact` opens it once, hides the prompt and emits one unlock burst.
+- [x] Production opening lifts the visual to `(48,-136)`, rotates it `6deg`
+  and renders it at effective z `23`, above the outlet duct and below
+  Cinderpaw, while the interaction/collision root remains fixed.
 - [x] Restoring gate-opened state backfills Story106/107/108 runoff chain state,
   prevents reward/duct/skirmish replay, keeps runoff duct contact disabled, and
   keeps the gate collision open.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1, including scene reload, runtime helper,
+  under Godot 4.7 / Godot AI MCP 3.0.4, including scene reload, runtime helper,
   cache/gate node visibility, texture binding, current-run logs, and non-empty
   runtime screenshot.
 
@@ -109,6 +118,18 @@ All reused assets were already imported through the Godot asset pipeline.
   correct scripts/IDs/prompts/radii, current game log containing only helper
   registration, editor log since current-run cursor empty, and a non-empty
   `960x539` game screenshot.
+- Story221 production closure: canonical RED/GREEN
+  `reports/report_2341/results.xml` / `reports/report_2342/results.xml` and
+  bounded related `reports/report_2343/results.xml` (`7/7`) passed. MCP 3.0.4
+  run `r163369359-6` proved stale/no-input non-consumption, fresh production
+  `interact`, the exact `20`-gear payload/feedback, and a visible, blocking,
+  unopened gate in a non-empty `1278x718` runtime capture.
+- Story222 production gate closure: final focused
+  `reports/report_2349/results.xml` passed `1/1`; bounded related
+  `reports/report_2350/results.xml` passed `11/11`; the `180`-frame Factory
+  smoke exited `0`. MCP 3.0.4 accepted run `r165369444-9` proved stale/fresh
+  interaction, one open VFX, disabled collision/hidden prompt and the lifted
+  `(48,-136)` / `6deg` / effective-z-`23` runtime silhouette.
 
 ## Dependencies
 
@@ -122,4 +143,7 @@ Story109 followed thin TDD: focused RED `reports/report_1293/` failed before
 runtime support existed, focused GREEN `reports/report_1294/` passed `2/2`,
 related GREEN `reports/report_1295/` passed `8/8`, and pre-push focused rerun
 `reports/report_1296/` passed `2/2`. Headless smoke exited `0`. Godot MCP
-runtime validation passed under Godot 4.7 and Godot AI MCP 2.9.1.
+runtime validation passed under Godot 4.7 and historical Godot AI MCP 2.9.1.
+Story221 adds current MCP 3.0.4 production-input and visual evidence while
+Story222 completes the gate's current MCP 3.0.4 production interaction and
+shape-readable opening evidence.

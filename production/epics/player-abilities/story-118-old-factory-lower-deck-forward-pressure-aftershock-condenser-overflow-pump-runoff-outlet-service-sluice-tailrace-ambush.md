@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Frame Animation Contract
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -42,9 +42,11 @@ runoff/service-sluice chain does not replay after restore.
   `res://assets/characters/factory_coil_rat/factory_coil_rat_sprite_frames.tres`
   with `idle`, `run`, `attack_tell`, `attack`, `hurt`, and `death` each at
   least 3 frames.
-- [x] Defeating entity `2143` disables and hides the Coil Rat, persists
-  activated/defeated/cleared local-state flags, marks the route objective
-  complete, and updates feedback to `Tailrace Coil Rat Cleared`.
+- [x] Defeating entity `2143` disables target, physics, hurtbox and collision,
+  preserves the visible/processing three-frame `death` animation through its
+  fade/despawn window, persists activated/defeated/cleared local-state flags,
+  marks the route objective complete, and updates feedback to
+  `Repair Tailrace Relay`.
 - [x] Scene bounds support the combat pocket: right wall x `13200`, camera and
   background right `13220`, ground right edge x `13300`, and at least 55 route
   floor tiles.
@@ -52,7 +54,7 @@ runoff/service-sluice chain does not replay after restore.
   runoff/service-sluice chain, including tailrace crossed and exit hatch opened
   state, without replaying prior traversal, skirmish, cache, or hatch beats.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1.
+  under Godot 4.7 / Godot AI MCP 3.0.4.
 
 ## Out of Scope
 
@@ -66,7 +68,7 @@ particles, shaders, Boss2, and broader lower-deck biome art replacement.
   and the established lower-deck enemy activation/pacing helpers.
 - The route objective intentionally keeps `Service Sluice Tailrace Crossed`
   before activation, switches to `Clear Tailrace Coil Rat` while active, and
-  closes on `Tailrace Coil Rat Cleared`.
+  hands the cleared encounter directly to `Repair Tailrace Relay`.
 - The right wall, camera limit, background width, ground collision, and route
   floor visuals were extended so the enemy has room to fight instead of being
   squeezed into the tailrace hazard segment.
@@ -100,3 +102,29 @@ image-generated/imported assets:
   target/process/physics/frame-count/bounds contracts, captured a non-empty
   game screenshot with Cinderpaw and the Coil Rat visible, defeated the enemy,
   verified local-state persistence, and read clean current-run game/editor logs.
+- Story228 handoff evidence: `reports/report_2376/report_1/results.xml` corrected
+  the stale immediate-hide expectation and passed `2/2`; final related
+  `reports/report_2377/report_1/results.xml` passed `7/7`. Godot AI MCP 3.0.4
+  run `r184730101-26` crossed Story117 with real movement, then confirmed
+  Story118 stayed available/inactive/hidden through no-input x `12624` and
+  three stationary frames.
+- Story229 production closure: initial characterization
+  `reports/report_2378/report_1/results.xml` passed `1/1`; final five-suite
+  related `reports/report_2379/report_1/results.xml` passed `7/7`. The updated
+  `180`-frame smoke printed `story118_production_smoke=passed frames=180`.
+  MCP 3.0.4 run `r187717447-28` used real `move_right` and `Input.attack`,
+  recorded `cat_claw_light` damage `12`, retained the live death presentation,
+  and exposed the visible, unactivated Story119 relay.
+
+## Dependencies
+
+- Depends on: Story117 tailrace crossing
+- Unlocks: Story119 tailrace relay handoff
+
+## Verification Summary
+
+Story118 is complete through its production boundary. Story228 hardened its
+entry guard; Story229 proves real movement activation, a real shared-hitbox
+lethal attack, visible/processing death presentation with combat collision and
+targeting disabled, and the unactivated Story119 relay handoff. Current related
+GdUnit passed `7/7` under Godot 4.7 / Godot AI MCP 3.0.4.

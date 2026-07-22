@@ -217,8 +217,10 @@ func test_escape_skirmish_defeat_persists_without_replaying_breaker_chain() -> v
 	)
 	assert_bool(bool(cleared.get("active", true))).is_false()
 	assert_bool(bool(cleared.get("cleared", false))).is_true()
-	assert_bool(bool(cleared.get("spark_visible", true))).is_false()
-	assert_bool(bool(cleared.get("coil_visible", true))).is_false()
+	assert_bool(bool(cleared.get("spark_visible", false))).is_true()
+	assert_bool(bool(cleared.get("coil_visible", false))).is_true()
+	assert_bool(bool(cleared.get("spark_process_enabled", false))).is_true()
+	assert_bool(bool(cleared.get("coil_process_enabled", false))).is_true()
 	assert_bool(bool(cleared.get("spark_physics_enabled", true))).is_false()
 	assert_bool(bool(cleared.get("coil_physics_enabled", true))).is_false()
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(

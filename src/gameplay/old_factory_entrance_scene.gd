@@ -83,8 +83,12 @@ const FACTORY_LOWER_DECK_FORWARD_BREAKER_ACTIVATION_X: float = 1668.0
 const FACTORY_LOWER_DECK_FORWARD_RELIEF_AMBUSH_ACTIVATION_X: float = 1804.0
 const FACTORY_LOWER_DECK_FORWARD_COIL_RAT_ACTIVATION_X: float = 1888.0
 const FACTORY_LOWER_DECK_FORWARD_COIL_PINCER_ACTIVATION_X: float = 2016.0
+const FACTORY_COIL_PINCER_SPARK_FLANK_OFFSET_X: float = 144.0
+const FACTORY_COIL_PINCER_COIL_FLANK_OFFSET_X: float = -160.0
 const FACTORY_LOWER_DECK_FORWARD_COIL_AFTERSHOCK_ACTIVATION_X: float = 2144.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_SKIRMISH_ACTIVATION_X: float = 2288.0
+const FACTORY_AFTERSHOCK_EXIT_SPARK_FLANK_OFFSET_X: float = 144.0
+const FACTORY_AFTERSHOCK_EXIT_COIL_FLANK_OFFSET_X: float = -160.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_ACTIVATION_X: float = 2416.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_EXIT_X: float = 2480.0
 const FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_PURSUER_ACTIVATION_X: float = 2552.0
@@ -148,6 +152,7 @@ const FACTORY_AFTERSHOCK_EXIT_COIL_RAT_OPENING_GRACE_FRAMES: int = 24
 const FACTORY_AFTERSHOCK_EXHAUST_PURSUER_OPENING_GRACE_FRAMES: int = 10
 const FACTORY_AFTERSHOCK_EXHAUST_FLANK_OPENING_GRACE_FRAMES: int = 14
 const FACTORY_AFTERSHOCK_EXHAUST_BREAKER_OPENING_GRACE_FRAMES: int = 10
+const FACTORY_AFTERSHOCK_EXHAUST_BREAKER_WARNING_FRAMES: int = 21
 const FACTORY_AFTERSHOCK_EXHAUST_ESCAPE_SPARK_OPENING_GRACE_FRAMES: int = 10
 const FACTORY_AFTERSHOCK_EXHAUST_ESCAPE_COIL_OPENING_GRACE_FRAMES: int = 22
 const FACTORY_AFTERSHOCK_CONDENSER_OVERFLOW_COIL_OPENING_GRACE_FRAMES: int = 10
@@ -1277,90 +1282,164 @@ var _lower_deck_forward_pressure_traverse_crossed: bool = false
 var _lower_deck_forward_pressure_traverse_elapsed_sec: float = 0.0
 var _lower_deck_forward_pressure_counter_ambush_activated: bool = false
 var _lower_deck_forward_pressure_counter_ambush_defeated: bool = false
+var _lower_deck_forward_pressure_counter_ambush_hazard_grace_frames: int = 0
 var _lower_deck_forward_pressure_reward_cache_claimed: bool = false
 var _lower_deck_forward_pressure_reward_cache_claim_audio_event: Dictionary = {}
 var _lower_deck_forward_pressure_reward_cache_claim_audio_request_count: int = 0
 var _lower_deck_forward_pressure_exit_guard_activated: bool = false
 var _lower_deck_forward_pressure_exit_guard_defeated: bool = false
+var _lower_deck_forward_pressure_exit_guard_previous_player_x: float = (
+	FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ACTIVATION_X
+)
 var _lower_deck_forward_pressure_exit_relay_activated: bool = false
 var _lower_deck_forward_pressure_exit_gate_opened: bool = false
 var _lower_deck_forward_pressure_route_handoff_marker_lit: bool = false
 var _lower_deck_forward_pressure_beacon_ambush_activated: bool = false
 var _lower_deck_forward_pressure_beacon_ambush_defeated: bool = false
+var _lower_deck_forward_pressure_beacon_ambush_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_beacon_ambush_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_overrun_activated: bool = false
 var _lower_deck_forward_pressure_overrun_defeated: bool = false
+var _lower_deck_forward_pressure_overrun_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_overrun_player_x_initialized: bool = false
+var _lower_deck_forward_pressure_overrun_clear_frame_pending: bool = false
 var _lower_deck_forward_pressure_breaker_activated: bool = false
 var _lower_deck_forward_pressure_breaker_secured: bool = false
 var _lower_deck_forward_pressure_breaker_cut: bool = false
+var _lower_deck_forward_pressure_breaker_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_breaker_player_x_initialized: bool = false
+var _lower_deck_forward_pressure_breaker_clear_frame_pending: bool = false
 var _lower_deck_forward_pressure_relief_ambush_activated: bool = false
 var _lower_deck_forward_pressure_relief_ambush_defeated: bool = false
+var _lower_deck_forward_pressure_relief_ambush_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_relief_ambush_player_x_initialized: bool = false
+var _lower_deck_forward_pressure_relief_ambush_clear_frame_pending: bool = false
 var _lower_deck_forward_pressure_coil_rat_activated: bool = false
 var _lower_deck_forward_pressure_coil_rat_defeated: bool = false
+var _lower_deck_forward_pressure_coil_rat_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_coil_rat_player_x_initialized: bool = false
+var _lower_deck_forward_pressure_coil_rat_clear_frame_pending: bool = false
 var _lower_deck_forward_pressure_coil_pincer_activated: bool = false
 var _lower_deck_forward_pressure_coil_pincer_spark_rat_defeated: bool = false
 var _lower_deck_forward_pressure_coil_pincer_coil_rat_defeated: bool = false
+var _lower_deck_forward_pressure_coil_pincer_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_coil_pincer_player_x_initialized: bool = false
+var _lower_deck_forward_pressure_coil_pincer_clear_frame_pending: bool = false
+var _lower_deck_forward_pressure_coil_pincer_activation_anchor_x: float = (
+	FACTORY_LOWER_DECK_FORWARD_COIL_PINCER_ACTIVATION_X
+)
 var _lower_deck_forward_pressure_coil_aftershock_activated: bool = false
 var _lower_deck_forward_pressure_coil_aftershock_defeated: bool = false
+var _lower_deck_forward_pressure_coil_aftershock_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_coil_aftershock_player_x_initialized: bool = false
+var _lower_deck_forward_pressure_coil_aftershock_clear_frame_pending: bool = false
 var _lower_deck_forward_pressure_aftershock_reward_cache_claimed: bool = false
 var _lower_deck_forward_pressure_aftershock_exit_skirmish_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated: bool = false
+var _lower_deck_forward_pressure_aftershock_exit_skirmish_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_exit_skirmish_player_x_initialized: bool = false
+var _lower_deck_forward_pressure_aftershock_exit_skirmish_activation_frame_pending: bool = false
+var _lower_deck_forward_pressure_aftershock_exhaust_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_exhaust_player_x_initialized: bool = false
+var _lower_deck_forward_pressure_aftershock_exhaust_clear_frame_pending: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_crossed: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_elapsed_sec: float = 0.0
+var _lower_deck_forward_pressure_aftershock_exhaust_pursuer_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_exhaust_pursuer_player_x_initialized: bool = (
+	false
+)
 var _lower_deck_forward_pressure_aftershock_exhaust_pursuer_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed: bool = false
+var _lower_deck_forward_pressure_aftershock_exhaust_flank_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_exhaust_flank_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_flank_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated: bool = false
+var _lower_deck_forward_pressure_aftershock_exhaust_breaker_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_exhaust_breaker_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_breaker_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_breaker_coil_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_breaker_secured: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_breaker_cut: bool = false
+var _lower_deck_forward_pressure_aftershock_exhaust_breaker_warning_frames_remaining: int = 0
+var _lower_deck_forward_pressure_aftershock_exhaust_escape_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_exhaust_escape_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened: bool = false
+var _lower_deck_forward_pressure_aftershock_cooling_duct_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_cooling_duct_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_cooling_duct_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_cooling_duct_crossed: bool = false
 var _lower_deck_forward_pressure_aftershock_cooling_duct_elapsed_sec: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_valve_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_valve_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_valve_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_valve_spark_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_valve_coil_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_outlet_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_outlet_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_outlet_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_outlet_crossed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_outlet_elapsed_sec: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_spark_rat_defeated: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_drip_vent_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_drip_vent_player_x_initialized: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_drip_vent_clear_frame_pending: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_drip_vent_elapsed_sec: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_player_x_initialized: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_clear_frame_pending: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_coil_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_reward_cache_claimed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch_opened: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_elapsed_sec: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_coil_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_reward_cache_claimed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_gate_opened: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_elapsed_sec: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_reward_cache_claimed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_hatch_opened: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_crossed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_elapsed_sec: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_spark_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache_claimed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_player_x_initialized: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_crossed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_elapsed_sec: float = 0.0
@@ -1494,14 +1573,412 @@ func handle_factory_interact_input() -> bool:
 		return true
 	if try_activate_factory_deep_route_endpoint(_player):
 		return true
-	if try_claim_factory_return_patrol_reward_cache(_player):
+	if _try_claim_nearest_factory_progression_reward_cache(_player):
 		return true
-	if try_claim_factory_checkpoint_overdrive_reward_cache(_player):
+	if _try_handle_nearest_factory_lower_deck_progression_interact(_player):
 		return true
 	return try_activate_factory_service_lift(_player)
 
 
+func _try_claim_nearest_factory_progression_reward_cache(provider: Node) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	var provider_node := provider as Node2D
+	var candidates: Array[Dictionary] = [
+		{
+			"cache": _lower_deck_reward_cache,
+			"claim_method": &"try_claim_factory_lower_deck_reward_cache",
+		},
+		{
+			"cache": _return_patrol_reward_cache,
+			"claim_method": &"try_claim_factory_return_patrol_reward_cache",
+		},
+		{
+			"cache": _checkpoint_overdrive_reward_cache,
+			"claim_method": &"try_claim_factory_checkpoint_overdrive_reward_cache",
+		},
+		{
+			"cache": _lower_deck_relay_forward_reward_cache,
+			"claim_method": &"try_claim_factory_lower_deck_relay_forward_reward_cache",
+		},
+		{
+			"cache": _lower_deck_forward_pressure_reward_cache,
+			"claim_method": &"try_claim_factory_lower_deck_forward_pressure_reward_cache",
+		},
+		{
+			"cache": _lower_deck_forward_pressure_aftershock_reward_cache,
+			"claim_method": &"try_claim_factory_lower_deck_forward_pressure_aftershock_reward_cache",
+		},
+		{
+			"cache": (
+				_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache
+			),
+			"claim_method": (
+				&"try_claim_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache"
+			),
+		},
+		{
+			"cache": (
+				_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_reward_cache
+			),
+			"claim_method": (
+				&"try_claim_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_reward_cache"
+			),
+		},
+		{
+			"cache": (
+				_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_reward_cache
+			),
+			"claim_method": (
+				&"try_claim_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_reward_cache"
+			),
+		},
+		{
+			"cache": (
+				_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_reward_cache
+			),
+			"claim_method": (
+				&"try_claim_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_reward_cache"
+			),
+		},
+		{
+			"cache": (
+				_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache
+			),
+			"claim_method": (
+				&"try_claim_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache"
+			),
+		},
+	]
+	var nearest_distance: float = INF
+	var nearest_claim_method: StringName = &""
+	for candidate: Dictionary in candidates:
+		var cache_variant: Variant = candidate.get("cache")
+		if not cache_variant is Node2D:
+			continue
+		var cache_node := cache_variant as Node2D
+		if (
+			not cache_node.has_method("is_claim_available")
+			or not bool(cache_node.call("is_claim_available"))
+			or not cache_node.has_method("is_provider_in_reward_range")
+			or not bool(cache_node.call("is_provider_in_reward_range", provider_node))
+		):
+			continue
+		var distance: float = cache_node.global_position.distance_to(
+			provider_node.global_position
+		)
+		if distance >= nearest_distance:
+			continue
+		nearest_distance = distance
+		nearest_claim_method = StringName(candidate.get("claim_method", &""))
+	if nearest_claim_method == &"":
+		return false
+	return bool(call(nearest_claim_method, provider_node))
+
+
+func _try_handle_nearest_factory_lower_deck_progression_interact(
+	provider: Node
+) -> bool:
+	if provider == null or not provider is Node2D:
+		return false
+	var provider_node := provider as Node2D
+	var candidates: Array[Dictionary] = []
+	var pressure_valve := _lower_deck_pressure_valve as Node2D
+	if (
+		pressure_valve != null
+		and _is_lower_deck_pressure_valve_available()
+		and pressure_valve.has_method("is_provider_in_activation_range")
+		and bool(pressure_valve.call("is_provider_in_activation_range", provider_node))
+	):
+		candidates.append({
+			"position": pressure_valve.global_position,
+			"interact_method": &"try_open_factory_lower_deck_pressure_valve",
+		})
+
+	var steam_sluice_target := _lower_deck_steam_sluice_hazard as Node2D
+	if steam_sluice_target == null:
+		steam_sluice_target = _lower_deck_steam_sluice_spark_rat
+	if (
+		steam_sluice_target != null
+		and _lower_deck_steam_sluice_spark_rat != null
+		and _is_lower_deck_steam_sluice_available()
+		and not _lower_deck_steam_sluice_activated
+		and _is_lower_deck_steam_sluice_activation_provider_in_range(provider_node)
+	):
+		candidates.append({
+			"position": steam_sluice_target.global_position,
+			"interact_method": &"try_activate_factory_lower_deck_steam_sluice",
+		})
+
+	var deep_bulkhead := _lower_deck_deep_bulkhead as Node2D
+	if (
+		deep_bulkhead != null
+		and _is_lower_deck_deep_bulkhead_available()
+		and deep_bulkhead.has_method("is_provider_in_activation_range")
+		and bool(deep_bulkhead.call("is_provider_in_activation_range", provider_node))
+	):
+		candidates.append({
+			"position": deep_bulkhead.global_position,
+			"interact_method": &"try_open_factory_lower_deck_deep_bulkhead",
+		})
+
+	var forward_hatch := _lower_deck_forward_hatch as Node2D
+	if (
+		forward_hatch != null
+		and _is_lower_deck_forward_hatch_available()
+		and forward_hatch.has_method("is_provider_in_activation_range")
+		and bool(forward_hatch.call("is_provider_in_activation_range", provider_node))
+	):
+		candidates.append({
+			"position": forward_hatch.global_position,
+			"interact_method": &"try_open_factory_lower_deck_forward_hatch",
+		})
+
+	var forward_pressure_exit_gate := (
+		_lower_deck_forward_pressure_exit_gate as Node2D
+	)
+	if (
+		forward_pressure_exit_gate != null
+		and _is_lower_deck_forward_pressure_exit_gate_available()
+		and _is_lower_deck_forward_pressure_exit_gate_provider_in_range(provider_node)
+	):
+		candidates.append({
+			"position": forward_pressure_exit_gate.global_position,
+			"interact_method": &"try_open_factory_lower_deck_forward_pressure_exit_gate",
+		})
+
+	var forward_pressure_route_marker := (
+		_lower_deck_forward_pressure_route_handoff_marker as Node2D
+	)
+	if (
+		forward_pressure_route_marker != null
+		and _is_lower_deck_forward_pressure_route_handoff_marker_available()
+		and _is_lower_deck_forward_pressure_route_handoff_marker_provider_in_range(
+			provider_node
+		)
+	):
+		candidates.append({
+			"position": forward_pressure_route_marker.global_position,
+			"interact_method": (
+				&"try_activate_factory_lower_deck_forward_pressure_route_handoff_marker"
+			),
+		})
+
+	var forward_pressure_breaker := (
+		_lower_deck_forward_pressure_breaker as Node2D
+	)
+	if (
+		forward_pressure_breaker != null
+		and _is_lower_deck_forward_pressure_breaker_available()
+		and _is_lower_deck_forward_pressure_breaker_provider_in_range(provider_node)
+	):
+		candidates.append({
+			"position": forward_pressure_breaker.global_position,
+			"interact_method": &"try_activate_factory_lower_deck_forward_pressure_breaker",
+		})
+
+	var aftershock_exhaust_breaker := (
+		_lower_deck_forward_pressure_aftershock_exhaust_breaker as Node2D
+	)
+	if (
+		aftershock_exhaust_breaker != null
+		and _is_lower_deck_forward_pressure_aftershock_exhaust_breaker_available()
+		and aftershock_exhaust_breaker.has_method("is_provider_in_activation_range")
+		and bool(aftershock_exhaust_breaker.call(
+			"is_provider_in_activation_range",
+			provider_node
+		))
+	):
+		candidates.append({
+			"position": aftershock_exhaust_breaker.global_position,
+			"interact_method": (
+				&"try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker"
+			),
+		})
+
+	var aftershock_exhaust_exit_hatch := (
+		_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch as Node2D
+	)
+	if (
+		aftershock_exhaust_exit_hatch != null
+		and _is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_available()
+		and _is_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_provider_in_range(
+			provider_node
+		)
+	):
+		candidates.append({
+			"position": aftershock_exhaust_exit_hatch.global_position,
+			"interact_method": (
+				&"try_open_factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch"
+			),
+		})
+
+	var overflow_pump_exit_hatch := (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch as Node2D
+	)
+	if (
+		overflow_pump_exit_hatch != null
+		and _is_overflow_pump_exit_hatch_available()
+		and _is_overflow_pump_exit_hatch_provider_in_range(provider_node)
+	):
+		candidates.append({
+			"position": overflow_pump_exit_hatch.global_position,
+			"interact_method": (
+				&"try_open_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_exit_hatch"
+			),
+		})
+
+	var overflow_pump_runoff_exit_gate := (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_gate as Node2D
+	)
+	if (
+		overflow_pump_runoff_exit_gate != null
+		and _is_overflow_pump_runoff_exit_gate_available()
+		and _is_overflow_pump_runoff_exit_gate_provider_in_range(provider_node)
+	):
+		candidates.append({
+			"position": overflow_pump_runoff_exit_gate.global_position,
+			"interact_method": (
+				&"try_open_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_gate"
+			),
+		})
+
+	var overflow_pump_runoff_outlet_service_hatch := (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_hatch
+		as Node2D
+	)
+	if (
+		overflow_pump_runoff_outlet_service_hatch != null
+		and _is_overflow_pump_runoff_outlet_service_hatch_available()
+		and _is_overflow_pump_runoff_outlet_service_hatch_provider_in_range(
+			provider_node
+		)
+	):
+		candidates.append({
+			"position": overflow_pump_runoff_outlet_service_hatch.global_position,
+			"interact_method": (
+				&"try_open_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_hatch"
+			),
+		})
+
+	var overflow_pump_runoff_outlet_service_sluice_exit_hatch := (
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch
+		as Node2D
+	)
+	if (
+		overflow_pump_runoff_outlet_service_sluice_exit_hatch != null
+		and _is_overflow_pump_runoff_outlet_service_sluice_exit_hatch_available()
+		and _is_overflow_pump_runoff_outlet_service_sluice_exit_hatch_provider_in_range(
+			provider_node
+		)
+	):
+		candidates.append({
+			"position": overflow_pump_runoff_outlet_service_sluice_exit_hatch.global_position,
+			"interact_method": (
+				&"try_open_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch"
+			),
+		})
+
+	var nearest_distance_squared: float = INF
+	var nearest_interact_method: StringName = &""
+	for candidate: Dictionary in candidates:
+		var target_position: Vector2 = candidate.get("position", Vector2.ZERO) as Vector2
+		var distance_squared: float = provider_node.global_position.distance_squared_to(
+			target_position
+		)
+		# Stable route order breaks equal-distance ties between progression props.
+		if distance_squared >= nearest_distance_squared:
+			continue
+		nearest_distance_squared = distance_squared
+		nearest_interact_method = StringName(candidate.get("interact_method", &""))
+	if nearest_interact_method == &"":
+		return false
+	return bool(call(nearest_interact_method, provider_node))
+
+
 func _process(_delta: float) -> void:
+	var exit_guard_was_available: bool = (
+		_is_lower_deck_forward_pressure_exit_guard_available()
+	)
+	var beacon_ambush_was_available: bool = (
+		_is_lower_deck_forward_pressure_beacon_ambush_available()
+	)
+	var overrun_was_available: bool = _is_lower_deck_forward_pressure_overrun_available()
+	var breaker_was_available: bool = (
+		_is_lower_deck_forward_pressure_breaker_stand_available()
+	)
+	var relief_ambush_was_available: bool = (
+		_is_lower_deck_forward_pressure_relief_ambush_available()
+	)
+	var coil_rat_was_available: bool = (
+		_is_lower_deck_forward_pressure_coil_rat_available()
+	)
+	var coil_pincer_was_available: bool = (
+		_is_lower_deck_forward_pressure_coil_pincer_available()
+	)
+	var coil_aftershock_was_available: bool = (
+		_is_lower_deck_forward_pressure_coil_aftershock_available()
+	)
+	var aftershock_exit_skirmish_was_available: bool = (
+		_is_lower_deck_forward_pressure_aftershock_exit_skirmish_available()
+	)
+	var aftershock_exhaust_was_available: bool = (
+		_is_lower_deck_forward_pressure_aftershock_exhaust_available()
+	)
+	var aftershock_exhaust_pursuer_was_available: bool = (
+		_is_lower_deck_forward_pressure_aftershock_exhaust_pursuer_available()
+	)
+	var aftershock_exhaust_flank_was_available: bool = (
+		_is_lower_deck_forward_pressure_aftershock_exhaust_flank_available()
+	)
+	var aftershock_exhaust_breaker_was_available: bool = (
+		_is_lower_deck_forward_pressure_aftershock_exhaust_breaker_stand_available()
+	)
+	var aftershock_exhaust_escape_was_available: bool = (
+		_is_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_available()
+	)
+	var aftershock_cooling_duct_was_available: bool = (
+		_is_lower_deck_forward_pressure_aftershock_cooling_duct_available()
+	)
+	var aftershock_condenser_valve_was_available: bool = (
+		_is_lower_deck_forward_pressure_aftershock_condenser_valve_available()
+	)
+	var aftershock_condenser_outlet_was_available: bool = (
+		_is_lower_deck_forward_pressure_aftershock_condenser_outlet_available()
+	)
+	var aftershock_condenser_outlet_clamp_was_available: bool = (
+		_is_outlet_clamp_ambush_available()
+	)
+	var aftershock_condenser_drip_vent_was_available: bool = (
+		_is_outlet_drip_vent_available()
+	)
+	var aftershock_condenser_overflow_pump_was_available: bool = (
+		_is_overflow_pump_available()
+	)
+	var overflow_pump_runoff_duct_was_available: bool = (
+		_is_overflow_pump_runoff_duct_available()
+	)
+	var overflow_pump_runoff_exit_was_available: bool = (
+		_is_overflow_pump_runoff_exit_skirmish_available()
+	)
+	var overflow_pump_runoff_outlet_was_available: bool = (
+		_is_overflow_pump_runoff_outlet_available()
+	)
+	var overflow_pump_runoff_outlet_skirmish_was_available: bool = (
+		_is_overflow_pump_runoff_outlet_skirmish_available()
+	)
+	var overflow_pump_runoff_outlet_service_sluice_was_available: bool = (
+		_is_overflow_pump_runoff_outlet_service_sluice_available()
+	)
+	var overflow_pump_runoff_outlet_service_sluice_skirmish_was_available: bool = (
+		_is_overflow_pump_runoff_outlet_service_sluice_skirmish_available()
+	)
+	var overflow_pump_runoff_outlet_service_sluice_tailrace_was_available: bool = (
+		_is_overflow_pump_runoff_outlet_service_sluice_tailrace_available()
+	)
+	var overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_was_available: bool = (
+		_is_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_available()
+	)
 	var interact_pressed: bool = Input.is_action_pressed(&"interact")
 	if interact_pressed and not _interact_input_was_pressed:
 		handle_factory_interact_input()
@@ -1515,50 +1992,101 @@ func _process(_delta: float) -> void:
 	_try_auto_activate_checkpoint_rear_ambush()
 	_try_auto_activate_checkpoint_overdrive_duo()
 	try_activate_factory_lower_deck_skirmish(_player)
-	_try_auto_activate_forward_pressure_beacon_ambush()
-	_try_auto_activate_forward_pressure_overrun()
-	_try_auto_activate_forward_pressure_breaker()
-	_try_auto_activate_forward_pressure_relief_ambush()
-	_try_auto_activate_forward_pressure_coil_rat_breakthrough()
-	_try_auto_activate_forward_pressure_coil_pincer()
-	_try_auto_activate_forward_pressure_coil_aftershock()
-	_try_auto_activate_forward_pressure_aftershock_exit_skirmish()
-	_try_auto_activate_forward_pressure_aftershock_exhaust()
-	_try_auto_activate_forward_pressure_aftershock_exhaust_pursuer()
-	_try_auto_activate_forward_pressure_aftershock_exhaust_flank()
-	_try_auto_activate_forward_pressure_aftershock_exhaust_breaker()
-	_try_auto_activate_forward_pressure_aftershock_exhaust_escape_skirmish()
-	_try_auto_activate_forward_pressure_aftershock_cooling_duct()
+	try_activate_factory_lower_deck_deep_bulkhead_guard(_player)
+	try_activate_factory_lower_deck_breach_corridor_ambush(_player)
+	try_activate_factory_lower_deck_breach_rear_ambusher(_player)
+	try_activate_factory_lower_deck_post_relay_trial(_player)
+	try_activate_factory_lower_deck_forward_conduit(_player)
+	try_activate_factory_lower_deck_forward_pressure_traverse(_player)
+	advance_factory_lower_deck_forward_pressure_traverse_time(_delta)
+	try_complete_factory_lower_deck_forward_pressure_traverse(_player)
+	try_activate_factory_lower_deck_forward_pressure_counter_ambush(_player)
+	_advance_lower_deck_forward_pressure_counter_ambush_hazard_grace()
+	_try_auto_activate_forward_pressure_exit_guard(exit_guard_was_available)
+	_try_auto_activate_forward_pressure_beacon_ambush(beacon_ambush_was_available)
+	_try_auto_activate_forward_pressure_overrun(overrun_was_available)
+	_try_auto_activate_forward_pressure_breaker(breaker_was_available)
+	_try_auto_activate_forward_pressure_relief_ambush(relief_ambush_was_available)
+	_try_auto_activate_forward_pressure_coil_rat_breakthrough(coil_rat_was_available)
+	_try_auto_activate_forward_pressure_coil_pincer(coil_pincer_was_available)
+	_try_auto_activate_forward_pressure_coil_aftershock(coil_aftershock_was_available)
+	_try_auto_activate_forward_pressure_aftershock_exit_skirmish(
+		aftershock_exit_skirmish_was_available
+	)
+	_try_auto_activate_forward_pressure_aftershock_exhaust(
+		aftershock_exhaust_was_available
+	)
+	advance_factory_lower_deck_forward_pressure_aftershock_exhaust_time(_delta)
+	try_complete_factory_lower_deck_forward_pressure_aftershock_exhaust(_player)
+	_try_auto_activate_forward_pressure_aftershock_exhaust_pursuer(
+		aftershock_exhaust_pursuer_was_available
+	)
+	_try_auto_activate_forward_pressure_aftershock_exhaust_flank(
+		aftershock_exhaust_flank_was_available
+	)
+	_try_auto_activate_forward_pressure_aftershock_exhaust_breaker(
+		aftershock_exhaust_breaker_was_available
+	)
+	_advance_lower_deck_forward_pressure_aftershock_exhaust_breaker_warning()
+	_try_auto_activate_forward_pressure_aftershock_exhaust_escape_skirmish(
+		aftershock_exhaust_escape_was_available
+	)
+	_try_auto_activate_forward_pressure_aftershock_cooling_duct(
+		aftershock_cooling_duct_was_available
+	)
+	advance_factory_lower_deck_forward_pressure_aftershock_cooling_duct_time(_delta)
 	_try_auto_complete_forward_pressure_aftershock_cooling_duct()
-	_try_auto_activate_forward_pressure_aftershock_condenser_valve()
-	_auto_activate_condenser_outlet()
+	_try_auto_activate_forward_pressure_aftershock_condenser_valve(
+		aftershock_condenser_valve_was_available
+	)
+	_auto_activate_condenser_outlet(aftershock_condenser_outlet_was_available)
+	advance_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_time(_delta)
 	_auto_complete_condenser_outlet()
-	_auto_activate_outlet_clamp_ambush()
-	_auto_activate_outlet_drip_vent()
+	_auto_activate_outlet_clamp_ambush(aftershock_condenser_outlet_clamp_was_available)
+	_auto_activate_outlet_drip_vent(aftershock_condenser_drip_vent_was_available)
 	advance_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent_time(
 		_delta
 	)
 	_auto_complete_outlet_drip_vent()
-	_auto_activate_overflow_pump()
-	_auto_activate_overflow_pump_runoff_exit_skirmish()
-	_auto_activate_overflow_pump_runoff_outlet()
+	_auto_activate_overflow_pump(aftershock_condenser_overflow_pump_was_available)
+	_auto_activate_overflow_pump_runoff_duct(overflow_pump_runoff_duct_was_available)
+	advance_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_time(
+		_delta
+	)
+	_auto_complete_overflow_pump_runoff_duct()
+	_auto_activate_overflow_pump_runoff_exit_skirmish(
+		overflow_pump_runoff_exit_was_available
+	)
+	_auto_activate_overflow_pump_runoff_outlet(
+		overflow_pump_runoff_outlet_was_available
+	)
 	advance_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_time(
 		_delta
 	)
 	_auto_complete_overflow_pump_runoff_outlet()
-	_auto_activate_overflow_pump_runoff_outlet_skirmish()
-	_auto_activate_overflow_pump_runoff_outlet_service_sluice()
+	_auto_activate_overflow_pump_runoff_outlet_skirmish(
+		overflow_pump_runoff_outlet_skirmish_was_available
+	)
+	_auto_activate_overflow_pump_runoff_outlet_service_sluice(
+		overflow_pump_runoff_outlet_service_sluice_was_available
+	)
 	advance_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_time(
 		_delta
 	)
 	_auto_complete_overflow_pump_runoff_outlet_service_sluice()
-	_auto_activate_overflow_pump_runoff_outlet_service_sluice_skirmish()
-	_auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace()
+	_auto_activate_overflow_pump_runoff_outlet_service_sluice_skirmish(
+		overflow_pump_runoff_outlet_service_sluice_skirmish_was_available
+	)
+	_auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace(
+		overflow_pump_runoff_outlet_service_sluice_tailrace_was_available
+	)
 	advance_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_time(
 		_delta
 	)
 	_auto_complete_overflow_pump_runoff_outlet_service_sluice_tailrace()
-	_auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush()
+	_auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush(
+		overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_was_available
+	)
 	_auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff()
 	advance_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_time(
 		_delta
@@ -1574,6 +2102,34 @@ func _process(_delta: float) -> void:
 	_process_factory_tailrace_sluice_matriarch_route_contact()
 	_process_factory_tailrace_underground_breach_contact()
 	_sync_factory_player_control_lock()
+	_track_lower_deck_forward_pressure_exit_guard_player_x()
+	_track_lower_deck_forward_pressure_beacon_ambush_player_x()
+	_track_lower_deck_forward_pressure_overrun_player_x()
+	_track_lower_deck_forward_pressure_breaker_player_x()
+	_track_lower_deck_forward_pressure_relief_ambush_player_x()
+	_track_lower_deck_forward_pressure_coil_rat_player_x()
+	_track_lower_deck_forward_pressure_coil_pincer_player_x()
+	_track_lower_deck_forward_pressure_coil_aftershock_player_x()
+	_track_lower_deck_forward_pressure_aftershock_exit_skirmish_player_x()
+	_track_lower_deck_forward_pressure_aftershock_exhaust_player_x()
+	_track_lower_deck_forward_pressure_aftershock_exhaust_pursuer_player_x()
+	_track_lower_deck_forward_pressure_aftershock_exhaust_flank_player_x()
+	_track_lower_deck_forward_pressure_aftershock_exhaust_breaker_player_x()
+	_track_lower_deck_forward_pressure_aftershock_exhaust_escape_player_x()
+	_track_lower_deck_forward_pressure_aftershock_cooling_duct_player_x()
+	_track_lower_deck_forward_pressure_aftershock_condenser_valve_player_x()
+	_track_lower_deck_forward_pressure_aftershock_condenser_outlet_player_x()
+	_track_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_player_x()
+	_track_lower_deck_forward_pressure_aftershock_condenser_drip_vent_player_x()
+	_track_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_player_x()
+	_track_overflow_pump_runoff_duct_player_x()
+	_track_overflow_pump_runoff_exit_skirmish_player_x()
+	_track_overflow_pump_runoff_outlet_player_x()
+	_track_overflow_pump_runoff_outlet_skirmish_player_x()
+	_track_overflow_pump_runoff_outlet_service_sluice_player_x()
+	_track_overflow_pump_runoff_outlet_service_sluice_skirmish_player_x()
+	_track_overflow_pump_runoff_outlet_service_sluice_tailrace_player_x()
+	_track_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_player_x()
 
 
 func calculate_damage(
@@ -2429,6 +2985,9 @@ func try_claim_factory_lower_deck_forward_pressure_aftershock_reward_cache(
 	):
 		return false
 	_lower_deck_forward_pressure_aftershock_reward_cache_claimed = true
+	_prepare_lower_deck_forward_pressure_aftershock_exit_skirmish_handoff(
+		claim_provider
+	)
 	var reward_payload: Dictionary = (
 		_get_lower_deck_forward_pressure_aftershock_reward_cache_payload()
 	)
@@ -2601,6 +3160,30 @@ func try_activate_factory_lower_deck_forward_pressure_exit_guard(
 	_begin_lower_deck_forward_exit_guard_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	_refresh_factory_route_objective()
 	return true
+
+
+func _try_auto_activate_forward_pressure_exit_guard(was_available: bool) -> void:
+	if not was_available or _player == null:
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	var previous_player_x: float = (
+		_lower_deck_forward_pressure_exit_guard_previous_player_x
+	)
+	if (
+		previous_player_x > FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ACTIVATION_X
+		or current_player_x < FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_ACTIVATION_X
+		or current_player_x <= previous_player_x
+	):
+		return
+	try_activate_factory_lower_deck_forward_pressure_exit_guard(_player)
+
+
+func _track_lower_deck_forward_pressure_exit_guard_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_exit_guard_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
 
 
 ## Attempts to activate the optional pursuer after the shortcut payoff is claimed.
@@ -3038,6 +3621,7 @@ func try_activate_factory_lower_deck_forward_pressure_coil_pincer(
 		activation_provider
 	):
 		return false
+	_stage_lower_deck_forward_pressure_coil_pincer_flanks(activation_provider)
 	_lower_deck_forward_pressure_coil_pincer_activated = true
 	_sync_lower_deck_forward_pressure_coil_pincer_state()
 	_set_lower_deck_forward_pressure_coil_pincer_attack_targets(activation_provider)
@@ -3092,6 +3676,9 @@ func try_activate_factory_lower_deck_forward_pressure_aftershock_exit_skirmish(
 		activation_provider
 	):
 		return false
+	_stage_lower_deck_forward_pressure_aftershock_exit_skirmish_flanks(
+		activation_provider
+	)
 	_lower_deck_forward_pressure_aftershock_exit_skirmish_activated = true
 	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
 	_set_lower_deck_forward_pressure_aftershock_exit_skirmish_attack_targets(
@@ -3234,6 +3821,9 @@ func try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker
 	):
 		return false
 	_lower_deck_forward_pressure_aftershock_exhaust_breaker_activated = true
+	_lower_deck_forward_pressure_aftershock_exhaust_breaker_warning_frames_remaining = (
+		FACTORY_AFTERSHOCK_EXHAUST_BREAKER_WARNING_FRAMES
+	)
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_breaker_state()
 	_set_lower_deck_forward_pressure_aftershock_exhaust_breaker_attack_target(
 		activation_provider
@@ -3243,6 +3833,18 @@ func try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker
 	)
 	_refresh_factory_route_objective()
 	return true
+
+
+func _advance_lower_deck_forward_pressure_aftershock_exhaust_breaker_warning(
+) -> void:
+	if not _is_lower_deck_forward_pressure_aftershock_exhaust_breaker_stand_active():
+		_lower_deck_forward_pressure_aftershock_exhaust_breaker_warning_frames_remaining = 0
+		return
+	if _lower_deck_forward_pressure_aftershock_exhaust_breaker_warning_frames_remaining <= 0:
+		return
+	_lower_deck_forward_pressure_aftershock_exhaust_breaker_warning_frames_remaining -= 1
+	if _lower_deck_forward_pressure_aftershock_exhaust_breaker_warning_frames_remaining == 0:
+		_sync_lower_deck_forward_pressure_aftershock_exhaust_breaker_state()
 
 
 ## Cuts the Story090 aftershock exhaust breaker after its Coil Rat guard is secured.
@@ -4497,6 +5099,7 @@ func try_complete_factory_lower_deck_forward_pressure_aftershock_condenser_outle
 	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated = true
 	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed = true
 	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_elapsed_sec = 0.0
+	_prepare_overflow_pump_handoff()
 	_sync_outlet_drip_vent_state()
 	_refresh_factory_route_objective()
 	return true
@@ -4645,11 +5248,25 @@ func try_activate_factory_lower_deck_forward_pressure_counter_ambush(
 	if not _is_lower_deck_forward_counter_ambush_provider_in_range(activation_provider):
 		return false
 	_lower_deck_forward_pressure_counter_ambush_activated = true
+	_lower_deck_forward_pressure_counter_ambush_hazard_grace_frames = (
+		FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES
+	)
 	_sync_lower_deck_forward_pressure_counter_ambush_state()
 	_set_lower_deck_forward_counter_ambush_attack_target(activation_provider)
 	_begin_lower_deck_forward_counter_ambush_pacing(FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES)
 	_refresh_factory_route_objective()
 	return true
+
+
+func _advance_lower_deck_forward_pressure_counter_ambush_hazard_grace() -> void:
+	if not _is_lower_deck_forward_pressure_counter_ambush_active():
+		_lower_deck_forward_pressure_counter_ambush_hazard_grace_frames = 0
+		return
+	if _lower_deck_forward_pressure_counter_ambush_hazard_grace_frames <= 0:
+		return
+	_lower_deck_forward_pressure_counter_ambush_hazard_grace_frames -= 1
+	if _lower_deck_forward_pressure_counter_ambush_hazard_grace_frames == 0:
+		_sync_lower_deck_forward_pressure_counter_ambush_state()
 
 
 ## Attempts to activate the deep route endpoint after its guard is defeated.
@@ -5558,6 +6175,11 @@ func set_local_state(state: Dictionary) -> void:
 			state.get("factory_lower_deck_forward_pressure_counter_ambush_cleared", false)
 		)
 	))
+	_lower_deck_forward_pressure_counter_ambush_hazard_grace_frames = (
+		FACTORY_SPARK_RAT_OPENING_GRACE_FRAMES
+		if _is_lower_deck_forward_pressure_counter_ambush_active()
+		else 0
+	)
 	_lower_deck_forward_pressure_reward_cache_claimed = bool(state.get(
 		"factory_lower_deck_forward_pressure_reward_cache_claimed",
 		false
@@ -5728,6 +6350,8 @@ func set_local_state(state: Dictionary) -> void:
 		false
 	)):
 		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated = true
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_exhaust_breaker_cut = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_cut",
@@ -5756,6 +6380,13 @@ func set_local_state(state: Dictionary) -> void:
 		_lower_deck_forward_pressure_aftershock_exhaust_breaker_secured = true
 		_lower_deck_forward_pressure_aftershock_exhaust_breaker_coil_rat_defeated = true
 		_lower_deck_forward_pressure_aftershock_exhaust_breaker_activated = true
+	_lower_deck_forward_pressure_aftershock_exhaust_breaker_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_exhaust_breaker_player_x_initialized = false
+	_lower_deck_forward_pressure_aftershock_exhaust_breaker_warning_frames_remaining = (
+		FACTORY_AFTERSHOCK_EXHAUST_BREAKER_WARNING_FRAMES
+		if _is_lower_deck_forward_pressure_aftershock_exhaust_breaker_stand_active()
+		else 0
+	)
 	_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_activated = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_activated",
@@ -5780,6 +6411,8 @@ func set_local_state(state: Dictionary) -> void:
 	)):
 		_lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat_defeated = true
 		_lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat_defeated = true
+	_lower_deck_forward_pressure_aftershock_exhaust_escape_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_exhaust_escape_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened",
@@ -5798,6 +6431,8 @@ func set_local_state(state: Dictionary) -> void:
 			_lower_deck_forward_pressure_aftershock_cooling_duct_crossed
 		)
 	)
+	_lower_deck_forward_pressure_aftershock_cooling_duct_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_cooling_duct_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_cooling_duct_elapsed_sec = 0.0
 	_lower_deck_forward_pressure_aftershock_condenser_valve_activated = bool(
 		state.get(
@@ -5824,12 +6459,16 @@ func set_local_state(state: Dictionary) -> void:
 		_lower_deck_forward_pressure_aftershock_condenser_valve_activated = true
 		_lower_deck_forward_pressure_aftershock_condenser_valve_spark_rat_defeated = true
 		_lower_deck_forward_pressure_aftershock_condenser_valve_coil_rat_defeated = true
+	_lower_deck_forward_pressure_aftershock_condenser_valve_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_valve_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_activated",
 			false
 		)
 	)
+	_lower_deck_forward_pressure_aftershock_condenser_outlet_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_outlet_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_condenser_outlet_crossed = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_condenser_outlet_crossed",
@@ -5843,6 +6482,11 @@ func set_local_state(state: Dictionary) -> void:
 		)
 	)
 	_lower_deck_forward_pressure_aftershock_condenser_outlet_elapsed_sec = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_player_x_initialized = false
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_player_x_initialized = false
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_clear_frame_pending = false
 	_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_spark_rat_defeated = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush_spark_rat_defeated",
@@ -5873,6 +6517,9 @@ func set_local_state(state: Dictionary) -> void:
 		)
 	)
 	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_elapsed_sec = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_player_x_initialized = false
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_clear_frame_pending = false
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_coil_rat_defeated = (
 		bool(state.get(
 			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_coil_rat_defeated",
@@ -5909,6 +6556,8 @@ func set_local_state(state: Dictionary) -> void:
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_reward_cache_claimed:
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_coil_rat_defeated = true
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_activated = true
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed",
@@ -5932,6 +6581,8 @@ func set_local_state(state: Dictionary) -> void:
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_reward_cache_claimed = true
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_coil_rat_defeated = true
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_activated = true
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_coil_rat_defeated = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_coil_rat_defeated",
@@ -5973,6 +6624,8 @@ func set_local_state(state: Dictionary) -> void:
 			false
 		)
 	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_activated = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_activated",
@@ -5987,6 +6640,8 @@ func set_local_state(state: Dictionary) -> void:
 	)
 	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed:
 		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_activated = true
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_spark_rat_defeated",
@@ -6016,6 +6671,8 @@ func set_local_state(state: Dictionary) -> void:
 			false
 		)
 	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_crossed = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_crossed",
@@ -6029,6 +6686,8 @@ func set_local_state(state: Dictionary) -> void:
 		)
 	)
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_elapsed_sec = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_spark_rat_defeated = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_spark_rat_defeated",
@@ -6058,6 +6717,10 @@ func set_local_state(state: Dictionary) -> void:
 			false
 		)
 	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_player_x_initialized = false
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_crossed = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_crossed",
@@ -8469,6 +9132,37 @@ func get_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_diagnost
 		"hazard_contact_active": _is_hazard_contact_active(
 			_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent
 		),
+		"hazard_phase": String(
+			_get_lower_deck_forward_pressure_aftershock_exhaust_breaker_phase()
+		),
+		"hazard_warning_frames_remaining": (
+			_lower_deck_forward_pressure_aftershock_exhaust_breaker_warning_frames_remaining
+		),
+			"hazard_animation": (
+				String(_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent.call(
+					"get_visual_animation_name"
+				))
+				if (
+					_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent != null
+					and _lower_deck_forward_pressure_aftershock_exhaust_breaker_vent.has_method(
+						"get_visual_animation_name"
+					)
+				)
+				else ""
+			),
+		"hazard_warning_frame_count": (
+			int(_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent.call(
+				"get_visual_animation_frame_count",
+				&"warning"
+			))
+				if (
+					_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent != null
+					and _lower_deck_forward_pressure_aftershock_exhaust_breaker_vent.has_method(
+						"get_visual_animation_frame_count"
+					)
+				)
+				else 0
+			),
 		"hazard_id": String(_get_hazard_id(
 			_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent
 		)),
@@ -9077,6 +9771,9 @@ func get_factory_lower_deck_forward_pressure_counter_ambush_diagnostics() -> Dic
 		"animation_frame_counts": _get_sprite_animation_frame_counts(sprite),
 		"pacing": _get_lower_deck_forward_counter_ambush_pacing_diagnostics(),
 		"hazard_present": _lower_deck_forward_counter_pressure_vent != null,
+		"hazard_grace_frames": (
+			_lower_deck_forward_pressure_counter_ambush_hazard_grace_frames
+		),
 		"hazard_active": _is_hazard_contact_active(_lower_deck_forward_counter_pressure_vent),
 		"hazard_visible": (
 			_lower_deck_forward_counter_pressure_vent.visible
@@ -9524,6 +10221,13 @@ func get_factory_lower_deck_forward_pressure_exit_gate_diagnostics() -> Dictiona
 ## Returns deterministic aftershock condenser savepoint diagnostics for tests and MCP probes.
 func get_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_diagnostics(
 ) -> Dictionary:
+	var prompt_label := (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint.get_node_or_null(
+			"PromptLabel"
+		) as Label
+		if _lower_deck_forward_pressure_aftershock_condenser_savepoint != null
+		else null
+	)
 	var interaction_area := (
 		_lower_deck_forward_pressure_aftershock_condenser_savepoint.get_node_or_null(
 			"InteractionArea"
@@ -9566,6 +10270,7 @@ func get_factory_lower_deck_forward_pressure_aftershock_condenser_savepoint_diag
 		"prompt_text": (
 			_get_lower_deck_forward_pressure_aftershock_condenser_savepoint_prompt_text()
 		),
+		"prompt_visible": prompt_label.visible if prompt_label != null else false,
 		"texture_path": (
 			_get_lower_deck_forward_pressure_aftershock_condenser_savepoint_texture_path()
 		),
@@ -12058,6 +12763,9 @@ func get_factory_lower_deck_forward_pressure_coil_pincer_diagnostics() -> Dictio
 		"cleared": _is_lower_deck_forward_pressure_coil_pincer_cleared(),
 		"coil_breakthrough_defeated": _lower_deck_forward_pressure_coil_rat_defeated,
 		"activation_x": FACTORY_LOWER_DECK_FORWARD_COIL_PINCER_ACTIVATION_X,
+		"activation_anchor_x": (
+			_lower_deck_forward_pressure_coil_pincer_activation_anchor_x
+		),
 		"spark_visible": (
 			_lower_deck_forward_pressure_coil_pincer_spark_rat.visible
 			if _lower_deck_forward_pressure_coil_pincer_spark_rat != null
@@ -12158,6 +12866,17 @@ func get_factory_lower_deck_forward_pressure_coil_pincer_diagnostics() -> Dictio
 			_lower_deck_forward_pressure_coil_pincer_coil_rat.global_position
 			if _lower_deck_forward_pressure_coil_pincer_coil_rat != null
 			else Vector2.ZERO
+		),
+		"enemy_center_distance_x": (
+			absf(
+				_lower_deck_forward_pressure_coil_pincer_coil_rat.global_position.x
+				- _lower_deck_forward_pressure_coil_pincer_spark_rat.global_position.x
+			)
+			if (
+				_lower_deck_forward_pressure_coil_pincer_spark_rat != null
+				and _lower_deck_forward_pressure_coil_pincer_coil_rat != null
+			)
+			else 0.0
 		),
 		"route_label_text": String(route.get("route_label_text", "")),
 	}
@@ -12816,7 +13535,7 @@ func get_factory_spark_rat_counter_diagnostics() -> Dictionary:
 
 ## Returns deterministic Factory Route objective diagnostics for tests and MCP probes.
 func get_factory_route_objective_diagnostics() -> Dictionary:
-	var route_label := get_node_or_null("RouteLabel") as Label
+	var route_label := get_node_or_null("RouteHud/RouteLabel") as Label
 	var objective_id: StringName = _get_factory_route_objective_id()
 	return {
 		"objective_id": String(objective_id),
@@ -12910,7 +13629,7 @@ func get_factory_route_objective_diagnostics() -> Dictionary:
 
 ## Returns deterministic service-lift handoff diagnostics for tests and MCP probes.
 func get_factory_service_lift_diagnostics() -> Dictionary:
-	var route_label := get_node_or_null("RouteLabel") as Label
+	var route_label := get_node_or_null("RouteHud/RouteLabel") as Label
 	var unlock_vfx_snapshot: Dictionary = _get_service_lift_unlock_vfx_snapshot()
 	var visual_snapshot: Dictionary = _get_service_lift_animation_snapshot()
 	var available: bool = _is_service_lift_available()
@@ -14575,7 +15294,18 @@ func _on_factory_enemy_attack_landed(
 	is_crit: bool,
 	enemy: Node
 ) -> void:
-	_present_factory_enemy_hit(damage, hit_position, is_crit, enemy)
+	var attack_metadata: Dictionary = {}
+	if enemy != null and enemy.has_method("get_last_enemy_attack_metadata"):
+		var metadata_variant: Variant = enemy.call("get_last_enemy_attack_metadata")
+		if metadata_variant is Dictionary:
+			attack_metadata = (metadata_variant as Dictionary).duplicate(true)
+	_present_factory_enemy_hit(
+		damage,
+		hit_position,
+		is_crit,
+		enemy,
+		attack_metadata
+	)
 
 
 func _present_factory_enemy_hit(
@@ -14826,6 +15556,7 @@ func _on_factory_lower_deck_forward_conduit_defeated() -> void:
 func _on_factory_lower_deck_forward_pressure_counter_ambush_defeated() -> void:
 	_lower_deck_forward_pressure_counter_ambush_activated = true
 	_lower_deck_forward_pressure_counter_ambush_defeated = true
+	_lower_deck_forward_pressure_counter_ambush_hazard_grace_frames = 0
 	_sync_lower_deck_forward_pressure_counter_ambush_state()
 	_sync_lower_deck_forward_pressure_reward_cache_state()
 	_refresh_factory_route_objective()
@@ -14835,12 +15566,19 @@ func _on_factory_lower_deck_forward_pressure_exit_guard_defeated() -> void:
 	_lower_deck_forward_pressure_exit_guard_activated = true
 	_lower_deck_forward_pressure_exit_guard_defeated = true
 	_sync_lower_deck_forward_pressure_exit_guard_state()
+	_sync_lower_deck_forward_pressure_exit_relay_state(true)
 	_refresh_factory_route_objective()
 
 
 func _on_factory_lower_deck_forward_pressure_beacon_ambush_defeated() -> void:
 	_lower_deck_forward_pressure_beacon_ambush_activated = true
 	_lower_deck_forward_pressure_beacon_ambush_defeated = true
+	_lower_deck_forward_pressure_overrun_clear_frame_pending = true
+	if _player != null:
+		_lower_deck_forward_pressure_overrun_previous_player_x = (
+			(_player as Node2D).global_position.x
+		)
+		_lower_deck_forward_pressure_overrun_player_x_initialized = true
 	_sync_lower_deck_forward_pressure_beacon_ambush_state()
 	_refresh_factory_route_objective()
 
@@ -14848,6 +15586,12 @@ func _on_factory_lower_deck_forward_pressure_beacon_ambush_defeated() -> void:
 func _on_factory_lower_deck_forward_pressure_overrun_defeated() -> void:
 	_lower_deck_forward_pressure_overrun_activated = true
 	_lower_deck_forward_pressure_overrun_defeated = true
+	_lower_deck_forward_pressure_breaker_clear_frame_pending = true
+	if _player != null:
+		_lower_deck_forward_pressure_breaker_previous_player_x = (
+			(_player as Node2D).global_position.x
+		)
+		_lower_deck_forward_pressure_breaker_player_x_initialized = true
 	_sync_lower_deck_forward_pressure_overrun_state()
 	_refresh_factory_route_objective()
 
@@ -14863,28 +15607,56 @@ func _on_factory_lower_deck_forward_pressure_breaker_defeated() -> void:
 func _on_factory_lower_deck_forward_pressure_relief_ambush_defeated() -> void:
 	_lower_deck_forward_pressure_relief_ambush_activated = true
 	_lower_deck_forward_pressure_relief_ambush_defeated = true
-	_sync_lower_deck_forward_pressure_relief_ambush_state()
+	_lower_deck_forward_pressure_coil_rat_clear_frame_pending = true
+	if _player != null:
+		_lower_deck_forward_pressure_coil_rat_previous_player_x = (
+			(_player as Node2D).global_position.x
+		)
+		_lower_deck_forward_pressure_coil_rat_player_x_initialized = true
+	_prepare_lower_deck_forward_pressure_relief_ambush_death_presentation()
 	_refresh_factory_route_objective()
 
 
 func _on_factory_lower_deck_forward_pressure_coil_rat_defeated() -> void:
 	_lower_deck_forward_pressure_coil_rat_activated = true
 	_lower_deck_forward_pressure_coil_rat_defeated = true
-	_sync_lower_deck_forward_pressure_coil_rat_state()
+	_lower_deck_forward_pressure_coil_pincer_clear_frame_pending = true
+	if _player != null:
+		_lower_deck_forward_pressure_coil_pincer_previous_player_x = (
+			(_player as Node2D).global_position.x
+		)
+		_lower_deck_forward_pressure_coil_pincer_player_x_initialized = true
+	_prepare_lower_deck_forward_pressure_coil_rat_death_presentation()
 	_refresh_factory_route_objective()
 
 
 func _on_factory_lower_deck_forward_pressure_coil_pincer_spark_rat_defeated() -> void:
 	_lower_deck_forward_pressure_coil_pincer_activated = true
 	_lower_deck_forward_pressure_coil_pincer_spark_rat_defeated = true
-	_sync_lower_deck_forward_pressure_coil_pincer_state()
+	_prepare_lower_deck_forward_pressure_coil_pincer_enemy_death_presentation(
+		_lower_deck_forward_pressure_coil_pincer_spark_rat
+	)
+	if not _lower_deck_forward_pressure_coil_pincer_coil_rat_defeated:
+		_sync_lower_deck_forward_pressure_coil_pincer_enemy_state(
+			_lower_deck_forward_pressure_coil_pincer_coil_rat,
+			_is_lower_deck_forward_pressure_coil_pincer_active()
+		)
+	_prepare_lower_deck_forward_pressure_coil_aftershock_handoff()
 	_refresh_factory_route_objective()
 
 
 func _on_factory_lower_deck_forward_pressure_coil_pincer_coil_rat_defeated() -> void:
 	_lower_deck_forward_pressure_coil_pincer_activated = true
 	_lower_deck_forward_pressure_coil_pincer_coil_rat_defeated = true
-	_sync_lower_deck_forward_pressure_coil_pincer_state()
+	_prepare_lower_deck_forward_pressure_coil_pincer_enemy_death_presentation(
+		_lower_deck_forward_pressure_coil_pincer_coil_rat
+	)
+	if not _lower_deck_forward_pressure_coil_pincer_spark_rat_defeated:
+		_sync_lower_deck_forward_pressure_coil_pincer_enemy_state(
+			_lower_deck_forward_pressure_coil_pincer_spark_rat,
+			_is_lower_deck_forward_pressure_coil_pincer_active()
+		)
+	_prepare_lower_deck_forward_pressure_coil_aftershock_handoff()
 	_refresh_factory_route_objective()
 
 
@@ -14900,7 +15672,16 @@ func _on_factory_lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated(
 ) -> void:
 	_lower_deck_forward_pressure_aftershock_exit_skirmish_activated = true
 	_lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated = true
-	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
+	_prepare_lower_deck_forward_pressure_aftershock_exit_enemy_death_presentation(
+		_lower_deck_forward_pressure_aftershock_exit_spark_rat
+	)
+	if not _lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated:
+		_sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
+			_lower_deck_forward_pressure_aftershock_exit_coil_rat,
+			_is_lower_deck_forward_pressure_aftershock_exit_skirmish_active()
+		)
+	_prepare_lower_deck_forward_pressure_aftershock_exhaust_handoff()
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_state()
 	_refresh_factory_route_objective()
 
 
@@ -14908,7 +15689,16 @@ func _on_factory_lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated(
 ) -> void:
 	_lower_deck_forward_pressure_aftershock_exit_skirmish_activated = true
 	_lower_deck_forward_pressure_aftershock_exit_coil_rat_defeated = true
-	_sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state()
+	_prepare_lower_deck_forward_pressure_aftershock_exit_enemy_death_presentation(
+		_lower_deck_forward_pressure_aftershock_exit_coil_rat
+	)
+	if not _lower_deck_forward_pressure_aftershock_exit_spark_rat_defeated:
+		_sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
+			_lower_deck_forward_pressure_aftershock_exit_spark_rat,
+			_is_lower_deck_forward_pressure_aftershock_exit_skirmish_active()
+		)
+	_prepare_lower_deck_forward_pressure_aftershock_exhaust_handoff()
+	_sync_lower_deck_forward_pressure_aftershock_exhaust_state()
 	_refresh_factory_route_objective()
 
 
@@ -14916,7 +15706,9 @@ func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated
 ) -> void:
 	_lower_deck_forward_pressure_aftershock_exhaust_pursuer_activated = true
 	_lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated = true
-	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_state()
+	_prepare_lower_deck_forward_pressure_aftershock_exit_enemy_death_presentation(
+		_lower_deck_forward_pressure_aftershock_exhaust_pursuer_coil_rat
+	)
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_state()
 	_refresh_factory_route_objective()
 
@@ -14943,7 +15735,14 @@ func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat
 ) -> void:
 	_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_activated = true
 	_lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat_defeated = true
-	_sync_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_state()
+	_prepare_lower_deck_forward_pressure_aftershock_exit_enemy_death_presentation(
+		_lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat
+	)
+	if not _lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat_defeated:
+		_sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
+			_lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat,
+			_is_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_active()
+		)
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state()
 	_refresh_factory_route_objective()
 
@@ -14952,7 +15751,14 @@ func _on_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat_
 ) -> void:
 	_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_activated = true
 	_lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat_defeated = true
-	_sync_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_state()
+	_prepare_lower_deck_forward_pressure_aftershock_exit_enemy_death_presentation(
+		_lower_deck_forward_pressure_aftershock_exhaust_escape_coil_rat
+	)
+	if not _lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat_defeated:
+		_sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
+			_lower_deck_forward_pressure_aftershock_exhaust_escape_spark_rat,
+			_is_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_active()
+		)
 	_sync_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_state()
 	_refresh_factory_route_objective()
 
@@ -14961,7 +15767,15 @@ func _on_factory_lower_deck_forward_pressure_aftershock_condenser_spark_rat_defe
 ) -> void:
 	_lower_deck_forward_pressure_aftershock_condenser_valve_activated = true
 	_lower_deck_forward_pressure_aftershock_condenser_valve_spark_rat_defeated = true
-	_sync_lower_deck_forward_pressure_aftershock_condenser_valve_state()
+	_prepare_lower_deck_forward_pressure_aftershock_exit_enemy_death_presentation(
+		_lower_deck_forward_pressure_aftershock_condenser_spark_rat
+	)
+	if not _lower_deck_forward_pressure_aftershock_condenser_valve_coil_rat_defeated:
+		_sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
+			_lower_deck_forward_pressure_aftershock_condenser_coil_rat,
+			_is_lower_deck_forward_pressure_aftershock_condenser_valve_active()
+		)
+	_sync_lower_deck_forward_pressure_aftershock_condenser_savepoint_state()
 	_refresh_factory_route_objective()
 
 
@@ -14969,14 +15783,26 @@ func _on_factory_lower_deck_forward_pressure_aftershock_condenser_coil_rat_defea
 ) -> void:
 	_lower_deck_forward_pressure_aftershock_condenser_valve_activated = true
 	_lower_deck_forward_pressure_aftershock_condenser_valve_coil_rat_defeated = true
-	_sync_lower_deck_forward_pressure_aftershock_condenser_valve_state()
+	_prepare_lower_deck_forward_pressure_aftershock_exit_enemy_death_presentation(
+		_lower_deck_forward_pressure_aftershock_condenser_coil_rat
+	)
+	if not _lower_deck_forward_pressure_aftershock_condenser_valve_spark_rat_defeated:
+		_sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
+			_lower_deck_forward_pressure_aftershock_condenser_spark_rat,
+			_is_lower_deck_forward_pressure_aftershock_condenser_valve_active()
+		)
+	_sync_lower_deck_forward_pressure_aftershock_condenser_savepoint_state()
 	_refresh_factory_route_objective()
 
 
 func _on_outlet_clamp_spark_rat_defeated() -> void:
 	_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush_activated = true
 	_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_spark_rat_defeated = true
-	_sync_outlet_clamp_ambush_state()
+	_prepare_lower_deck_forward_pressure_aftershock_exit_enemy_death_presentation(
+		_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_spark_rat
+	)
+	_prepare_outlet_drip_vent_handoff()
+	_sync_outlet_drip_vent_state()
 	_refresh_factory_route_objective()
 
 
@@ -15228,6 +16054,12 @@ func _on_factory_lower_deck_forward_pressure_breaker_activated(
 	if endpoint_id != FACTORY_LOWER_DECK_FORWARD_PRESSURE_BREAKER_ID:
 		return
 	_lower_deck_forward_pressure_breaker_cut = true
+	_lower_deck_forward_pressure_relief_ambush_clear_frame_pending = true
+	if _player != null:
+		_lower_deck_forward_pressure_relief_ambush_previous_player_x = (
+			(_player as Node2D).global_position.x
+		)
+		_lower_deck_forward_pressure_relief_ambush_player_x_initialized = true
 	_sync_lower_deck_forward_pressure_breaker_endpoint_state()
 	_update_route_label("Forward Pressure Breaker Cut")
 
@@ -15352,6 +16184,7 @@ func _on_factory_lower_deck_forward_pressure_exit_relay_activated(
 		context
 	)
 	_sync_lower_deck_forward_pressure_exit_relay_state(true)
+	call_deferred("_sync_lower_deck_forward_pressure_exit_gate_state")
 	_update_route_label("Forward Pressure Exit Relay Secured")
 
 
@@ -15442,7 +16275,8 @@ func _on_factory_respawn_requested(respawn_position: Vector2, revive_hp_percenta
 		_update_route_label(
 			FACTORY_LOWER_DECK_FORWARD_PRESSURE_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_RESPAWN_LABEL
 		)
-	_apply_current_scene_manager_spawn_point()
+	if not _is_scene_manager_loading():
+		_apply_current_scene_manager_spawn_point()
 
 
 func _on_factory_deep_route_endpoint_activated(_endpoint_id: StringName) -> void:
@@ -15976,6 +16810,9 @@ func _sync_lower_deck_breach_relay_state() -> void:
 		return
 	var available: bool = _is_lower_deck_breach_relay_available()
 	_lower_deck_breach_relay.visible = available or _lower_deck_breach_relay_activated
+	var prompt_label := _lower_deck_breach_relay.get_node_or_null("PromptLabel") as Label
+	if prompt_label != null:
+		prompt_label.visible = available and not _lower_deck_breach_relay_activated
 	var interaction_area := (
 		_lower_deck_breach_relay.get_node_or_null("InteractionArea") as Area2D
 	)
@@ -16125,7 +16962,8 @@ func _sync_lower_deck_deep_bulkhead_state() -> void:
 	if _lower_deck_deep_bulkhead.has_method("set_activated"):
 		_lower_deck_deep_bulkhead.call("set_activated", _lower_deck_deep_bulkhead_opened)
 	_set_lower_deck_deep_bulkhead_collision_blocking(
-		bulkhead_visible and not _lower_deck_deep_bulkhead_opened
+		_lower_deck_deep_bulkhead_guard_activated
+		and not _lower_deck_deep_bulkhead_opened
 	)
 
 
@@ -16237,6 +17075,13 @@ func _sync_lower_deck_forward_hatch_state() -> void:
 
 func _sync_lower_deck_forward_conduit_state() -> void:
 	var conduit_active: bool = _is_lower_deck_forward_conduit_active()
+	var hatch_prompt := (
+		_lower_deck_forward_hatch.get_node_or_null("PromptLabel") as Label
+		if _lower_deck_forward_hatch != null
+		else null
+	)
+	if hatch_prompt != null and _lower_deck_forward_hatch_opened:
+		hatch_prompt.visible = not _lower_deck_forward_conduit_activated
 	if _lower_deck_forward_conduit_spark_rat != null:
 		_lower_deck_forward_conduit_spark_rat.visible = conduit_active
 		_lower_deck_forward_conduit_spark_rat.set_physics_process(conduit_active)
@@ -16301,6 +17146,10 @@ func _sync_lower_deck_forward_pressure_traverse_state() -> void:
 
 func _sync_lower_deck_forward_pressure_counter_ambush_state() -> void:
 	var counter_active: bool = _is_lower_deck_forward_pressure_counter_ambush_active()
+	var contact_active: bool = (
+		counter_active
+		and _lower_deck_forward_pressure_counter_ambush_hazard_grace_frames <= 0
+	)
 	if _lower_deck_forward_counter_spark_rat != null:
 		_lower_deck_forward_counter_spark_rat.visible = counter_active
 		_lower_deck_forward_counter_spark_rat.set_physics_process(counter_active)
@@ -16318,20 +17167,20 @@ func _sync_lower_deck_forward_pressure_counter_ambush_state() -> void:
 	if _lower_deck_forward_counter_pressure_vent == null:
 		return
 	_lower_deck_forward_counter_pressure_vent.visible = counter_active
-	_lower_deck_forward_counter_pressure_vent.monitoring = counter_active
-	_lower_deck_forward_counter_pressure_vent.monitorable = counter_active
+	_lower_deck_forward_counter_pressure_vent.monitoring = contact_active
+	_lower_deck_forward_counter_pressure_vent.monitorable = contact_active
 	_lower_deck_forward_counter_pressure_vent.collision_layer = (
-		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if counter_active else 0
+		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if contact_active else 0
 	)
 	_lower_deck_forward_counter_pressure_vent.collision_mask = (
-		CollisionComponent.COLLISION_MASK_ENVIRONMENT if counter_active else 0
+		CollisionComponent.COLLISION_MASK_ENVIRONMENT if contact_active else 0
 	)
 	var collision_shape := (
 		_lower_deck_forward_counter_pressure_vent.get_node_or_null("CollisionShape2D")
 		as CollisionShape2D
 	)
 	if collision_shape != null:
-		collision_shape.disabled = not counter_active
+		collision_shape.disabled = not contact_active
 
 
 func _sync_lower_deck_forward_pressure_exit_guard_state() -> void:
@@ -16379,6 +17228,10 @@ func _sync_lower_deck_forward_pressure_beacon_ambush_state() -> void:
 		_lower_deck_forward_beacon_ambush_spark_rat.collision_mask = (
 			FACTORY_RAT_MINION_COLLISION_MASK if ambush_active else 0
 		)
+		_set_factory_guard_hurtbox_active(
+			_lower_deck_forward_beacon_ambush_spark_rat,
+			ambush_active
+		)
 		_set_lower_deck_forward_beacon_ambush_attack_target(
 			_player if ambush_active else null
 		)
@@ -16415,6 +17268,10 @@ func _sync_lower_deck_forward_pressure_overrun_state() -> void:
 		_lower_deck_forward_overrun_spark_rat.collision_mask = (
 			FACTORY_RAT_MINION_COLLISION_MASK if overrun_active else 0
 		)
+		_set_factory_guard_hurtbox_active(
+			_lower_deck_forward_overrun_spark_rat,
+			overrun_active
+		)
 		_set_lower_deck_forward_overrun_attack_target(_player if overrun_active else null)
 
 	if _lower_deck_forward_overrun_pressure_vent == null:
@@ -16447,6 +17304,10 @@ func _sync_lower_deck_forward_pressure_breaker_state() -> void:
 		)
 		_lower_deck_forward_breaker_spark_rat.collision_mask = (
 			FACTORY_RAT_MINION_COLLISION_MASK if breaker_active else 0
+		)
+		_set_factory_guard_hurtbox_active(
+			_lower_deck_forward_breaker_spark_rat,
+			breaker_active
 		)
 		_set_lower_deck_forward_breaker_attack_target(
 			_player if breaker_active else null
@@ -16502,10 +17363,32 @@ func _sync_lower_deck_forward_pressure_relief_ambush_state() -> void:
 		_lower_deck_forward_relief_ambush_spark_rat.collision_mask = (
 			FACTORY_RAT_MINION_COLLISION_MASK if relief_active else 0
 		)
+		_set_factory_guard_hurtbox_active(
+			_lower_deck_forward_relief_ambush_spark_rat,
+			relief_active
+		)
 		_set_lower_deck_forward_relief_ambush_attack_target(
 			_player if relief_active else null
 		)
+	_sync_lower_deck_forward_pressure_relief_ambush_hazard_state(relief_active)
 
+
+func _prepare_lower_deck_forward_pressure_relief_ambush_death_presentation(
+) -> void:
+	if _lower_deck_forward_relief_ambush_spark_rat != null:
+		_lower_deck_forward_relief_ambush_spark_rat.collision_layer = 0
+		_lower_deck_forward_relief_ambush_spark_rat.collision_mask = 0
+		_set_factory_guard_hurtbox_active(
+			_lower_deck_forward_relief_ambush_spark_rat,
+			false
+		)
+		_set_lower_deck_forward_relief_ambush_attack_target(null)
+	_sync_lower_deck_forward_pressure_relief_ambush_hazard_state(false)
+
+
+func _sync_lower_deck_forward_pressure_relief_ambush_hazard_state(
+		relief_active: bool
+) -> void:
 	if _lower_deck_forward_relief_ambush_pressure_vent == null:
 		return
 	_lower_deck_forward_relief_ambush_pressure_vent.visible = relief_active
@@ -16539,9 +17422,26 @@ func _sync_lower_deck_forward_pressure_coil_rat_state() -> void:
 	_lower_deck_forward_pressure_coil_rat.collision_mask = (
 		FACTORY_RAT_MINION_COLLISION_MASK if coil_active else 0
 	)
+	_set_factory_guard_hurtbox_active(
+		_lower_deck_forward_pressure_coil_rat,
+		coil_active
+	)
 	_set_lower_deck_forward_pressure_coil_rat_attack_target(
 		_player if coil_active else null
 	)
+
+
+func _prepare_lower_deck_forward_pressure_coil_rat_death_presentation() -> void:
+	if _lower_deck_forward_pressure_coil_rat == null:
+		return
+	_lower_deck_forward_pressure_coil_rat.set_physics_process(false)
+	_lower_deck_forward_pressure_coil_rat.collision_layer = 0
+	_lower_deck_forward_pressure_coil_rat.collision_mask = 0
+	_set_factory_guard_hurtbox_active(
+		_lower_deck_forward_pressure_coil_rat,
+		false
+	)
+	_set_lower_deck_forward_pressure_coil_rat_attack_target(null)
 
 
 func _sync_lower_deck_forward_pressure_coil_pincer_state() -> void:
@@ -16556,6 +17456,23 @@ func _sync_lower_deck_forward_pressure_coil_pincer_state() -> void:
 	)
 
 
+func _stage_lower_deck_forward_pressure_coil_pincer_flanks(
+		activation_provider: Node
+) -> void:
+	if not activation_provider is Node2D:
+		return
+	var activation_anchor: Vector2 = (activation_provider as Node2D).global_position
+	_lower_deck_forward_pressure_coil_pincer_activation_anchor_x = activation_anchor.x
+	if _lower_deck_forward_pressure_coil_pincer_spark_rat != null:
+		_lower_deck_forward_pressure_coil_pincer_spark_rat.global_position.x = (
+			activation_anchor.x + FACTORY_COIL_PINCER_SPARK_FLANK_OFFSET_X
+		)
+	if _lower_deck_forward_pressure_coil_pincer_coil_rat != null:
+		_lower_deck_forward_pressure_coil_pincer_coil_rat.global_position.x = (
+			activation_anchor.x + FACTORY_COIL_PINCER_COIL_FLANK_OFFSET_X
+		)
+
+
 func _sync_lower_deck_forward_pressure_coil_pincer_enemy_state(
 		enemy: Node2D,
 		enemy_active: bool
@@ -16567,8 +17484,34 @@ func _sync_lower_deck_forward_pressure_coil_pincer_enemy_state(
 	enemy.set_process(enemy_active)
 	enemy.collision_layer = FACTORY_RAT_MINION_COLLISION_LAYER if enemy_active else 0
 	enemy.collision_mask = FACTORY_RAT_MINION_COLLISION_MASK if enemy_active else 0
+	_set_factory_guard_hurtbox_active(enemy, enemy_active)
 	if enemy.has_method("set_attack_target"):
 		enemy.call("set_attack_target", _player if enemy_active else null)
+
+
+func _prepare_lower_deck_forward_pressure_coil_pincer_enemy_death_presentation(
+		enemy: Node2D
+) -> void:
+	if enemy == null or not is_instance_valid(enemy):
+		return
+	enemy.set_physics_process(false)
+	enemy.collision_layer = 0
+	enemy.collision_mask = 0
+	_set_factory_guard_hurtbox_active(enemy, false)
+	if enemy.has_method("set_attack_target"):
+		enemy.call("set_attack_target", null)
+
+
+func _prepare_lower_deck_forward_pressure_coil_aftershock_handoff() -> void:
+	if not _is_lower_deck_forward_pressure_coil_pincer_cleared():
+		return
+	_lower_deck_forward_pressure_coil_aftershock_clear_frame_pending = true
+	if _player != null:
+		_lower_deck_forward_pressure_coil_aftershock_previous_player_x = (
+			(_player as Node2D).global_position.x
+		)
+		_lower_deck_forward_pressure_coil_aftershock_player_x_initialized = true
+	_sync_lower_deck_forward_pressure_coil_aftershock_state()
 
 
 func _sync_lower_deck_forward_pressure_coil_aftershock_state() -> void:
@@ -16586,9 +17529,43 @@ func _sync_lower_deck_forward_pressure_coil_aftershock_state() -> void:
 	_lower_deck_forward_pressure_coil_aftershock_coil_rat.collision_mask = (
 		FACTORY_RAT_MINION_COLLISION_MASK if aftershock_active else 0
 	)
+	_set_factory_guard_hurtbox_active(
+		_lower_deck_forward_pressure_coil_aftershock_coil_rat,
+		aftershock_active
+	)
 	_set_lower_deck_forward_pressure_coil_aftershock_attack_target(
 		_player if aftershock_active else null
 	)
+
+
+func _prepare_lower_deck_forward_pressure_aftershock_exit_skirmish_handoff(
+		claim_provider: Node
+) -> void:
+	_lower_deck_forward_pressure_aftershock_exit_skirmish_activation_frame_pending = true
+	var provider_node: Node2D = _get_valid_node2d(claim_provider)
+	if provider_node == null:
+		return
+	_lower_deck_forward_pressure_aftershock_exit_skirmish_previous_player_x = (
+		provider_node.global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_exit_skirmish_player_x_initialized = true
+
+
+func _stage_lower_deck_forward_pressure_aftershock_exit_skirmish_flanks(
+		activation_provider: Node
+) -> void:
+	var provider_node: Node2D = _get_valid_node2d(activation_provider)
+	if provider_node == null:
+		return
+	var anchor_x: float = provider_node.global_position.x
+	if _lower_deck_forward_pressure_aftershock_exit_spark_rat != null:
+		_lower_deck_forward_pressure_aftershock_exit_spark_rat.global_position.x = (
+			anchor_x + FACTORY_AFTERSHOCK_EXIT_SPARK_FLANK_OFFSET_X
+		)
+	if _lower_deck_forward_pressure_aftershock_exit_coil_rat != null:
+		_lower_deck_forward_pressure_aftershock_exit_coil_rat.global_position.x = (
+			anchor_x + FACTORY_AFTERSHOCK_EXIT_COIL_FLANK_OFFSET_X
+		)
 
 
 func _sync_lower_deck_forward_pressure_aftershock_exit_skirmish_state() -> void:
@@ -16661,6 +17638,10 @@ func _sync_lower_deck_forward_pressure_aftershock_exhaust_pursuer_state() -> voi
 	_lower_deck_forward_pressure_aftershock_exhaust_pursuer_coil_rat.collision_mask = (
 		FACTORY_RAT_MINION_COLLISION_MASK if pursuer_active else 0
 	)
+	_set_factory_guard_hurtbox_active(
+		_lower_deck_forward_pressure_aftershock_exhaust_pursuer_coil_rat,
+		pursuer_active
+	)
 	_set_lower_deck_forward_pressure_aftershock_exhaust_pursuer_attack_target(
 		_player if pursuer_active else null
 	)
@@ -16690,6 +17671,10 @@ func _sync_lower_deck_forward_pressure_aftershock_exhaust_flank_state() -> void:
 		_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat.collision_mask = (
 			FACTORY_RAT_MINION_COLLISION_MASK if flank_active else 0
 		)
+		_set_factory_guard_hurtbox_active(
+			_lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat,
+			flank_active
+		)
 		_set_lower_deck_forward_pressure_aftershock_exhaust_flank_attack_target(
 			_player if flank_active else null
 		)
@@ -16717,6 +17702,9 @@ func _sync_lower_deck_forward_pressure_aftershock_exhaust_breaker_state() -> voi
 	var breaker_active: bool = (
 		_is_lower_deck_forward_pressure_aftershock_exhaust_breaker_stand_active()
 	)
+	var contact_active: bool = (
+		_is_lower_deck_forward_pressure_aftershock_exhaust_breaker_contact_active()
+	)
 	if _lower_deck_forward_pressure_aftershock_exhaust_breaker_coil_rat != null:
 		_lower_deck_forward_pressure_aftershock_exhaust_breaker_coil_rat.visible = (
 			breaker_active
@@ -16733,23 +17721,31 @@ func _sync_lower_deck_forward_pressure_aftershock_exhaust_breaker_state() -> voi
 		_lower_deck_forward_pressure_aftershock_exhaust_breaker_coil_rat.collision_mask = (
 			FACTORY_RAT_MINION_COLLISION_MASK if breaker_active else 0
 		)
+		_set_factory_guard_hurtbox_active(
+			_lower_deck_forward_pressure_aftershock_exhaust_breaker_coil_rat,
+			breaker_active
+		)
 		_set_lower_deck_forward_pressure_aftershock_exhaust_breaker_attack_target(
 			_player if breaker_active else null
 		)
 	if _lower_deck_forward_pressure_aftershock_exhaust_breaker_vent == null:
 		return
+	_sync_steam_vent_visual_phase(
+		_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent,
+		_get_lower_deck_forward_pressure_aftershock_exhaust_breaker_phase()
+	)
 	_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent.visible = breaker_active
 	_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent.monitoring = (
-		breaker_active
+		contact_active
 	)
 	_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent.monitorable = (
-		breaker_active
+		contact_active
 	)
 	_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent.collision_layer = (
-		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if breaker_active else 0
+		CollisionComponent.COLLISION_LAYER_ENVIRONMENT if contact_active else 0
 	)
 	_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent.collision_mask = (
-		CollisionComponent.COLLISION_MASK_ENVIRONMENT if breaker_active else 0
+		CollisionComponent.COLLISION_MASK_ENVIRONMENT if contact_active else 0
 	)
 	var collision_shape := (
 		_lower_deck_forward_pressure_aftershock_exhaust_breaker_vent.get_node_or_null(
@@ -16757,7 +17753,7 @@ func _sync_lower_deck_forward_pressure_aftershock_exhaust_breaker_state() -> voi
 		) as CollisionShape2D
 	)
 	if collision_shape != null:
-		collision_shape.disabled = not breaker_active
+		collision_shape.disabled = not contact_active
 
 
 func _sync_lower_deck_forward_pressure_aftershock_exhaust_breaker_endpoint_state(
@@ -16895,8 +17891,35 @@ func _sync_lower_deck_forward_pressure_aftershock_exit_enemy_state(
 	enemy_node.set_process(enemy_active)
 	enemy_node.collision_layer = FACTORY_RAT_MINION_COLLISION_LAYER if enemy_active else 0
 	enemy_node.collision_mask = FACTORY_RAT_MINION_COLLISION_MASK if enemy_active else 0
+	_set_factory_guard_hurtbox_active(enemy_node, enemy_active)
 	if enemy_node.has_method("set_attack_target"):
 		enemy_node.call("set_attack_target", _player if enemy_active else null)
+
+
+func _prepare_lower_deck_forward_pressure_aftershock_exit_enemy_death_presentation(
+		enemy: Variant
+) -> void:
+	var enemy_node: Node2D = _get_valid_node2d(enemy)
+	if enemy_node == null:
+		return
+	enemy_node.set_physics_process(false)
+	enemy_node.collision_layer = 0
+	enemy_node.collision_mask = 0
+	_set_factory_guard_hurtbox_active(enemy_node, false)
+	if enemy_node.has_method("set_attack_target"):
+		enemy_node.call("set_attack_target", null)
+
+
+func _prepare_lower_deck_forward_pressure_aftershock_exhaust_handoff() -> void:
+	if not _is_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared():
+		return
+	_lower_deck_forward_pressure_aftershock_exhaust_clear_frame_pending = true
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_exhaust_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_exhaust_player_x_initialized = true
 
 
 func _sync_lower_deck_parry_gate_state() -> void:
@@ -16991,6 +18014,11 @@ func _sync_lower_deck_forward_pressure_exit_relay_state(
 	_lower_deck_forward_pressure_exit_relay.visible = (
 		available or _lower_deck_forward_pressure_exit_relay_activated
 	)
+	var prompt_label := (
+		_lower_deck_forward_pressure_exit_relay.get_node_or_null("PromptLabel") as Label
+	)
+	if prompt_label != null:
+		prompt_label.visible = available
 	var interaction_area := (
 		_lower_deck_forward_pressure_exit_relay.get_node_or_null("InteractionArea")
 		as Area2D
@@ -17031,6 +18059,13 @@ func _sync_lower_deck_forward_pressure_aftershock_condenser_savepoint_state(
 	_lower_deck_forward_pressure_aftershock_condenser_savepoint.visible = (
 		available or _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated
 	)
+	var prompt_label := (
+		_lower_deck_forward_pressure_aftershock_condenser_savepoint.get_node_or_null(
+			"PromptLabel"
+		) as Label
+	)
+	if prompt_label != null:
+		prompt_label.visible = available
 	var interaction_area := (
 		_lower_deck_forward_pressure_aftershock_condenser_savepoint.get_node_or_null(
 			"InteractionArea"
@@ -17059,7 +18094,12 @@ func _sync_lower_deck_forward_pressure_aftershock_condenser_savepoint_state(
 				collision_shape.set_deferred("disabled", should_disable)
 			else:
 				collision_shape.disabled = should_disable
-	_sync_lower_deck_forward_pressure_aftershock_condenser_outlet_state()
+	if defer_interaction_changes:
+		call_deferred(
+			"_sync_lower_deck_forward_pressure_aftershock_condenser_outlet_state"
+		)
+	else:
+		_sync_lower_deck_forward_pressure_aftershock_condenser_outlet_state()
 
 
 func _sync_lower_deck_forward_pressure_aftershock_condenser_outlet_state() -> void:
@@ -17875,6 +18915,7 @@ func _process_factory_tailrace_underground_breach_contact() -> void:
 func _sync_lower_deck_forward_pressure_exit_gate_state() -> void:
 	if _lower_deck_forward_pressure_exit_gate == null:
 		return
+	var gate_available: bool = _is_lower_deck_forward_pressure_exit_gate_available()
 	var gate_visible: bool = (
 		_lower_deck_forward_pressure_exit_relay_activated
 		or _lower_deck_forward_pressure_exit_gate_opened
@@ -17883,13 +18924,18 @@ func _sync_lower_deck_forward_pressure_exit_gate_state() -> void:
 	if _lower_deck_forward_pressure_exit_gate.has_method("set_available"):
 		_lower_deck_forward_pressure_exit_gate.call(
 			"set_available",
-			_is_lower_deck_forward_pressure_exit_gate_available()
+			gate_available
 		)
 	if _lower_deck_forward_pressure_exit_gate.has_method("set_activated"):
 		_lower_deck_forward_pressure_exit_gate.call(
 			"set_activated",
 			_lower_deck_forward_pressure_exit_gate_opened
 		)
+	var prompt_label := (
+		_lower_deck_forward_pressure_exit_gate.get_node_or_null("PromptLabel") as Label
+	)
+	if prompt_label != null:
+		prompt_label.visible = gate_available
 	_set_lower_deck_forward_pressure_exit_gate_collision_blocking(
 		gate_visible and not _lower_deck_forward_pressure_exit_gate_opened
 	)
@@ -17958,7 +19004,7 @@ func _sync_service_lift_state() -> void:
 
 
 func _update_route_label(text_value: String) -> void:
-	var route_label := get_node_or_null("RouteLabel") as Label
+	var route_label := get_node_or_null("RouteHud/RouteLabel") as Label
 	if route_label == null:
 		return
 	route_label.text = text_value
@@ -20940,6 +21986,7 @@ func _is_factory_steam_hazard_id(hazard_id: StringName) -> bool:
 			or hazard_id == &"old_factory_lower_deck_post_relay_trial"
 			or hazard_id == &"old_factory_lower_deck_forward_conduit"
 			or hazard_id == &"old_factory_lower_deck_forward_pressure_traverse"
+			or hazard_id == FACTORY_LOWER_DECK_FORWARD_COUNTER_AMBUSH_HAZARD_ID
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_EXIT_GUARD_HAZARD_ID
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_HAZARD_ID
 			or hazard_id == FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_FLANK_HAZARD_ID
@@ -24389,7 +25436,7 @@ func _get_spark_rat_distance_to_provider(provider: Node) -> float:
 
 
 func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
-	for guard: Node in [
+	for guard_value: Variant in [
 		_enemy,
 		_deep_guard,
 		_spark_rat,
@@ -24438,11 +25485,10 @@ func _get_factory_enemy_by_entity_id(target_id: int) -> Node:
 						_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_coil_rat,
 						_factory_tailrace_exit_sluice_leech,
 					]:
-		if (
-			guard == null
-			or not is_instance_valid(guard)
-			or not guard.has_method("get_entity_id")
-		):
+		if guard_value == null or not is_instance_valid(guard_value):
+			continue
+		var guard := guard_value as Node
+		if guard == null or not guard.has_method("get_entity_id"):
 			continue
 		if int(guard.call("get_entity_id")) == target_id:
 			return guard
@@ -25460,6 +26506,21 @@ func _is_lower_deck_forward_pressure_aftershock_exhaust_flank_contact_active() -
 	return _is_lower_deck_forward_pressure_aftershock_exhaust_flank_active()
 
 
+func _is_lower_deck_forward_pressure_aftershock_exhaust_breaker_contact_active() -> bool:
+	return (
+		_is_lower_deck_forward_pressure_aftershock_exhaust_breaker_stand_active()
+		and _get_lower_deck_forward_pressure_aftershock_exhaust_breaker_phase() == &"active"
+	)
+
+
+func _get_lower_deck_forward_pressure_aftershock_exhaust_breaker_phase() -> StringName:
+	if not _is_lower_deck_forward_pressure_aftershock_exhaust_breaker_stand_active():
+		return &"idle"
+	if _lower_deck_forward_pressure_aftershock_exhaust_breaker_warning_frames_remaining > 0:
+		return &"warning"
+	return &"active"
+
+
 func _is_lower_deck_forward_pressure_aftershock_cooling_duct_contact_active() -> bool:
 	return (
 		_is_lower_deck_forward_pressure_aftershock_cooling_duct_active()
@@ -25926,165 +26987,476 @@ func _try_auto_activate_checkpoint_overdrive_duo() -> void:
 	try_activate_factory_checkpoint_overdrive_duo(_player)
 
 
-func _try_auto_activate_forward_pressure_beacon_ambush() -> void:
+func _try_auto_activate_forward_pressure_beacon_ambush(was_available: bool) -> void:
 	if (
-		_lower_deck_forward_pressure_beacon_ambush_activated
+		not was_available
+		or not _lower_deck_forward_pressure_beacon_ambush_player_x_initialized
+		or _lower_deck_forward_pressure_beacon_ambush_activated
 		or _lower_deck_forward_pressure_beacon_ambush_defeated
 	):
 		return
-	if not _lower_deck_forward_pressure_route_handoff_marker_lit:
+	if _player == null or not _lower_deck_forward_pressure_route_handoff_marker_lit:
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_beacon_ambush_previous_player_x
+		or current_player_x < FACTORY_LOWER_DECK_FORWARD_BEACON_AMBUSH_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_beacon_ambush(_player)
 
 
-func _try_auto_activate_forward_pressure_overrun() -> void:
+func _track_lower_deck_forward_pressure_beacon_ambush_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_beacon_ambush_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_beacon_ambush_player_x_initialized = true
+
+
+func _try_auto_activate_forward_pressure_overrun(was_available: bool) -> void:
+	if _lower_deck_forward_pressure_overrun_clear_frame_pending:
+		_lower_deck_forward_pressure_overrun_clear_frame_pending = false
+		return
 	if (
-		_lower_deck_forward_pressure_overrun_activated
+		not was_available
+		or not _lower_deck_forward_pressure_overrun_player_x_initialized
+		or _lower_deck_forward_pressure_overrun_activated
 		or _lower_deck_forward_pressure_overrun_defeated
 	):
 		return
-	if not _lower_deck_forward_pressure_beacon_ambush_defeated:
+	if _player == null or not _lower_deck_forward_pressure_beacon_ambush_defeated:
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x <= _lower_deck_forward_pressure_overrun_previous_player_x
+		or current_player_x < FACTORY_LOWER_DECK_FORWARD_OVERRUN_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_overrun(_player)
 
 
-func _try_auto_activate_forward_pressure_breaker() -> void:
+func _track_lower_deck_forward_pressure_overrun_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_overrun_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_overrun_player_x_initialized = true
+
+
+func _try_auto_activate_forward_pressure_breaker(was_available: bool) -> void:
+	if _lower_deck_forward_pressure_breaker_clear_frame_pending:
+		_lower_deck_forward_pressure_breaker_clear_frame_pending = false
+		return
 	if (
-		_lower_deck_forward_pressure_breaker_activated
+		not was_available
+		or not _lower_deck_forward_pressure_breaker_player_x_initialized
+		or _lower_deck_forward_pressure_breaker_activated
 		or _lower_deck_forward_pressure_breaker_secured
 	):
 		return
-	if not _lower_deck_forward_pressure_overrun_defeated:
+	if _player == null or not _lower_deck_forward_pressure_overrun_defeated:
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x <= _lower_deck_forward_pressure_breaker_previous_player_x
+		or current_player_x < FACTORY_LOWER_DECK_FORWARD_BREAKER_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_breaker_stand(_player)
 
 
-func _try_auto_activate_forward_pressure_relief_ambush() -> void:
+func _track_lower_deck_forward_pressure_breaker_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_breaker_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_breaker_player_x_initialized = true
+
+
+func _try_auto_activate_forward_pressure_relief_ambush(was_available: bool) -> void:
+	if _lower_deck_forward_pressure_relief_ambush_clear_frame_pending:
+		_lower_deck_forward_pressure_relief_ambush_clear_frame_pending = false
+		return
 	if (
-		_lower_deck_forward_pressure_relief_ambush_activated
+		not was_available
+		or not _lower_deck_forward_pressure_relief_ambush_player_x_initialized
+		or _lower_deck_forward_pressure_relief_ambush_activated
 		or _lower_deck_forward_pressure_relief_ambush_defeated
 	):
 		return
-	if not _lower_deck_forward_pressure_breaker_cut:
+	if _player == null or not _lower_deck_forward_pressure_breaker_cut:
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x <= _lower_deck_forward_pressure_relief_ambush_previous_player_x
+		or current_player_x < FACTORY_LOWER_DECK_FORWARD_RELIEF_AMBUSH_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_relief_ambush(_player)
 
 
-func _try_auto_activate_forward_pressure_coil_rat_breakthrough() -> void:
+func _track_lower_deck_forward_pressure_relief_ambush_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_relief_ambush_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_relief_ambush_player_x_initialized = true
+
+
+func _try_auto_activate_forward_pressure_coil_rat_breakthrough(
+		was_available: bool
+) -> void:
+	if _lower_deck_forward_pressure_coil_rat_clear_frame_pending:
+		_lower_deck_forward_pressure_coil_rat_clear_frame_pending = false
+		return
 	if (
-		_lower_deck_forward_pressure_coil_rat_activated
+		not was_available
+		or not _lower_deck_forward_pressure_coil_rat_player_x_initialized
+		or _lower_deck_forward_pressure_coil_rat_activated
 		or _lower_deck_forward_pressure_coil_rat_defeated
 	):
 		return
-	if not _lower_deck_forward_pressure_relief_ambush_defeated:
+	if _player == null or not _lower_deck_forward_pressure_relief_ambush_defeated:
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x <= _lower_deck_forward_pressure_coil_rat_previous_player_x
+		or current_player_x < FACTORY_LOWER_DECK_FORWARD_COIL_RAT_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_coil_rat_breakthrough(_player)
 
 
-func _try_auto_activate_forward_pressure_coil_pincer() -> void:
+func _track_lower_deck_forward_pressure_coil_rat_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_coil_rat_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_coil_rat_player_x_initialized = true
+
+
+func _try_auto_activate_forward_pressure_coil_pincer(was_available: bool) -> void:
+	if _lower_deck_forward_pressure_coil_pincer_clear_frame_pending:
+		_lower_deck_forward_pressure_coil_pincer_clear_frame_pending = false
+		return
 	if (
-		_lower_deck_forward_pressure_coil_pincer_activated
+		not was_available
+		or not _lower_deck_forward_pressure_coil_pincer_player_x_initialized
+		or _lower_deck_forward_pressure_coil_pincer_activated
 		or _is_lower_deck_forward_pressure_coil_pincer_cleared()
 	):
 		return
-	if not _lower_deck_forward_pressure_coil_rat_defeated:
+	if _player == null or not _lower_deck_forward_pressure_coil_rat_defeated:
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x <= _lower_deck_forward_pressure_coil_pincer_previous_player_x
+		or current_player_x < FACTORY_LOWER_DECK_FORWARD_COIL_PINCER_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_coil_pincer(_player)
 
 
-func _try_auto_activate_forward_pressure_coil_aftershock() -> void:
+func _track_lower_deck_forward_pressure_coil_pincer_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_coil_pincer_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_coil_pincer_player_x_initialized = true
+
+
+func _try_auto_activate_forward_pressure_coil_aftershock(was_available: bool) -> void:
+	if _lower_deck_forward_pressure_coil_aftershock_clear_frame_pending:
+		_lower_deck_forward_pressure_coil_aftershock_clear_frame_pending = false
+		return
 	if (
-		_lower_deck_forward_pressure_coil_aftershock_activated
+		not was_available
+		or not _lower_deck_forward_pressure_coil_aftershock_player_x_initialized
+		or _lower_deck_forward_pressure_coil_aftershock_activated
 		or _lower_deck_forward_pressure_coil_aftershock_defeated
 	):
 		return
-	if not _is_lower_deck_forward_pressure_coil_pincer_cleared():
+	if _player == null or not _is_lower_deck_forward_pressure_coil_pincer_cleared():
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_coil_aftershock_previous_player_x
+		or current_player_x < FACTORY_LOWER_DECK_FORWARD_COIL_AFTERSHOCK_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_coil_aftershock(_player)
 
 
-func _try_auto_activate_forward_pressure_aftershock_exit_skirmish() -> void:
+func _track_lower_deck_forward_pressure_coil_aftershock_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_coil_aftershock_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_coil_aftershock_player_x_initialized = true
+
+
+func _try_auto_activate_forward_pressure_aftershock_exit_skirmish(
+		was_available: bool
+) -> void:
+	if _lower_deck_forward_pressure_aftershock_exit_skirmish_activation_frame_pending:
+		_lower_deck_forward_pressure_aftershock_exit_skirmish_activation_frame_pending = (
+			false
+		)
+		return
 	if (
-		_lower_deck_forward_pressure_aftershock_exit_skirmish_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_exit_skirmish_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_exit_skirmish_activated
 		or _is_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared()
 	):
 		return
-	if not _lower_deck_forward_pressure_aftershock_reward_cache_claimed:
+	if _player == null or not _lower_deck_forward_pressure_aftershock_reward_cache_claimed:
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_exit_skirmish_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXIT_SKIRMISH_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_exit_skirmish(_player)
 
 
-func _try_auto_activate_forward_pressure_aftershock_exhaust() -> void:
+func _track_lower_deck_forward_pressure_aftershock_exit_skirmish_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_exit_skirmish_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_exit_skirmish_player_x_initialized = true
+
+
+func _try_auto_activate_forward_pressure_aftershock_exhaust(
+		was_available: bool
+) -> void:
+	if _lower_deck_forward_pressure_aftershock_exhaust_clear_frame_pending:
+		_lower_deck_forward_pressure_aftershock_exhaust_clear_frame_pending = false
+		return
 	if (
-		_lower_deck_forward_pressure_aftershock_exhaust_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_exhaust_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_exhaust_activated
 		or _lower_deck_forward_pressure_aftershock_exhaust_crossed
 	):
 		return
-	if not _is_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared():
+	if _player == null or not _is_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared():
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_exhaust_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust(_player)
 
 
-func _try_auto_activate_forward_pressure_aftershock_exhaust_pursuer() -> void:
+func _track_lower_deck_forward_pressure_aftershock_exhaust_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_exhaust_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_exhaust_player_x_initialized = true
+
+
+func _try_auto_activate_forward_pressure_aftershock_exhaust_pursuer(
+		was_available: bool
+) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_exhaust_pursuer_activated
+		not was_available
+		or not (
+			_lower_deck_forward_pressure_aftershock_exhaust_pursuer_player_x_initialized
+		)
+		or _lower_deck_forward_pressure_aftershock_exhaust_pursuer_activated
 		or _lower_deck_forward_pressure_aftershock_exhaust_pursuer_defeated
 	):
 		return
-	if not _lower_deck_forward_pressure_aftershock_exhaust_crossed:
+	if _player == null or not _lower_deck_forward_pressure_aftershock_exhaust_crossed:
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_exhaust_pursuer_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_PURSUER_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer(_player)
 
 
-func _try_auto_activate_forward_pressure_aftershock_exhaust_flank() -> void:
+func _track_lower_deck_forward_pressure_aftershock_exhaust_pursuer_player_x(
+) -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_exhaust_pursuer_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_exhaust_pursuer_player_x_initialized = (
+		true
+	)
+
+
+func _try_auto_activate_forward_pressure_aftershock_exhaust_flank(
+		was_available: bool
+) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_exhaust_flank_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_exhaust_flank_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_exhaust_flank_activated
 		or _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated
 	):
 		return
-	if not _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed:
+	if (
+		_player == null
+		or not _lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_exhaust_flank_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_FLANK_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush(
 		_player
 	)
 
 
-func _try_auto_activate_forward_pressure_aftershock_exhaust_breaker() -> void:
+func _track_lower_deck_forward_pressure_aftershock_exhaust_flank_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_exhaust_flank_player_x_initialized = true
+
+
+func _try_auto_activate_forward_pressure_aftershock_exhaust_breaker(
+		was_available: bool
+) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_exhaust_breaker_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_exhaust_breaker_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_exhaust_breaker_activated
 		or _lower_deck_forward_pressure_aftershock_exhaust_breaker_secured
 		or _lower_deck_forward_pressure_aftershock_exhaust_breaker_cut
 	):
 		return
-	if not _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated:
+	if (
+		_player == null
+		or not _lower_deck_forward_pressure_aftershock_exhaust_flank_spark_rat_defeated
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_exhaust_breaker_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_BREAKER_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_stand(
 		_player
 	)
 
 
-func _try_auto_activate_forward_pressure_aftershock_exhaust_escape_skirmish() -> void:
+func _track_lower_deck_forward_pressure_aftershock_exhaust_breaker_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_exhaust_breaker_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_exhaust_breaker_player_x_initialized = true
+
+
+func _try_auto_activate_forward_pressure_aftershock_exhaust_escape_skirmish(
+		was_available: bool
+) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_exhaust_escape_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_activated
 		or _is_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_cleared()
 	):
 		return
-	if not _lower_deck_forward_pressure_aftershock_exhaust_breaker_cut:
+	if _player == null or not _lower_deck_forward_pressure_aftershock_exhaust_breaker_cut:
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_exhaust_escape_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_EXHAUST_ESCAPE_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish(
 		_player
 	)
 
 
-func _try_auto_activate_forward_pressure_aftershock_cooling_duct() -> void:
+func _track_lower_deck_forward_pressure_aftershock_exhaust_escape_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_exhaust_escape_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_exhaust_escape_player_x_initialized = true
+
+
+func _try_auto_activate_forward_pressure_aftershock_cooling_duct(
+	was_available: bool
+) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_cooling_duct_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_cooling_duct_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_cooling_duct_activated
 		or _lower_deck_forward_pressure_aftershock_cooling_duct_crossed
 	):
 		return
-	if not _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened:
+	if (
+		_player == null
+		or not _lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_cooling_duct_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_COOLING_DUCT_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_cooling_duct(_player)
+
+
+func _track_lower_deck_forward_pressure_aftershock_cooling_duct_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_cooling_duct_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_cooling_duct_player_x_initialized = true
 
 
 func _try_auto_complete_forward_pressure_aftershock_cooling_duct() -> void:
@@ -26093,28 +27465,76 @@ func _try_auto_complete_forward_pressure_aftershock_cooling_duct() -> void:
 	try_complete_factory_lower_deck_forward_pressure_aftershock_cooling_duct(_player)
 
 
-func _try_auto_activate_forward_pressure_aftershock_condenser_valve() -> void:
+func _try_auto_activate_forward_pressure_aftershock_condenser_valve(
+	was_available: bool
+) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_valve_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_valve_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_valve_activated
 		or _is_lower_deck_forward_pressure_aftershock_condenser_valve_cleared()
 	):
 		return
-	if not _lower_deck_forward_pressure_aftershock_cooling_duct_crossed:
+	if (
+		_player == null
+		or not _lower_deck_forward_pressure_aftershock_cooling_duct_crossed
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_valve_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_valve(_player)
 
 
-func _auto_activate_condenser_outlet() -> void:
+func _track_lower_deck_forward_pressure_aftershock_condenser_valve_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_valve_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_valve_player_x_initialized = true
+
+
+func _auto_activate_condenser_outlet(was_available: bool) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_outlet_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_outlet_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_outlet_activated
 		or _lower_deck_forward_pressure_aftershock_condenser_outlet_crossed
 	):
 		return
-	if not _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated:
+	if (
+		not _lower_deck_forward_pressure_aftershock_condenser_savepoint_activated
+		or _player == null
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_outlet_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_outlet(
 		_player
 	)
+
+
+func _track_lower_deck_forward_pressure_aftershock_condenser_outlet_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_outlet_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_outlet_player_x_initialized = true
 
 
 func _auto_complete_condenser_outlet() -> void:
@@ -26124,37 +27544,98 @@ func _auto_complete_condenser_outlet() -> void:
 
 
 func _try_auto_activate_forward_pressure_aftershock_condenser_outlet() -> void:
-	_auto_activate_condenser_outlet()
+	_auto_activate_condenser_outlet(
+		_is_lower_deck_forward_pressure_aftershock_condenser_outlet_available()
+	)
 
 
 func _try_auto_complete_forward_pressure_aftershock_condenser_outlet() -> void:
 	_auto_complete_condenser_outlet()
 
 
-func _auto_activate_outlet_clamp_ambush() -> void:
+func _auto_activate_outlet_clamp_ambush(was_available: bool) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush_activated
 		or _is_outlet_clamp_ambush_cleared()
 	):
 		return
-	if not _lower_deck_forward_pressure_aftershock_condenser_outlet_crossed:
+	if (
+		_player == null
+		or not _player is Node2D
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OUTLET_CLAMP_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush(
 		_player
 	)
 
 
-func _auto_activate_outlet_drip_vent() -> void:
+func _track_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_player_x_initialized = true
+
+
+func _auto_activate_outlet_drip_vent(was_available: bool) -> void:
+	if _lower_deck_forward_pressure_aftershock_condenser_drip_vent_clear_frame_pending:
+		_lower_deck_forward_pressure_aftershock_condenser_drip_vent_clear_frame_pending = false
+		return
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_drip_vent_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_drip_vent_activated
 		or _lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed
 	):
 		return
-	if not _is_outlet_clamp_ambush_cleared():
+	if (
+		_player == null
+		or not _player is Node2D
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_drip_vent_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_DRIP_VENT_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_outlet_drip_vent(
 		_player
 	)
+
+
+func _prepare_outlet_drip_vent_handoff() -> void:
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_clear_frame_pending = true
+	if _player == null or not _player is Node2D:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_player_x_initialized = true
+
+
+func _track_lower_deck_forward_pressure_aftershock_condenser_drip_vent_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_drip_vent_player_x_initialized = true
 
 
 func _auto_complete_outlet_drip_vent() -> void:
@@ -26165,43 +27646,173 @@ func _auto_complete_outlet_drip_vent() -> void:
 	)
 
 
-func _auto_activate_overflow_pump() -> void:
+func _auto_activate_overflow_pump(was_available: bool) -> void:
+	if _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_clear_frame_pending:
+		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_clear_frame_pending = false
+		return
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_activated
 		or _is_overflow_pump_cleared()
 	):
 		return
-	if not _lower_deck_forward_pressure_aftershock_condenser_drip_vent_crossed:
+	if (
+		_player == null
+		or not _player is Node2D
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump(
 		_player
 	)
 
 
-func _auto_activate_overflow_pump_runoff_exit_skirmish() -> void:
+func _prepare_overflow_pump_handoff() -> void:
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_clear_frame_pending = true
+	if _player == null or not _player is Node2D:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_player_x_initialized = true
+
+
+func _track_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_player_x() -> void:
+	if _player == null:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_player_x_initialized = true
+
+
+func _auto_activate_overflow_pump_runoff_duct(was_available: bool) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_activated
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed
+	):
+		return
+	if (
+		_player == null
+		or not _player is Node2D
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_DUCT_ACTIVATION_X
+	):
+		return
+	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct(
+		_player
+	)
+
+
+func _track_overflow_pump_runoff_duct_player_x() -> void:
+	if _player == null or not _player is Node2D:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_player_x_initialized = true
+
+
+func _auto_complete_overflow_pump_runoff_duct() -> void:
+	if not _is_overflow_pump_runoff_duct_active():
+		return
+	try_complete_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct(
+		_player
+	)
+
+
+func _auto_activate_overflow_pump_runoff_exit_skirmish(was_available: bool) -> void:
+	if (
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_activated
 		or _is_overflow_pump_runoff_exit_skirmish_cleared()
 	):
 		return
 	if not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed:
+		return
+	if (
+		_player == null
+		or not _player is Node2D
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x := (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_EXIT_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish(
 		_player
 	)
 
 
-func _auto_activate_overflow_pump_runoff_outlet() -> void:
+func _track_overflow_pump_runoff_exit_skirmish_player_x() -> void:
+	if _player == null or not _player is Node2D:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_player_x_initialized = true
+
+
+func _auto_activate_overflow_pump_runoff_outlet(was_available: bool) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_activated
 		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed
 	):
 		return
 	if not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_gate_opened:
 		return
+	if (
+		_player == null
+		or not _player is Node2D
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x := (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_ACTIVATION_X
+	):
+		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet(
 		_player
 	)
+
+
+func _track_overflow_pump_runoff_outlet_player_x() -> void:
+	if _player == null or not _player is Node2D:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_player_x_initialized = true
 
 
 func _auto_complete_overflow_pump_runoff_outlet() -> void:
@@ -26212,26 +27823,68 @@ func _auto_complete_overflow_pump_runoff_outlet() -> void:
 	)
 
 
-func _auto_activate_overflow_pump_runoff_outlet_skirmish() -> void:
+func _auto_activate_overflow_pump_runoff_outlet_skirmish(was_available: bool) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_activated
 		or _is_overflow_pump_runoff_outlet_skirmish_cleared()
 	):
 		return
 	if not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_crossed:
+		return
+	if (
+		_player == null
+		or not _player is Node2D
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x := (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SKIRMISH_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish(
 		_player
 	)
 
 
-func _auto_activate_overflow_pump_runoff_outlet_service_sluice() -> void:
+func _track_overflow_pump_runoff_outlet_skirmish_player_x() -> void:
+	if _player == null or not _player is Node2D:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_skirmish_player_x_initialized = true
+
+
+func _auto_activate_overflow_pump_runoff_outlet_service_sluice(
+	was_available: bool
+) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_activated
 		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_crossed
 	):
 		return
-	if not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_hatch_opened:
+	if (
+		_player == null
+		or not _player is Node2D
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_hatch_opened
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_ACTIVATION_X
+	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice(
 		_player
@@ -26241,19 +27894,55 @@ func _auto_activate_overflow_pump_runoff_outlet_service_sluice() -> void:
 func _auto_complete_overflow_pump_runoff_outlet_service_sluice() -> void:
 	if not _is_overflow_pump_runoff_outlet_service_sluice_active():
 		return
+	if (
+		_player == null
+		or not _player is Node2D
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_previous_player_x
+	):
+		return
 	try_complete_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice(
 		_player
 	)
 
 
-func _auto_activate_overflow_pump_runoff_outlet_service_sluice_skirmish() -> void:
+func _track_overflow_pump_runoff_outlet_service_sluice_player_x() -> void:
+	if _player == null or not _player is Node2D:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_player_x_initialized = true
+
+
+func _auto_activate_overflow_pump_runoff_outlet_service_sluice_skirmish(
+	was_available: bool
+) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_activated
 		or _is_overflow_pump_runoff_outlet_service_sluice_skirmish_cleared()
 	):
 		return
 	if (
-		not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_crossed
+		_player == null
+		or not _player is Node2D
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_crossed
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_SKIRMISH_ACTIVATION_X
 	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish(
@@ -26261,14 +27950,38 @@ func _auto_activate_overflow_pump_runoff_outlet_service_sluice_skirmish() -> voi
 	)
 
 
-func _auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace() -> void:
+func _track_overflow_pump_runoff_outlet_service_sluice_skirmish_player_x() -> void:
+	if _player == null or not _player is Node2D:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_skirmish_player_x_initialized = true
+
+
+func _auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace(
+	was_available: bool
+) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_activated
 		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_crossed
 	):
 		return
 	if (
-		not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened
+		_player == null
+		or not _player is Node2D
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_exit_hatch_opened
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_ACTIVATION_X
 	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace(
@@ -26276,8 +27989,31 @@ func _auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace() -> voi
 	)
 
 
+func _track_overflow_pump_runoff_outlet_service_sluice_tailrace_player_x(
+) -> void:
+	if _player == null or not _player is Node2D:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_player_x_initialized = true
+
+
 func _auto_complete_overflow_pump_runoff_outlet_service_sluice_tailrace() -> void:
 	if not _is_overflow_pump_runoff_outlet_service_sluice_tailrace_active():
+		return
+	if (
+		_player == null
+		or not _player is Node2D
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_player_x_initialized
+		or current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_previous_player_x
+	):
 		return
 	try_complete_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace(
 		_player
@@ -26285,19 +28021,43 @@ func _auto_complete_overflow_pump_runoff_outlet_service_sluice_tailrace() -> voi
 
 
 func _auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush(
+	was_available: bool
 ) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_player_x_initialized
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_activated
 		or _is_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_cleared()
 	):
 		return
 	if (
-		not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_crossed
+		_player == null
+		or not _player is Node2D
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_crossed
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_AMBUSH_ACTIVATION_X
 	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush(
 		_player
 	)
+
+
+func _track_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_player_x(
+) -> void:
+	if _player == null or not _player is Node2D:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_player_x_initialized = true
 
 
 func _auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff(

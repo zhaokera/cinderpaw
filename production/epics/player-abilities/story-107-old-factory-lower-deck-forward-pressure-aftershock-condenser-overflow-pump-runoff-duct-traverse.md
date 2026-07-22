@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -42,6 +42,9 @@ active pressure windows before the crossed state persists.
   limit right `7680`.
 - [x] Activation at x `7160` starts the traversal once, advances route feedback
   to `Cross Overflow Pump Runoff Duct`, and begins in `grace` phase.
+- [x] Production activation requires Story107 availability at frame start,
+  held `move_right` and fresh positive x movement; hatch-open same-frame input,
+  stationary frames and no-input displacement do not activate it.
 - [x] Deterministic time advance cycles `grace -> warning -> active -> safe`;
   only `active` enables contact.
 - [x] Active-phase contact applies `8` steam damage with cooldown `1.0` and
@@ -53,13 +56,15 @@ active pressure windows before the crossed state persists.
   `factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_duct_crossed=true`,
   disables contact, keeps the duct visible, and advances route feedback to
   `Overflow Pump Runoff Duct Crossed`.
+- [x] Production `_process(delta)` advances the cycle and completion once per
+  frame. The crossing frame reveals Story108 without activating it.
 - [x] Restoring crossed state keeps the Story106 hatch opened/unblocked,
   prevents cache/hatch replay, and leaves `FactoryServiceLift` prompt at
   `Call lift`.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1, including scene reload, runtime helper,
-  duct/vent diagnostics, active-window damage, persistence, current-run logs,
-  and a non-empty runtime screenshot.
+  under Godot 4.7, including current Godot AI MCP 3.0.4 production movement,
+  duct/vent diagnostics, active-window physical damage, crossing persistence,
+  downstream isolation, current-run logs, and non-empty runtime screenshots.
 
 ## Out of Scope
 
@@ -115,6 +120,14 @@ existing route floor tiling.
   registration, editor log since current-run cursor empty, active-window damage
   `100 -> 92`, correct hazard source id, crossed local-state persistence, and a
   non-empty `960x539` game screenshot showing the runoff duct and steam vent.
+- Story220 production integration:
+  canonical RED `reports/report_2335/results.xml`, focused GREEN
+  `reports/report_2337/results.xml`, and final related
+  `reports/report_2339/results.xml` (`13/13`) cover real-input activation,
+  production timing/contact and crossing. MCP 3.0.4 session `cinderpaw@198e`
+  observed no-input x `7164` idle, real movement x `7154 -> 7195.33` into
+  `grace`, physical HP `100 -> 92`, safe contact shutdown, and real movement x
+  `7554 -> 7586.33` into crossed while Story108 stayed inactive/hidden.
 
 ## Dependencies
 
@@ -128,3 +141,7 @@ Story107 followed thin TDD: focused RED `reports/report_1286/` failed before
 runtime support existed, focused GREEN `reports/report_1287/` passed `2/2`, and
 related GREEN `reports/report_1288/` passed `9/9`. Headless smoke exited `0`.
 Godot MCP runtime validation passed under Godot 4.7 and Godot AI MCP 2.9.1.
+
+Story220 adds current production `_process`, movement, physical-contact and
+same-frame handoff coverage under MCP 3.0.4 without changing Story107's authored
+timings, damage or persisted flags.

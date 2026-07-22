@@ -166,6 +166,7 @@ func request_attack(pattern_id: StringName = &"") -> bool:
 		return false
 	_current_pattern_id = selected_id
 	_face_attack_target()
+	velocity = Vector2.ZERO
 	_attack_sequence_id += 1
 	_attack_timer = _current_pattern_int("startup_frames", 1)
 	_attack_cooldown_timer = 0
@@ -394,6 +395,9 @@ func get_attack_diagnostics() -> Dictionary:
 		"defeated": _defeated,
 		"autonomous_attacks_enabled": _autonomous_attacks_enabled,
 		"locomotion_state": "approach" if _state == State.APPROACH else "idle",
+		"target_distance_px": _target_distance_px(),
+		"attack_commit_distance_px": APPROACH_STOP_DISTANCE_PX,
+		"velocity_x": velocity.x,
 		"arena_anchor_position": _arena_anchor_position,
 	}
 
@@ -404,7 +408,6 @@ func _process_idle() -> void:
 	_play_animation(ANIMATION_IDLE)
 	if (
 		_autonomous_attacks_enabled
-		and _attack_cooldown_timer > 0
 		and _should_approach_target()
 	):
 		_state = State.APPROACH
@@ -421,12 +424,18 @@ func _process_idle() -> void:
 func _process_approach() -> void:
 	if (
 		not _autonomous_attacks_enabled
-		or _attack_cooldown_timer <= 0
-		or not _should_approach_target()
+		or not _has_valid_attack_target()
 	):
 		_state = State.IDLE
 		velocity = Vector2.ZERO
 		_play_animation(ANIMATION_IDLE, true)
+		return
+	if not _should_approach_target():
+		_state = State.IDLE
+		velocity = Vector2.ZERO
+		_play_animation(ANIMATION_IDLE, true)
+		if _attack_cooldown_timer <= 0:
+			request_attack()
 		return
 	_face_attack_target()
 	var start_x: float = global_position.x
@@ -443,9 +452,15 @@ func _process_approach() -> void:
 func _should_approach_target() -> bool:
 	return (
 		_has_valid_attack_target()
-		and absf(
-			(_attack_target as Node2D).global_position.x - global_position.x
-		) > APPROACH_STOP_DISTANCE_PX
+		and _target_distance_px() > APPROACH_STOP_DISTANCE_PX
+	)
+
+
+func _target_distance_px() -> float:
+	if not _has_valid_attack_target():
+		return -1.0
+	return absf(
+		(_attack_target as Node2D).global_position.x - global_position.x
 	)
 
 
@@ -584,6 +599,7 @@ func _on_core_hp_changed(_entity_id: int, current_hp: int, max_hp: int) -> void:
 		_sprite.modulate = HIT_MODULATE
 	if _is_attack_chain_active():
 		return
+	velocity = Vector2.ZERO
 	_hit_timer = HIT_FLASH_FRAMES
 	_state = State.HIT
 	_play_animation(ANIMATION_HURT, true)

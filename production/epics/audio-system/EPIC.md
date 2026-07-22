@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/audio-system.md
 > **Architecture Module**: AudioSystem
 > **Status**: In Progress
-> **Stories**: 10 stories tracked
+> **Stories**: 11 stories tracked
 
 ## Overview
 
@@ -49,6 +49,7 @@ calls without pushing logic back into Core.
 | 008 | Music + Ambience Asset Import Baseline | Integration | Complete | ADR-0010 |
 | 009 | Boss2 Authored Audio Feedback Runtime | Integration + Audio/Feel | Complete | ADR-0010, ADR-0002 |
 | 010 | Focus Damage Low-HP Final Mix | Integration + Audio/Feel + Config/Data | Complete | ADR-0010, ADR-0019, ADR-0002 |
+| 011 | Player Death / Revive Audio State | Integration + Audio/Feel | Complete | ADR-0010, ADR-0002 |
 
 ## Definition of Done
 
@@ -75,6 +76,9 @@ This epic is complete when:
 - The low-HP focus damage cue uses a traced, objectively darker 0.38s final mix
   with reinforced low frequency, a damped tail, stable cue routing, and Godot
   runtime import evidence.
+- Player death enters `DEATH`, requests the dedicated landing/silence/string
+  cue once, and revive requests the dedicated feline-return cue once while
+  restoring the prior audio state and active mix through existing fade APIs.
 - Same-SFX requests within 100ms merge into the active voice with a 20% linear
   volume boost.
 - Combat, health, scene, UI, and boss event adapters are wired and covered.
@@ -83,7 +87,7 @@ This epic is complete when:
 
 ## Next Step
 
-Audio System Story 010 is complete. Next recommended work is replacing the
-remaining generic baselines, Boss2 music/phase mix, DEATH/CUTSCENE state
-completion, area cue expansion, human listening sign-off, and broader mix
-polish.
+Audio System Story 011 completes the player `DEATH` lifecycle and dedicated
+death/revive cues. Next recommended work is `CUTSCENE` state completion,
+remaining generic baseline replacement, Boss2/Boss3 music expansion, area cue
+coverage, human listening sign-off and broader mix polish.

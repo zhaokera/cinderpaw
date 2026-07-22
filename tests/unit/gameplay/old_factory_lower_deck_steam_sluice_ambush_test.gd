@@ -129,6 +129,7 @@ func test_steam_sluice_clear_persists_without_replaying_pressure_valve_chain() -
 		999,
 		{"source": &"unit_test_steam_sluice"}
 	)).is_true()
+	player.global_position.x = float(before.get("activation_x", 0.0))
 	await get_tree().process_frame
 
 	var cleared: Dictionary = destination.call("get_factory_lower_deck_steam_sluice_diagnostics")

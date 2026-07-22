@@ -153,8 +153,18 @@ func test_aftershock_exhaust_pursuer_defeat_persists_without_replaying_chain() -
 		return
 
 	var player: Node2D = destination.get_node_or_null(FACTORY_PLAYER_NAME) as Node2D
+	var pursuer := destination.get_node_or_null(
+		"FactoryLowerDeckForwardPressureAftershockExhaustPursuerCoilRat"
+	) as CharacterBody2D
 	assert_that(player).is_not_null()
-	if player == null:
+	assert_that(pursuer).is_not_null()
+	if player == null or pursuer == null:
+		return
+	var pursuer_collision := pursuer.call(
+		"get_collision_component"
+	) as CollisionComponent
+	assert_that(pursuer_collision).is_not_null()
+	if pursuer_collision == null:
 		return
 
 	var ready: Dictionary = destination.call(
@@ -176,8 +186,16 @@ func test_aftershock_exhaust_pursuer_defeat_persists_without_replaying_chain() -
 	)
 	assert_bool(bool(cleared.get("active", true))).is_false()
 	assert_bool(bool(cleared.get("cleared", false))).is_true()
-	assert_bool(bool(cleared.get("coil_visible", true))).is_false()
+	assert_bool(bool(cleared.get("coil_visible", false))).is_true()
+	assert_bool(bool(cleared.get("coil_process_enabled", false))).is_true()
 	assert_bool(bool(cleared.get("coil_physics_enabled", true))).is_false()
+	assert_bool(bool(cleared.get("coil_has_target", true))).is_false()
+	assert_str(String((pursuer.get_node("Sprite") as AnimatedSprite2D).animation)).is_equal(
+		"death"
+	)
+	assert_str(String(pursuer_collision.get_hurtbox_state())).is_equal(
+		String(CollisionComponent.HURTBOX_STATE_GONE)
+	)
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
 		"Forward Pressure Exhaust Pursuer Cleared"
 	)

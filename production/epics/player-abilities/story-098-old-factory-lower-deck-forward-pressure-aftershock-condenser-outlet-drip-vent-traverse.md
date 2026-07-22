@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-09
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -47,6 +47,9 @@ drip vent hazard.
 - [x] Crossing the activation point starts the traverse, advances route feedback
   to `Cross Outlet Drip Vent`, and cycles deterministic `grace -> warning ->
   active -> safe` phases.
+- [x] Production auto-activation requires Story098 to be available at frame
+  start, held `move_right`, and fresh positive x movement; Story097's killing
+  frame and a stationary follow-up cannot consume the traverse.
 - [x] Only the active phase enables contact damage; the grace/warning/safe phases
   show the vent but reject contact damage.
 - [x] Crossing the exit point persists
@@ -57,10 +60,10 @@ drip vent hazard.
   Story097 intact without replaying them; the service lift prompt remains
   `Call lift`.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1, including scene reload, runtime helper,
-  generated prop, active hazard diagnostics, player damage/death path without
-  physics-query state-change errors, clean current-run logs, and a non-empty
-  screenshot showing the generated drain gantry and reused vent.
+  under Godot 4.7 / Godot AI MCP 3.0.4, including scene reload, runtime helper,
+  generated prop, real-movement activation, real `Area2D` damage, Story099
+  handoff isolation, clean current-run logs, and a non-empty screenshot showing
+  the generated drain gantry and reused vent.
 
 ## Out of Scope
 
@@ -126,6 +129,17 @@ The hazard reuses the imported image-generated Old Factory steam vent prop at
   errors, final game log containing only helper registration, no editor entries
   after cursor `9`, and a non-empty `960x539` screenshot showing the generated
   drain gantry and reused vent prop.
+- Story217 production handoff isolation:
+  `reports/report_2319/results.xml` passed `6/6`; MCP 3.0.4 run
+  `r155047659-13` kept Story098 available/visible in `idle` through the lethal
+  and stationary frames, then started `grace` only after fresh movement x
+  `5848.0 -> 5852.0`.
+- Story218 production traversal and Story099 handoff:
+  `reports/report_2327/report_1/results.xml` passed the canonical real-overlap
+  path `1/1`; `reports/report_2329/report_1/results.xml` passed the bounded
+  Story217/098/099/218 regression `6/6`. Godot MCP 3.0.4 run
+  `r156727664-15` confirmed Story099 remained inactive after the vent crossing
+  and activated only on a later fresh `move_right` plus positive-x frame.
 
 ## Dependencies
 
@@ -141,3 +155,8 @@ GREEN `reports/report_1246/` passed `20/20`, and final related GREEN
 `reports/report_1248/` passed `32/32` after fixing the MCP-exposed physics query
 state-change error. Headless smoke exited `0`. Godot MCP runtime validation
 passed under Godot 4.7 and Godot AI MCP 2.9.1.
+
+The original Story098 runtime acceptance was recorded with MCP 2.9.1.
+Story217 and Story218 add current Godot 4.7 / MCP 3.0.4 production proof for
+fresh-movement entry, real `Area2D` damage and the non-consuming Story099
+handoff without changing the established hazard FSM or values.

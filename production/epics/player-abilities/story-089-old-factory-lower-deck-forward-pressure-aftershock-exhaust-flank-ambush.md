@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-09
+> **Last Updated**: 2026-07-21
 
 ## Context
 
@@ -56,7 +56,9 @@ family, generated art, savepoint, service-lift route, or reward economy rule.
   `factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_spark_rat_defeated=true`,
   and `factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_cleared=true`,
   disables the Spark Rat/vent, marks the route objective complete, and updates
-  route feedback to `Forward Pressure Exhaust Flank Cleared`.
+  route feedback to `Forward Pressure Exhaust Flank Cleared`. Live defeat
+  preserves visible/process three-frame `death` while physics, target and
+  hurtbox are disabled; restored completed state remains hidden.
 - [x] Death-tween cleanup cannot break diagnostics: after the Spark Rat queues
   free and the scene waits additional frames, Story089 diagnostics must still
   return cleared state without a stale freed-node runtime error.
@@ -66,7 +68,7 @@ family, generated art, savepoint, service-lift route, or reward economy rule.
   savepoint contract, does not replay Story068 clear burst or Story071
   reward-cache audio, and preserves `FactoryServiceLift` prompt `Call lift`.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1, including scene load, target nodes,
+  under Godot 4.7 / Godot AI MCP 3.0.4, including scene load, target nodes,
   SpriteFrames frame counts, live Story088 cache-claim-to-flank activation,
   hazard damage, freed-node-safe cleared diagnostics, clean logs, and a
   non-empty screenshot showing the active flank.
@@ -166,3 +168,24 @@ Reuse is recorded in `design/assets/asset-manifest.md`,
   `Call lift`, Story068/071 no-replay sentinels, final game log containing only
   the helper registration line, empty final editor log, and a non-empty
   `960x539` game screenshot.
+- Story207's first bounded run `reports/report_2247/results.xml` exposed stale
+  immediate-hide expectations for the shared live death behavior. Focused
+  `reports/report_2248/report_1/results.xml` passed Story089 `3/3` after the
+  test separated visible live death from hidden restored completion. Final
+  `reports/report_2251/results.xml` passed the wider eight-suite `14/14`
+  regression.
+- Godot 4.7 / MCP 3.0.4 accepted run `r135689461-59` claimed Story088 through
+  real input and verified Story089 as available but inactive: entity `2132`
+  remained hidden, `24 HP`, and hurtbox `gone`, so it could not steal the
+  Story207 attack or activate before its own x `2768` boundary.
+- Story208 adds production-only fresh-movement tracking for Story089 and resets
+  the runtime tracker on `set_local_state()`, so stationary threshold position
+  and restored-state teleport cannot activate entity `2132`.
+- Story208 final bounded regression `reports/report_2258/results.xml` passed
+  five suites and `11/11`. Godot 4.7 / MCP 3.0.4 accepted run
+  `r137556639-60` proved real `move_right`, real steam overlap `100 -> 92`,
+  production Spark Rat bite metadata, two real light hits `24 -> 12 -> 0`,
+  live death/vent shutdown and Story090 available/inactive safety.
+- The active MCP capture shows valid authored art but tight player/enemy/steam
+  silhouette overlap. Warning timing or encounter staging remains a focused
+  visual follow-up; no new image asset is required.

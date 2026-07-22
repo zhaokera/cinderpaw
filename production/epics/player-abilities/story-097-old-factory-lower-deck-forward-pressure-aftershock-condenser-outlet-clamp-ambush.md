@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-09
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -46,8 +46,9 @@ ambush forces a real attack/defeat loop before the route is considered clear.
   and advances route feedback to `Clear Outlet Clamp Ambush`.
 - [x] Defeating entity `2138` persists
   `factory_lower_deck_forward_pressure_aftershock_condenser_outlet_clamp_ambush_activated=true`,
-  `..._spark_rat_defeated=true`, and `..._cleared=true`, disables the enemy,
-  rejects repeat activation, and advances route feedback to
+  `..._spark_rat_defeated=true`, and `..._cleared=true`, disables its gameplay
+  collision/target/physics while preserving the live death animation, rejects
+  repeat activation, and advances route feedback to
   `Outlet Clamp Ambush Cleared`.
 - [x] Restoring local state from the cleared flags keeps Story094, Story095,
   and Story096 intact without replaying them; the Story096 outlet vent remains
@@ -119,11 +120,21 @@ animation assets; no new character art was generated for Story097.
   log containing only helper registration, no editor entries after cursor `9`,
   and a non-empty `960x539` screenshot showing the generated clamp prop, player,
   and active Spark Rat.
+- Story216 production handoff isolation:
+  `reports/report_2312/results.xml` passed the final bounded `4/4`; MCP 3.0.4
+  run `r153467824-10` crossed Story096 through real movement, then confirmed
+  the clamp is available/visible while entity `2138` remains inactive, hidden,
+  untargeted and without process/physics after a no-input x `5224.0` probe.
+- Story217 production combat/death handoff:
+  `reports/report_2319/results.xml` passed `6/6`; MCP 3.0.4 run
+  `r155047659-13` activated Story097 through real movement, defeated entity
+  `2138` through `Input.attack -> cat_claw_light`, preserved the visible death
+  frames while disabling combat, and isolated Story098 from the killing frame.
 
 ## Dependencies
 
 - Depends on: Story096 Old Factory Lower Deck Forward Pressure Aftershock Condenser Outlet Traverse
-- Unlocks: deeper Old Factory route content after the outlet clamp ambush
+- Unlocks: Story098 outlet drip vent traverse
 
 ## Verification Summary
 
@@ -132,3 +143,8 @@ failed before asset/API support existed, focused GREEN `reports/report_1242/`
 passed `2/2`, and related GREEN `reports/report_1243/` passed `18/18`.
 Headless smoke exited `0`. Godot MCP runtime validation passed under Godot 4.7
 and Godot AI MCP 2.9.1 after relaunching from an eval-snippet syntax break.
+Story216 adds a clean Godot 4.7 / MCP 3.0.4 proof that production outlet
+crossing does not silently consume the clamp ambush before its own movement
+and combat Story. Story217 adds the real movement/attack/live-death proof and
+reconciles the old immediate-hide assertion with the shared Rat Minion death
+presentation contract.

@@ -185,8 +185,12 @@ func test_runoff_exit_skirmish_defeat_persists_without_replaying_runoff_duct(
 	)
 	assert_bool(bool(cleared.get("active", true))).is_false()
 	assert_bool(bool(cleared.get("cleared", false))).is_true()
-	assert_bool(bool(cleared.get("coil_visible", true))).is_false()
+	assert_bool(bool(cleared.get("coil_visible", false))).override_failure_message(
+		"A live defeat keeps the three-frame Coil Rat death presentation visible"
+	).is_true()
+	assert_bool(bool(cleared.get("coil_process_enabled", false))).is_true()
 	assert_bool(bool(cleared.get("coil_physics_enabled", true))).is_false()
+	assert_bool(bool(cleared.get("coil_has_target", true))).is_false()
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
 		"Overflow Pump Runoff Exit Cleared"
 	)

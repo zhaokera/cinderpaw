@@ -44,6 +44,9 @@ const BACKGROUND_TEXTURE_PATH: String = (
 	get_node_or_null("CombatPresentation") as CombatPresentation
 )
 @onready var _hitstop_input_bridge = get_node_or_null("HitstopInputBridge")
+@onready var _game_flow: GameFlowController = (
+	get_node_or_null("GameFlowController") as GameFlowController
+)
 @onready var _aerial_attack_reward_source: Node = get_node_or_null(
 	"AerialAttackRewardSource"
 )
@@ -76,6 +79,7 @@ func _ready() -> void:
 	_setup_weapon_component()
 	_setup_hitstop_input_buffer()
 	_setup_boss3_combat()
+	_setup_player_retry_flow()
 	_sync_boss3_combat_state()
 	_sync_aerial_attack_reward_payoff()
 	_sync_return_route()
@@ -85,6 +89,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_refresh_player_retry_control_lock()
 	_advance_aerial_attack_reward_reveal_vfx(delta)
 	_process_aerial_attack_reward_contact()
 	_process_factory_return_contact()
@@ -329,6 +334,82 @@ func get_boss3_combat_diagnostics() -> Dictionary:
 	}
 
 
+## Returns the shared death/retry state used by tests and MCP runtime probes.
+func get_player_retry_flow_diagnostics() -> Dictionary:
+	var presentation: Dictionary = {}
+	if (
+		_combat_presentation != null
+		and _combat_presentation.has_method("get_player_death_feedback_diagnostics")
+	):
+		presentation = _combat_presentation.get_player_death_feedback_diagnostics()
+	var audio: Dictionary = {}
+	var audio_system: Node = get_node_or_null("/root/AudioSystem")
+	if audio_system != null and audio_system.has_method("get_death_audio_state"):
+		audio = audio_system.call("get_death_audio_state")
+	var player_sprite := (
+		_player.get_node_or_null("Sprite") as AnimatedSprite2D
+		if _player != null
+		else null
+	)
+	return {
+		"flow_present": _game_flow != null,
+		"flow_state": (
+			String(_game_flow.get_flow_state()) if _game_flow != null else "missing"
+		),
+		"retry_pending": _player_retry_pending,
+		"death_count": _player_death_count,
+		"death_hold_sec": GameFlowController.DEATH_ANIMATION_DURATION_SEC,
+		"revive_hp_percentage": GameFlowController.REVIVE_HP_PERCENTAGE,
+		"respawn_invincibility_sec": GameFlowController.RESPAWN_INVINCIBILITY_SEC,
+		"invincibility_remaining_sec": (
+			_game_flow.get_invincibility_remaining() if _game_flow != null else 0.0
+		),
+		"last_respawn_point": (
+			_game_flow.get_last_selected_respawn_point()
+			if _game_flow != null
+			else {}
+		),
+		"player_control_locked": (
+			_game_flow.is_player_control_locked() if _game_flow != null else false
+		),
+		"player_hp": (
+			int(_player.call("get_current_hp"))
+			if _player != null and _player.has_method("get_current_hp")
+			else 0
+		),
+		"player_max_hp": (
+			int(_player.call("get_max_hp"))
+			if _player != null and _player.has_method("get_max_hp")
+			else 0
+		),
+		"player_position": _player.global_position if _player != null else Vector2.ZERO,
+		"player_animation": String(player_sprite.animation) if player_sprite != null else "",
+		"presentation_phase": String(presentation.get("phase", "idle")),
+		"death_wisp_count": int(presentation.get("death_wisp_count", 0)),
+		"revive_halo_count": int(presentation.get("revive_halo_count", 0)),
+		"audio_state": String(audio.get("audio_state", "")),
+		"death_audio_active": bool(audio.get("active", false)),
+		"death_audio_request_count": int(audio.get("death_request_count", 0)),
+		"revive_audio_request_count": int(audio.get("revive_request_count", 0)),
+		"last_retry_audio_event": Dictionary(audio.get("last_event", {})).duplicate(true),
+		"room_seals_enabled": _are_room_seals_enabled(),
+		"return_route_available": (
+			bool(_return_route.call("is_route_available"))
+			if _return_route != null and _return_route.has_method("is_route_available")
+			else false
+		),
+	}
+
+
+## Advances only the shared retry state for deterministic tests and MCP probes.
+func advance_player_retry_flow(delta_sec: float) -> bool:
+	if _game_flow == null:
+		return false
+	_game_flow.advance_time(maxf(0.0, delta_sec))
+	_refresh_player_retry_control_lock()
+	return true
+
+
 ## Claims the visible Boss3 reward exactly once and unlocks the runtime move.
 func claim_aerial_attack_reward_source(provider: Node = null) -> bool:
 	if (
@@ -489,6 +570,20 @@ func _setup_boss3_combat() -> void:
 		var phase_signal: Signal = _boss.get("on_boss_phase_transition_started")
 		if not phase_signal.is_connected(_on_boss3_phase_transition_started):
 			phase_signal.connect(_on_boss3_phase_transition_started)
+
+
+func _setup_player_retry_flow() -> void:
+	if _game_flow == null or _player == null or _entry_spawn == null:
+		return
+	_game_flow.configure_boss_entrance_respawn(
+		SCENE_ID,
+		ENTRY_SPAWN_POINT,
+		_entry_spawn.global_position
+	)
+	_game_flow.start_boss_encounter(_entry_spawn.global_position, self)
+	if not _game_flow.respawn_requested.is_connected(_on_player_retry_requested):
+		_game_flow.respawn_requested.connect(_on_player_retry_requested)
+	_refresh_player_retry_control_lock()
 
 
 func _setup_weapon_component() -> void:
@@ -721,27 +816,120 @@ func _on_player_health_changed(current_hp: int, max_hp: int) -> void:
 		_hud.update_hp(current_hp, max_hp)
 
 
-func _on_player_died(_death_metadata: Dictionary) -> void:
+func _on_player_died(death_metadata: Dictionary) -> void:
 	if _boss_defeated or _player_retry_pending:
 		return
 	_player_retry_pending = true
 	_player_death_count += 1
-	call_deferred("_reset_active_boss3_encounter_after_player_death")
+	if _boss != null and _boss.has_method("set_attack_target"):
+		_boss.call("set_attack_target", null)
+	if _combat_presentation != null and _player != null:
+		_combat_presentation.on_player_death(
+			_player.global_position,
+			death_metadata
+		)
+	var audio_metadata: Dictionary = death_metadata.duplicate(true)
+	audio_metadata["boss_id"] = BOSS_ID
+	audio_metadata["scene_id"] = SCENE_ID
+	audio_metadata["death_count"] = _player_death_count
+	audio_metadata["world_position"] = (
+		_player.global_position if _player != null else Vector2.ZERO
+	)
+	_dispatch_combat_audio(&"on_player_death", audio_metadata)
+	if _game_flow != null:
+		_game_flow.handle_player_death()
+	_refresh_player_retry_control_lock()
+	if _objective_label != null:
+		_objective_label.text = "Cinderpaw falls - retrying"
+	if _hud != null:
+		_hud.show_notification("Cinderpaw falls - retrying", 1.5)
 
 
-func _reset_active_boss3_encounter_after_player_death() -> void:
-	_player_retry_pending = false
-	if _boss_defeated:
+func _on_player_retry_requested(
+	respawn_position: Vector2,
+	revive_hp_percentage: float
+) -> void:
+	if _boss_defeated or _player == null:
 		return
+	_player_retry_pending = false
 	_return_transition_requested = false
 	_last_return_rejected_reason = &""
 	_last_return_request.clear()
 	_last_boss_attack_metadata.clear()
-	if _boss != null and _boss.has_method("reset_encounter"):
-		_boss.call("reset_encounter")
-	if _player != null and _entry_spawn != null and _player.has_method("respawn_at"):
-		_player.call("respawn_at", _entry_spawn.global_position, 1.0)
+	if _player.has_method("respawn_at"):
+		_player.call("respawn_at", respawn_position, revive_hp_percentage)
+	if _combat_presentation != null:
+		_combat_presentation.on_player_respawn(_player.global_position)
+	_dispatch_combat_audio(&"on_player_revived", {
+		"boss_id": BOSS_ID,
+		"scene_id": SCENE_ID,
+		"death_count": _player_death_count,
+		"world_position": _player.global_position,
+		"revive_hp_percentage": revive_hp_percentage,
+		"respawn_invincibility_sec": GameFlowController.RESPAWN_INVINCIBILITY_SEC,
+	})
 	_sync_boss3_combat_state()
+	_refresh_player_retry_control_lock()
+	if _hud != null:
+		_hud.show_notification("Nine lives remain", 2.0)
+
+
+## Captures the active Boss3 entry contract for the shared GameFlow reset.
+func capture_boss_arena_snapshot() -> Dictionary:
+	return {
+		"boss_defeated": _boss_defeated,
+		"boss_position": _boss.global_position if _boss != null else Vector2.ZERO,
+	}
+
+
+## Restores Boss3 and scene-owned combat state before GameFlow revives the player.
+func reset_boss_arena_to_snapshot(snapshot: Dictionary) -> void:
+	_boss_defeated = bool(snapshot.get("boss_defeated", false))
+	_return_transition_requested = false
+	_last_return_rejected_reason = &""
+	_last_return_request.clear()
+	_last_player_hit_metadata.clear()
+	_last_boss_attack_metadata.clear()
+	_clear_aerial_attack_reward_reveal_vfx()
+	if _boss != null:
+		if _boss_defeated and _boss.has_method("mark_defeated_from_progress"):
+			_boss.call("mark_defeated_from_progress")
+		elif _boss.has_method("reset_encounter"):
+			_boss.call("reset_encounter")
+	_setup_boss3_combat()
+	_sync_boss3_combat_state()
+
+
+## Boss3 has no summons yet; clearing attack hitboxes keeps the hook future-safe.
+func cleanup_temporary_summons() -> void:
+	if _boss == null or not _boss.has_method("get_collision_component"):
+		return
+	var collision: CollisionComponent = _boss.call("get_collision_component")
+	if collision != null:
+		collision.deactivate_all_hitboxes()
+
+
+func clear_arena_locks() -> void:
+	_release_scene_lock()
+
+
+func clear_combat_adapters() -> void:
+	if _boss != null and _boss.has_method("set_attack_target"):
+		_boss.call("set_attack_target", null)
+	if _player != null:
+		if _player.has_method("set_target_health_adapter"):
+			_player.call("set_target_health_adapter", null)
+		if _player.has_method("set_damage_calculator_adapter"):
+			_player.call("set_damage_calculator_adapter", null)
+
+
+func _refresh_player_retry_control_lock() -> void:
+	if _player == null or not _player.has_method("set_control_locked"):
+		return
+	_player.call(
+		"set_control_locked",
+		_game_flow != null and _game_flow.is_player_control_locked()
+	)
 
 
 func _on_boss3_health_changed(current_hp: int, max_hp: int) -> void:

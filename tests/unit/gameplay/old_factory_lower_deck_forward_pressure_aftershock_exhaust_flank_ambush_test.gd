@@ -177,8 +177,16 @@ func test_flank_ambush_hazard_damage_and_defeat_persist_without_route_replay(
 		return
 
 	var player: Node2D = destination.get_node_or_null(FACTORY_PLAYER_NAME) as Node2D
+	var spark := destination.get_node_or_null(
+		"FactoryLowerDeckForwardPressureAftershockExhaustFlankAmbushSparkRat"
+	) as CharacterBody2D
 	assert_that(player).is_not_null()
-	if player == null:
+	assert_that(spark).is_not_null()
+	if player == null or spark == null:
+		return
+	var spark_collision := spark.call("get_collision_component") as CollisionComponent
+	assert_that(spark_collision).is_not_null()
+	if spark_collision == null:
 		return
 
 	var ready: Dictionary = destination.call(
@@ -225,9 +233,16 @@ func test_flank_ambush_hazard_damage_and_defeat_persist_without_route_replay(
 	)
 	assert_bool(bool(cleared.get("active", true))).is_false()
 	assert_bool(bool(cleared.get("cleared", false))).is_true()
-	assert_bool(bool(cleared.get("spark_visible", true))).is_false()
+	assert_bool(bool(cleared.get("spark_visible", false))).is_true()
 	assert_bool(bool(cleared.get("spark_physics_enabled", true))).is_false()
-	assert_bool(bool(cleared.get("spark_process_enabled", true))).is_false()
+	assert_bool(bool(cleared.get("spark_process_enabled", false))).is_true()
+	assert_bool(bool(cleared.get("spark_has_target", true))).is_false()
+	assert_str(String((spark.get_node("Sprite") as AnimatedSprite2D).animation)).is_equal(
+		"death"
+	)
+	assert_str(String(spark_collision.get_hurtbox_state())).is_equal(
+		String(CollisionComponent.HURTBOX_STATE_GONE)
+	)
 	assert_bool(bool(cleared.get("hazard_visible", true))).is_false()
 	assert_bool(bool(cleared.get("hazard_contact_active", true))).is_false()
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
@@ -240,7 +255,6 @@ func test_flank_ambush_hazard_damage_and_defeat_persist_without_route_replay(
 		"get_factory_lower_deck_forward_pressure_aftershock_exhaust_flank_ambush_diagnostics"
 	)
 	assert_bool(bool(settled_cleared.get("cleared", false))).is_true()
-	assert_bool(bool(settled_cleared.get("spark_visible", true))).is_false()
 	assert_int(int(settled_cleared.get("spark_entity_id", -1))).is_equal(0)
 	assert_str(String(settled_cleared.get("route_label_text", ""))).is_equal(
 		"Forward Pressure Exhaust Flank Cleared"

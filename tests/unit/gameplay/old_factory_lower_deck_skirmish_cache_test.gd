@@ -1,4 +1,4 @@
-## Player Abilities Story 053: Old Factory lower deck skirmish cache.
+## Player Abilities Stories 053/179: Lower Deck cache and production input.
 extends GdUnitTestSuite
 
 const FACTORY_SCENE_PATH: String = "res://scenes/factory_route_transition_shell.tscn"
@@ -22,7 +22,12 @@ const MIN_CHARACTER_ANIMATION_FRAMES: int = 3
 var _spawned_nodes: Array[Node] = []
 
 
+func before_test() -> void:
+	Input.action_release(&"interact")
+
+
 func after_test() -> void:
+	Input.action_release(&"interact")
 	_stop_runtime_audio_players()
 	for node: Node in _spawned_nodes:
 		if not is_instance_valid(node):
@@ -224,6 +229,64 @@ func test_lower_deck_skirmish_defeat_unlocks_independent_reward_cache_and_persis
 	assert_bool(bool(restored_diagnostics.get("defeated", false))).is_true()
 	assert_bool(bool(restored_diagnostics.get("cache_claimed", false))).is_true()
 	assert_bool(bool(restored_diagnostics.get("cache_claim_available", true))).is_false()
+
+
+func test_real_interact_claims_nearest_lower_deck_cache_and_exposes_parry_gate() -> void:
+	var destination: Node = _factory_scene_with_overdrive_duo_cleared(true)
+	assert_that(destination).is_not_null()
+	if destination == null:
+		return
+	var local_state: Dictionary = destination.call("get_local_state")
+	local_state.merge({
+		"factory_return_patrol_reward_cache_claimed": false,
+		"factory_lower_deck_skirmish_activated": true,
+		"factory_lower_deck_skirmish_defeated": true,
+		"factory_lower_deck_reward_cache_claimed": false,
+	}, true)
+	destination.call("set_local_state", local_state)
+
+	var lower: Dictionary = destination.call("get_factory_lower_deck_skirmish_diagnostics")
+	var return_cache: Dictionary = destination.call(
+		"get_factory_return_patrol_reward_cache_diagnostics"
+	)
+	assert_bool(bool(lower.get("cache_claim_available", false))).is_true()
+	assert_bool(bool(return_cache.get("claim_available", false))).is_true()
+	assert_float(
+		(lower.get("cache_position", Vector2.ZERO) as Vector2).distance_to(
+			return_cache.get("position", Vector2.ZERO) as Vector2
+		)
+	).is_less_equal(96.0)
+
+	var player := destination.get_node(FACTORY_PLAYER_NAME) as CharacterBody2D
+	player.global_position = lower.get("cache_position", Vector2.ZERO) as Vector2
+	Input.action_press(&"interact")
+	destination.call("_process", 0.0)
+	Input.action_release(&"interact")
+	destination.call("_process", 0.0)
+
+	lower = destination.call("get_factory_lower_deck_skirmish_diagnostics")
+	return_cache = destination.call("get_factory_return_patrol_reward_cache_diagnostics")
+	var gate: Dictionary = destination.call("get_factory_lower_deck_parry_gate_diagnostics")
+	var lift: Dictionary = destination.call("get_factory_service_lift_diagnostics")
+	var reward: Dictionary = lower.get("last_reward", {}) as Dictionary
+	var feedback: Dictionary = lower.get("last_claim_feedback", {}) as Dictionary
+	assert_bool(bool(lower.get("cache_claimed", false))).is_true()
+	assert_bool(bool(return_cache.get("claimed", true))).is_false()
+	assert_int(int(reward.get("gears", 0))).is_equal(10)
+	assert_str(String(reward.get("source", ""))).is_equal("old_factory_lower_deck_cache")
+	assert_str(String(feedback.get("text", ""))).is_equal(
+		"Lower Deck Cache Claimed +10 Gears"
+	)
+	assert_bool(bool(gate.get("available", false))).is_true()
+	assert_bool(bool(gate.get("visible", false))).is_true()
+	assert_bool(bool(gate.get("collision_blocking", false))).is_true()
+	assert_bool(bool(lift.get("exit_requested", true))).is_false()
+	assert_bool(bool(
+		destination.call("get_local_state").get(
+			"factory_lower_deck_reward_cache_claimed",
+			false
+		)
+	)).is_true()
 
 
 func _factory_scene_with_rear_ambush_cleared() -> Node:

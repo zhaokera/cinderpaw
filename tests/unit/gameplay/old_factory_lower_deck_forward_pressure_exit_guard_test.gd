@@ -162,6 +162,7 @@ func test_forward_pressure_exit_guard_defeat_persists_without_replaying_forward_
 		"try_activate_factory_lower_deck_forward_pressure_exit_guard",
 		player
 	))).is_true()
+	player.global_position.x = float(ready.get("activation_x", 0.0)) + 148.0
 	assert_bool(destination.call(
 		"apply_damage",
 		EXIT_GUARD_ENTITY_ID,

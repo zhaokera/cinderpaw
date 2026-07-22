@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -51,7 +51,7 @@ does not replay after restore.
   chain, including the exit hatch opened state, without replaying prior
   traversal, skirmish, cache, or hatch interactions.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1.
+  under Godot 4.7 / Godot AI MCP 3.0.4.
 
 ## Out of Scope
 
@@ -98,6 +98,16 @@ image-generated/imported assets:
   locked/ready/active/crossed runtime diagnostics, persisted local crossed
   state, clean current game log, empty editor log after cursor `9`, and a
   non-empty `960x539` game screenshot response.
+- Story227 production handoff: Godot AI MCP `3.0.4` real input opened Story116
+  and exposed this tailrace as visible/available but inactive. Stationary frames
+  and no-input x `12024` remained inactive; final six-suite related GdUnit
+  passed `9/9`, and run `r182022878-24` had a helper-only game log plus an empty
+  editor delta after cursor `2`.
+- Story228 production traverse: canonical RED `report_2372`, focused GREEN
+  `report_2373`, and final five-suite related `report_2377` passed `7/7`.
+  Godot AI MCP `3.0.4` run `r184730101-26` used real positive-x movement,
+  exercised all steam phases, applied exact physical HP `100 -> 92`, rejected
+  no-input completion, crossed at x `12480`, and left Story118 inactive.
 
 ## Dependencies
 
@@ -107,8 +117,9 @@ image-generated/imported assets:
 
 ## Verification Summary
 
-Story117 followed thin TDD: focused RED `reports/report_1344/` failed for the
-missing tailrace API and diagnostics, focused GREEN `reports/report_1345/`
-passed `2/2`, related GREEN `reports/report_1346/` passed `12/12`, and the
-headless smoke plus MCP runtime validation passed under Godot 4.7 and Godot AI
-MCP 2.9.1.
+Story117 followed thin TDD and was subsequently hardened by Story227/228. The
+current production path requires prior availability, held `move_right` and real
+positive-x displacement for both activation and completion, routes damage
+through the physical vent overlap, and hands off without starting Story118.
+Final related GdUnit passed `7/7` and runtime acceptance passed under Godot 4.7
+/ Godot AI MCP 3.0.4.

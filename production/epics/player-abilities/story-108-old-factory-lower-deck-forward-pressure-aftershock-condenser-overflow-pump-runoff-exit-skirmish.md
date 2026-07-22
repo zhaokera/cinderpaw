@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -39,6 +39,12 @@ state persists without replaying the runoff duct or reward-cache chain.
 - [x] Activation at x `7800` starts the skirmish once, makes the Coil Rat
   visible, assigns the player as target, and advances route feedback to
   `Clear Overflow Pump Runoff Exit`.
+- [x] Production activation requires availability at frame start, so the frame
+  that crosses Story107 cannot start this encounter even at x `7800`; a later
+  player action remains required.
+- [x] Production activation additionally requires held `move_right`, a
+  resettable previous-x snapshot and fresh positive x movement; no-input
+  displacement beyond x `7800` remains inactive.
 - [x] The Coil Rat uses `AnimatedSprite2D` with
   `res://assets/characters/factory_coil_rat/factory_coil_rat_sprite_frames.tres`.
 - [x] Required animations `idle`, `run`, `attack_tell`, `attack`, `hurt`, and
@@ -50,11 +56,14 @@ state persists without replaying the runoff duct or reward-cache chain.
   `factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_coil_rat_defeated=true`,
   and
   `factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_exit_skirmish_cleared=true`.
+- [x] Live defeat keeps the Coil Rat visible/processing for its three-frame
+  `death` presentation while physics and targeting stop. Restored cleared state
+  remains hidden and non-processing.
 - [x] Restoring cleared state keeps the Story106/107 overflow pump reward,
   hatch, and runoff duct state backfilled, prevents duct replay, hides the Coil
   Rat, and advances route feedback to `Overflow Pump Runoff Exit Cleared`.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1, including scene reload, runtime helper,
+  under Godot 4.7 / Godot AI MCP 3.0.4, including scene reload, runtime helper,
   Coil Rat `AnimatedSprite2D`/SpriteFrames binding, route bounds, current-run
   logs, and a non-empty runtime screenshot.
 
@@ -116,6 +125,18 @@ runtime skirmish and extends the route floor tiling.
   current game log containing only helper registration, editor log since
   current-run cursor empty, far-right floor tile texture loaded, and a non-empty
   `960x539` game screenshot.
+- Story220 handoff regression:
+  `reports/report_2339/results.xml` passed `13/13`, including the Story108
+  baseline aligned to the current live-death presentation rule and a Story107
+  crossing-at-x-7800 frame that leaves Story108 available/inactive. MCP 3.0.4
+  independently observed the production crossed handoff with the Coil Rat
+  hidden, non-processing, non-physical and untargeted.
+- Story221 production closure: `reports/report_2343/results.xml` passed the
+  bounded related set `7/7`. Godot MCP 3.0.4 accepted run `r163369359-6`
+  rejected no-input x `7804`, used real `move_right` across x `7800`, then
+  delivered an actual Area2D `cat_claw_light` lethal hit to entity `2140`.
+  Live `death`, disabled collision/targeting and the Story109 cache reveal were
+  observed in a non-empty `1278x718` runtime capture.
 
 ## Dependencies
 
@@ -129,3 +150,8 @@ Story108 followed thin TDD: focused RED `reports/report_1289/` failed before
 runtime support existed, focused GREEN `reports/report_1291/` passed `2/2`, and
 related GREEN `reports/report_1292/` passed `11/11`. Headless smoke exited `0`.
 Godot MCP runtime validation passed under Godot 4.7 and Godot AI MCP 2.9.1.
+
+Stories220-221 add current MCP 3.0.4 downstream-isolation, production movement
+and real-combat evidence and reconcile
+the legacy immediate-hide defeat assertion with the established live
+three-frame death contract; restored-state behavior is unchanged.

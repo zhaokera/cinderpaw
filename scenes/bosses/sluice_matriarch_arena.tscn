@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://src/gameplay/sluice_matriarch_arena.gd" id="1_scene"]
 [ext_resource type="Texture2D" path="res://assets/environment/sluice_matriarch_arena/env_sluice_matriarch_arena_backdrop_1280x720.png" id="2_background"]
@@ -12,6 +12,7 @@
 [ext_resource type="Texture2D" path="res://assets/environment/aerial_attack_reward/boss3_aerial_attack_reward_source.png" id="10_reward_texture"]
 [ext_resource type="Script" path="res://src/presentation/combat_presentation.gd" id="11_combat_presentation"]
 [ext_resource type="Script" path="res://src/gameplay/hitstop_input_bridge.gd" id="12_hitstop_bridge"]
+[ext_resource type="Script" path="res://src/gameplay/game_flow_controller.gd" id="13_game_flow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
 size = Vector2(1280, 48)
@@ -31,6 +32,9 @@ radius = 92.0
 [node name="SluiceMatriarchArenaScene" type="Node2D"]
 script = ExtResource("1_scene")
 metadata/scene_id = "boss_03_sluice_matriarch_arena"
+
+[node name="GameFlowController" type="Node" parent="."]
+script = ExtResource("13_game_flow")
 
 [node name="Background" type="Sprite2D" parent="."]
 z_index = -100

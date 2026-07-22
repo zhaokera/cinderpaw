@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + UI/Visual
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-09
+> **Last Updated**: 2026-07-21
 
 ## Context
 
@@ -44,6 +44,9 @@ enemy family, reward economy rule, savepoint, service-lift route, or room scene.
   `Forward Pressure Exhaust Pursuer Cache Claimed +20 Gears`, persists
   `factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_reward_cache_claimed=true`,
   disables further claims, and updates route feedback to the same claim text.
+- [x] Production `Input.interact` includes this cache in nearest-cache
+  arbitration, claims it once in range, and does not chain directly into
+  Story089 activation.
 - [x] A live Story087 defeat path synchronizes the cache state: activating the
   pursuer, defeating entity `2131`, and waiting one frame makes the cache
   visible, available, claimable, and then claimable exactly once.
@@ -53,7 +56,7 @@ enemy family, reward economy rule, savepoint, service-lift route, or room scene.
   not replay Story068 clear burst or Story071 reward-cache audio, and preserves
   `FactoryServiceLift` prompt `Call lift`.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1, including scene load, cache node,
+  under Godot 4.7 / Godot AI MCP 3.0.4, including scene load, cache node,
   texture path, claim semantics, clean logs, and a non-empty screenshot showing
   the cache.
 
@@ -138,3 +141,11 @@ reward prop, not a new player-visible character.
   exit-relay savepoint, service lift `Call lift`, Story068/071 no-replay
   sentinels, clean game/editor logs, and a non-empty `960x539` game screenshot
   with the cache visible.
+- Story207 production closure added this cache to the regular interaction
+  router. Canonical/final related `reports/report_2251/results.xml` passed eight
+  suites and `14/14`. Godot 4.7 / MCP 3.0.4 accepted run `r135689461-59` used
+  real `interact` at `(2664, 410)`, returned exactly `20` gears and the expected
+  source/feedback, rejected duplicate input, and left Story089 available but
+  inactive. Non-empty `1278x718` death/cache and claimed screenshots are linked
+  from
+  `production/qa/evidence/old-factory-aftershock-exhaust-pursuer-production-combat-reward-handoff-2026-07-21.md`.

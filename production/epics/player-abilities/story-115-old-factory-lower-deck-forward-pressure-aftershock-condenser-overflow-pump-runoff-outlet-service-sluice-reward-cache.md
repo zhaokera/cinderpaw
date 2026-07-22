@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + UI/Visual
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -94,6 +94,15 @@ generated/imported assets:
   current game log without errors, no new editor log rows after cursor `9`, and
   a non-empty game screenshot showing Cinderpaw and the service sluice reward
   cache in the same pocket.
+- Story225 production handoff: focused `report_2362` passed `1/1` and related
+  `report_2363` passed `7/7`. Godot 4.7 / MCP 3.0.4 real combat made this cache
+  visible, available and claimable at `(11360,410)` while keeping claimed
+  state, last reward and feedback empty; Story116 remained hidden.
+- Story226 production closure: canonical RED `report_2364` isolated the missing
+  shared-router entry; final focused `report_2367` passed `1/1` and related
+  `report_2366` passed `9/9`. Godot 4.7 / MCP 3.0.4 run `r179796549-23`
+  claimed the exact `20`-gear payload through real `interact` and revealed
+  Story116 without opening it.
 
 ## Dependencies
 
@@ -107,4 +116,7 @@ Story115 followed thin TDD: focused RED `reports/report_1336/` failed before
 runtime support existed, focused GREEN `reports/report_1337/` passed `2/2`, and
 related GREEN `reports/report_1338/` passed `8/8`. Godot MCP runtime validation
 passed under Godot 4.7 and Godot AI MCP 2.9.1, with visible cache payoff art
-reused from the existing generated asset set.
+reused from the existing generated asset set. Story225 adds current MCP 3.0.4
+evidence for the real-combat reveal boundary while deliberately leaving the
+production claim input for the next Story. Story226 closes that production
+input path while preserving the unopened Story116 boundary.

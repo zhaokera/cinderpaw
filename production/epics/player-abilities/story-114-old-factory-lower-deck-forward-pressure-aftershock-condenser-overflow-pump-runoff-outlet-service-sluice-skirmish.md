@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Frame Animation Contract
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -44,14 +44,15 @@ Story106-113 runoff chain.
 - [x] The route extends to Spark Rat position `Vector2(11120, 482)`, right wall
   x `11500`, camera limit right `11520`, background width `11520`, and solid
   ground coverage through at least x `11520`.
-- [x] Defeating entity `2142` disables the enemy, persists activated/defeated
-  and cleared local state, and advances route feedback to
-  `Service Sluice Spark Rat Cleared`.
+- [x] Defeating entity `2142` disables combat/physics participation, preserves
+  the visible authored `death` presentation until fade/despawn, persists
+  activated/defeated and cleared local state, and advances route feedback to
+  `Service Sluice Spark Rat Cleared`; restored cleared state starts hidden.
 - [x] Restoring skirmish active/cleared state backfills the Story106-113 overflow
   pump runoff and service sluice chain so previous traversal, reward, hatch,
   and sluice states do not replay.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1.
+  under Godot 4.7 / Godot AI MCP 3.0.4.
 
 ## Out of Scope
 
@@ -113,6 +114,17 @@ image-generated Factory Spark Rat `AnimatedSprite2D + SpriteFrames` asset:
   no current game log errors, no new editor log rows after cursor `9`, and a
   non-empty game screenshot showing Cinderpaw and the Spark Rat in the service
   sluice combat pocket.
+- Story224 stable handoff: related `report_2360` passed both Story114 baseline
+  cases after aligning the runtime-defeat assertion with the existing
+  three-frame death presentation. MCP 3.0.4 run `r169905919-15` crossed
+  Story113, then verified Story114 available but inactive, hidden, untargeted,
+  non-processing and non-physical in the handoff frame and after two no-input
+  frames at x `10924`; entity `2142` remained staged at `(11120,482)`.
+- Story225 production closure: canonical RED `report_2361` isolated the Spark
+  Rat's unreadable z `20`; z `24` focused GREEN `report_2362` passed `1/1` and
+  related `report_2363` passed `7/7`. MCP 3.0.4 real movement and real
+  `cat_claw_light` combat cleared entity `2142`, preserved live death before
+  despawn and exposed Story115 without claiming it.
 
 ## Dependencies
 
@@ -127,4 +139,8 @@ runtime support existed, final focused GREEN `reports/report_1334/` passed
 `2/2`, and final related GREEN `reports/report_1335/` passed `12/12`. Godot MCP
 runtime validation passed under Godot 4.7 and Godot AI MCP 2.9.1, including the
 AGENTS-required `AnimatedSprite2D + SpriteFrames` character checks and a live
-physics-ground fix discovered during runtime validation.
+physics-ground fix discovered during runtime validation. Story224 adds current
+MCP 3.0.4 evidence for a delayed, non-activating production handoff and updates
+the runtime-defeat test contract to preserve the authored death animation.
+Story225 then closes the production movement/combat path with entity `2142` at
+z `24`, focused `1/1`, related `7/7`, smoke and clean MCP runtime evidence.

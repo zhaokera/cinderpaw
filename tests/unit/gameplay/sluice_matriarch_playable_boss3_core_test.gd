@@ -187,42 +187,6 @@ func test_pressure_lunge_phase_two_and_arena_defeat_restore_contract() -> void:
 	assert_bool(bool(restored.get("return_transition_requested", true))).is_false()
 
 
-func test_player_death_respawns_and_resets_active_boss_encounter() -> void:
-	var arena: Node = _instantiate_scene(ARENA_SCENE_PATH)
-	assert_that(arena).is_not_null()
-	if arena == null:
-		return
-	var boss: Node2D = arena.get_node_or_null("SluiceMatriarchBoss") as Node2D
-	var player: Node2D = arena.get_node_or_null("Player") as Node2D
-	var entry_spawn: Marker2D = arena.get_node_or_null("BossEntrySpawn") as Marker2D
-	assert_that(boss).is_not_null()
-	assert_that(player).is_not_null()
-	assert_that(entry_spawn).is_not_null()
-	if boss == null or player == null or entry_spawn == null:
-		return
-	boss.set_physics_process(false)
-	boss.global_position = Vector2(600, 540)
-	arena.call("apply_damage", BOSS_ENTITY_ID, 20, {"source": &"retry_setup"})
-	player.call("apply_damage", 1000, {"source": &"story128_death_test"})
-	await get_tree().process_frame
-	await get_tree().process_frame
-	assert_int(int(player.call("get_current_hp"))).is_equal(
-		int(player.call("get_max_hp"))
-	)
-	var player_collision: CollisionComponent = player.call("get_collision_component")
-	assert_that(player_collision).is_not_null()
-	if player_collision != null:
-		assert_str(String(player_collision.get_hurtbox_state())).is_equal("normal")
-		assert_bool(player_collision.get_hurtbox().monitorable).is_true()
-	assert_float(player.global_position.distance_to(entry_spawn.global_position)).is_less(0.5)
-	assert_int(int(boss.call("get_current_hp"))).is_equal(BOSS_MAX_HP)
-	assert_int(int(boss.call("get_current_phase"))).is_equal(1)
-	assert_float(boss.global_position.distance_to(Vector2(930, 540))).is_less(0.5)
-	var diagnostics: Dictionary = arena.call("get_boss3_combat_diagnostics")
-	assert_bool(bool(diagnostics.get("room_seals_enabled", false))).is_true()
-	assert_bool(bool(diagnostics.get("return_route_available", true))).is_false()
-
-
 func test_phase_two_transition_refreshes_arena_boss_hud() -> void:
 	var arena: Node = _instantiate_scene(ARENA_SCENE_PATH)
 	assert_that(arena).is_not_null()

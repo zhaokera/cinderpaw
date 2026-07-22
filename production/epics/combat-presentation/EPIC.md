@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/combat-presentation.md
 > **Architecture Module**: CombatPresentation
 > **Status**: In Progress
-> **Stories**: 35 stories tracked
+> **Stories**: 37 stories tracked
 
 ## Overview
 
@@ -75,6 +75,8 @@ collision, health, boss, and weapon events without owning their gameplay rules.
 | 033 | Old Factory Steam Vent Motion Readability | Visual/Feel + Hazard Telegraph Contract | Complete | ADR-0002, ADR-0004, ADR-0010, ADR-0018 |
 | 034 | Old Factory Environment Cohesion | Visual/Environment Cohesion Contract | Complete | ADR-0004, ADR-0010, ADR-0018 |
 | 035 | Rat King Phase-I Authored Intro Frames | Visual/Frame Animation | Complete | ADR-0005, ADR-0010, ADR-0011 |
+| 036 | Rat King Phase-I Runtime Intro | Gameplay/Presentation Integration | Complete | ADR-0002, ADR-0005 |
+| 037 | Rat Minion Hurt/Death Frame Readability | Visual/Feel + Frame Animation Contract | Complete | ADR-0002, ADR-0004, ADR-0005, ADR-0006 |
 
 ## Definition of Done
 
@@ -88,7 +90,7 @@ This epic is complete when:
 
 ## Completion Evidence
 
-Combat Presentation has all 35 tracked stories complete, but the Epic remains
+Combat Presentation has all 37 tracked stories complete, but the Epic remains
 In Progress until the Main-scene real hitstop/input handoff is extended to
 independent player-facing combat scenes. Story014 adds the
 first Rat King boss frame-animation asset slice so the MVP boss no longer exists
@@ -214,3 +216,9 @@ damage, AI and attack Hitboxes are gated while player control remains live.
 Completion hands off to normal attack startup, retry re-arms the state and
 defeated saves skip it. Evidence is recorded in
 `production/qa/evidence/rat-king-phase-one-runtime-intro-2026-07-18.md`.
+Story037 lets the shared Rat Minion family finish its existing three-frame hurt
+and death animations, separates the three-frame damage flash from the authored
+hurt duration, and holds the completed death pose for `2.0s` without delaying
+encounter persistence or leaving combat collision active. Evidence is recorded
+in
+`production/qa/evidence/rat-minion-hurt-death-frame-readability-2026-07-21.md`.

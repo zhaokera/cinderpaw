@@ -1,0 +1,32 @@
+{
+  "assets": {
+    "sfx_player_death": {
+      "description": "Heavy landing impact, one-second silence, then a low sad minor-string tail within the 1.5-second death hold.",
+      "duration_sec": 1.5,
+      "path": "res://assets/audio/sfx/sfx_player_death.wav",
+      "peak_dbfs": -3.8,
+      "rms_dbfs": -16.901,
+      "sha256": "a350c1b1d3eceba28530caac53b20769da2fa2b8c75e526c49d906fd2c01a014"
+    },
+    "sfx_player_revive": {
+      "description": "Gentle synthesized feline mew with rising cat-eye-gold harmonics for the revive halo and ambience return.",
+      "duration_sec": 0.9,
+      "path": "res://assets/audio/sfx/sfx_player_revive.wav",
+      "peak_dbfs": -5.0,
+      "rms_dbfs": -13.922,
+      "sha256": "33a871dceadd1fb40e810077014ae6f6b248297f4331a63bc0b33ae951ae6af3"
+    }
+  },
+  "format": {
+    "channels": 1,
+    "codec": "PCM signed 16-bit little-endian WAV",
+    "sample_rate_hz": 44100
+  },
+  "generated_on": "2026-07-20",
+  "generation_command": "python3 assets/audio/source/generate_player_death_revive_sfx.py assets/audio/sfx/sfx_player_death.wav assets/audio/sfx/sfx_player_revive.wav assets/audio/source/player_death_revive_sfx_generation_20260720.json",
+  "generator": "deterministic procedural PCM synthesis via Python wave module",
+  "generator_script": "res://assets/audio/source/generate_player_death_revive_sfx.py",
+  "image_generation": "not_applicable_audio_only",
+  "status": "procedural_baseline_replaceable",
+  "story_id": "audio-system-story-011"
+}

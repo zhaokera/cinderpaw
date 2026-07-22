@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-09
+> **Last Updated**: 2026-07-21
 
 ## Context
 
@@ -40,10 +40,16 @@ scene.
   `factory_lower_deck_forward_pressure_aftershock_reward_cache_claimed=false`;
   both enemies remain hidden/inactive, and manual activation returns `false`.
 - [x] Once Story084's cache is claimed, crossing activation x `2288.0`
-  activates entity `2129` as the Spark Rat side and entity `2130` as the Coil
+  on a fresh positive movement activates entity `2129` as the Spark Rat side
+  and entity `2130` as the Coil
   Rat side, assigns the player as target for both, enables process/physics for
   both, starts opening grace frame pacing `12/24`, and updates route feedback to
   `Break Aftershock Exit Skirmish`.
+- [x] Claiming Story084 at x `2288.0` cannot activate the skirmish in the same
+  process frame. Before activation, both enemy hurtboxes are `gone`.
+- [x] Opening staging places the Spark Rat on the forward flank and Coil Rat on
+  the rear flank with at least `48px` player clearance and `250px`
+  center-to-center separation before normal pursuit resumes.
 - [x] Both enemies use `AnimatedSprite2D + SpriteFrames` with `idle`, `run`,
   `attack_tell`, `attack`, `hurt`, and `death` animations, each with at least
   3 transparent PNG frames. No placeholder rectangle or single-frame character
@@ -53,14 +59,16 @@ scene.
   `factory_lower_deck_forward_pressure_aftershock_exit_skirmish_spark_rat_defeated=true`,
   `factory_lower_deck_forward_pressure_aftershock_exit_skirmish_coil_rat_defeated=true`,
   and `factory_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared=true`,
-  disables both enemies, marks the route objective complete, and updates route
-  feedback to `Forward Pressure Aftershock Exit Skirmish Cleared`.
+  disables both enemies for combat while preserving their visible/process death
+  presentation until the existing RatMinion fade completes, marks the route
+  objective complete, and updates route feedback to
+  `Forward Pressure Aftershock Exit Skirmish Cleared`.
 - [x] Restoring completed state keeps Story085 inactive/cleared, keeps Story084
   cache claimed, keeps Story083/082/081 completed, preserves the Story074 exit
   relay savepoint contract, does not replay Story068 clear burst or Story071
   reward-cache audio, and preserves `FactoryServiceLift` prompt `Call lift`.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1, including scene load, both enemy nodes,
+  under Godot 4.7 / Godot AI MCP 3.0.4, including scene load, both enemy nodes,
   SpriteFrames frame counts, clean logs, and a non-empty screenshot showing the
   active exit skirmish state.
 
@@ -119,6 +127,24 @@ Usage must be recorded in `design/assets/asset-manifest.md`,
   game log containing only helper registration, empty editor log after clearing
   an eval-probe warning, and a non-empty `960x539` screenshot with both enemies
   visible.
+- 2026-07-21 death-presentation maintenance: clean RED
+  `reports/report_2227/results.xml` exposed the first defeated enemy being
+  hidden by the second defeat callback; focused GREEN
+  `reports/report_2228/results.xml` passed `3/3`, and Story204 final bounded
+  related `reports/report_2229/results.xml` passed six suites `11/11`.
+- Godot 4.7 / Godot AI MCP 3.0.4 accepted run `r127439409-49` confirmed partial
+  defeat keeps the first death visible/process while the survivor remains
+  active, full clear keeps both `death` animations visible/process with
+  physics/target/hurtbox disabled, game log contains only helper registration,
+  editor log is empty, and the game screenshot is non-empty RGB `1278x718`.
+- Story205 production handoff: refined RED `report_2231` captured claim-frame,
+  inactive-hurtbox, movement and spacing gaps; spacing RED `report_2234` failed
+  only at `224px < 250px`; focused GREEN `report_2235` passed `1/1`, and final
+  bounded `report_2237` passed four suites `8/8`.
+- Godot 4.7 / Godot AI MCP 3.0.4 accepted run `r130447473-54` used real
+  interact/movement and real attacks for entities `2129/2130`, measured `304px`
+  opening center spacing, preserved partial/full deaths, returned non-empty RGB
+  `1278x718` screenshots, and ended with clean game/editor logs.
 
 ## Verification Summary
 

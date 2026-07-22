@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-09
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -40,7 +40,9 @@ route state without replaying earlier combat, cache, lift, or savepoint events.
   collision blocking disabled.
 - [x] Once Story091 is cleared, the hatch becomes visible near x `3160.0`,
   exposes prompt `Open Exhaust Hatch`, enables interaction/collision blocking,
-  and updates route feedback to `Open Aftershock Exhaust Hatch`.
+  and updates route feedback to `Open Aftershock Exhaust Hatch`. Story210's
+  production combat handoff leaves it visible, available, unopened and
+  blocking with unlock VFX count `0`; stationary frames cannot auto-open it.
 - [x] Opening the hatch succeeds once for an in-range provider, persists
   `factory_lower_deck_forward_pressure_aftershock_exhaust_exit_hatch_opened=true`,
   disables collision blocking, plays one unlock-feedback burst, updates prompt
@@ -52,7 +54,7 @@ route state without replaying earlier combat, cache, lift, or savepoint events.
   clear burst or Story071 reward-cache audio, and preserves `FactoryServiceLift`
   prompt `Call lift`.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1, including scene load, hatch node,
+  under Godot 4.7 / Godot AI MCP 3.0.4, including scene load, hatch node,
   diagnostics, interaction state, clean logs, and a non-empty screenshot showing
   the opened hatch.
 
@@ -110,11 +112,29 @@ validation.
   duplicate activation `false`, persisted/restored opened state, unlock VFX
   spawn count `1`, clean final game/editor logs, and a non-empty `960x539` game
   screenshot showing the opened hatch.
+- Story210 handoff regression:
+  `reports/report_2275/results.xml` passed the Story209/210, Story091 and
+  Story092 bounded set `6/6`. Godot 4.7 / MCP 3.0.4 accepted run
+  `r142990853-69` reached Story092 through real movement, bites and four real
+  player attacks, then confirmed `available/visible=true`, interaction and
+  blocker enabled, `opened=false`, unlock VFX count `0`, clean logs and a
+  non-empty `1278x718` hatch screenshot.
+- Story211 production-input handoff:
+  `reports/report_2281/report_1/results.xml` passed the five-suite bounded set
+  `8/8`. Godot 4.7 / MCP 3.0.4 accepted real held approach, fresh `interact`,
+  once-only open, blocker/interaction shutdown, VFX count `1`, and Story093
+  available but inactive until fresh `move_right`.
+- Story212 opened-state readability:
+  `reports/report_2288/report_1/results.xml` passed the bounded Story092/093
+  chain `7/7`. MCP 3.0.4 run `r146333033-74` kept the hatch root at
+  `(3160,392)`, retracted only its existing visual to local `(48,-136)` at
+  `6deg`, hid completed hatch/breaker prompts, preserved once-only VFX and
+  showed an unobscured Cinderpaw in a non-empty RGB `1278x718` screenshot.
 
 ## Dependencies
 
 - Depends on: Story091 Old Factory Lower Deck Forward Pressure Aftershock Exhaust Escape Skirmish
-- Unlocks: deeper Old Factory route content after the aftershock exhaust exit
+- Unlocks: Story211 production approach/interact/open and cooling-duct handoff
 
 ## Verification Summary
 
@@ -125,3 +145,8 @@ the Story091 test now expects the clear state to unlock Story092's hatch instead
 of ending the route chain. Final related GREEN `reports/report_1221/` passed
 `17/17`. Headless smoke and Godot MCP runtime evidence passed under Godot 4.7 /
 Godot AI MCP 2.9.1.
+
+Story210 proved the production combat-to-hatch boundary under MCP 3.0.4 without
+auto-opening the hatch. Story211 now proves real proximity and rising-edge
+`interact` open it once without same-frame or teleport activation of Story093.
+Story212 preserves that behavior while making the opened route visually legible.

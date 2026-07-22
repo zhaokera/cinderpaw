@@ -180,7 +180,10 @@ func test_runoff_outlet_skirmish_defeat_persists_and_backfills_outlet_chain(
 	)
 	assert_bool(bool(cleared.get("active", true))).is_false()
 	assert_bool(bool(cleared.get("cleared", false))).is_true()
-	assert_bool(bool(cleared.get("spark_visible", true))).is_false()
+	assert_bool(bool(cleared.get("spark_visible", false))).override_failure_message(
+		"A defeated Spark Rat remains visible for its death animation"
+	).is_true()
+	assert_bool(bool(cleared.get("spark_process_enabled", false))).is_true()
 	assert_bool(bool(cleared.get("spark_physics_enabled", true))).is_false()
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
 		"Runoff Outlet Spark Rat Cleared"

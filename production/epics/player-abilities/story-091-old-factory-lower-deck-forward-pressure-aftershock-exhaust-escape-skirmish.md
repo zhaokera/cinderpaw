@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-09
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -40,18 +40,28 @@ grace frames, and persist partial/full defeat through scene-local state.
 - [x] Once Story090 is cut, crossing activation x `3112.0` activates Spark Rat
   entity `2134` and Coil Rat entity `2135`, assigns Cinderpaw as target,
   enables process/physics for both, starts opening grace frames `10/22`, and
-  updates route feedback to `Break Aftershock Exhaust Escape`.
+  updates route feedback to `Break Aftershock Exhaust Escape`. Production
+  staging anchors Coil/Cinderpaw/Spark at x `2952/3112/3256`, providing
+  `160/144px` flanks and a `304px` enemy center gap.
+- [x] Story090 cut can only make Story091 available in that process frame.
+  Activation requires availability at frame start plus a later fresh positive
+  player-x sample; restore/teleport and a stationary player at x `3116` keep
+  entities `2134/2135` hidden, non-processing, non-physical, `24 HP`, with
+  hurtboxes `gone`.
 - [x] Both enemies use `AnimatedSprite2D + SpriteFrames` with `idle`, `run`,
   `attack_tell`, `attack`, `hurt`, and `death` animations, each with at least
   3 transparent PNG frames from their existing character asset folders.
-- [x] Defeating only one enemy persists its partial defeat flag without marking
-  the route objective complete or hiding the remaining active enemy.
+- [x] Defeating only one enemy persists its partial defeat flag, keeps its
+  three-frame live death visible/processing with combat collision disabled,
+  and does not complete the route or hide the remaining active enemy.
 - [x] Defeating both enemies persists
   `factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_activated=true`,
   `factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_spark_rat_defeated=true`,
   `factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_coil_rat_defeated=true`,
   and `factory_lower_deck_forward_pressure_aftershock_exhaust_escape_skirmish_cleared=true`,
-  disables both enemies, and originally updated route feedback to
+  keeps both fresh live deaths visible/processing with physics, targets,
+  hurtboxes, bite hitboxes and body collision disabled, and originally updated
+  route feedback to
   `Aftershock Exhaust Escape Secured`; Story092 now advances the live route
   objective to `Open Aftershock Exhaust Hatch` after this clear state.
 - [x] Restoring completed state keeps Story091 inactive/cleared, keeps Story090
@@ -59,7 +69,7 @@ grace frames, and persist partial/full defeat through scene-local state.
   replay Story068 clear burst or Story071 reward-cache audio, and preserves
   `FactoryServiceLift` prompt `Call lift`.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1, including scene load, target nodes,
+  under Godot 4.7 / Godot AI MCP 3.0.4, including scene load, target nodes,
   SpriteFrames frame counts, active runtime diagnostics, persisted clear state,
   clean logs, and a non-empty screenshot showing the active skirmish.
 
@@ -123,6 +133,12 @@ Reuse is recorded in `design/assets/asset-manifest.md`,
   persisted and resynced cleared flags, route feedback
   `Aftershock Exhaust Escape Secured`, clean game/editor logs, and a non-empty
   `960x539` game screenshot showing the active skirmish.
+- Story210 production acceptance:
+  `reports/report_2272/results.xml` focused `1/1` and
+  `reports/report_2275/results.xml` bounded related `6/6`; Godot 4.7 / MCP
+  3.0.4 run `r142990853-69` confirmed the `2952/3112/3256` pincer, real
+  `9/10` bites, four real player attacks, partial/full collision-safe live
+  deaths, clean logs, and the unopened Story092 hatch handoff.
 
 ## Dependencies
 
@@ -146,3 +162,11 @@ Reuse is recorded in `design/assets/asset-manifest.md`,
 - Story092 later extended the route chain after Story091, so current regression
   tests now expect Story091 clear state to unlock the aftershock exhaust exit
   hatch instead of ending the route objective chain.
+- Story209 added the same-frame/fresh-movement guard at the Story090 cut
+  boundary. `reports/report_2267/results.xml` passed the Story209/090/091/208
+  and steam bounded set `10/10`; MCP run `r139679441-66` confirmed Story091
+  remained available/inactive with both enemies hidden and collision-safe.
+- Story210 replaced the old `44px` overlap with a `304px` pincer and promoted
+  Story091 to production movement/bite/light-attack/live-death acceptance.
+  Final bounded related `report_2275` passed `6/6`; accepted MCP run
+  `r142990853-69` handed the route to Story092 without auto-opening it.

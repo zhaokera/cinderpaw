@@ -4,7 +4,7 @@
 > **GDD**: design/gdd/player-abilities.md
 > **Architecture Module**: AbilityComponent
 > **Status**: In Progress
-> **Stories**: 178 stories tracked
+> **Stories**: 227 stories tracked
 
 ## Overview
 
@@ -216,6 +216,57 @@ recording the reward in progression state.
 | 176 | Crown Warden Dedicated Phase Transition Frame Animation | Visual/Feel + Frame Animation + Data Integration | Complete | ADR-0002/0004/0005/0006/0010/0019/0020 |
 | 177 | Old Factory Lower Deck Skirmish Production-Input Handoff | Integration + Gameplay Runtime + Production Input | Complete | ADR-0004/0005/0006/0007/0018/0021 |
 | 178 | Rat King Committed Charge Locomotion | Attack Pattern + Collision + Data Integration | Complete | ADR-0002/0003/0004/0005/0006/0018 |
+| 179 | Old Factory Lower Deck Reward Cache Production-Input Handoff | Integration + Gameplay Runtime + Production Input + Reward | Complete | ADR-0004/0007/0018/0021 |
+| 180 | Sluice Matriarch Shared Death and Retry Flow | Integration + Gameplay Runtime + Death/Respawn + Visual Feedback | Complete | ADR-0002/0004/0005/0007/0019/0020 |
+| 181 | Old Factory Pressure Valve Authored Motion Readability | Visual/Feel + Frame Animation Contract | Blocked | ADR-0002/0007/0010/0018/0021 |
+| 182 | Sluice Matriarch Chase Spacing | AI State + ACT Pacing + Existing Frame Animation | Complete | ADR-0002/0004/0005/0006 |
+| 183 | Old Factory Lower Deck Progression Production-Input Handoff | Integration + Gameplay Runtime + Production Input | Complete | ADR-0004/0007/0018/0021 |
+| 184 | Crown Warden Opening Approach Spacing | AI State + ACT Pacing + Existing Frame Animation | Complete | ADR-0002/0004/0005/0006 |
+| 185 | Old Factory Breach Corridor Production Movement Handoff | Integration + Gameplay Runtime + Production Movement + Visual Readability | Complete | ADR-0004/0005/0006/0007/0018/0021 |
+| 186 | Old Factory Deep Bulkhead Guard Production Movement Handoff | Integration + Production Movement + Frame Animation + Visual Readability | Complete | ADR-0004/0005/0006/0007/0018/0021 |
+| 187 | Old Factory Post-Relay Production Movement Handoff | Integration + Gameplay Runtime + Production Movement + Visual Readability | Complete | ADR-0004/0005/0006/0007/0018/0021 |
+| 188 | Old Factory Relay-Forward Reward/Hatch Production-Input Handoff | Integration + Gameplay Runtime + Production Input + Visual Readability | Complete | ADR-0004/0007/0018/0021 |
+| 189 | Old Factory Forward Conduit Production Movement Handoff | Integration + Gameplay Runtime + Production Movement + Visual Readability | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 190 | Old Factory Forward Pressure Traverse Production Movement Handoff | Integration + Gameplay Runtime + Production Movement + Visual Readability | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 191 | Old Factory Forward Pressure Counter-Ambush Production Movement Handoff | Integration + Gameplay Runtime + Production Movement + Combat Readability | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 192 | Old Factory Forward Pressure Reward Cache Production-Input Handoff | Integration + Gameplay Runtime + Production Input + Reward | Complete | ADR-0002/0004/0007 |
+| 193 | Old Factory Forward Pressure Exit Guard Production Movement Handoff | Integration + Gameplay Runtime + Production Movement + Combat Readability | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 194 | Old Factory Forward Pressure Exit Relay Production Contact Handoff | Integration + Gameplay Runtime + Production Contact + Savepoint Readability | Complete | ADR-0002/0004/0007/0018/0021 |
+| 195 | Old Factory Forward Pressure Exit Gate Production Input Handoff | Integration + Gameplay Runtime + Production Input + Route Readability | Complete | ADR-0002/0004/0007/0018/0021 |
+| 196 | Old Factory Forward Pressure Route Handoff Marker Production Input Handoff | Integration + Gameplay Runtime + Production Input + Encounter Pacing | Complete | ADR-0004/0007/0018/0021 |
+| 197 | Old Factory Forward Pressure Beacon Ambush Production Combat Handoff | Integration + Gameplay Runtime + Production Combat + Encounter Pacing | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 198 | Old Factory Forward Pressure Overrun Production Combat Handoff | Integration + Gameplay Runtime + Production Combat + Encounter Pacing | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 199 | Old Factory Forward Pressure Breaker Production Combat/Cut Handoff | Integration + Gameplay Runtime + Production Combat + Production Input + Encounter Pacing | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 200 | Old Factory Forward Pressure Relief Production Combat Handoff | Integration + Gameplay Runtime + Production Combat + Death Feedback + Encounter Pacing | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 201 | Old Factory Forward Pressure Coil Rat Production Combat Handoff | Integration + Gameplay Runtime + Production Combat + Death Feedback + Encounter Pacing | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 202 | Old Factory Forward Pressure Coil Pincer Production Combat Handoff | Integration + Gameplay Runtime + Production Combat + Death Feedback + Encounter Pacing | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 203 | Old Factory Coil Pincer Flank Spacing | Integration + Gameplay Runtime + AI/Encounter Pacing + Visual Readability | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 204 | Old Factory Coil Aftershock Production Combat Reward Handoff | Integration + Gameplay Runtime + Production Combat + Production Input + Reward | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 205 | Old Factory Aftershock Exit Skirmish Production Combat Exhaust Handoff | Integration + Gameplay Runtime + Production Combat + Production Movement + Encounter Pacing | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 206 | Old Factory Aftershock Exhaust Production Traverse Pursuer Handoff | Integration + Gameplay Runtime + Production Movement + Hazard Timing | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 207 | Old Factory Aftershock Exhaust Pursuer Production Combat Reward Handoff | Integration + Gameplay Runtime + Production Combat + Production Input + Reward | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 208 | Old Factory Aftershock Exhaust Flank Production Combat Breaker Handoff | Integration + Gameplay Runtime + Production Movement + Production Combat + Hazard | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 209 | Old Factory Aftershock Exhaust Breaker Production Combat Escape Handoff | Integration + Production Movement + Production Combat + Hazard + Production Input | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 210 | Old Factory Aftershock Exhaust Escape Production Combat Exit Hatch Handoff | Integration + Production Movement + Production Combat + Live Death + Route Handoff | Complete | ADR-0002/0004/0005/0006/0007/0018/0021 |
+| 211 | Old Factory Aftershock Exhaust Exit Hatch Production Input Cooling Duct Handoff | Integration + Production Input + Production Movement + Route Handoff | Complete | ADR-0004/0007/0018/0021 |
+| 212 | Old Factory Aftershock Exhaust Exit Hatch Open Readability | Visual/Feel + Integration | Complete | ADR-0004/0007/0018/0021 |
+| 213 | Old Factory Aftershock Cooling Duct Production Hazard Traverse Handoff | Integration + Production Movement + Hazard Timing + Route Handoff | Complete | ADR-0004/0007/0018/0021 |
+| 214 | Old Factory Aftershock Condenser Valve Production Combat Savepoint Handoff | Integration + Production Movement + Production Combat + Live Death + Savepoint Handoff | Complete | ADR-0004/0005/0006/0007/0018/0021 |
+| 215 | Old Factory Aftershock Condenser Savepoint Production Contact Respawn Handoff | Integration + Production Movement + Contact Activation + Death/Respawn + Route Handoff | Complete | ADR-0004/0007/0018/0021 |
+| 216 | Old Factory Aftershock Condenser Outlet Production Hazard Traverse Handoff | Integration + Production Movement + Hazard Timing + Route Handoff | Complete | ADR-0001/0004/0007 |
+| 217 | Old Factory Aftershock Condenser Outlet Clamp Production Combat Drip Vent Handoff | Integration + Production Movement + Production Combat + Live Death + Route Handoff | Complete | ADR-0002/0004/0005/0006/0007 |
+| 218 | Old Factory Aftershock Condenser Outlet Drip Vent Production Hazard Traverse Overflow Pump Handoff | Integration + Production Movement + Hazard Timing + Route Handoff | Complete | ADR-0004/0006/0007 |
+| 219 | Old Factory Aftershock Condenser Overflow Pump Production Combat Reward Cache Handoff | Integration + Production Combat + Production Input + Live Death + Reward | Complete | ADR-0002/0004/0005/0007 |
+| 220 | Old Factory Aftershock Condenser Overflow Pump Runoff Hatch Production Input Duct Handoff | Integration + Production Input + Production Movement + Hazard Timing + Route Handoff | Complete | ADR-0004/0007 |
+| 221 | Old Factory Runoff Exit Production Combat Reward Cache Handoff | Integration + Production Movement + Production Combat + Live Death + Reward | Complete | ADR-0002/0004/0005/0007 |
+| 222 | Old Factory Runoff Exit Gate Production Input Outlet Handoff | Integration + Production Input + Production Movement + Hazard Timing + Route Handoff | Complete | ADR-0004/0007 |
+| 223 | Old Factory Runoff Outlet Production Combat Reward Cache Handoff | Integration + Production Movement + Production Combat + Live Death + Reward | Complete | ADR-0002/0004/0005/0007 |
+| 224 | Old Factory Runoff Outlet Service Hatch Production Input Sluice Handoff | Integration + Production Input + Production Movement + Physical Hazard | Complete | ADR-0004/0007/0018/0021 |
+| 225 | Old Factory Service Sluice Production Combat Reward Cache Handoff | Integration + Production Movement + Production Combat + Live Death + Reward | Complete | ADR-0002/0004/0005/0007 |
+| 226 | Old Factory Service Sluice Reward Cache Production Input Exit Hatch Handoff | Integration + Production Input + Reward + Route Handoff | Complete | ADR-0004/0007 |
+| 227 | Old Factory Service Sluice Exit Hatch Production Input Tailrace Handoff | Integration + Production Input + UI/Visual + Route Handoff | Complete | ADR-0004/0007/0018/0021 |
+| 228 | Old Factory Service Sluice Tailrace Production Hazard Traverse Ambush Handoff | Integration + Production Movement + Physical Hazard + Route Handoff | Complete | ADR-0004/0007/0018/0021 |
+| 229 | Old Factory Service Sluice Tailrace Ambush Production Combat Relay Handoff | Integration + Production Movement + Production Combat + Live Death + Route Handoff | Complete | ADR-0002/0004/0005/0007 |
 
 ## Definition of Done
 
@@ -237,10 +288,11 @@ This epic is complete when:
 
 ## Next Step
 
-Story178 turns Rat King's authored `charge` into a committed, collision-aware
-gap closer while preserving its generated SpriteFrames, timing, damage and
-hitbox. The next bounded functional slice should connect the visible Old Factory
-Lower Deck reward cache to production `interact`, so its Parry gate and existing
-route content become reachable without test-only API calls. Boss3 death/retry
-pacing and a dedicated image-generated pressure-valve animation should follow
-as separate gameplay and presentation Stories.
+Story229 now drives Story118 through real positive-x activation and a real
+`cat_claw_light` lethal hit, preserves the live death presentation, and exposes
+Story119 as a visible, available, unactivated relay. The next Old Factory
+priority is Story119 real contact activation plus death/respawn closure,
+followed by Story120 relay-runoff production traversal.
+Rat King Phase III's documented three-hit berserk combo remains the next
+independent Boss-depth slice, while Story181 remains blocked only on external
+image2 connectivity.

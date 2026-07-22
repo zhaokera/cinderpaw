@@ -141,12 +141,18 @@ func test_deep_bulkhead_open_persists_without_replaying_steam_sluice_chain() -> 
 	await get_tree().process_frame
 
 	var defeated: Dictionary = destination.call("get_factory_lower_deck_deep_bulkhead_diagnostics")
+	var bulkhead_prompt := destination.get_node_or_null(
+		"FactoryLowerDeckDeepBulkhead/PromptLabel"
+	) as Label
+	assert_that(bulkhead_prompt).is_not_null()
 	assert_bool(bool(defeated.get("guard_active", true))).is_false()
 	assert_bool(bool(defeated.get("guard_defeated", false))).is_true()
 	assert_bool(bool(defeated.get("guard_visible", true))).is_false()
 	assert_bool(bool(defeated.get("bulkhead_available", false))).is_true()
 	assert_bool(bool(defeated.get("bulkhead_opened", true))).is_false()
 	assert_str(String(defeated.get("bulkhead_prompt_text", ""))).is_equal("Open bulkhead")
+	if bulkhead_prompt != null:
+		assert_bool(bulkhead_prompt.visible).is_true()
 	assert_str(String(
 		destination.call("get_factory_route_objective_diagnostics").get("route_label_text", "")
 	)).is_equal("Open Deep Bulkhead")
@@ -158,6 +164,8 @@ func test_deep_bulkhead_open_persists_without_replaying_steam_sluice_chain() -> 
 	assert_bool(bool(opened.get("bulkhead_opened", false))).is_true()
 	assert_bool(bool(opened.get("bulkhead_available", true))).is_false()
 	assert_bool(bool(opened.get("bulkhead_collision_blocking", true))).is_false()
+	if bulkhead_prompt != null:
+		assert_bool(bulkhead_prompt.visible).is_false()
 	assert_str(String(
 		destination.call("get_factory_route_objective_diagnostics").get("route_label_text", "")
 	)).is_equal("Deep Bulkhead Opened")

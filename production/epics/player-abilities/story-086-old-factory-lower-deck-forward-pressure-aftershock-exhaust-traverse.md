@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-09
+> **Last Updated**: 2026-07-21
 
 ## Context
 
@@ -39,11 +39,14 @@ a new room scene.
   `factory_lower_deck_forward_pressure_aftershock_exit_skirmish_cleared=false`;
   the vent remains hidden, non-monitoring, non-contacting, and manual activation
   returns `false`.
-- [x] Once Story085 is cleared, crossing activation x `2416.0` activates the
+- [x] Once Story085 is cleared, a fresh positive movement crossing activation
+  x `2416.0` activates the
   traverse, makes the vent visible, starts deterministic phase timing
   `grace -> warning -> active -> safe`, assigns hazard id
   `old_factory_lower_deck_forward_pressure_aftershock_exhaust`, and updates
   route feedback to `Cross Aftershock Exhaust`.
+- [x] Story085's lethal frame and later stationary frames cannot start the
+  traverse; clear only makes the vent visible/available with contact disabled.
 - [x] Only the `active` phase can damage the player through the existing steam
   contact path. Grace, warning, and safe phases do not damage the player, and
   non-player contact does not trigger damage.
@@ -57,7 +60,7 @@ a new room scene.
   savepoint contract, does not replay Story068 clear burst or Story071
   reward-cache audio, and preserves `FactoryServiceLift` prompt `Call lift`.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1, including scene load, vent node,
+  under Godot 4.7 / Godot AI MCP 3.0.4, including scene load, vent node,
   phase/activation/completion diagnostics, damage gating, clean logs, and a
   non-empty screenshot showing the active exhaust traverse.
 
@@ -70,9 +73,11 @@ particles/shaders, Boss2, and broader lower-deck layout work.
 
 ## Implementation Notes
 
-- Reuse the existing Old Factory steam vent hazard script and texture:
+- Reuse the existing Old Factory steam vent hazard script, base texture and
+  dynamic frame resource:
   `src/feature/factory_steam_vent_hazard.gd` and
-  `assets/environment/old_factory_steam_vent/factory_steam_vent_hazard.png`.
+  `assets/environment/old_factory_steam_vent/factory_steam_vent_hazard.png`,
+  `assets/environment/old_factory_steam_vent/factory_steam_vent_sprite_frames.tres`.
 - Keep Story086 state scene-local through
   `OldFactoryEntranceScene.get_local_state()` / `set_local_state()`.
 - Use hazard id
@@ -91,6 +96,9 @@ image-generated environment assets:
 
 - Old Factory steam vent hazard:
   `assets/environment/old_factory_steam_vent/factory_steam_vent_hazard.png`
+- Dynamic steam SpriteFrames:
+  `assets/environment/old_factory_steam_vent/factory_steam_vent_sprite_frames.tres`
+  with four transparent frames each for `safe`, `warning` and `active`.
 
 Usage must be recorded in `design/assets/asset-manifest.md`,
 `design/assets/entity-inventory.md`, this story, and QA evidence.
@@ -115,6 +123,19 @@ Usage must be recorded in `design/assets/asset-manifest.md`,
   Story074 relay savepoint contract, service lift prompt `Call lift`, clean
   final game/editor logs, and a non-empty `960x539` screenshot with the active
   exhaust vent visible.
+- Story205 production handoff final bounded regression
+  `reports/report_2237/report_1/results.xml` passed Story205/204/085/086 `8/8`.
+  Godot 4.7 / MCP 3.0.4 accepted run `r130447473-54` confirmed Story086 remains
+  idle while stationary after clear, then real `move_right` advances x
+  `2416 -> 2429` and starts visible, non-contact `grace`; the RGB `1278x718`
+  screenshot was non-empty and accepted logs were clean.
+- Story206 production traversal final bounded regression
+  `reports/report_2244/results.xml` passed Story206/086/205/087 `7/7`.
+  Godot 4.7 / MCP 3.0.4 accepted run `r133380254-57` used real movement for
+  entry and x `2480` completion; production timing reached warning, active and
+  safe, real overlap applied `8` damage only in active, and Story087 remained
+  available/inactive below x `2552`. Both `1278x718` screenshots were non-empty
+  and final logs were clean.
 
 ## Verification Summary
 
@@ -135,6 +156,9 @@ Usage must be recorded in `design/assets/asset-manifest.md`,
   `8`, cooldown `1.0`, route labels `Cross Aftershock Exhaust` and
   `Forward Pressure Aftershock Exhaust Crossed`, restored crossed-state
   inactivity, and clean final logs.
+- Story206 additionally proves those phases and completion are reached by the
+  production `_process(delta)` loop rather than only by direct Story086 test
+  APIs.
 
 ## Dependencies
 

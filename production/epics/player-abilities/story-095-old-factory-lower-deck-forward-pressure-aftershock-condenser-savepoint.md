@@ -111,6 +111,19 @@ New image-generated runtime prop:
   snapshot, route label `Aftershock Condenser Savepoint Secured`, clean final
   editor log, and a non-empty `960x539` game screenshot showing the generated
   savepoint relay with prompt `Repair Condenser Relay`.
+- Story214 production handoff:
+  `reports/report_2298/results.xml` passed the final bounded `6/6`;
+  MCP 3.0.4 run `r149702722-5` cleared Story094 through real production combat
+  while Cinderpaw was inside the relay contact radius. The relay became
+  visible, available and contact-ready with prompt `Repair Condenser Relay`,
+  but remained unactivated in the lethal frame with no checkpoint VFX or local
+  activation flag.
+- Story215 production contact/respawn:
+  `reports/report_2307/results.xml` passed the final bounded `6/6`; MCP 3.0.4
+  run `r151899297-9` moved into the real `SavepointRuntime` contact from
+  outside, activated exactly once, hid the prompt, persisted the condenser
+  snapshot, then completed live `death -> revive -> playing` at the relay with
+  `50/100` HP and no Story096 chain activation.
 
 ## Dependencies
 
@@ -123,3 +136,7 @@ Initial RED `reports/report_1232/` failed before Story095 assets, API, and
 diagnostics existed. Focused GREEN `reports/report_1233/` passed `2/2`;
 related GREEN `reports/report_1234/` passed `19/19`. Headless smoke and Godot
 MCP runtime evidence passed under Godot 4.7 / Godot AI MCP 2.9.1.
+Story214 additionally verified the production combat-to-savepoint frame
+boundary under Godot 4.7 / MCP 3.0.4. Story215 now verifies normal contact
+activation and the full production respawn handoff under the same engine/MCP
+versions.

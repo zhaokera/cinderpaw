@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + UI/Visual
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -96,6 +96,16 @@ image-generated/imported assets:
   collision cleared after open, local-state persistence, current game log
   without errors, no new editor log rows after cursor `9`, and a non-empty game
   screenshot response.
+- Story226 production handoff: fresh MCP 3.0.4 `interact` claimed Story115 and
+  made this Hatch visible, available, monitoring, monitorable and blocking at
+  `(11680,392)` with `Open Service Exit`. The same edge plus four held frames
+  left it unopened with zero unlock-VFX spawns; run `r179796549-23` had a
+  helper-only game log and no editor logger delta after cursor `2`.
+- Story227 production open: fresh MCP 3.0.4 `interact` opened this Hatch once,
+  cleared collision/monitoring, hid the world prompt, moved its Visual to
+  `(48,-136)` at `6deg` and effective z `23`, and exposed Story117 without
+  same-frame or no-input activation; run `r182022878-24` had a helper-only game
+  log and no editor logger delta after cursor `2`.
 
 ## Dependencies
 
@@ -110,3 +120,6 @@ runtime support existed, focused GREEN `reports/report_1340/report_2/` passed
 `2/2`, and related GREEN `reports/report_1342/report_1/` passed `10/10`.
 Godot MCP runtime validation passed under Godot 4.7 and Godot AI MCP 2.9.1, with
 the exit hatch visible and interactive after the service sluice cache claim.
+Story226 adds the MCP 3.0.4 reward-to-Hatch production-input handoff. Story227
+completes the fresh Hatch-open edge, visible retraction and guarded Story117
+handoff with final related GdUnit `9/9` and a 180-frame smoke.

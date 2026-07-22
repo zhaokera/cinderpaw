@@ -182,7 +182,8 @@ func test_service_sluice_skirmish_defeat_persists_and_backfills_sluice_chain(
 	)
 	assert_bool(bool(cleared.get("active", true))).is_false()
 	assert_bool(bool(cleared.get("cleared", false))).is_true()
-	assert_bool(bool(cleared.get("spark_visible", true))).is_false()
+	# Runtime defeat keeps the enemy visible only for its authored death animation.
+	assert_bool(bool(cleared.get("spark_visible", false))).is_true()
 	assert_bool(bool(cleared.get("spark_physics_enabled", true))).is_false()
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
 		"Service Sluice Spark Rat Cleared"

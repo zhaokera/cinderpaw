@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-09
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -44,8 +44,15 @@ console that can be cut once the guard is defeated.
   Rat, steam vent, or breaker console.
 - [x] Once Story089 is cleared, crossing activation x `2928.0` activates entity
   `2133`, assigns Cinderpaw as target, enables process/physics, starts opening
-  grace frame pacing `10`, enables the steam vent hazard, and updates route
+  grace frame pacing `10`, starts the steam vent warning, and updates route
   feedback to `Secure Aftershock Exhaust Breaker`.
+- [x] The vent warning lasts `21` physics frames with contact disabled and a
+  four-frame warning animation before the hazard becomes active. Vent x
+  `2880` and Coil Rat x `3008` provide a `128px` initial center gap.
+- [x] Story089's lethal frame and restored-state teleport cannot auto-activate
+  Story090. Availability must exist at frame start and a later positive x
+  movement sample must cross `2928.0`; while inactive, entity `2133` remains
+  hidden, non-processing, non-physical, `24 HP`, and hurtbox `gone`.
 - [x] The enemy uses `AnimatedSprite2D + SpriteFrames` with `idle`, `run`,
   `attack_tell`, `attack`, `hurt`, and `death` animations, each with at least
   3 transparent PNG frames from `assets/characters/factory_coil_rat/`.
@@ -57,13 +64,19 @@ console that can be cut once the guard is defeated.
   `factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_activated=true`,
   `factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_coil_rat_defeated=true`,
   and `factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_secured=true`,
-  hides the Coil Rat/vent, reveals the breaker console, and updates route
-  feedback to `Cut Aftershock Exhaust`.
+  disables the Coil Rat's physics/target/hurtbox while preserving visible,
+  processing three-frame `death`, hides the vent, reveals the breaker console,
+  and updates route feedback to `Cut Aftershock Exhaust`. Restored completed
+  state hides the defeated enemy.
 - [x] Activating the breaker persists
   `factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_cut=true`,
   plays the existing unlock spark once, rejects duplicate activation, marks the
   route objective complete, and updates route feedback to
   `Aftershock Exhaust Pressure Cut`.
+- [x] The breaker uses a `120px` radius in the production nearest-interaction
+  chain. A real `interact` rising edge cuts it once; Story091 becomes
+  available in that frame but remains inactive until a later fresh positive
+  movement sample.
 - [x] Restoring completed state keeps Story090 inactive/cut, keeps Story089
   cleared, keeps Story074 exit relay contract stable, does not replay Story068
   clear burst or Story071 reward-cache audio, and preserves
@@ -167,3 +180,20 @@ Reuse is recorded in `design/assets/asset-manifest.md`,
 - The MCP tool surface in this session did not expose `logs_read`; runtime log
   evidence therefore comes from `project_run.recent_errors=[]`, fresh log clear
   before launch, and the headless smoke log scan.
+- Story208 added fresh-movement/same-frame protection and inactive hurtbox
+  safety before Story090 production combat. Its first bounded run
+  `reports/report_2256/results.xml` exposed this Story's stale immediate-hide
+  death assertion; focused `reports/report_2257/results.xml` passed `2/2` after
+  aligning with the shared live-death contract. Final bounded
+  `reports/report_2258/results.xml` passed five suites and `11/11`.
+- Godot 4.7 / MCP 3.0.4 accepted run `r137556639-60` left Story090 available
+  but inactive after Story089 clear: entity `2133` stayed hidden,
+  process/physics off, `24 HP`, hurtbox `gone`, with vent and breaker hidden.
+- Story209 completed Story090's production path. Final bounded
+  `reports/report_2267/results.xml` passed five suites and `10/10`; focused
+  `reports/report_2268/results.xml` and `reports/report_2269/results.xml`
+  passed after the 21-frame warning and early-diagnostic null guard.
+- Godot 4.7 / MCP 3.0.4 accepted run `r139679441-66` verified real movement,
+  warning contact-off, real 8-damage steam overlap, the 10-damage Coil bite,
+  two real attacks `24 -> 12 -> 0`, live death, real breaker interaction,
+  clean logs and Story091 available/inactive handoff.

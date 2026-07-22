@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-09
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -129,6 +129,22 @@ Story093 also reuses the imported image-generated steam vent hazard:
   damage enabled only during `active`, persisted crossed state, clean final
   game/editor logs, and a non-empty `960x539` game screenshot showing the
   generated duct and steam vent.
+- Story211 production handoff:
+  `reports/report_2281/report_1/results.xml` passed `8/8`; MCP 3.0.4 run
+  `r145086182-73` proved held/teleported states do not start this Story and a
+  fresh real `move_right` across x `3240.0` starts it active, uncrossed and in
+  `grace`, with contact damage off and a non-empty `1278x718` screenshot.
+- Story212 visual handoff:
+  `reports/report_2288/report_1/results.xml` passed `7/7`; MCP 3.0.4 run
+  `r146333033-74` confirmed opening the retracted hatch only exposes this Story
+  as available/idle, then fresh real `move_right` reaches x `3294.33` and starts
+  it active/uncrossed in `grace` with both completed world prompts hidden.
+- Story213 production closure:
+  `reports/report_2291/report_1/results.xml` passed `6/6`; MCP 3.0.4 run
+  `r148345568-3` observed the complete production
+  `idle -> grace -> warning -> active -> safe` sequence, real overlap damage
+  `100 -> 92`, and a crossed state with contact disabled before Story094 could
+  activate in the same frame.
 
 ## Dependencies
 
@@ -143,4 +159,8 @@ new generated PNG. Focused GREEN `reports/report_1225/` passed `2/2`; related
 GREEN `reports/report_1226/` and `reports/report_1227/` passed `4/4`. Final
 auto-complete GREEN `reports/report_1228/` passed `4/4` after the runtime
 `_process` path was added. Headless smoke and Godot MCP runtime evidence passed
-under Godot 4.7 / Godot AI MCP 2.9.1.
+under Godot 4.7 / Godot AI MCP 2.9.1. Story211 subsequently revalidated the
+production activation boundary under MCP 3.0.4. Story212 then revalidated that
+boundary after the hatch readability change. Story213 finally connected the
+existing time API to production `_process(delta)` and accepted the full traverse
+under Godot 4.7 / MCP 3.0.4.

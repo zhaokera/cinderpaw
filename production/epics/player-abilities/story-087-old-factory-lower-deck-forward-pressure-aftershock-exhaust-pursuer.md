@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-09
+> **Last Updated**: 2026-07-21
 
 ## Context
 
@@ -35,7 +35,11 @@ room scene.
   `src/gameplay/factory_coil_rat.tscn`.
 - [x] The exhaust pursuer is unavailable while
   `factory_lower_deck_forward_pressure_aftershock_exhaust_crossed=false`; the
-  enemy remains hidden/inactive, and manual activation returns `false`.
+  enemy remains hidden/inactive with hurtbox `gone`, and manual activation
+  returns `false`.
+- [x] Story086 production completion at x `2480` makes Story087 available but
+  does not activate it before its own x `2552` boundary. Entity `2131` remains
+  hidden, non-processing, non-physical, `24 HP`, and hurtbox `gone`.
 - [x] Once Story086 is crossed, crossing activation x `2552.0` activates entity
   `2131`, assigns the player as target, enables process/physics, starts opening
   grace frame pacing `10`, and updates route feedback to
@@ -48,15 +52,17 @@ room scene.
   `factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_activated=true`,
   `factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_coil_rat_defeated=true`,
   and `factory_lower_deck_forward_pressure_aftershock_exhaust_pursuer_cleared=true`,
-  disables the enemy, marks the route objective complete, and updates route
-  feedback to `Forward Pressure Exhaust Pursuer Cleared`.
+  disables combat, marks the route objective complete, and updates route
+  feedback to `Forward Pressure Exhaust Pursuer Cleared`. Live defeat preserves
+  visible/process three-frame `death` presentation while physics, target and
+  hurtbox are disabled; restored completed state remains hidden.
 - [x] Restoring completed state keeps Story087 inactive/cleared, keeps Story086
   exhaust crossed, keeps Story085 cleared, keeps Story084 cache claimed,
   preserves the Story074 exit relay savepoint contract, does not replay Story068
   clear burst or Story071 reward-cache audio, and preserves
   `FactoryServiceLift` prompt `Call lift`.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1, including scene load, the pursuer node,
+  under Godot 4.7 / Godot AI MCP 3.0.4, including scene load, the pursuer node,
   SpriteFrames frame counts, clean logs, and a non-empty screenshot showing the
   active pursuer state.
 
@@ -111,6 +117,23 @@ Usage must be recorded in `design/assets/asset-manifest.md`,
     `reports/old_factory_forward_pressure_aftershock_exhaust_pursuer_smoke.log`
   - QA evidence:
     `production/qa/evidence/old-factory-forward-pressure-aftershock-exhaust-pursuer-2026-07-09.md`
+- Story206 handoff regression:
+  `reports/report_2242/report_1/results.xml` passed focused Story087 `2/2`, and
+  final bounded `reports/report_2244/results.xml` passed
+  Story206/086/205/087 `7/7`. Godot 4.7 / MCP 3.0.4 accepted run
+  `r133380254-57` crossed Story086 with real movement, stopped below x `2552`,
+  and confirmed Story087 available/inactive, hidden, non-processing,
+  non-physical, `24 HP`, and hurtbox `gone` with clean logs and non-empty
+  screenshots.
+- Story207 production closure:
+  `reports/report_2249/results.xml` captured the same-frame activation
+  boundary as RED; `reports/report_2250/results.xml` passed focused
+  GREEN. Final bounded `reports/report_2251/results.xml` passed eight suites and
+  `14/14`. Godot 4.7 / MCP 3.0.4 accepted run `r135689461-59` used real forward
+  movement to activate entity `2131`, confirmed all six gameplay animations at
+  three frames, and used a real `cat_claw_light` attack to finish HP `12 -> 0`.
+  Live death remained visible/processing while physics, target and hurtbox were
+  disabled, and Story088 became claimable.
 
 ## Dependencies
 

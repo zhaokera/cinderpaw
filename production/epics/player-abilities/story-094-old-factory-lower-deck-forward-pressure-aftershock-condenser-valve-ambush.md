@@ -121,6 +121,17 @@ Story094 reuses generated character animation resources:
   targeted, persisted cleared state, clean final game/editor logs, and a
   non-empty `960x539` game screenshot showing the generated valve with
   animated enemies.
+- Story213 production handoff:
+  `reports/report_2291/report_1/results.xml` passed `6/6`; MCP 3.0.4 run
+  `r148345568-3` crossed Story093 at x `3920.17` while this Story was visible
+  and available but inactive. Both enemies remained hidden, non-processing and
+  untargeted during the completion frame.
+- Story214 production completion:
+  `reports/report_2298/results.xml` passed the final bounded `6/6`;
+  MCP 3.0.4 run `r149702722-5` rejected stationary threshold activation, then
+  used real `move_right` and `attack` input to activate and defeat entities
+  `2136/2137`. Both deaths entered the live `death` animation with physics,
+  targets and hurtboxes disabled before the landing cleared.
 
 ## Dependencies
 
@@ -133,3 +144,7 @@ Initial RED `reports/report_1229/` failed before Story094 API and diagnostics
 existed. Focused GREEN `reports/report_1230/` passed `2/2`; related GREEN
 `reports/report_1231/` passed `6/6`. Headless smoke and Godot MCP runtime
 evidence passed under Godot 4.7 / Godot AI MCP 2.9.1.
+Story213 subsequently verified the production frame-boundary handoff under
+Godot 4.7 / MCP 3.0.4 without changing Story094's existing activation contract.
+Story214 then verified that contract through the complete production movement
+and combat path and handed the cleared landing to Story095.

@@ -33,9 +33,12 @@ const DEFAULT_SCENE_CROSSFADE_SEC: float = 3.0
 const BOSS_MUSIC_HARD_CUT_SEC: float = 1.0
 const BOSS_PHASE_MUSIC_TRANSITION_SEC: float = 2.0
 const BOSS_MUSIC_END_FADE_SEC: float = 3.0
+const PLAYER_DEATH_MIX_FADE_SEC: float = 0.15
+const PLAYER_REVIVE_MIX_FADE_SEC: float = 0.5
 const AUDIO_STATE_NORMAL: StringName = &"NORMAL"
 const AUDIO_STATE_BOSS_FIGHT: StringName = &"BOSS_FIGHT"
 const AUDIO_STATE_LOW_HP: StringName = &"LOW_HP"
+const AUDIO_STATE_DEATH: StringName = &"DEATH"
 const AUDIO_STATE_MENU: StringName = &"MENU"
 const SFX_PRIORITY_NORMAL: int = 50
 const SFX_PRIORITY_DODGE: int = 60
@@ -105,6 +108,8 @@ const DEFAULT_CORE_COMBAT_SFX_STREAMS: Dictionary = {
 	&"sfx_focus_mode_activate": "res://assets/audio/sfx/sfx_focus_mode_activate.wav",
 	&"sfx_double_jump": "res://assets/audio/sfx/sfx_double_jump.wav",
 	&"sfx_door_unlock": "res://assets/audio/sfx/sfx_door_unlock_baseline_short.wav",
+	&"sfx_player_death": "res://assets/audio/sfx/sfx_player_death.wav",
+	&"sfx_player_revive": "res://assets/audio/sfx/sfx_player_revive.wav",
 }
 const DEFAULT_BOSS2_SFX_STREAMS: Dictionary = {
 	&"sfx_boss2_chase_start": "res://assets/audio/sfx/sfx_boss2_chase_start.wav",
@@ -190,6 +195,13 @@ var _pre_menu_music_volume_percent: int = int(BUS_VOLUME_DEFAULTS[&"Music"])
 var _menu_ducked_music_volume_percent: int = int(BUS_VOLUME_DEFAULTS[&"Music"])
 var _last_menu_audio_event: Dictionary = {}
 var _last_gameplay_audio_event: Dictionary = {}
+var _death_audio_active: bool = false
+var _pre_death_audio_state: StringName = AUDIO_STATE_NORMAL
+var _pre_death_music_id: StringName = &""
+var _pre_death_ambient_id: StringName = &""
+var _death_request_count: int = 0
+var _revive_request_count: int = 0
+var _last_death_audio_event: Dictionary = {}
 var _boss_music_active: bool = false
 var _current_boss_id: StringName = &""
 var _current_boss_phase: int = 0
@@ -391,6 +403,8 @@ func play_music(music_id: StringName, fade_in_sec: float = 1.0) -> bool:
 	var stream: AudioStream = _audio_streams.get(music_id, null)
 	if stream == null:
 		return false
+	if DisplayServer.get_name() == "headless":
+		return true
 	_music_player.stream = stream
 	_music_player.bus = "Music"
 	_music_player.play()
@@ -430,6 +444,8 @@ func play_ambient(ambient_id: StringName, fade_in_sec: float = 1.0) -> bool:
 	var stream: AudioStream = _audio_streams.get(ambient_id, null)
 	if stream == null:
 		return false
+	if DisplayServer.get_name() == "headless":
+		return true
 	_ambient_player.stream = stream
 	_ambient_player.bus = "Ambient"
 	_ambient_player.play()
@@ -545,6 +561,21 @@ func get_menu_audio_state() -> Dictionary:
 
 func get_last_gameplay_audio_event() -> Dictionary:
 	return _last_gameplay_audio_event.duplicate(true)
+
+
+func get_death_audio_state() -> Dictionary:
+	return {
+		"active": _death_audio_active,
+		"previous_audio_state": _pre_death_audio_state,
+		"audio_state": _audio_state,
+		"previous_music_id": _pre_death_music_id,
+		"previous_ambient_id": _pre_death_ambient_id,
+		"death_request_count": _death_request_count,
+		"revive_request_count": _revive_request_count,
+		"death_sfx_id": &"sfx_player_death",
+		"revive_sfx_id": &"sfx_player_revive",
+		"last_event": _last_death_audio_event.duplicate(true),
+	}
 
 
 ## Enters MENU audio state and ducks Music to half of its pre-menu volume.
@@ -856,10 +887,73 @@ func on_damage_taken_event(damage_data: Dictionary) -> bool:
 	)
 
 
+## Enters the terminal player-audio state without owning death/retry timing.
+func on_player_death(metadata: Dictionary = {}) -> bool:
+	if _death_audio_active:
+		return false
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	var world_position: Vector2 = _event_position(
+		event_metadata,
+		["position", "world_position", "hit_position"]
+	)
+	_pre_death_audio_state = _audio_state
+	_pre_death_music_id = _current_music_id
+	_pre_death_ambient_id = _current_ambient_id
+	_death_audio_active = true
+	_audio_state = AUDIO_STATE_DEATH
+	_death_request_count += 1
+	_stop_active_gameplay_sfx()
+	if _pre_death_music_id != &"":
+		stop_music(PLAYER_DEATH_MIX_FADE_SEC)
+	if _pre_death_ambient_id != &"":
+		stop_ambient(PLAYER_DEATH_MIX_FADE_SEC)
+	var requested: bool = _request_gameplay_sfx(
+		&"player_death",
+		&"sfx_player_death",
+		world_position,
+		SFX_PRIORITY_CRITICAL,
+		event_metadata
+	)
+	_last_death_audio_event = _last_gameplay_audio_event.duplicate(true)
+	return requested
+
+
+## Leaves DEATH at the existing GameFlow respawn boundary and restores the mix.
+func on_player_revived(metadata: Dictionary = {}) -> bool:
+	if not _death_audio_active:
+		return false
+	var event_metadata: Dictionary = metadata.duplicate(true)
+	var world_position: Vector2 = _event_position(
+		event_metadata,
+		["position", "world_position", "hit_position"]
+	)
+	_death_audio_active = false
+	_audio_state = _resolve_post_death_audio_state()
+	_revive_request_count += 1
+	if _pre_death_music_id != &"":
+		play_music(_pre_death_music_id, PLAYER_REVIVE_MIX_FADE_SEC)
+	if _pre_death_ambient_id != &"":
+		play_ambient(_pre_death_ambient_id, PLAYER_REVIVE_MIX_FADE_SEC)
+	var requested: bool = _request_gameplay_sfx(
+		&"player_revived",
+		&"sfx_player_revive",
+		world_position,
+		SFX_PRIORITY_HIGH,
+		event_metadata
+	)
+	_last_death_audio_event = _last_gameplay_audio_event.duplicate(true)
+	return requested
+
+
 ## Tracks LOW_HP audio state and plays the focus-mode activation cue on entry.
 func on_focus_mode_changed(entity_id: int, active: bool, metadata: Dictionary) -> bool:
 	_focus_mode_audio_active = active
-	_audio_state = AUDIO_STATE_LOW_HP if active else AUDIO_STATE_NORMAL
+	if _death_audio_active:
+		_audio_state = AUDIO_STATE_DEATH
+	elif active:
+		_audio_state = AUDIO_STATE_LOW_HP
+	else:
+		_audio_state = AUDIO_STATE_BOSS_FIGHT if _boss_music_active else AUDIO_STATE_NORMAL
 	_last_gameplay_audio_event = {
 		"event_id": &"focus_mode_changed",
 		"entity_id": entity_id,
@@ -922,7 +1016,8 @@ func on_boss_encounter_started(boss_id: StringName, metadata: Dictionary = {}) -
 
 ## Routes boss phase transition presentation metadata to boss phase SFX.
 func on_boss_phase_transition_started(entity_id: int, phase: int, metadata: Dictionary) -> bool:
-	_audio_state = AUDIO_STATE_BOSS_FIGHT
+	if not _death_audio_active:
+		_audio_state = AUDIO_STATE_BOSS_FIGHT
 	var event_metadata: Dictionary = metadata.duplicate(true)
 	event_metadata["entity_id"] = entity_id
 	event_metadata["phase"] = phase
@@ -963,7 +1058,13 @@ func on_boss_encounter_ended(boss_id: StringName, metadata: Dictionary = {}) -> 
 	_current_boss_id = &""
 	_current_boss_phase = 0
 	_current_boss_music_id = &""
-	_audio_state = AUDIO_STATE_LOW_HP if _focus_mode_audio_active else AUDIO_STATE_NORMAL
+	var next_audio_state: StringName = (
+		AUDIO_STATE_LOW_HP if _focus_mode_audio_active else AUDIO_STATE_NORMAL
+	)
+	if _death_audio_active:
+		_pre_death_audio_state = next_audio_state
+	else:
+		_audio_state = next_audio_state
 	stop_music(BOSS_MUSIC_END_FADE_SEC)
 
 
@@ -1100,6 +1201,13 @@ func _prune_finished_sfx_requests() -> void:
 			_active_sfx_requests.remove_at(index)
 
 
+func _stop_active_gameplay_sfx() -> void:
+	for player: AudioStreamPlayer2D in _sfx_players:
+		if is_instance_valid(player):
+			player.stop()
+	_active_sfx_requests.clear()
+
+
 func _lowest_priority_request_index() -> int:
 	var lowest_index: int = -1
 	var lowest_priority: int = 0
@@ -1170,6 +1278,16 @@ func _normalize_boss_id(boss_id: StringName, metadata: Dictionary) -> StringName
 	return StringName(String(metadata.get("boss_id", "")))
 
 
+func _resolve_post_death_audio_state() -> StringName:
+	if _pre_death_audio_state == AUDIO_STATE_LOW_HP and not _focus_mode_audio_active:
+		return AUDIO_STATE_BOSS_FIGHT if _boss_music_active else AUDIO_STATE_NORMAL
+	if _pre_death_audio_state in [AUDIO_STATE_DEATH, AUDIO_STATE_MENU]:
+		if _focus_mode_audio_active:
+			return AUDIO_STATE_LOW_HP
+		return AUDIO_STATE_BOSS_FIGHT if _boss_music_active else AUDIO_STATE_NORMAL
+	return _pre_death_audio_state
+
+
 func _request_boss_music(
 	event_id: StringName,
 	boss_id: StringName,
@@ -1190,7 +1308,8 @@ func _request_boss_music(
 	_current_boss_id = boss_id
 	_current_boss_phase = phase
 	_current_boss_music_id = music_id
-	_audio_state = AUDIO_STATE_BOSS_FIGHT
+	if not _death_audio_active:
+		_audio_state = AUDIO_STATE_BOSS_FIGHT
 	_last_boss_music_event = {
 		"event_id": event_id,
 		"boss_id": boss_id,

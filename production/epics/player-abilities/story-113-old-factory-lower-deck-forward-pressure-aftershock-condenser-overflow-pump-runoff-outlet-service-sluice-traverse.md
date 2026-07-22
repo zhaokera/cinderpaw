@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -50,7 +50,7 @@ and Godot MCP runtime validation.
   overflow pump runoff chain so previous duct, exit, outlet, skirmish, reward,
   and hatch states do not replay.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1.
+  under Godot 4.7 / Godot AI MCP 3.0.4.
 
 ## Out of Scope
 
@@ -111,6 +111,12 @@ Story113 adds no new player-visible character, so it does not add or modify
   current game log without errors, no new editor log rows after cursor `9`, and
   a non-empty game screenshot showing the service hatch, generated sluice
   landing, and steam vent.
+- Story224 production traversal: focused `report_2357` passed `1/1`, bounded
+  related `report_2360` passed `10/10`, and Factory smoke recorded
+  `story224_smoke=passed frames=180`. MCP 3.0.4 accepted run `r169905919-15`
+  proved no-input x `10164` rejection, real positive-x `move_right` activation,
+  warning/active/safe phases, real vent `Area2D` HP `100 -> 92` contact with the
+  exact hazard source, and real crossing through x `10720`.
 
 ## Dependencies
 
@@ -126,3 +132,5 @@ runtime support existed, focused GREEN `reports/report_1328/` passed `2/2`, and
 related GREEN `reports/report_1329/` passed `10/10`. Godot MCP runtime
 validation passed under Godot 4.7 and Godot AI MCP 2.9.1, with a visible
 image-generated service sluice landing replacing placeholder geometry.
+Story224 adds current Godot AI MCP 3.0.4 evidence for production movement,
+physical contact damage and the crossed handoff without changing persistence.

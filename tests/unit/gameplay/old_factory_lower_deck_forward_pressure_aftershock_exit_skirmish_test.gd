@@ -187,6 +187,14 @@ func test_aftershock_exit_skirmish_defeat_persists_without_replaying_route_chain
 	assert_bool(bool(partial.get("spark_defeated", false))).is_true()
 	assert_bool(bool(partial.get("coil_defeated", true))).is_false()
 	assert_bool(bool(partial.get("cleared", true))).is_false()
+	assert_bool(bool(partial.get("spark_visible", false))).is_true()
+	assert_bool(bool(partial.get("spark_physics_enabled", true))).is_false()
+	assert_bool(bool(partial.get("spark_process_enabled", false))).is_true()
+	assert_bool(bool(partial.get("spark_has_target", true))).is_false()
+	assert_bool(bool(partial.get("coil_visible", false))).is_true()
+	assert_bool(bool(partial.get("coil_physics_enabled", false))).is_true()
+	assert_bool(bool(partial.get("coil_process_enabled", false))).is_true()
+	assert_bool(bool(partial.get("coil_has_target", false))).is_true()
 	assert_bool(bool(destination.call("is_factory_route_objective_complete"))).is_false()
 
 	assert_bool(destination.call("apply_damage", EXIT_COIL_RAT_ENTITY_ID, 999, {
@@ -199,10 +207,40 @@ func test_aftershock_exit_skirmish_defeat_persists_without_replaying_route_chain
 	)
 	assert_bool(bool(cleared.get("active", true))).is_false()
 	assert_bool(bool(cleared.get("cleared", false))).is_true()
-	assert_bool(bool(cleared.get("spark_visible", true))).is_false()
-	assert_bool(bool(cleared.get("coil_visible", true))).is_false()
+	assert_bool(bool(cleared.get("spark_visible", false))).is_true()
+	assert_bool(bool(cleared.get("coil_visible", false))).is_true()
 	assert_bool(bool(cleared.get("spark_physics_enabled", true))).is_false()
 	assert_bool(bool(cleared.get("coil_physics_enabled", true))).is_false()
+	assert_bool(bool(cleared.get("spark_process_enabled", false))).is_true()
+	assert_bool(bool(cleared.get("coil_process_enabled", false))).is_true()
+	assert_bool(bool(cleared.get("spark_has_target", true))).is_false()
+	assert_bool(bool(cleared.get("coil_has_target", true))).is_false()
+	var spark := destination.get_node_or_null(
+		"FactoryLowerDeckForwardPressureAftershockExitSkirmishSparkRat"
+	) as CharacterBody2D
+	var coil := destination.get_node_or_null(
+		"FactoryLowerDeckForwardPressureAftershockExitSkirmishCoilRat"
+	) as CharacterBody2D
+	assert_that(spark).is_not_null()
+	assert_that(coil).is_not_null()
+	if spark != null and coil != null:
+		var spark_collision := spark.call("get_collision_component") as CollisionComponent
+		var coil_collision := coil.call("get_collision_component") as CollisionComponent
+		assert_that(spark_collision).is_not_null()
+		assert_that(coil_collision).is_not_null()
+		assert_str(String(
+			(spark.get_node("Sprite") as AnimatedSprite2D).animation
+		)).is_equal("death")
+		assert_str(String(
+			(coil.get_node("Sprite") as AnimatedSprite2D).animation
+		)).is_equal("death")
+		if spark_collision != null and coil_collision != null:
+			assert_str(String(spark_collision.get_hurtbox_state())).is_equal(
+				String(CollisionComponent.HURTBOX_STATE_GONE)
+			)
+			assert_str(String(coil_collision.get_hurtbox_state())).is_equal(
+				String(CollisionComponent.HURTBOX_STATE_GONE)
+			)
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
 		"Forward Pressure Aftershock Exit Skirmish Cleared"
 	)

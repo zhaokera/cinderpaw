@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + UI/Visual
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -54,7 +54,7 @@ forward route pocket.
   overflow pump runoff chain so prior cache, duct, exit, outlet, and skirmish
   states do not replay.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1.
+  under Godot 4.7 / Godot AI MCP 3.0.4.
 
 ## Out of Scope
 
@@ -115,6 +115,19 @@ Story112 does not introduce a new player-visible character, so the
   eval, current-run game log without errors, no new editor log rows after
   cursor `9`, and a non-empty `960x539` game screenshot showing the claimed
   cache and opened hatch.
+- Story223 production handoff: canonical RED `report_2351` exposed the missing
+  nearest-cache interaction route; focused `report_2352` passed `1/1`, related
+  `report_2353` passed `9/9`, and Factory smoke exited `0`. MCP 3.0.4 accepted
+  run `r167485675-13` proved held pre-clear input and no-input in-range
+  placement remain non-consuming, while fresh `interact` grants exact
+  `20`-gear id/source/feedback and leaves the service hatch visible, blocking
+  and unopened. Story113 remained unavailable/inactive/hidden.
+- Story224 production hatch handoff: final focused `report_2357` passed `1/1`,
+  related `report_2360` passed `10/10`, and marker-backed Factory smoke exited
+  `0`. MCP 3.0.4 accepted run `r169905919-15` proved held approach input stays
+  stale, fresh `interact` opens the hatch once, collision/prompt disable, unlock
+  VFX remains single-shot, and the lifted visual reads at `(48,-136)`, `6deg`,
+  effective z `23` before Story113 starts.
 
 ## Dependencies
 
@@ -130,4 +143,7 @@ runtime support existed, focused GREEN `reports/report_1319/` passed `2/2`, and
 related GREEN `reports/report_1320/` passed `8/8`. After a formatting-only
 indentation cleanup, focused `reports/report_1321/` passed `2/2` and related
 `reports/report_1322/` passed `8/8`. Headless smoke exited `0`. Godot MCP
-runtime validation passed under Godot 4.7 and Godot AI MCP 2.9.1.
+runtime validation passed under Godot 4.7. Story223 adds current Godot AI MCP
+3.0.4 evidence for stale/fresh production reward input and the unopened service
+hatch boundary. Story224 adds current production hatch opening/readability and
+one-shot VFX evidence without changing Story112 persistence or reward behavior.

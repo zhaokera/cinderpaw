@@ -6,7 +6,7 @@
 > **Type**: Integration + Save/Respawn Runtime + UI/Visual
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -54,7 +54,7 @@ content continues.
   background right `13740`, ground right edge x `13840`, and at least 58 route
   floor tiles.
 - [x] Focused/related GdUnit, headless smoke, and Godot MCP runtime checks pass
-  under Godot 4.7 / Godot AI MCP 2.9.1.
+  under Godot 4.7 / Godot AI MCP 3.0.4.
 
 ## Out of Scope
 
@@ -102,3 +102,14 @@ image-generated/imported assets:
   savepoint group, script, texture, prompt, VFX, runtime activation, one-shot
   VFX count, last-savepoint payload, 58 floor visuals, clean current-run status,
   and a non-empty `960x539` game screenshot showing the Tailrace Relay.
+- Story229 incoming handoff: `reports/report_2379/report_1/results.xml` passed
+  its five-suite related set `7/7`; the `180`-frame production smoke and Godot
+  AI MCP 3.0.4 run `r187717447-28` confirmed Story118 reveals this relay as
+  visible, available, monitoring and unactivated with `Repair Tailrace Relay`.
+
+## Verification Summary
+
+The Story119 relay implementation remains complete. Story229 now verifies its
+production incoming boundary after a real Story118 combat kill. A later bounded
+production Story will cover real contact activation and the death/respawn loop
+without reopening Story118.

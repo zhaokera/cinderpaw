@@ -185,14 +185,35 @@ func test_coil_pincer_defeat_persists_without_replaying_route_chain() -> void:
 	)
 	assert_bool(bool(cleared.get("active", true))).is_false()
 	assert_bool(bool(cleared.get("cleared", false))).is_true()
-	assert_bool(bool(cleared.get("spark_visible", true))).is_false()
-	assert_bool(bool(cleared.get("coil_visible", true))).is_false()
+	assert_bool(bool(cleared.get("spark_visible", false))).is_true()
+	assert_bool(bool(cleared.get("coil_visible", false))).is_true()
 	assert_bool(bool(cleared.get("spark_physics_enabled", true))).is_false()
 	assert_bool(bool(cleared.get("coil_physics_enabled", true))).is_false()
+	var spark := destination.get_node_or_null(
+		"FactoryLowerDeckForwardPressureCoilPincerSparkRat"
+	) as CharacterBody2D
+	var coil := destination.get_node_or_null(
+		"FactoryLowerDeckForwardPressureCoilPincerCoilRat"
+	) as CharacterBody2D
+	assert_that(spark).is_not_null()
+	assert_that(coil).is_not_null()
+	if spark != null and coil != null:
+		assert_str(String(
+			(spark.get_node("Sprite") as AnimatedSprite2D).animation
+		)).is_equal("death")
+		assert_str(String(
+			(coil.get_node("Sprite") as AnimatedSprite2D).animation
+		)).is_equal("death")
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
 		"Forward Pressure Coil Pincer Cleared"
 	)
 	assert_bool(bool(destination.call("is_factory_route_objective_complete"))).is_true()
+	await get_tree().create_timer(0.5).timeout
+	cleared = destination.call(
+		"get_factory_lower_deck_forward_pressure_coil_pincer_diagnostics"
+	)
+	assert_bool(bool(cleared.get("spark_visible", false))).is_true()
+	assert_bool(bool(cleared.get("coil_visible", false))).is_true()
 
 	var local_state: Dictionary = destination.call("get_local_state")
 	assert_bool(bool(local_state.get(

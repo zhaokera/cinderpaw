@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual Feel
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -42,14 +42,17 @@ the standard timing window before the player crosses the new runoff outlet.
   locked diagnostics report unavailable/hidden and activation returns `false`.
 - [x] Once the gate is open, the duct and vent become visible while the vent
   remains non-contacting until traversal activation.
-- [x] Activation at x `8480` starts the timing traverse and route feedback
-  changes to `Cross Overflow Pump Runoff Outlet`.
+- [x] Production activation requires frame-start availability, held
+  `move_right`, fresh positive x displacement and x `8480`; restoring,
+  teleporting, stationary frames or no-input placement cannot start it. Route
+  feedback changes to `Cross Overflow Pump Runoff Outlet` on activation.
 - [x] The steam vent uses the existing `grace -> warning -> active -> safe`
   timing cycle; only `active` contact enables the environment collision mask and
   applies `8` steam damage under source
   `old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet`.
 - [x] Completion at x `9060` persists the outlet crossed state, disables vent
-  contact, and advances route feedback to `Overflow Pump Runoff Outlet Crossed`.
+  contact, advances route feedback to `Overflow Pump Runoff Outlet Crossed`,
+  and reveals Story111 without starting it in the crossing frame.
 - [x] Restoring the crossed state backfills the Story106/107/108/109 runoff
   chain, keeps the Story109 gate open, and prevents prior cache/skirmish/duct
   replay.
@@ -104,6 +107,15 @@ All reused assets were already imported through the Godot asset pipeline.
   runtime helper live, `current_run_errors=[]`, runtime tree containing both
   target nodes, current game log containing only helper registration, editor log
   since current-run cursor empty, and a non-empty `960x539` game screenshot.
+- Story222 production closure: canonical/boundary RED reports `2344` and
+  `2348` exposed production movement and stable-handoff gaps; final focused
+  `reports/report_2349/results.xml` passed `1/1` and seven-suite related
+  `reports/report_2350/results.xml` passed `11/11`. The dedicated `180`-frame
+  smoke exited `0`.
+- Godot MCP 3.0.4 accepted run `r165369444-9` rejected no-input x `8484`, used
+  actual `move_right` x `8475.334 -> 8482` to activate, reached active physical
+  contact at HP `100 -> 92`, and crossed x `9055.334 -> 9060.223` while
+  Story111 remained available/inactive/hidden.
 
 ## Dependencies
 
@@ -117,3 +129,5 @@ Story110 followed thin TDD: focused RED `reports/report_1297/` failed before
 runtime support existed, focused GREEN `reports/report_1298/` passed `2/2`, and
 related GREEN `reports/report_1299/` passed `9/9`. Headless smoke exited `0`.
 Godot MCP runtime validation passed under Godot 4.7 and Godot AI MCP 2.9.1.
+Story222 adds current Godot AI MCP 3.0.4 production movement, physical hazard
+and non-consuming Story111 handoff evidence.

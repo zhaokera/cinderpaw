@@ -184,13 +184,133 @@
 
 ## Technical Maintenance
 - Godot AI MCP current baseline — the project-local plugin reports version
-  `3.0.2`, Godot 4.7 editor settings use managed server version `3.0.2`, and
-  live MCP session `cinderpaw@af5f` reports plugin/server `3.0.2` with
+  `3.0.4`, Godot 4.7 editor settings use managed server version `3.0.4`, and
+  live MCP session `cinderpaw@198e` reports plugin/server `3.0.4` with
   readiness `ready`. Current runtime validation should use Godot `4.7-stable`
-  and Godot AI MCP `3.0.2`; older 2.8.x/2.9.x entries below are historical
+  and Godot AI MCP `3.0.4`; older 2.8.x/2.9.x/3.0.2 entries below are historical
   evidence from the stories validated at that time.
 
 ## Last Completed Task
+- Player Abilities Story 227: Old Factory Service Sluice Exit Hatch Production
+  Input Tailrace Handoff -- held-before-range and no-input placement leave
+  Story116 closed; a fresh production `interact` opens it once, clears collision
+  and monitoring, hides the world prompt, and moves the door Visual to
+  `(48,-136)` at `6deg`, effective z `23` below Cinderpaw. Story117 becomes
+  visible/available but stays inactive through same-frame, stationary and
+  no-input x `12024` cases; activation now requires prior availability,
+  `move_right` and real positive-x movement. Canonical RED `report_2368`
+  exposed six gaps, focused GREEN `report_2369` passed `1/1`, and final
+  six-suite related `report_2371` passed `9/9`; the marker-backed 180-frame
+  smoke exited `0`. Godot 4.7 / MCP 3.0.4 run `r182022878-24` used real
+  `interact`, had helper-only game log, empty editor delta after cursor `2`, all
+  inputs released, a non-empty RGB `1278x718` framebuffer and clean stop. No
+  full suite or image generation was needed.
+
+- Player Abilities Story 226: Old Factory Service Sluice Reward Cache
+  Production Input Exit Hatch Handoff -- held-before-available and no-input
+  placement leave Story115 unclaimed; a fresh production `interact` grants the
+  exact `20`-gear id/source/feedback ledger and reveals Story116 as visible,
+  interactive, blocking and unopened. The same edge plus four held Hatch frames
+  produces zero open/VFX and Story117 stays locked. RED `report_2364` isolated
+  one missing router candidate; initial/final focused `report_2365/2367` passed
+  `1/1`, related `report_2366` passed `9/9`, and marker-backed Factory smoke
+  exited `0`. Godot 4.7 / MCP 3.0.4 run `r179796549-23` used real `interact`,
+  had helper-only game log, empty editor delta after cursor `2`, released
+  inputs, non-empty RGB `1278x718` cache/Hatch framebuffers and clean stop. No
+  full suite or image generation was needed.
+
+- Player Abilities Story 225: Old Factory Service Sluice Production Combat
+  Reward Cache Handoff -- no-input x `10924` stays idle; real positive-x
+  `move_right` activates entity `2142`, and real `Input.attack ->
+  cat_claw_light` finishes the deterministic `12 -> 0` combat boundary. The
+  Spark Rat now renders at z `24` between environment/cache `22` and Cinderpaw
+  `26`; Story115 becomes visible/claimable/unclaimed while Story116 stays
+  hidden. Canonical RED `report_2361` isolated the one z-order gap, focused
+  `report_2362` passed `1/1`, related `report_2363` passed `7/7`, and the
+  marker-backed 180-frame Factory smoke exited `0`. Godot 4.7 / MCP 3.0.4 clean
+  run `r177921577-21` recorded exact physical-hit metadata, helper-only game
+  log, empty editor delta after cursor `2`, released inputs, two non-empty RGB
+  `1278x718` framebuffer captures and clean stop. Existing assets were reused;
+  no full suite or image generation was needed.
+
+- Player Abilities Story 224: Old Factory Runoff Outlet Service Hatch
+  Production Input Sluice Handoff -- held approach `interact` stays stale;
+  fresh production input opens Story112 once, disables collision/prompt, emits
+  one unlock VFX and lifts the hatch to `(48,-136)` at `6deg`, effective z `23`.
+  Story113 rejects no-input x `10164`, requires real positive-x `move_right`,
+  runs grace/warning/active/safe, and its real vent `Area2D` applies exact HP
+  `100 -> 92` damage before a real x `10720` crossing. Story114 becomes
+  available but stays hidden/inactive/untargeted/non-processing/non-physical,
+  including two stationary frames at x `10924`. Canonical RED `report_2354`
+  exposed eight gaps; final focused `report_2357` passed `1/1`; bounded related
+  `report_2360` passed `10/10`; marker-backed Factory smoke exited `0`. Godot
+  4.7 / MCP 3.0.4 accepted run `r169905919-15` had helper-only game log, empty
+  editor delta, released inputs, three non-empty RGB `1278x718` captures and
+  clean stop. Existing image-generated assets were reused; no full suite or new
+  image generation was needed.
+
+- Player Abilities Story 222: Old Factory Runoff Exit Gate Production Input
+  Outlet Handoff -- Story109 now rejects held approach input and opens once on
+  a fresh production `interact`, lifting its visual to `(48,-136)` at `6deg`
+  between the duct and Cinderpaw. Story110 rejects no-input x `8484`, requires
+  actual positive-x `move_right`, advances its live steam cycle and applies
+  physical HP `100 -> 92` damage before crossing. Story111 becomes available
+  but stays inactive through crossing, no-input x `9284` and later stationary
+  frames. Final focused `report_2349` passed `1/1`, bounded related
+  `report_2350` passed `11/11`, and Factory smoke exited `0`. Godot 4.7 / MCP
+  3.0.4 accepted run `r165369444-9` had helper-only game log, empty editor
+  delta, three non-empty RGB `1278x718` captures, released inputs and clean
+  stop. Existing image-generated assets were reused; no full suite or new
+  image generation was needed.
+
+- Player Abilities Story 221: Old Factory Runoff Exit Production Combat Reward
+  Cache Handoff -- Story108 now rejects no-input x `7804` and requires actual
+  positive-x `move_right` across x `7800`; entity `2140` renders between the
+  duct and player, dies through a real `cat_claw_light` `12 -> 0` physical hit,
+  preserves visible `death`, and reveals Story109 without consuming held input.
+  Fresh production `interact` claims the exact `20`-gear reward and leaves the
+  runoff exit gate visible, blocking and unopened. RED `report_2341` isolated
+  three gaps; focused `report_2342` passed `1/1`; bounded related
+  `report_2343` passed `7/7`; Factory smoke exited `0`. Godot 4.7 / MCP 3.0.4
+  accepted run `r163369359-6` has helper-only game log, empty editor delta, two
+  non-empty RGB `1278x718` captures and clean stop. Existing image-generated
+  assets were reused; no full suite or new image generation was needed.
+
+- Player Abilities Story 220: Old Factory Aftershock Condenser Overflow Pump
+  Runoff Hatch Production Input Duct Handoff -- fresh production `interact`
+  opens Story106's hatch once with a retracted `(48,-136)`, `6deg` silhouette;
+  Story107 then requires real positive-x `move_right`, advances its
+  `grace/warning/active/safe` cycle in Factory `_process(delta)`, applies one
+  physical `8`-damage steam hit, and crosses without same-frame Story108
+  activation. Canonical RED `report_2335` had `23` expected failures; focused
+  `report_2337` passed `1/1`; bounded related `report_2339` passed `13/13`;
+  completion spot-check `report_2340` passed `1/1`; Factory smoke exited `0`.
+  Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`
+  completed real input/movement, HP `100 -> 92`, clean final logs, three
+  non-empty RGB `1278x718` captures and clean stop. No full suite or new image
+  generation was needed.
+
+- Player Abilities Story 203: Old Factory Coil Pincer Flank Spacing -- 真实
+  `move_right` 激活时以玩家为锚点，把 entity `2126` Spark Rat 编排到
+  `+144px` 前侧、entity `2127` Coil Rat 编排到 `-160px` 后侧；默认中心距
+  `304px`，并在双 grace `10/26` 归零后再运行 `20` physics frames 仍满足
+  每侧 `48px`、中心 `130px` 的自然夹击可读阈值。RED `report_2215`，
+  final focused `report_2221` `1/1`，bounded related `report_2220` `7/7`，
+  Factory smoke 退出 `0`。Godot 4.7 / MCP 3.0.4 accepted run
+  `r124835541-44` 验证初始 `304px`、post-grace `261.73px` 中心距、非空
+  `1278x718` 截图、info-only game log、空 editor log 和 clean stop。
+  本 Story 无新增资产，复用现有 image-generated 角色与 Factory 环境。
+
+- Combat Presentation Story 037: Rat Minion Hurt/Death Frame Readability --
+  shared Rat Minion、Factory Spark Rat 与 Factory Coil Rat 现在完整播放既有
+  `hurt 3@8fps` 和 `death 3@6fps`。命中闪光独立保持三 physics frames，
+  HIT state 从资源时长计算为 `23` physics frames；死亡立即关闭战斗碰撞，
+  完整 death 后保持 `2.0s` 再以 `0.22s` 淡出。RED `report_2208/2211`，
+  focused GREEN `report_2213` `1/1`，bounded related `report_2214` `18/18`。
+  Godot 4.7 / MCP 3.0.4 run `r122286549-38` 以真实 `attack` 和 Area2D 将
+  entity `2102` 从 `24 -> 12 -> 0`，观察 hurt/death 最终帧、按时清理、两张
+  非空 `1278x718` 截图、info-only game log、空 editor log 和 clean stop。
+
 - Scene Management Story 017: Scrap Roost Dodge Trial -- 完成 GDD 第三个教学
   房：复用现有 `AnimatedSprite2D + SpriteFrames` 蒸汽口，按
   `safe 30 -> warning 24 -> active 18 -> recovery 30` 帧循环；只有 active
@@ -3052,12 +3172,11 @@
 - Consistency check: found 1 conflict + 1 stale reference, both fixed
 
 ## Next Steps
-1. Title flow P0 — 当前主程序直接进入 Rat King 战，补玩家可操作的
-   Title / Continue / New Game 入口并验证真实启动路径。
-2. Crown Warden phase-transition bug — 修复阶段切换后停在 hurt 尾帧的
-   可复现表现冻结，再跑 Boss4 focused/MCP 验收。
-3. Crown Warden Phase III — 先收敛批准的创意/行为规格，再实现最终阶段
-   ACT 压力与对应多帧表现。
+1. Player Abilities Story204 -- 完成 Story083 entity `2128` 的 production
+   combat/death，并验证 Story084 reward-cache handoff。
+2. Rat King Phase III -- 实现 GDD 已记录的三击 berserk combo 与对应多帧表现。
+3. Player Abilities Story181 -- external image2 connectivity 恢复后完成 Old
+   Factory Pressure Valve authored motion replacement。
 
 ## Key Decisions Made (this session)
 - HP恢复：存档点回满+道具回复，无被动回复（维持紧张感）
@@ -6784,3 +6903,1597 @@
   address Boss3 retry pacing and the obscured pressure-valve presentation as
   separate bounded Stories.
 - Blockers: None for Story178.
+
+## Session Extract -- Player Abilities Story179 2026-07-20
+
+- Delivery checkpoint: Story179 is complete locally after uploaded Story178
+  commit `35f65e46`; the broader complete-game goal remains active.
+- Runtime: the Factory production rising-edge `interact` now considers the
+  Lower Deck, Return Patrol and checkpoint Overdrive reward caches together and
+  claims the nearest available in-range candidate. At the Lower Deck cache, the
+  overlapping Return Patrol reward remains unclaimed.
+- Progression: the accepted claim grants the existing `10` gears, persists
+  `factory_lower_deck_reward_cache_claimed`, shows exact feedback and exposes the
+  available, visible, collision-blocking Parry gate. The service lift remains
+  idle with no exit request.
+- Verification: intentional RED `report_2051` recorded `9` expected assertions;
+  focused GREEN `report_2052` passed `4/4`; bounded related GREEN `report_2053`
+  passed four suites at `8/8`, with zero failures, errors, flaky cases, skips or
+  orphans. Factory headless ran `180` frames and exited `0`, with only shutdown
+  cleanup diagnostics. No full suite ran.
+- MCP: after the prior editor process terminated without a Godot crash report,
+  Godot 4.7 and MCP 3.0.2 were restarted as session `cinderpaw@caa9`. Accepted
+  clean runs `r135737-1` and `r435019-2` proved real input, nearest-cache
+  selection, exact reward/persistence, visible Parry gate and idle lift. The
+  saved opaque `1278x718` screenshot is non-empty; game logs were info-only,
+  editor logs empty and stop restored `ready`.
+- Assets: no new visual asset was needed; Story179 reconnects existing authored
+  cache, gate and lift presentation.
+- Next: implement the Sluice Matriarch Boss3 shared death/retry flow (`1.5s`
+  death, `50%` HP, `2s` invulnerability), then address the pressure valve in a
+  separate image-generated presentation Story.
+- Blockers: None for Story179.
+
+## Session Extract -- Player Abilities Story180 2026-07-20
+
+- Delivery checkpoint: Story180 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the current uncommitted worktree with locally
+  complete Story179 and the project-local Godot AI MCP 3.0.4 upgrade. The
+  broader complete-game goal remains active.
+- Runtime: Boss3 now uses the shared `GameFlowController`. Lethal damage holds
+  Cinderpaw in the existing death/grayscale/wisp presentation for `1.5s`, then
+  revives at exact `boss_entry` with `50/100` HP, the existing revive halo and
+  `2s`/`120`-frame protection.
+- Boss recovery: the active arena snapshot reset restores Sluice Matriarch from
+  Phase II `59/120` and an active pressure-lunge hitbox to Phase I `120/120`,
+  authored anchor, idle attack and inactive hitbox. Room seals remain active;
+  reward and Factory return stay unavailable.
+- Verification: intentional RED `report_2054` recorded two expected missing-API
+  failures; intermediate `report_2055` exposed stale presentation phase names;
+  focused GREEN `report_2058` passed `1/1`; final bounded related GREEN
+  `report_2059` passed five suites at `14/14`, with zero failures, errors, flaky
+  cases, skips or orphans. Post-MCP-upgrade focused `report_2060` repeated
+  Story180 at `1/1` with all zero failure/error counters. Boss3 headless ran
+  `180` frames and exited `0`. No full suite ran.
+- MCP: the project plugin/server was upgraded to `3.0.4`; Godot 4.7 session
+  `cinderpaw@36ea` accepted clean run `r4500195-2`. Runtime proved the exact
+  `1.49s/1.50s` boundary, zero-error Boss-entry placement, `50%` HP, Boss reset,
+  damage rejection before protection expiry and damage application afterward.
+  Game logs were helper-info-only, editor logs empty and stop restored `ready`.
+- Screenshot: the accepted opaque RGB `1278x718` revive frame is non-empty and
+  stored at
+  `reports/visual/cinderpaw-mcp-sluice-matriarch-shared-revive-protection-20260720.png`.
+- Assets: no new asset was needed; Story180 reuses existing Cinderpaw/Boss
+  SpriteFrames and shared CombatPresentation death/revive effects.
+- Next: implement a separate image-generated authored presentation for the
+  obscured Old Factory pressure valve without changing its existing gameplay
+  contract.
+- Blockers: None for Story180.
+
+## Session Extract -- Player Abilities Story181 2026-07-20
+
+- Delivery checkpoint: Story181 is in progress. Its purpose is to replace the
+  generic cat-paw endpoint used by the Old Factory Lower Deck pressure valve
+  with dedicated frame animation while preserving Story058 gameplay.
+- Audit: the valve root `(1220,400,z=23)` overlaps almost completely with the
+  service-lift animation and is later covered by Deep Bulkhead `(1242,392,z=24)`.
+  The fixed runtime contract is nine transparent `256x256` frames across
+  `closed_idle`, `opening` and `opened_idle`, with loops `true/false/true`.
+- TDD: canonical thin RED `report_2062` executes one case and records one
+  expected missing-`ValveAnimation` failure with zero parse errors. The earlier
+  exploratory `report_2061` is superseded because it emitted redundant missing
+  surface assertions.
+- Implementation: added the isolated, currently unconnected
+  `factory_pressure_valve_animation.gd` presentation controller and the asset
+  specification. No scene, input, collision, persistence or progression logic
+  changed.
+- Asset generation: built-in image2 failed five times at the same external
+  request layer, once with references and four times as pure generation. The
+  fifth strict `3x3` chroma-key request failed with a network error before an
+  artifact was produced. No output exists in the project or local imagegen
+  output directory. Story181 remains project-blocked on that external service,
+  while the broader complete-game goal remains active.
+  `OPENAI_API_KEY` is absent, so the documented CLI fallback is unavailable.
+  No placeholder substitute was connected.
+- Next: retry built-in image2 when the service is available, retain and
+  alpha-process the source sheet, then connect `ValveAnimation`, drive GREEN,
+  run the four-file related regression, Factory headless smoke and MCP 3.0.4
+  visual acceptance.
+- Blockers: external image2 request connectivity for the required source asset.
+
+## Session Extract -- Audio System Story011 2026-07-20
+
+- Delivery checkpoint: Story011 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the uncommitted worktree with Stories179/180,
+  the MCP 3.0.4 upgrade and blocked visual Story181. The broader complete-game
+  goal remains active.
+- Runtime: AudioSystem now owns the `DEATH` state plus idempotent
+  `on_player_death`/`on_player_revived` adapters. Death captures the prior
+  state and active mix, requests `sfx_player_death` once, and revive requests
+  `sfx_player_revive` once before restoring the prior state and mix.
+- Boss3 integration: Sluice Matriarch forwards only the existing Story180
+  death and respawn boundaries with semantic metadata. Its `1.5s`, `50%` HP,
+  Boss reset, room seal and `2.0s` protection contracts remain unchanged.
+- Assets: deterministic source generation produced imported mono 44.1kHz
+  PCM16 `sfx_player_death.wav` (`1.50s`, heavy landing, one-second silence,
+  minor-string tail) and `sfx_player_revive.wav` (`0.90s`, gentle feline mew
+  with rising harmonics). Script, exact command, metrics and SHA-256 values are
+  retained under `assets/audio/source/`; image2 is not applicable to audio.
+- Verification: canonical API RED `report_2063`, silence-contract RED
+  `report_2069`, focused GREEN `report_2070` `1/1`, and final bounded related
+  GREEN `report_2071` `27/27`, all zero failure/error/flaky/skip/orphan
+  counters. Boss3 ran headless for `180` frames and exited `0`. No full suite
+  ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@36ea`, final run
+  `r10169929-4`, proved
+  `dying + DEATH + player_death + stream_found`, then exact manual `1.51s`
+  advance to `revived + BOSS_FIGHT + player_revived + 50/100 HP + 2.0s`
+  protection. Death had exactly one active, live `SFX`-bus voice after clearing
+  prior gameplay SFX; death/revive counts were exactly `1/1`. Game logs were
+  helper-info-only, Editor logs empty and stop restored `ready`.
+- Screenshots: opaque RGB `1278x718` death and revive frames are retained as
+  `cinderpaw-mcp-sluice-matriarch-{death,revive}-audio-state-20260720.png`.
+- Next: return to Story181 if image2 recovers; otherwise choose the next
+  independent player-facing ACT slice, with Audio `CUTSCENE` and human mix
+  listening remaining separate work.
+- Blockers: None for Story011. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story182 2026-07-20
+
+- Delivery checkpoint: Story182 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the uncommitted worktree with Stories179/180,
+  Audio Story011, the MCP 3.0.4 upgrade and blocked visual Story181. The broader
+  complete-game goal remains active.
+- Runtime: Sluice Matriarch now enters `CHASE` for valid targets beyond
+  `300px`, faces and moves toward Cinderpaw within arena bounds, and uses the
+  existing three-frame `run` animation. Phase I/II speeds are `210/270px/s`.
+  Reaching commit distance starts the unchanged next attack at startup with no
+  active hitbox.
+- Safety: target loss, hit, phase transition, death, progress-defeated restore
+  and retry clear chase velocity. Existing lunge/geyser damage, timing,
+  cooldown, strict alternation, rewards and persistence remain unchanged.
+- Verification: canonical RED `report_2073` recorded one expected missing-API
+  failure; focused GREEN `report_2075` and final pre-completion `report_2078`
+  each passed `1/1`; related GREEN `report_2076` passed five suites at `7/7`,
+  with zero failures, errors, flaky cases, skips or orphans. Boss3 ran headless
+  for `180` frames and exited `0`. No full suite ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@36ea`, accepted run
+  `r12135259-8`. Runtime hierarchy contained the player and Boss
+  `AnimatedSprite2D` nodes; diagnostics measured the opening chase, and natural
+  runtime continued the lunge/geyser chain. The final game log was
+  helper-info-only, editor logs empty and stop restored `ready`.
+- Screenshot: the accepted non-empty RGB `1278x718` encounter frame is stored
+  at
+  `reports/visual/cinderpaw-mcp-sluice-matriarch-chase-spacing-20260720.png`.
+- Assets: no new asset was needed; Story182 reuses the existing image-generated
+  three-frame Sluice Matriarch `run` SpriteFrames.
+- Next: record and accept the independent Lower Deck production-`interact`
+  handoff for pressure valve, steam sluice and deep bulkhead while Story181
+  waits for image2 connectivity.
+- Blockers: None for Story182. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story183 2026-07-20
+
+- Delivery checkpoint: Story183 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the uncommitted worktree with Stories179/180/182,
+  Audio Story011, the MCP 3.0.4 upgrade and blocked visual Story181. The broader
+  complete-game goal remains active.
+- Runtime: the Factory production `interact` rising edge now calls the existing
+  Story058-060 APIs for the pressure valve, steam sluice and deep bulkhead.
+  Eligible overlapping progression endpoints choose the nearest, exact ties
+  retain valve-to-sluice-to-bulkhead order, and one held press cannot cascade
+  multiple state changes.
+- Priority: Factory cache and deep-route endpoint remain first, nearest reward
+  caches remain above Lower Deck progression, and service lift remains last.
+  Existing guards, ranges, state keys, entities, combat and persistence are
+  unchanged.
+- Verification: the isolated implementation workstream observed an intentional
+  production-input RED with exit `100`; integrating focused `report_2077`
+  passed `2/2`; related `report_2079` passed six suites at `13/13`, with zero
+  failures, errors, flaky cases, skips or orphans. No full suite ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@36ea`, accepted run
+  `r13170960-9`. The disk-loaded Factory scene exposed the player, valve,
+  steam-sluice, deep-bulkhead, guard and service-lift runtime nodes. Game logs
+  were helper-info-only, editor logs empty and stop restored `ready`.
+- Screenshot: the accepted non-empty RGB `1278x718` Old Factory frame is stored
+  at
+  `reports/visual/cinderpaw-mcp-old-factory-lower-deck-progression-interact-20260720.png`.
+- Assets: no new asset was needed; Story183 reconnects existing nodes. Story181
+  remains blocked on external image2 connectivity.
+- Next: select another independent player-facing ACT depth slice while image2
+  is unavailable, then return to Story181 when generation connectivity recovers.
+- Blockers: None for Story183.
+
+## Session Extract -- Player Abilities Story184 2026-07-20
+
+- Delivery checkpoint: Story184 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the uncommitted worktree with Stories179/180/182/
+  183, Audio Story011, the MCP 3.0.4 upgrade and blocked visual Story181. The
+  broader complete-game goal remains active.
+- Runtime: Crown Warden no longer starts its first attack across the authored
+  roughly `680px` opening gap. A target beyond `190px` enters `APPROACH`, faces
+  Cinderpaw and moves at `120px/s` with the existing three-frame `run` animation
+  before the unchanged next attack starts.
+- Safety: entering range during cooldown waits; entering with cooldown ready
+  starts the existing tell with no active hitbox. Explicit pattern requests,
+  dive/sweep timing, damage, alternation, phase, retry, reward and persistence
+  remain unchanged. Hit and all existing reset/defeat transitions clear velocity.
+- Verification: canonical RED `report_2080` recorded one expected opening-state
+  failure; focused GREEN `report_2081` passed `1/1`; related GREEN
+  `report_2082` passed Story184 plus Story146 at `7/7`, with zero failures,
+  errors, flaky cases, skips or orphans. Crown Warden arena ran headless for
+  `180` frames and exited `0`. No full suite ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@36ea`, accepted run
+  `r15342595-12`. The frozen live opening reported `678px`, `approach`, `run`,
+  `-120px/s`, idle attack phase and no hitbox. Game logs were normal info only,
+  editor logs empty and stop restored `ready`.
+- Screenshot: the accepted non-empty RGB `1278x718` frame showing the separated
+  player and Crown Warden run pose is stored at
+  `reports/visual/cinderpaw-mcp-crown-warden-opening-approach-spacing-20260720.png`.
+- Assets: no new asset was needed; Story184 reuses the image-generated Crown
+  Warden three-frame `run` SpriteFrames at `8 FPS`.
+- Audit next: first connect the Story061 Breach Corridor front/rear ambush to
+  real production movement. Then implement the GDD-defined Rat King Phase III
+  three-hit `berserk_combo`; Shadow Beast bounded pursuit remains another
+  validated no-new-asset ACT slice.
+- Blockers: None for Story184. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story185 2026-07-20
+
+- Delivery checkpoint: Story185 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the current uncommitted worktree with Stories
+  179-184, Audio Story011, the MCP 3.0.4 upgrade and blocked visual Story181.
+  The broader complete-game goal remains active.
+- Runtime: the Factory production `_process()` now calls the existing Story061
+  front and rear activation APIs in order. Player movement at `1256px` starts
+  entity `2115`, its target/pacing, animated steam hazard and clear objective;
+  reaching `1264px` starts entity `2116` and the pincer objective.
+- Visual readability: MCP inspection found the true-visible combat nodes under
+  overlapping `z=24` endpoint art. Cinderpaw and both breach Spark Rats now
+  render at `z=26`, and the breach steam root at `z=25`; endpoint prompts remain
+  above them at effective `z=28`.
+- Safety: the existing APIs still own prerequisites, inclusive boundaries,
+  idempotence, combat, defeat, objective refresh and five breach local-state
+  fields. Service lift availability, `Call lift`, activation and exit request
+  remain unchanged.
+- Verification: canonical movement RED `report_2083` recorded one expected
+  failure; rendering RED `report_2086` recorded one expected layer failure;
+  focused GREEN `report_2087` passed `2/2`; related GREEN `report_2088` passed
+  four suites at `8/8`, with zero failures, errors, flaky cases, skips or
+  orphans. Factory ran headlessly for `180` frames and exited `0`. No full suite
+  ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@36ea`, accepted run
+  `r17664088-14`. The production-only `1255 -> 1257 -> 1265` probe proved
+  inactive/front/pincer stages, entities `2115/2116`, both six-state
+  three-frame SpriteFrames, four-frame active steam and unchanged optional
+  lift. Game log was helper-info-only, editor logs empty and stop restored
+  `ready`.
+- Screenshot: the accepted non-empty RGB `1278x718` frame visibly includes
+  `Survive Breach Pincer`, Cinderpaw, both Spark Rats and active steam at
+  `reports/visual/cinderpaw-mcp-old-factory-breach-corridor-production-movement-handoff-20260720.png`.
+- Assets: no new asset was needed; Story185 reuses the existing image-generated
+  post-bulkhead background and Factory Spark Rat animations plus the imported
+  four-frame steam animation.
+- Next: connect the preceding Story060 deep-bulkhead guard to production
+  movement, then address the audited relay-forward movement and reward/hatch
+  handoffs. Rat King Phase III's documented three-hit berserk combo remains the
+  next independent Boss slice.
+- Blockers: None for Story185. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story186 2026-07-20
+
+- Delivery checkpoint: Story186 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the current uncommitted worktree with Stories
+  179-185, Audio Story011, the MCP 3.0.4 upgrade and blocked visual Story181.
+  The broader complete-game goal remains active.
+- Runtime: Factory production `_process()` now calls the existing Story060
+  Deep Bulkhead Guard activation API between the skirmish and breach handoffs.
+  Reaching inclusive `x=1252` after Steam Sluice clear activates entity `2114`,
+  its target/pacing, collision gate and clear objective.
+- Playability: before activation the visible bulkhead no longer blocks its own
+  trigger line; after activation it closes until the guard is defeated and the
+  gate is opened. Opening now hides the stale interaction prompt.
+- Visual readability: the guard renders at `z=26` above Deep Bulkhead and
+  Service Lift at `z=24`, while prompt children remain above combat. Existing
+  six-state, three-frame Factory Spark Rat SpriteFrames are reused.
+- Verification: production RED `report_2089`, layer RED `report_2090`, blocker
+  RED `report_2095` and prompt RED `report_2097` all failed for their intended
+  single cause. Focused GREEN `report_2096` passed `1/1`, prompt GREEN
+  `report_2098` passed `2/2`, and final related `report_2099` passed five suites
+  at `9/9` with zero failures, errors, flaky cases, skips or orphans. Factory
+  ran headlessly for `180` frames and exited `0`. No full suite ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@36ea`, accepted run
+  `r20325904-18`. After consuming the existing 18 startup snap frames, a real
+  `move_right` action moved Cinderpaw from `1210` to `1253.33` and activated
+  entity `2114` without direct API invocation. Game log was helper-info-only,
+  editor logs empty and stop restored `ready`.
+- Screenshot: the accepted non-empty RGB `1278x718` frame visibly includes the
+  objective, Cinderpaw, animated guard, service lift and closed bulkhead at
+  `reports/visual/cinderpaw-mcp-old-factory-deep-bulkhead-guard-production-movement-handoff-20260720.png`.
+- Assets: no new asset was needed; existing image-generated Factory character
+  and environment assets remain authoritative.
+- Next: connect Story065 relay-forward combat to production movement, then
+  Story066 reward-cache/forward-hatch to production input. Rat King Phase III's
+  documented three-hit berserk combo remains the next independent Boss slice.
+- Blockers: None for Story186. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story187 2026-07-20
+
+- Delivery checkpoint: Story187 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the current uncommitted worktree with Stories
+  179-186, Audio Story011, the MCP 3.0.4 upgrade and blocked visual Story181.
+  The broader complete-game goal remains active.
+- Runtime: Factory production `_process()` now calls the existing Story065
+  relay-forward trial activation API after the breach rear handoff and before
+  later forward pressure content. At inclusive `x=1232`, valid movement starts
+  entity `2117`, its target/pacing, animated steam hazard and clear objective.
+- Playability: MCP real input proved activation without direct API invocation.
+  The first authored steam contact dealt `8` damage (`100 -> 92`) without
+  killing Cinderpaw. Enemy collision pushed the player below the boundary but
+  kept activation latched, forming the intended attack-or-retreat combat gate.
+- Visual readability: Cinderpaw and the Spark Rat render at `z=26`; the hazard
+  root at `z=25` plus dynamic `SteamAnimation` child at `z=1` produces effective
+  `z=26`, above relay and lift art at `z=24`. Existing six-state three-frame Rat
+  and four-frame steam SpriteFrames are reused.
+- Verification: canonical production RED `report_2100` failed for its intended
+  single cause; layer RED `report_2101` exposed exactly four expected
+  assertions. Focused GREEN `report_2102` passed `1/1`, and final related
+  `report_2103` passed five suites at `11/11` with zero failures, errors, flaky
+  cases, skips or orphans. Factory ran headlessly for `180` frames and exited
+  `0`; only the established cleanup-time ObjectDB/resource baseline remained.
+  No full suite ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@36ea`, accepted clean run
+  `r22399497-22`. After 18 startup snap frames, real `move_right` activated
+  entity `2117`; diagnostics confirmed its six animations, active four-frame
+  steam, objective, locked Story066 content and unchanged service lift. Game
+  log was helper-info-only, editor logs empty and stop restored `ready`.
+- Debugging evidence: an already-running launch and run token `21` were
+  rejected. Token `21` contained probe-only wrong node-path assumptions;
+  scene/script inspection corrected them before logs were reset and clean run
+  token `22` was accepted.
+- Screenshot: the accepted non-empty RGB `1278x718` frame visibly includes
+  `Clear Relay Forward Trial`, Cinderpaw, animated Spark Rat, active steam,
+  Repair Savepoint/Relay and `Call lift` at
+  `reports/visual/cinderpaw-mcp-old-factory-post-relay-production-movement-handoff-20260720.png`.
+- Assets: no new image-generation request was needed; existing imported and
+  manifest-listed Factory character, VFX and environment assets remain
+  authoritative.
+- Next: wire Story066's visible reward cache and forward hatch to production
+  input. Rat King Phase III's documented three-hit berserk combo remains the
+  next independent Boss slice.
+- Blockers: None for Story187. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story188 2026-07-20
+
+- Delivery checkpoint: Story188 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the current uncommitted worktree with Stories
+  179-187, Audio Story011, the MCP 3.0.4 upgrade and blocked visual Story181.
+  The broader complete-game goal remains active.
+- Runtime: the relay-forward cache now participates in nearest-reward input
+  arbitration and the forward hatch participates in Lower Deck progression
+  arbitration. At the real cache/hatch/lift overlap, first `interact` claims
+  exactly `20` gears, holding does not chain, and the next rising edge opens
+  the hatch without a lift exit request.
+- Persistence and collision: the two existing Story066 local flags roundtrip;
+  the opened hatch remains non-blocking and neither reward nor combat replays.
+- Visual readability: completed breach-relay, pressure-valve and shortcut-seal
+  prompts now hide, leaving `Open forward hatch` / `Hatch open` and `Call lift`
+  readable in the accepted screenshots.
+- Verification: canonical production RED `report_2104` and visual REDs
+  `report_2109`, `report_2113`, `report_2116` failed for their intended causes.
+  Focused GREEN `report_2117` passed `1/1`; final related `report_2118` passed
+  six suites at `11/11`, with zero failures, errors, flaky cases, skips or
+  orphans. Factory ran headlessly for `180` frames and exited `0`. No full suite
+  ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@36ea`, accepted clean run
+  `r26427122-28`. Two real `interact` rising edges completed the handoff; the
+  held press did not chain, lift state and pending scene stayed unchanged, game
+  log was helper-info-only, editor logs were empty and stop restored `ready`.
+- Screenshots: accepted non-empty `1278x718` cache and hatch states are stored
+  at
+  `reports/visual/cinderpaw-mcp-old-factory-relay-forward-cache-production-input-20260720.png`
+  and
+  `reports/visual/cinderpaw-mcp-old-factory-forward-hatch-production-input-20260720.png`.
+- Assets: no image generation was needed; existing imported and manifest-listed
+  Factory character, cache, hatch, relay, lift and environment art remain
+  authoritative.
+- Next: connect Story067's forward-conduit ambush to production movement. Rat
+  King Phase III remains the next independent Boss slice.
+- Blockers: None for Story188. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story189 2026-07-20
+
+- Delivery checkpoint: Story189 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the current uncommitted worktree with Stories
+  179-188, Audio Story011, the MCP 3.0.4 upgrade and blocked visual Story181.
+  The broader complete-game goal remains active.
+- Runtime: Factory production `_process()` now invokes Story067's existing
+  forward-conduit activation after the post-relay trial. From a valid
+  Story188-complete state, real `move_right` crosses inclusive `x=1272` and
+  activates entity `2118`, its target/pacing and steam hazard.
+- Visual readability: enemy and steam render at effective `z=26` above hatch
+  `z=25` and lift `z=24`. The current route objective moved under a screen-space
+  `CanvasLayer`; completed cache, deep-route and opened-hatch prompts hide once
+  combat starts.
+- Verification: production RED `report_2124`, layer REDs `report_2120/2121`
+  and HUD/prompt RED `report_2128` failed for their intended causes. Focused
+  GREEN `report_2129` passed `1/1`; final related `report_2130` passed six suites
+  at `9/9`, with zero failures, errors, flaky cases, skips or orphans. Factory
+  ran headlessly for `180` frames and exited `0`. No full suite ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@36ea`, accepted run
+  `r29082530-31`. Real `move_right` activated entity `2118`; diagnostics
+  confirmed its six three-frame animations, active four-frame steam, exact
+  hazard/objective contracts, hidden stale prompts, idle lift and unplayed
+  Story068 clear feedback. Final game log was helper-info-only, editor logs
+  were empty and stop restored `ready`.
+- Screenshot: the accepted non-empty `1278x718` frame visibly includes `Clear
+  Forward Conduit Ambush`, Cinderpaw, the animated Spark Rat and active steam at
+  `reports/visual/cinderpaw-mcp-old-factory-forward-conduit-production-movement-handoff-20260720.png`.
+- Assets: no image generation was needed; existing imported and manifest-listed
+  Factory character, steam and environment art remain authoritative.
+- Next: connect Story069's forward pressure traverse to production movement.
+  Rat King Phase III remains the next independent Boss slice.
+- Blockers: None for Story189. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story190 2026-07-21
+
+- Delivery checkpoint: Story190 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the current uncommitted worktree with Stories
+  179-189, Audio Story011, the MCP 3.0.4 upgrade and blocked visual Story181.
+  The broader complete-game goal remains active.
+- Runtime: Factory production `_process()` now invokes Story069's activation,
+  delta advancement and completion immediately after the forward conduit. From
+  a valid Story189-complete state, real `move_right` crosses inclusive
+  `x=1284`, starts the timed pressure leak, and crosses inclusive `x=1328` to
+  persist completion.
+- Visual readability: safe/warning/active steam each use four-frame
+  `AnimatedSprite2D` animations and render at effective `z=26`, above hatch
+  `z=25` and lift `z=24`. Active HUD reads `Cross Forward Pressure Leak`; the
+  crossed HUD reads `Forward Pressure Traverse Crossed`.
+- Verification: canonical RED `report_2131` failed 14 assertions for intended
+  missing production wiring/depth causes. Focused GREEN `report_2132` passed
+  `1/1`; final related `report_2133` passed five suites at `8/8`, with zero
+  failures, errors, flaky cases, skips or orphans. Factory ran headlessly for
+  `180` frames and exited `0`. No full suite ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`, accepted clean run
+  `r92604283-1`. Real movement activated at `x=1284.6667`, production timing
+  reached warning `0.2667s` and active `0.6083s`, then real movement completed
+  at `x=1328.0002`. Story070 remained inactive/hidden, lift state and Story068
+  feedback stayed unchanged, game log was helper-info-only, editor logs were
+  empty and stop restored `ready`.
+- Screenshots: accepted non-empty `1278x718` warning and active frames are at
+  `reports/visual/cinderpaw-mcp-old-factory-forward-pressure-traverse-production-movement-handoff-warning-20260721.png`
+  and
+  `reports/visual/cinderpaw-mcp-old-factory-forward-pressure-traverse-production-movement-handoff-active-20260721.png`.
+- Assets: no image generation was needed; existing imported and
+  manifest-listed four-frame steam plus Factory environment art remain
+  authoritative.
+- Next: connect Story070's forward-pressure counter-ambush to production
+  movement. Rat King Phase III remains the next independent Boss slice.
+- Blockers: None for Story190. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story191 2026-07-21
+
+- Delivery checkpoint: Story191 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the current uncommitted worktree with Stories
+  179-190, Audio Story011, the MCP 3.0.4 upgrade and blocked visual Story181.
+  The broader complete-game goal remains active.
+- Runtime: Factory production `_process()` now invokes Story070 after Story069.
+  Real movement crosses inclusive `x=1336`, activates entity `2119`, starts its
+  18-frame opening pacing and shows its four-frame active steam.
+- Fair hazard behavior: the vent is visible but non-contacting during a new
+  scene-local 18-frame safety window. At grace `0` it enables collision and the
+  exact Story070 id now reaches shared Factory steam damage: `8` damage with a
+  `1.0s` per-target cooldown. Restoring an active fight restarts the window.
+- Visual/readability: enemy and steam render at effective `z=26`, above hatch
+  `z=25` and lift `z=24`; HUD reads `Survive Forward Pressure Ambush`. Existing
+  six-state three-frame Spark Rat and four-frame steam resources are reused.
+- Verification: initial integration RED `report_2134` and safety refinement RED
+  `report_2137` captured the intended missing behavior. Focused GREEN
+  `report_2138` passed `3/3`; related GREEN `report_2139` passed five suites at
+  `10/10`, with zero failures, errors, flaky cases, skips or orphans. Factory
+  ran headlessly for `180` frames and exited `0`. No full suite ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`, accepted clean run
+  `r95391117-5`. Real input moved Cinderpaw `1335.9 -> 1337.5667`; opening
+  diagnostics showed visible/non-contacting steam, grace `6` and HP `100`.
+  Natural expiry showed grace `0`, contact active and HP `92`, with exact steam
+  damage metadata. Story071/exit guard remained locked, lift stayed idle, game
+  log was helper-info-only, editor logs were empty and stop restored `ready`.
+- Screenshot: accepted non-empty RGB `1278x718` frame is
+  `reports/visual/cinderpaw-mcp-old-factory-forward-pressure-counter-ambush-production-movement-handoff-active-20260721.png`.
+- Assets: no image generation was needed; existing imported and manifest-listed
+  Factory Spark Rat, steam and environment art remain authoritative.
+- Next: connect Story071's forward-pressure reward cache to production input.
+  Rat King Phase III remains the next independent Boss slice.
+- Blockers: None for Story191. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story192 2026-07-21
+
+- Delivery checkpoint: Story192 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the current uncommitted worktree with Stories
+  179-191, Audio Story011, the MCP 3.0.4 upgrade and blocked visual Story181.
+  The broader complete-game goal remains active.
+- Runtime: Story071 now participates in production nearest-reward arbitration.
+  From Story191-complete state, one real `interact` edge claims its exact
+  `gears=20` payload, feedback and Story072 audio without a direct claim call.
+- Input safety: claiming at Story073's exact `x=1352` boundary only makes the
+  guard available. Held input does not activate guard or lift even after the
+  player moves into lift range; release plus a new edge re-arms interaction.
+  Fresh-instance restore keeps the cache claimed without replaying audio.
+- Adjacent bug fix: service-lift diagnostics now read the real
+  `RouteHud/RouteLabel` instead of nonexistent root `RouteLabel`, matching the
+  production writer and restoring its existing route-label regression.
+- Verification: canonical RED `report_2140` failed for the intended missing
+  candidate. Focused GREEN `report_2141` passed `1/1`. Related `report_2142`
+  exposed only the existing lift diagnostic bug; isolated RED `report_2143`
+  and GREEN `report_2144` proved its fix. Final related `report_2145` passed
+  seven suites at `13/13`; strengthened focused `report_2146` passed `1/1`.
+  Factory ran headlessly for `180` frames and exited `0`. No full suite ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`, accepted clean run
+  `r97358912-8`. A real `interact` at `(1352,310)` produced exact reward,
+  route feedback and one `reward_cache_claimed -> sfx_door_unlock` request with
+  `stream_found=true`. Held-at-lift diagnostics kept lift/exit idle and guard
+  hidden/inactive. Game log was helper-info-only, editor log empty and stop
+  restored `ready`.
+- Screenshot: accepted non-empty RGB `1278x718` frame is
+  `reports/visual/cinderpaw-mcp-old-factory-forward-pressure-reward-cache-production-input-handoff-20260721.png`.
+- Assets: no image generation was needed; existing imported and
+  manifest-listed cache, character, hatch, lift and Factory environment assets
+  remain authoritative.
+- Next: connect Story073's forward-pressure exit guard to production movement.
+  Rat King Phase III remains the next independent Boss slice.
+- Blockers: None for Story192. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story193 2026-07-21
+
+- Delivery checkpoint: Story193 is complete locally after uploaded Story178
+  commit `35f65e46`; it shares the current uncommitted worktree with Stories
+  179-192, Audio Story011, the MCP 3.0.4 upgrade and blocked visual Story181.
+  The broader complete-game goal remains active.
+- Runtime: Factory production now snapshots Story073 eligibility before
+  interaction, tracks previous player x and activates only on rightward movement
+  into or away from inclusive `x=1352`. A real claim can arm but cannot
+  stationary-chain combat; continuing right from the exact boundary works.
+- Visual/readability: entity `2120` and active steam render at effective `z=26`
+  above hatch `25` and lift `24`. Existing six-state three-frame Spark Rat and
+  four-frame steam resources are reused; HUD reads
+  `Clear Forward Pressure Exit Guard`.
+- Verification: integration RED `report_2147` captured missing production
+  activation. Strengthened RED `report_2151` captured the exact-boundary
+  claim-to-movement defect. Focused GREEN `report_2153` passed `1/1`; final
+  related `report_2154` passed five suites at `9/9`, with zero failures, errors,
+  flaky cases, skips or orphans. Factory ran headlessly for `180` frames and
+  exited `0`. No full suite ran.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`, accepted clean run
+  `r99624813-11`. Real `interact` at `(1352,310)` claimed the cache once while
+  guard/relay/lift remained inert. After release, real `move_right` moved
+  Cinderpaw `1352 -> 1388.6667` and activated entity `2120`; exact animations,
+  pacing, vent, objective, depth and downstream locks passed. Game log was
+  helper-info-only, editor logs were empty and stop restored `ready`.
+- Screenshot: accepted non-empty RGB `1278x718` frame is
+  `reports/visual/cinderpaw-mcp-old-factory-forward-pressure-exit-guard-production-movement-handoff-active-20260721.png`.
+- Assets: no image generation was needed; existing imported and manifest-listed
+  Factory character, steam and environment assets remain authoritative.
+- Next: connect Story074's forward-pressure exit relay to its production
+  savepoint/contact path. Rat King Phase III remains the next independent Boss
+  slice.
+- Blockers: None for Story193. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story194 2026-07-21
+
+- Delivery checkpoint: Story194 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-193、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: entity `2120` 死亡现在 deferred 启用 Story074 relay；真实
+  `Area2D.body_entered` contact 写入精确 checkpoint 并关闭 relay contact。
+  Relay 激活后 deferred 解锁 Story075 gate，但 gate 保持 unopened/blocking，
+  service lift 保持 unactivated 且无 exit request。
+- Readability: 已完成 relay 的 `Repair Exit Relay` prompt 会隐藏，只保留
+  `Open Exit Gate`，消除 MCP 截图复现的双提示重叠。未新增资产，继续复用
+  manifest-listed image-generated relay、gate、lift、VFX 与 Factory 资源。
+- Verification: canonical RED `report_2155`、prompt readability RED
+  `report_2159`；focused GREEN `report_2160` 通过 `1/1`，最终 related
+  `report_2161` 七个 suite 通过 `11/11`，零 failure/error/flaky/skip/orphan。
+  Factory headless `180` 帧退出 `0`；未运行 full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r102766178-20`。真实 `move_right` 将 Cinderpaw 从 `x=1240` 移到
+  `x=1409.9253`；relay once-only、精确 checkpoint、隐藏 prompt、关闭 gate、
+  idle lift 全部通过。Game log 仅 helper info，editor log 为空，stop 后
+  editor 恢复 `ready`。
+- Screenshot: accepted non-empty RGB `1278x718` frame 为
+  `reports/visual/cinderpaw-mcp-old-factory-forward-pressure-exit-relay-production-contact-handoff-20260721.png`。
+- Next: 将 Story075 exit gate 接到 production `interact` opening path；Rat
+  King Phase III 仍是下一条独立 Boss slice。
+- Blockers: Story194 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story195 2026-07-21
+
+- Delivery checkpoint: Story195 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-194、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story075 gate 现在加入 production lower-deck progression
+  arbitration。一次真实 `interact` rising edge 打开 gate、持久化状态、播放一次
+  VFX、关闭 blocker，并把 HUD 更新为
+  `Forward Pressure Exit Gate Opened`。
+- Input/readability: 同一次 held input 不会点亮 Story076 marker、启动 beacon
+  ambush 或触发 lift。Opened gate prompt 隐藏，marker 解锁后只显示
+  `Light Route Beacon`；现有 gate、marker、relay、lift、VFX 与 Factory 资产
+  继续复用，无需 image generation 或 manifest 变更。
+- Verification: canonical RED `report_2162` 为 `0/1`；focused GREEN
+  `report_2163` 为 `1/1`；最终 related `report_2164` 六个 suite 通过 `9/9`，
+  零 failure/error/flaky/skip/orphan。Factory headless `180` 帧退出 `0`；未运行
+  full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r106257818-22`。真实 held `interact` 只开 gate，marker VFX `0`、ambush 与
+  lift idle；释放后真实 `move_right` 将 Cinderpaw 从 `x=1400` 移到
+  `x=1481.6671` 并穿过 gate。Game log 仅 helper info，editor log 为空，stop
+  后 editor 恢复 `ready`。
+- Screenshot: accepted non-empty RGB `1278x718` frame 为
+  `reports/visual/cinderpaw-mcp-old-factory-forward-pressure-exit-gate-production-input-handoff-20260721.png`。
+- Next: 将 Story076 forward-pressure route marker 接到新的 production
+  `interact` edge；Rat King Phase III 仍是下一条独立 Boss slice。
+- Blockers: Story195 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story196 2026-07-21
+
+- Delivery checkpoint: Story196 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-195、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story076 marker 现在加入 production lower-deck progression
+  arbitration。一次真实 `interact` rising edge 点亮 marker、持久化状态、播放
+  一次 VFX，并显示 `Forward Pressure Route Beacon Lit`。
+- Encounter pacing: marker 半径与 Story077 的 `x=1560` 线重叠。生产逻辑现在
+  在输入前快照 availability，并用 previous-player-x 要求新的正向位移；因此
+  点灯/静止/held/release 不会把敌人与 vent 立即开在玩家脚下，向右移动才
+  启动伏击。
+- Verification: canonical RED `report_2165` 为 `0/1`；pacing RED
+  `report_2166` 精确捕获同帧伏击；focused GREEN `report_2167` 为 `1/1`；
+  最终 related `report_2168` 六个 suite 通过 `9/9`，零
+  failure/error/flaky/skip/orphan。Factory headless `180` 帧退出 `0`；未运行
+  full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r107886046-23`。真实 held `interact` 在 `(1560,456)` 只点亮 marker，VFX
+  `1`、ambush/vent/lift idle；释放后真实 `move_right` 将 Cinderpaw 从
+  `x=1485` 移到 `x=1577.334`，此时 Story077 才启动。Game log 仅 helper
+  info，editor log 为空，stop 后 editor 恢复 `ready`。
+- Screenshot: accepted non-empty RGB `1278x718` frame 为
+  `reports/visual/cinderpaw-mcp-old-factory-forward-pressure-route-handoff-marker-production-input-handoff-20260721.png`。
+- Assets: 无需 image generation；marker/VFX/Spark Rat/vent 与 Factory 资源
+  已导入并登记，不改 manifest/inventory。
+- Next: 完成 Story077 beacon ambush 的 production combat/defeat handoff，
+  再解锁 Story078 overrun；Rat King Phase III 仍是下一条独立 Boss slice。
+- Blockers: Story196 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story197 2026-07-21
+
+- Delivery checkpoint: Story197 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-196、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story077 现在由真实玩家轻攻击完成 defeat handoff。2121 清场会关闭
+  enemy hurtbox 与 vent、持久化 activated/defeated，并显示
+  `Forward Pressure Beacon Ambush Cleared`。
+- Encounter pacing: 清场 callback 建立一个 process-frame barrier，Story078
+  只变为 available；致命帧残余位移、静止或仅处于 `x>=1620` 不会串联开战，
+  新的正向位移才启动 entity `2122` 与 overrun vent。
+- Combat fix: MCP 暴露左向 `cat_claw_light` 仍落在玩家右侧。共享
+  `WeaponComponent` 现在按 facing 翻转基础武器 X offset；inactive 后续敌人
+  hurtbox 不再抢命中，Factory entity lookup 也跳过 queue-free 实例。
+- Verification: initial canonical RED 从 `report_2169` 开始；MCP symptom 对应
+  direction RED `report_2182` 为 `0/1`；focused GREEN `report_2183` 为 `1/1`；
+  final related `report_2184` 五个 suite 通过 `9/9`，零
+  failure/error/flaky/skip/orphan。Factory headless `180` 帧退出 `0`；未运行
+  full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r110915930-25`。真实 `move_right` 启动 2121；真实 `move_left` 后两次 `J`
+  通过物理 hitbox/hurtbox 将其 HP `24 -> 12 -> 0`，最终命中 target `2121`、
+  `cat_claw_light`、facing `-1`、damage `12`。四个静止 process frame 后
+  Story078 仍 inactive，新的真实右移才启动 2122。
+- Visual/runtime: MCP 返回两张非空 RGB `1278x718` Factory screenshots；
+  Story078 runtime `Sprite` 是 visible `AnimatedSprite2D`，六个动作各三帧。
+  Game log 仅 helper info，editor log 为空，输入释放并停止运行。
+- Assets: 无需 image generation；复用已登记的 image-generated Factory
+  Spark Rat SpriteFrames、steam vent、Cinderpaw 与 Factory 环境，不改资产
+  manifest/inventory。
+- Next: 完成 Story078 overrun 的 production combat/defeat handoff，再以新的
+  玩家动作推进 Story079 breaker；Rat King Phase III 仍是独立 Boss slice。
+- Blockers: Story197 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story198 2026-07-21
+
+- Delivery checkpoint: Story198 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-197、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story078 现在由真实玩家轻攻击完成 defeat handoff。2122 清场关闭
+  enemy/hurtbox 与 vent、持久化 activated/defeated，并显示
+  `Forward Pressure Overrun Cleared`；inactive 2123 hurtbox 为 `gone`。
+- Encounter pacing: 清场 callback 建立 process-frame barrier 并重新采样玩家
+  X。致命帧残余位移、静止或仅处于 `x>=1668` 不会串联 Story079；清场后的
+  新正向位移才启动 entity `2123` 与 breaker vent，console 仍 hidden。
+- Verification: canonical RED `report_2185` 为 `0/1`、七个预期失败；focused
+  GREEN `report_2186` 为 `1/1`；最终 related `report_2187` 四个 suite 通过
+  `6/6`，零 failure/error/flaky/skip/orphan。Factory headless `180` 帧退出
+  `0`；未运行 full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r112550136-28`。真实 `move_right` 启动 2122；真实 `move_left` 后两次 `J`
+  通过实际物理重叠将 HP `24 -> 12 -> 0`，最终命中 target `2122`、
+  `cat_claw_light`、facing `-1`、damage `12`，2123 保持 `24 HP`。稳定 clear
+  后新的真实右移才启动 2123；game log 仅 helper info，editor log 为空，
+  输入释放并停止运行。
+- Visual/runtime: MCP 返回非空 RGB `1278x718` active、clear 与 Story079
+  screenshots；2123 runtime `Sprite` 是 visible `AnimatedSprite2D`，六个动作
+  各三帧。
+- Assets: 无需 image generation；复用已登记的 image-generated Factory
+  Spark Rat SpriteFrames、steam vent、breaker console、Cinderpaw 与 Factory
+  环境，不改资产 manifest/inventory。
+- Next: 完成 Story079 entity `2123` 的 production combat/defeat、breaker
+  secure 与真实 `interact` cut handoff，再推进 Story080；Rat King Phase III
+  仍是独立 Boss slice。
+- Blockers: Story198 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story199 2026-07-21
+
+- Delivery checkpoint: Story199 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-198、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story079 现在由真实玩家轻攻击完成 defeat handoff。2123 secured 后
+  enemy/hurtbox 与 vent 关闭，breaker console 显示 `Cut Pressure`，生产
+  nearest-provider `interact` 写入 cut 并只播放一次 VFX；inactive 2124
+  hurtbox 为 `gone`。
+- Encounter pacing: breaker cut callback 建立 process-frame barrier 并快照玩家
+  X。玩家在 `x=1804` 的 cut 同帧、held、release 与静止不会串联 Story080；
+  cut 后新的正向位移才启动 entity `2124` 与 relief vent。
+- Verification: canonical RED `report_2188` 为 `0/1`、十五个预期失败；focused
+  GREEN `report_2190` 为 `1/1`；bounded related `report_2191` 五个 suite 通过
+  `7/7`；共享 interact arbitration `report_2192` 通过 `2/2`，最终零
+  failure/error/flaky/skip/orphan。Factory headless `180` 帧退出 `0`；未运行
+  full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r114202700-29`。真实 `move_right` 启动 2123；真实 `move_left` 后两次 `J`
+  通过实际物理重叠将 HP `24 -> 12 -> 0`，最终命中 target `2123`、
+  `cat_claw_light`、facing `-1`、damage `12`，2124 保持 `24 HP` 且 hurtbox
+  `gone`。真实 interact cut 后重复 interact 不重复 VFX，新的真实右移才启动
+  2124；game log 仅 helper info，editor log 为空，输入释放并停止运行。
+- Visual/runtime: MCP 返回非空 RGB `1278x718` secured 与 Story080 active
+  screenshots；2124 是六个三帧 gameplay animation 的 `AnimatedSprite2D`，
+  动态 steam 三个状态各四帧并播放 `active`。
+- Assets: 无需 image generation；复用已登记的 image-generated Factory
+  Spark Rat SpriteFrames、动态 steam、breaker console、Cinderpaw 与 Factory
+  环境，不改资产 manifest/inventory。
+- Next: 完成 Story080 entity `2124` 的 production combat/defeat handoff，再
+  推进 Story081 coil-rat breakthrough；Rat King Phase III 仍是独立 Boss slice。
+- Blockers: Story199 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story200 2026-07-21
+
+- Delivery checkpoint: Story200 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-199、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story080 现在由真实玩家轻攻击完成 defeat handoff。2124 归零后
+  body collision、hurtbox、target 与 relief vent 当帧关闭，但 visible
+  `AnimatedSprite2D` 保留三帧 `death` 并沿用 RatMinion 自身 hold/fade；inactive
+  2125 hurtbox 为 `gone`、HP 保持 `24`。
+- Encounter pacing: relief defeat callback 建立 process-frame barrier 并快照
+  玩家 X。致死 tick 残余位移与静止 frame 不会串联 Story081；clear 后新的
+  正向位移且达到 `x>=1888` 才启动 entity `2125`。
+- Verification: canonical RED `report_2193` 为 `0/1`、十个预期失败；death
+  RED `report_2196` 为 `0/1`、一个预期失败；final focused GREEN
+  `report_2197` 为 `1/1`；final bounded related `report_2198` 四个 suite 通过
+  `6/6`，零 failure/error/flaky/skip/orphan。Factory headless `180` 帧退出
+  `0`；未运行 full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r117055706-33`。真实 `D` 启动 2124；真实 `A` 定向后，真实 `J` 通过实际
+  物理重叠完成 `12 -> 0`，最终命中 target `2124`、`cat_claw_light`、facing
+  `-1`、damage `12`，2125 保持 `24 HP` 且 hurtbox `gone`。2124 death 可见、
+  vent off；稳定 clear 后新的真实右移才启动 2125。Game log 仅 helper info，
+  editor log 为空，输入释放并停止运行。
+- Visual/runtime: MCP 返回非空 RGB `1278x718` Story080 active、2124
+  death-clear 与 Story081 active screenshots；2124/2125 均为六个三帧 gameplay
+  animation 的 `AnimatedSprite2D`，动态 steam 复用既有三状态四帧资源。
+- Assets: 无需 image generation；复用已登记的 image-generated Factory
+  Spark Rat、Factory Coil Rat SpriteFrames、动态 steam、Cinderpaw 与 Factory
+  环境，不改资产 manifest/inventory。
+- Next: 完成 Story081 entity `2125` 的 production combat/defeat handoff，再
+  推进 Story082 coil pincer；Rat King Phase III 仍是独立 Boss slice。
+- Blockers: Story200 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story201 2026-07-21
+
+- Delivery checkpoint: Story201 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-200、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story081 现在由真实玩家轻攻击完成 defeat handoff。2125 归零后
+  body collision、hurtbox、target 与 physics 当帧关闭，但 visible
+  `AnimatedSprite2D` 保留三帧 `death` 并沿用 RatMinion 自身 hold/fade；inactive
+  2126/2127 hurtbox 为 `gone`、HP 均保持 `24`。
+- Encounter pacing: Coil Rat defeat callback 建立 process-frame barrier 并快照
+  玩家 X。致死 tick 残余位移与静止 frame 不会串联 Story082；clear 后新的
+  正向位移且达到 `x>=2016` 才同时启动 entities `2126`、`2127`。
+- Verification: canonical RED `report_2199` 为 `0/1`、十九个预期失败；focused
+  GREEN `report_2200` 为 `1/1`；`report_2201` 唯一失败定位到 death physics
+  shutdown，修复后的 final bounded related `report_2202` 四个 suite 通过
+  `6/6`，零 failure/error/flaky/skip/orphan。Factory headless `180` 帧退出
+  `0`；未运行 full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r118359094-34`。真实 `D` 启动 2125；真实 `A` 定向后，真实 `J` 通过实际
+  物理重叠完成 `12 -> 0`，最终命中 target `2125`、`cat_claw_light`、facing
+  `-1`、damage `12`，2126/2127 均保持 `24 HP` 且 hurtbox `gone`。2125 death
+  可见；稳定 clear 后新的真实右移才同时启动 pincer。Game log 仅 helper info，
+  editor log 为空，输入释放并停止运行。
+- Visual/runtime: MCP 返回非空 RGB `1278x718` Story081 active、2125
+  death-clear 与 Story082 active screenshots；2125/2126/2127 均为六个三帧
+  gameplay animation 的 `AnimatedSprite2D`，pincer opening grace 保持 `10/26`。
+- Assets: 无需 image generation；复用已登记的 image-generated Factory
+  Spark Rat、Factory Coil Rat SpriteFrames、Cinderpaw 与 Factory 环境，不改
+  资产 manifest/inventory。
+- Next: 完成 Story082 entities `2126`、`2127` 的 production combat、partial
+  defeat/full clear 和 Story083 Coil Aftershock 安全交接；Rat King Phase III
+  仍是独立 Boss slice。
+- Blockers: Story201 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story202 2026-07-21
+
+- Delivery checkpoint: Story202 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-201、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story082 entities `2126`/`2127` 现在由真实玩家轻攻击逐个击败。
+  每只敌人归零后 body collision、hurtbox、target 与 physics 当帧关闭，但
+  visible `AnimatedSprite2D` 保留既有三帧 `death`；partial defeat survivor 保持
+  active，后一次 callback 不再提前隐藏已死亡 partner。
+- Encounter pacing: 双敌 full clear callback 建立 process-frame barrier 并快照
+  玩家 X。致死 tick、残余位移、静止或反向移动不会串联 Story083；clear 后
+  新的正向位移且达到 `x>=2144` 才启动 entity `2128`。Inactive 2128 hurtbox
+  为 `gone`、HP 保持 `24`。
+- Verification: canonical RED `report_2203/report_1` 为 `0/1`、十八个预期
+  failure；focused GREEN `report_2204` 为 `1/1`；`report_2205` 唯一旧回归失败
+  定位到 death-visible 断言和 partner 同步缺陷；最终 bounded related
+  `report_2207` 四个 suite 通过 `6/6`，零 failure/error/flaky/skip/orphan。
+  Factory headless `180` 帧退出 `0`；未运行 full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r119912042-35`。真实 `D` 启动 pincer；两次真实 `A`/`J` 通过实际物理重叠
+  分别完成 2126/2127 的 `12 -> 0`，最终命中均为 `cat_claw_light`、facing
+  `-1`、damage `12`。Partial defeat survivor 保持 active，2128 保持 `24 HP`
+  且 hurtbox `gone`；反向移动不激活，新的真实右移才启动 2128。Game log 仅
+  helper info，editor log 为空，输入和 `time_scale` 恢复后停止运行。
+- Visual/runtime: MCP 返回非空 RGB `1278x718` pincer active、partial/full clear
+  与 Story083 active screenshots；2126/2127/2128 都是六个三帧 gameplay
+  animation 的 `AnimatedSprite2D`。自然 pincer 站位有明显角色重叠，且共享
+  RatMinion hurt/death 播放窗口偏短，已登记为下一 ACT-readability 优先级。
+- Assets: 无需 image generation；复用已登记的 image-generated Factory Spark
+  Rat、Factory Coil Rat SpriteFrames、Cinderpaw 与 Factory 环境，不改资产
+  manifest/inventory。
+- Next: 先收敛共享 RatMinion hurt/death 帧动画可读性与 pincer 站位分离，再完成
+  Story083 entity `2128` 的 production combat/death 和 Story084 handoff；Rat
+  King Phase III 仍是独立 Boss slice。
+- Blockers: Story202 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story204 2026-07-21
+
+- Delivery checkpoint: Story204 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-203、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story083 entity `2128` 现在由真实 forward movement 激活并由真实玩家
+  轻攻击完成致死；body collision、hurtbox、target 与 physics 关闭时，visible
+  `AnimatedSprite2D` 保留 `death`。Story084 cache 同步立即可领取，不等待尸体淡出。
+- Input/reward: 生产 nearest-cache arbitration 已包含 Story084。真实
+  `Input.interact` 领取一次 `gears=20` payload；held/repeated input 不重复，Story085
+  仅 available/inactive，Story071 audio、service lift 和 scene exit 不受影响。
+- Downstream fix: Story085 两个 defeat callback 改为只准备当前死亡敌人并只同步
+  survivor；partial/full clear 均保留死亡表现与 process，同时 physics/target/hurtbox
+  关闭，restore completed 仍隐藏双方。
+- Verification: canonical RED `report_2222` 为 `0/1`；focused GREEN
+  `report_2223` 为 `1/1`；Story085 clean RED `report_2227` 与 focused GREEN
+  `report_2228` 完成；final bounded related `report_2229` 六个 suite 通过
+  `11/11`，零 failure/error/flaky/skip/orphan。Factory headless `180` 帧退出
+  `0`；未运行 full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`。Accepted run
+  `r126495992-46` 证明真实移动、真实致死攻击、death/cache 并行和真实 interact；
+  accepted run `r127439409-49` 证明 Story085 双 death 可见/noncombat。两次均有
+  非空 RGB `1278x718` screenshot，accepted game log 仅 helper info、editor log
+  为空，游戏停止后 editor ready。
+- Assets: 无需 image generation；复用已登记的 Cinderpaw、Factory Spark/Coil
+  Rat、reward cache 与 Factory 环境，不改 PNG、SpriteFrames、manifest/inventory。
+- Next: 推进 Story085 的真实移动/真实战斗 production handoff，再接 Story086；
+  全局 Factory cache 的 wallet crediting 应作为独立 economy slice 统一处理。
+- Blockers: Story204 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story205 2026-07-21
+
+- Delivery checkpoint: Story205 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-204、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story084 真实 interact 只领取 cache，不再同 process frame 串联
+  Story085。Inactive 2129/2130 hurtbox 为 `gone`；claim 后新的正向移动才启动
+  双敌，opening staging 为 Spark `+144px`、Coil `-160px`，中心距 `304px`。
+- Combat/handoff: 两次真实轻攻击分别把 2129/2130 从 `12 -> 0`，命中均经
+  `cat_claw_light`。Partial/full death 保持 visible/process，physics/target/hurtbox
+  关闭；full clear 只令 Story086 available/visible，静止不启动，新的真实右移
+  才进入 non-contact `grace`。
+- Verification: refined canonical RED `report_2231` 为 `0/1`、十个预期失败；
+  spacing RED `report_2234` 仅失败于 `224px < 250px`；focused GREEN
+  `report_2235` 为 `1/1`；final bounded related `report_2237` 四个 suite 通过
+  `8/8`，零 failure/error/flaky/skip/orphan。Factory headless `180` 帧退出
+  `0`；未运行 full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r130447473-54`。真实 interact、左右移动和两次真实 attack 完成完整 handoff；
+  激活时中心距 `304px`、六个 gameplay animations 各三帧；Story086 真实右移
+  `2416 -> 2429` 后进入 `grace`。Game log 仅 helper info，editor log 为空，
+  输入与 `time_scale` 恢复后停止运行，editor ready。
+- Visual/assets: MCP 返回非空 RGB `1278x718` active flank、partial death 与
+  exhaust grace screenshots。无需 image generation；复用已登记的 Cinderpaw、
+  Factory Spark/Coil Rat、动态 steam 与 Factory 环境，不改资产治理文件。
+- Next: 完成 Story086 warning/active/safe 与 x `2480` 的 production traversal，
+  再接更深 Factory handoff；Rat King Phase III 仍是独立 Boss slice。
+- Blockers: Story205 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story206 2026-07-21
+
+- Delivery checkpoint: Story206 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-205、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story086 现在由 Factory 生产 `_process(delta)` 自动推进
+  `grace -> warning -> active -> safe` 并在真实移动越过 x `2480` 时完成。
+  Grace/warning/safe contact off；active 的实际 `Area2D` overlap 造成 `8`
+  steam damage 并记录正确 source。完成后 vent hidden、contact off、动画停止。
+- Handoff: Story087 在 Story086 crossed 后只变为 available；玩家低于 x `2552`
+  时 entity `2131` 保持 hidden、process/physics off、`24 HP`、hurtbox `gone`。
+  Story087 live defeat 保留 visible/process 三帧 `death`，restore completed 仍隐藏。
+- Verification: canonical RED `report_2238` 为 `0/1`、十五个预期失败；focused
+  GREEN `report_2239` 为 `1/1`；Story087 focused `report_2242` 为 `2/2`；final
+  bounded related `report_2244` 四个 suite 通过 `7/7`，零
+  failure/error/flaky/skip/orphan。Factory headless `180` 帧退出 `0`；未运行
+  full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r133380254-57`。真实右移启动 Story086；warning HP `100`，active 实际 overlap
+  `100 -> 92`，safe 保持 `92`；第二次真实右移跨过 x `2480` 并停在 x `2500`
+  附近，Story087 未提前激活。Game log 仅 helper info，editor log 为空，输入和
+  `time_scale` 恢复后停止运行，editor ready。
+- Visual/assets: MCP 返回非空 RGB `1278x718` active exhaust 与 crossed
+  screenshots；动态 steam 的 `safe/warning/active` 各四帧。无需 image
+  generation，复用已登记的 Cinderpaw、Factory Coil Rat、动态 steam 与 Factory
+  环境，不改资产治理文件。
+- Next: 完成 Story087 entity `2131` 的真实 production activation/combat/death
+  和 reward-cache handoff，再推进 Story088；Rat King Phase III 仍是独立 Boss
+  slice。
+- Blockers: Story206 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story207 2026-07-21
+
+- Delivery checkpoint: Story207 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-206、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story086 完成只令 Story087 available；同 `_process` frame 不会越过
+  x `2552` 连锁激活。后续新的真实右移启动 entity `2131`，其 24HP、target、
+  process/physics、normal hurtbox 与六个三帧 gameplay animation 全部有效。
+- Combat/reward: direct damage 仅作 `24 -> 12` 非致死 setup；真实
+  `Input.attack` 经 `cat_claw_light` 完成 `12 -> 0`。Live death 保持
+  visible/process `death`，physics/target/hurtbox 关闭；Story088 cache 随即出现。
+  真实 `Input.interact` 领取一次 `+20 Gears`，重复输入不重复。Story089 只
+  available，entity `2132` 仍 hidden/inactive、24HP、hurtbox `gone`。
+- Verification: canonical RED `report_2245` 为 `0/1`，first GREEN
+  `report_2246` 为 `1/1`；Story089 stale-death assertion 在 `report_2247`
+  暴露并由 focused `report_2248` `3/3` 收敛；same-frame boundary RED
+  `report_2249` 与 GREEN `report_2250` 完成；final bounded related
+  `report_2251` 八个 suite 通过 `14/14`，零 failure/error/flaky/skip/orphan。
+  Factory headless `180` 帧退出 `0`；未运行 full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r135689461-59`。真实 move/attack/interact 完成整条闭环；game log 仅 helper
+  info，editor log 为空，输入和 `time_scale` 恢复后停止运行，editor ready。
+  Exploratory run 58 因临时 eval probe 混用 tab/space 进入 parser break，已停止、
+  清日志，并由 run 59 完整重跑替代；生产项目文件没有该错误。
+- Visual/assets: MCP 保存两张非空 RGB `1278x718` death/cache 与 claimed
+  screenshots。无需 image generation；复用已登记的 Cinderpaw、Factory Coil
+  Rat、reward cache 与 Factory 环境，不改资产治理文件。
+- Next: 完成 Story089 entity `2132` 的真实 production movement activation、
+  combat/death、steam hazard 与 deeper-route handoff；Rat King Phase III 仍是
+  独立 Boss slice。
+- Blockers: Story207 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story208 2026-07-21
+
+- Delivery checkpoint: Story208 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-207、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story089 与 Story090 现在都要求“帧开始时已 available + 新鲜正向 x
+  增量”才能自动激活；`set_local_state()` 会重置 runtime tracker，存档恢复或
+  fixture teleport 不再被当作输入。Inactive entity `2133` hurtbox 固定为 `gone`。
+- Combat/hazard: 真实 `move_right` 启动 entity `2132`；动态 steam 的实际
+  `Area2D` overlap 造成 `100 -> 92`，真实 Spark Rat bite 记录 attacker `2132`、
+  target `1`、final damage `9`。两次真实 `attack` 经 `cat_claw_light` 完成
+  `24 -> 12 -> 0`。Live death 保持 visible/process，physics/target/hurtbox 与
+  flank vent contact 关闭；Story090 只 available/inactive。
+- Verification: boundary RED `report_2252`、restore tracker RED `report_2253`
+  与 hit-stun integration RED `report_2254` 均已收敛；focused GREEN
+  `report_2255` 为 `1/1`。Story090 stale death assertion 在 `report_2256`
+  暴露，focused `report_2257` 为 `2/2`；final bounded related
+  `report_2258` 五个 suite 通过 `11/11`，零
+  failure/error/flaky/skip/orphan。Factory headless `180` 帧退出 `0`；未运行
+  full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted run
+  `r137556639-60`。Real move/overlap/bite/two attacks 完成 production path；
+  game log 仅 helper info，editor log 为空，输入和 `time_scale` 恢复后停止运行，
+  editor ready。
+- Visual/assets: MCP 保存非空 RGB `1278x718` active 与 cleared screenshots。
+  无需 image generation；复用已登记的 Cinderpaw、Factory Spark/Coil Rat、
+  动态 steam 与 Factory 环境。Active capture 暴露玩家、敌人、蒸汽轮廓过密，
+  下一切片应先用现有 warning 动画或站位调整做窄幅 readability 修复。
+- Next: 完成 Story090 entity `2133` 的 production movement/combat/live death
+  与 breaker interact/cut handoff，并处理 vent encounter 的 warning/staging；
+  Rat King Phase III 仍是独立 Boss slice。
+- Blockers: Story208 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story209 2026-07-22
+
+- Delivery checkpoint: Story209 已在 uploaded Story178 commit `35f65e46`
+  之后于本地完成；它与 Stories 179-208、Audio Story011、MCP 3.0.4 upgrade
+  及 blocked visual Story181 共用当前未提交 worktree。完整游戏目标仍 active。
+- Runtime: Story090 由新的真实右移跨过 x `2928` 启动；vent 先播放四帧
+  warning 共 `21` physics frames 且 contact off，再进入 active。Vent/Coil
+  初始 x `2880/3008`，中心距 `128px`；breaker interaction radius 为
+  `120px` 并进入生产 nearest-interaction 路由。
+- Combat/input: 实际 steam overlap 造成 `8`，真实 Coil bite 记录 attacker
+  `2133`、target `1`、weapon `factory_coil_rat_bite`、damage `10`。
+  两次真实 `attack` 完成 `24 -> 12 -> 0`；live death 后真实
+  `interact` 切断 breaker 一次，unlock spark count `1`。
+- Handoff: Story090 cut 同帧 Story091 只 available/inactive；2134/2135 均
+  hidden、process/physics off、24HP，静止玩家不会连锁启动。下一切片需先处理
+  Story091 当前 `44px` 双敌初始间距，再做 production combat。
+- Verification: canonical RED `report_2259`；review-hardened metadata RED
+  `report_2265`；focused GREEN `report_2266`；final bounded related
+  `report_2267` 五 suite `10/10`。21-frame/diagnostic hardening 后
+  `report_2268` 与 `report_2269` 均 `1/1`。Factory `180` 帧 smoke
+  退出 `0`；未运行 full suite。
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1311`，accepted clean run
+  `r139679441-66` 完成真实 move/overlap/bite/two attacks/interact。Game log
+  仅 helper info，editor log 为空，所有输入释放，project stop 后 editor ready。
+- Visual/assets: MCP 返回非空 RGB `1278x718` warning、active/death、cut
+  screenshots；本地 cut 证据为
+  `reports/visual/cinderpaw-mcp-old-factory-aftershock-exhaust-breaker-production-combat-escape-handoff-cut-20260722.png`。
+  无需 image generation，复用已登记的 image-generated 角色、动态 steam、
+  breaker 与 Factory 环境，不改资产治理文件。
+- Blockers: Story209 无 blocker；Story181 仍仅因 external image2 connectivity
+  blocked。
+
+## Session Extract -- Player Abilities Story210 2026-07-22
+
+- Runtime: Story091 now reaches production combat through real `move_right`.
+  Spark/Coil anchors are x `3256/2952`, with player x `3112`; opening grace is
+  `10/22` frames. Both enemies keep readable live-death sprites while disabling
+  physics, target and hurtbox contracts.
+- Combat/handoff: real Spark/Coil bites record `9/10` damage and correct
+  metadata; four real light attacks complete `24 -> 12 -> 0` for each enemy.
+  Story092 then becomes visible/available/interacting/blocking but remains
+  unopened with unlock VFX count `0`.
+- Verification: refined RED `report_2271`; focused GREEN `report_2272`; final
+  bounded related `report_2275` passed `6/6`. Factory `180` frame smoke exited
+  `0`. MCP 3.0.4 accepted run `r142990853-69`, clean game/editor logs and a
+  non-empty RGB `1278x718` screenshot. Full suite was not run.
+- Assets: no new image generation; reused registered Cinderpaw, Spark/Coil Rat,
+  hatch and Factory environment assets.
+
+## Session Extract -- Player Abilities Story211 2026-07-22
+
+- Runtime/input: Story092 hatch is now a production nearest-interaction
+  candidate. Held `interact` from outside range cannot open on approach; a fresh
+  in-range rising edge opens once, disables interaction/blocker and plays one
+  unlock burst.
+- Handoff guards: Story093 must be available at frame start, player x must
+  increase, and `move_right` must be pressed. Same-frame open, stationary frames,
+  restore and no-input teleport cannot start the duct.
+- TDD: initial RED `report_2276`; review RED `report_2279` isolated teleport
+  activation; focused GREEN `report_2280`; final five-suite related
+  `report_2281` passed `8/8`. Factory `180` frame smoke exited `0`; no full
+  suite.
+- MCP: Godot 4.7 / MCP 3.0.4 accepted run `r145086182-73`. Held approach reached
+  x `3123.9` closed; fresh interact opened once; x `3244` no-input teleport
+  stayed inactive; real movement from x `3236` to `3327.3` started Story093 in
+  `grace`. Inputs released, game log helper-only, editor log empty, project
+  stopped ready.
+- Visual/assets: saved non-empty RGB `1278x718` screenshot at
+  `reports/visual/cinderpaw-mcp-aftershock-exhaust-exit-hatch-production-input-cooling-duct-handoff-20260722.png`.
+  No new generation. Capture records next visual debt: closed-panel opened
+  silhouette, overlapping completed prompts and player occlusion risk.
+- Next: narrow hatch retraction/prompt/z-order readability pass, then production
+  Story093 hazard time cycle and x `3740` crossing without Story094 same-frame
+  chaining. Story181 remains blocked only on external image2 connectivity.
+
+## Session Extract -- Player Abilities Story212 2026-07-22
+
+- Visual/runtime: Story092 reuses its imported panel but now retracts from local
+  `(0,0)` to `(48,-136)` at `6deg`; effective panel z is `21`, behind duct z
+  `22` and Cinderpaw z `26`. The hatch root/collision/interaction center stays
+  `(3160,392)`.
+- Prompt/behavior: activated hatch and already-cut breaker labels hide while
+  diagnostic text remains stable. Blocker/interaction shutdown, once-only VFX,
+  restored open state and Story093 available-before-active behavior are intact.
+- TDD: initial RED `report_2282`; art-review RED `report_2284`; focused GREEN
+  `report_2285`; final five-suite related `report_2288` passed `7/7`. Factory
+  `180` frame smoke exited `0`; no full suite and no new image generation.
+- MCP: Godot 4.7 / MCP 3.0.4 accepted run `r146333033-74`. Fresh `interact`
+  opened once; fresh `move_right` advanced x `3236 -> 3294.33` into Story093
+  `grace`. Inputs released, game log helper-only, editor log empty, project
+  stopped ready.
+- Visual evidence: non-empty RGB `1278x718` screenshot at
+  `reports/visual/cinderpaw-mcp-aftershock-exhaust-exit-hatch-open-readability-20260722.png`,
+  SHA-256 `b9aab2852a1d2982a016a325b84c72fd8b6a19eb1fdcea8403dad6dc603342cb`.
+- Next: Story093 production hazard-cycle/full traverse through x `3740` without
+  same-frame Story094 chaining. Story181 remains blocked only on external
+  image2 connectivity.
+
+## Session Extract -- Player Abilities Story213 2026-07-22
+
+- Runtime: Factory production `_process(delta)` now advances Story093's existing
+  `grace -> warning -> active -> safe` API exactly once per frame. Existing
+  timings, `8` damage, `1.0s` cooldown, persistence and assets are unchanged.
+- Handoff: Story094 availability is captured at frame start. A frame that newly
+  crosses Story093 can reveal Story094 but cannot activate its enemies until a
+  later frame, preserving the existing Story094 x-threshold contract.
+- TDD: canonical RED `report_2289` (`7` expected failures), focused GREEN
+  `report_2290` (`1/1`), final four-suite related `report_2291` (`6/6`). Factory
+  `180` frame smoke exited `0`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1b14`, accepted run
+  `r148345568-3`. Production phases reached safe, real overlap changed HP
+  `100 -> 92`, and real x `3919.5 -> 3920.17` movement crossed Story093 while
+  Story094 remained available/inactive and both enemies hidden. Inputs released,
+  game log helper-only, editor log empty, project stopped ready.
+- Visual/assets: non-empty RGB `1278x718` screenshot at
+  `reports/visual/cinderpaw-mcp-story213-cooling-duct-20260722.png`,
+  SHA-256 `29100d2cf2141f213aab1df0073cbfcb2c228214016f9aa6a9ca9bfb35d9770b`.
+  No new image generation; reused registered Story093/094 assets.
+- Next: Story094 real movement activation, production combat and Story095
+  savepoint handoff. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story214 2026-07-22
+
+- Runtime: Story094 now requires frame-start availability, held `move_right`
+  and a fresh positive x delta at/after x `3920`. Stationary threshold starts
+  and restored/teleported state do not activate the encounter.
+- Combat/handoff: Spark/Coil anchors stage a readable pincer at x `4064/3744`.
+  Real `attack` through `cat_claw_light` defeats entities `2136/2137`; each
+  keeps live `death` presentation while physics, target, collision and bite are
+  disabled. Story095 then becomes visible/contact-ready but remains inactive in
+  the lethal frame.
+- TDD: canonical RED `report_2292` exposed `6` missing expectations; final
+  focused `report_2297` passed `1/1`; bounded Story213/094/095/214 regression
+  `report_2298` passed `6/6`. Factory `180` frame smoke exited `0`; no full
+  suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1b14`, accepted clean run
+  `r149702722-5`, completed real move/two attacks/live deaths and the Story095
+  non-consuming handoff. Inputs released, game log helper-only, editor log
+  empty, project stopped ready.
+- Visual/assets: non-empty RGB `1278x718` screenshot at
+  `reports/visual/cinderpaw-mcp-aftershock-condenser-valve-production-combat-savepoint-handoff-20260722.png`,
+  SHA-256 `7a5906d04274a1696ca7f4601fc8a3bb38082f7b27228820694361b59657a5b4`.
+  No new image generation; reused registered animated enemies, condenser and
+  savepoint props.
+- Next: Story095 production contact activation/respawn, then Story096 outlet
+  handoff. Story181 remains blocked only on external image2 connectivity.
+
+## Session Extract -- Player Abilities Story215 2026-07-22
+
+- Runtime/contact: Story095 now hides its prompt after activation and defers
+  downstream scene-state sync out of the `Area2D.body_entered` physics query.
+  Real `move_right` from outside contact advanced `70.00195px`, activated the
+  relay once and persisted the condenser savepoint snapshot.
+- Respawn/handoff: an in-flight SceneManager transition can no longer be
+  overwritten by the old current spawn. Real lethal damage reached
+  `death/dying`, then `revive` at distance `0` from the relay with `50/100` HP,
+  respawn flash and locked control before returning to `playing` unlocked.
+  Story096 remains visible/available but idle until a later fresh positive-x
+  `move_right` frame; no-input teleport and respawn do not start it.
+- TDD: refined RED `report_2300`, boundary RED `report_2303`, pending-transition
+  RED `report_2305`, focused GREEN `report_2306`, and final bounded related
+  `report_2307` passed `6/6`. Factory `180` frame smoke exited `0`; no full
+  suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1b14`, accepted clean run
+  `r151899297-9`. Inputs released, game log helper-only, editor log empty,
+  project stopped ready.
+- Visual/assets: non-empty RGB `1278x718` screenshot at
+  `reports/visual/cinderpaw-mcp-aftershock-condenser-savepoint-production-contact-respawn-handoff-20260722.png`,
+  SHA-256 `e82fbeafdad2bc2c39abb8daa8cedea387c60e0628e348d6291b0db4bfa74310`.
+  No new image generation; reused registered savepoint, outlet, unlock VFX and
+  Cinderpaw death/revive animation assets.
+- Next: Story096 production movement/hazard crossing, then Story097 combat
+  handoff. Story181 remains blocked only on external image2 connectivity.
+
+## Session Extract -- Player Abilities Story216 2026-07-22
+
+- Runtime: Factory production `_process(delta)` now advances Story096's
+  existing outlet cycle once per frame. Authored `0.25/0.35/0.40/0.45s`
+  timings, `8` damage, `1.0s` cooldown and public APIs are unchanged.
+- Handoff: Story097 consumes frame-start availability and requires held
+  `move_right` plus fresh positive x movement. Story096 crossing and a
+  no-input x `5224` probe reveal the clamp without starting entity `2138`.
+- TDD: canonical RED `report_2308` exposed `9` production failures; focused
+  GREEN `report_2310` passed `1/1`; bounded Story215/096/216 regression
+  `report_2312` passed `4/4`. Exploratory `report_2311` exposed unrelated stale
+  Story097 immediate-hide death assertions; they were not used as this Story's
+  gate. No full suite.
+- Smoke/MCP: Factory `180` frame smoke exited `0`. Godot 4.7 / MCP 3.0.4
+  session `cinderpaw@1b14`, accepted run `r153467824-10`, completed real
+  movement, natural `idle/grace/warning/active`, physical steam damage
+  `100 -> 92`, outlet crossing and inactive Story097 handoff. Inputs released,
+  game log helper-only, editor log empty, project stopped ready.
+- Visual/assets: non-empty RGB `1278x718` active-steam screenshot at
+  `reports/visual/cinderpaw-mcp-aftershock-condenser-outlet-production-hazard-traverse-active-20260722.png`,
+  SHA-256 `3df3002759b56a57318ef2b35376defb347cbd7a4b8a08992e8864ac9c87dbd8`.
+  No new image generation; reused registered outlet, steam vent and Cinderpaw
+  animation assets.
+- Next: Story097 production movement/combat/death presentation and Story098
+  handoff. Also reconcile Story097's stale immediate-hide death test with the
+  current live death-frame rule. Story181 remains blocked only on external
+  image2 connectivity.
+
+## Session Extract -- Player Abilities Story217 2026-07-22
+
+- Runtime/combat: no-input x `5224` keeps Story097 idle. Real `move_right`
+  advances x `5208 -> 5220.2222`, activates entity `2138` at `24 HP` and starts
+  its `18` opening-grace frames. Real `Input.attack -> cat_claw_light` records
+  target `2138`, applies the lethal `12` damage and preserves visible/process
+  `death` presentation while physics, target, collision, hurtbox and bite are
+  disabled.
+- Handoff: Story098 now has frame-start availability, movement snapshot and a
+  one-frame clear barrier. Held `move_right` plus positive movement beyond x
+  `5840` on the killing frame remains `idle`; a stationary follow-up remains
+  idle; later fresh movement x `5848 -> 5852` enters `grace`.
+- TDD: strengthened RED `report_2317` isolated one same-frame chain failure;
+  focused GREEN `report_2318` passed `1/1`; final bounded Story216/097/098/217
+  regression `report_2319` passed `6/6`. Factory `180` frame smoke exited `0`;
+  no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@1b14`, accepted input/combat
+  run `r155047659-13` and visual capture run `r155315013-14`. Inputs released,
+  game logs helper-only, editor logs empty, project stopped ready.
+- Visual/assets: non-empty RGB `1278x718` screenshot at
+  `reports/visual/cinderpaw-mcp-aftershock-condenser-outlet-clamp-death-handoff-20260722.png`,
+  SHA-256 `bf2dad7de8b612b74b1a5e91d3d351cb864310f2f8f7373a55fd789d10613530`.
+  No image generation; reused registered Cinderpaw, Spark Rat, clamp, drain
+  gantry, vent and Factory environment assets.
+- Next: Story098 production hazard traversal and Story099 handoff. Track the
+  pre-existing Spark Rat attack-tell timing and clamp z-order as a dedicated
+  readability follow-up rather than expanding this combat handoff slice.
+
+## Session Extract -- Player Abilities Story218 2026-07-22
+
+- Runtime/hazard: Story098 now enters only from frame-start availability, held
+  `move_right` and fresh positive x movement. Production `_process(delta)`
+  preserves its authored `0.25/0.35/0.40/0.45s` cycle; real movement and the
+  connected vent `Area2D` changed HP `100 -> 92` only in the active phase.
+- Handoff/readability: crossing x `6260` reveals Story099 without consuming
+  stale input. A no-input x `6536 -> 6544` probe stayed inactive; later fresh
+  movement activated entity `2139` with `10` grace frames. Coil Rat z is now
+  `24`, in front of pump z `22` and behind player z `26`.
+- TDD: behavior RED `report_2320`, z-order RED `report_2324`, final canonical
+  `report_2327` passed `1/1`, and bounded Story217/098/099/218 regression
+  `report_2329` passed `6/6`. Audio regression `report_2328` passed `24/24`.
+  No full suite.
+- Smoke/MCP: headless audio avoids Dummy-driver playback while preserving
+  logical stream state, removing the reproduced Godot 4.7 shutdown leaks.
+  Factory `180` frame smoke exited `0`. Godot 4.7 / MCP 3.0.4 session
+  `cinderpaw@1b14`, run `r156727664-15`, passed runtime/log acceptance; inputs
+  were released and the project stopped ready.
+- Visual/assets: non-empty RGB `1278x718` screenshot at
+  `reports/visual/cinderpaw-mcp-aftershock-condenser-drip-vent-overflow-pump-handoff-20260722.png`,
+  SHA-256 `d35824772c2d1c016f7b0421624016a7104b2ca87033a3cb09a80482c86b5ff8`.
+  No image generation; reused registered Factory, vent, pump, Cinderpaw and
+  Coil Rat frame-animation assets.
+- Next: Story099 production combat and Story106 reward-cache handoff. Keep the
+  slice bounded to real attacks, live Coil Rat death and non-consuming reward
+  availability.
+
+## Session Extract -- Player Abilities Story219 2026-07-22
+
+- Runtime/combat: actual `move_right` activates entity `2139` at x `6540` with
+  `24 HP` and `10` opening-grace frames. A real `cat_claw_light` lethal hit
+  records target `2139`, damage `12` and HP `0`; live three-frame `death`
+  remains visible/process while physics, target and hurtbox are disabled.
+- Reward handoff: Story106's cache is now included in shared nearest-cache
+  production interaction. Lethal-frame stale `interact` and no-input movement
+  leave it unclaimed; a later fresh `interact` grants exactly `20 Gears` and
+  reveals the blocking, unopened `Open Runoff Hatch` endpoint.
+- TDD: discovery baseline `report_2330` passed `1/1`; refined missing-router
+  RED `report_2331` failed only the fresh interaction; focused GREEN
+  `report_2332` passed `1/1`; final five-suite related `report_2334` passed
+  `7/7`. No full suite.
+- Smoke/MCP: Factory `180` frame smoke exited `0`. Godot 4.7 / MCP 3.0.4
+  session `cinderpaw@1b14`, run `r158132331-16`, passed real movement, real
+  attack, no-input non-consumption, fresh interaction, game/editor logs and
+  clean stop/readiness acceptance.
+- Visual/assets: two non-empty RGB `1278x718` captures:
+  `reports/visual/cinderpaw-mcp-overflow-pump-production-combat-reward-cache-handoff-20260722.png`
+  (`c566cdacfe14d6e799b2cfc3dde494fb9508315fa3dc8d88c281ea0fd85105b5`)
+  and
+  `reports/visual/cinderpaw-mcp-overflow-pump-production-combat-reward-cache-handoff-claimed-20260722.png`
+  (`a06913aa5935d88625dd4a5a350b8a0ea271b012cb6c30ffbf16e6c9a010f4e1`).
+  No image generation; existing non-placeholder assets were sufficient.
+- Next: Story106 real hatch-open input and Story107 production hazard traverse
+  handoff. Give the opened hatch a shape-readable state instead of relying on
+  tint/text alone.
+
+## Session Extract -- Player Abilities Story220 2026-07-22
+
+- Runtime/input: held `interact` from outside range remains stale; a fresh
+  in-range rising edge opens Story106 once, removes its blocker, hides the
+  prompt and emits one unlock burst. The hatch retracts to `(48,-136)` at
+  `6deg`, effective z `23` between duct `22` and Cinderpaw `26`.
+- Hazard/handoff: no-input x `7164` stays idle. Real `move_right` advances x
+  `7154 -> 7195.33` into Story107 `grace`; production timing reaches
+  warning/active/safe and physical steam contact records the exact source with
+  HP `100 -> 92`. Real movement x `7554 -> 7586.33` crosses while Story108 is
+  available but inactive, hidden, non-processing and non-physical.
+- TDD: canonical RED `report_2335` (`23` expected failures), focused GREEN
+  `report_2337` (`1/1`), final nine-suite related `report_2339` (`13/13`) and
+  completion spot-check `report_2340` (`1/1`). Factory `180` frame smoke exited
+  `0`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`; accepted final run
+  `r161548718-2` had helper-only game log, empty editor-log delta, released
+  inputs and clean stop/readiness. Three non-empty RGB `1278x718` captures show
+  open hatch, active steam and crossed handoff.
+- Assets: no new image generation; existing registered Cinderpaw, hatch, duct,
+  vent and Factory assets were sufficient.
+- Next: Story108 fresh production movement/combat/live-death loop and Story109
+  reward-cache handoff. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story221 2026-07-22
+
+- Runtime/combat: no-input x `7804` keeps Story108 idle. Actual `move_right`
+  advances x `7792 -> 7818.67` and activates entity `2140` at `24 HP`; real
+  `cat_claw_light` delivers the lethal `12 -> 0` hit and preserves visible
+  three-frame `death` while physics, target, collision and hurtbox stop.
+- Reward handoff: held `interact` and no-input cache placement do not consume
+  the newly revealed reward. Fresh `interact` grants exactly `20 Gears`,
+  persists the cache id/source and leaves Story109 visible, blocking and
+  unopened.
+- TDD: canonical RED `report_2341` isolated three production gaps; focused
+  GREEN `report_2342` passed `1/1`; final five-suite related `report_2343`
+  passed `7/7`. Factory `180`-frame smoke exited `0`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r163369359-6`, passed real movement/physical attack, live death, stale/fresh
+  interaction, exact reward and unopened-gate handoff. Inputs were released,
+  game log was helper-only, editor delta was empty and playback stopped ready.
+- Assets: two non-empty RGB `1278x718` captures reuse existing imported
+  Cinderpaw, Coil Rat, cache, gate and Factory art; no image generation.
+- Next: Story109 production gate input/readability and Story110 hazard handoff.
+
+## Session Extract -- Player Abilities Story222 2026-07-22
+
+- Runtime/input: held `interact` from outside range stays stale. Fresh in-range
+  `interact` opens Story109 once, disables collision, hides the prompt, emits
+  one unlock burst and lifts the visual to `(48,-136)` / `6deg` / effective z
+  `23` between duct `22` and Cinderpaw `26`.
+- Hazard/handoff: no-input x `8484` stays idle. Actual `move_right` advances x
+  `8475.334 -> 8482`, starts Story110, reaches active physical contact at HP
+  `100 -> 92`, then real movement x `9055.334 -> 9060.223` crosses. Story111
+  remains available/inactive/hidden/non-processing/non-physical/untargeted
+  through no-input x `9284` and two later stationary frames.
+- TDD: canonical RED `report_2344` exposed ten gaps, boundary RED `report_2348`
+  exposed two stationary-handoff gaps, final focused `report_2349` passed
+  `1/1`, and seven-suite related `report_2350` passed `11/11`. Factory
+  `180`-frame smoke exited `0`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r165369444-9`, completed stale/fresh input, real movement, physical steam
+  damage and stable Story111 handoff. Inputs were released, game log was
+  helper-only, editor delta after cursor `2` was empty and playback stopped
+  ready.
+- Visual/assets: three non-empty RGB `1278x718` captures show open gate, active
+  outlet steam and crossed handoff. Existing image-generated gate, duct, vent,
+  Cinderpaw, Spark Rat and Factory assets were sufficient.
+- Next: Story111 production movement/combat/live-death closure and deeper
+  service-sluice handoff. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story223 2026-07-22
+
+- Runtime/combat: no-input x `9284` keeps Story111 idle. Actual `move_right`
+  advances x `9274.223 -> 9280`, activates entity `2141` at `24 HP`, and real
+  `Input.attack -> cat_claw_light` finishes `12 -> 0`. The live three-frame
+  `death` remains visible/process while target, physics, body layer/mask and
+  hurtbox are disabled; effective z order is environment/cache `22`, Spark Rat
+  `24`, Cinderpaw `26`.
+- Reward handoff: held pre-clear `interact` and no-input placement inside the
+  `96px` cache range do not consume Story112. Fresh `interact` grants exact
+  `20` gears/id/source/feedback and leaves the service hatch visible, available,
+  blocking and unopened. Story113 remains present but unavailable, inactive,
+  uncrossed and hidden.
+- TDD: canonical RED `report_2351` isolated two production gaps; focused GREEN
+  `report_2352` passed `1/1`; final six-suite related `report_2353` passed
+  `9/9`. Factory `180`-frame smoke exited `0`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r167485675-13`, passed real movement/physical attack, live death,
+  stale/no-input protection, fresh reward and locked Story113 boundary. Inputs
+  were released, game log was helper-only, editor delta after cursor `2` was
+  empty and playback stopped ready.
+- Visual/assets: two non-empty RGB `1280x720` captures show Spark Rat death and
+  cache reveal, then claimed cache and the closed service hatch. Existing
+  imported Cinderpaw, Spark Rat, cache, hatch and Factory assets were
+  sufficient; no image generation.
+- Next: Story112 production service-hatch input/readability and Story113
+  service-sluice hazard traversal. Story181 remains blocked only on external
+  image2 connectivity.
+
+## Session Extract -- Player Abilities Story224 2026-07-22
+
+- Input/readability: held approach `interact` remains stale; fresh production
+  input opens Story112 once, disables collision and prompt, emits one unlock
+  VFX, and lifts the hatch to `(48,-136)` at `6deg`, effective z `23` between
+  service-sluice duct `22` and Cinderpaw `26`.
+- Traverse/hazard: Story113 rejects no-input x `10164`. Controlled real
+  `move_right` advances x `10159.900 -> 10160.123` into grace; warning is
+  non-contact, active enables layer `16` / mask `12`, and the real vent
+  `Area2D` applies exact HP `100 -> 92` with the Story113 hazard id. Safe turns
+  contact off, and real movement x `10719.900 -> 10720.123` crosses the sluice.
+- Handoff: Story114 becomes available but remains inactive, hidden, untargeted,
+  non-processing and non-physical in the crossing frame and after two no-input
+  frames at x `10924`; entity `2142` remains staged at `(11120,482)`.
+- TDD: canonical RED `report_2354` exposed eight production/readability/
+  movement gaps; final integration focused `report_2357` passed `1/1`; final
+  six-suite related `report_2360` passed `10/10`. Factory smoke exited `0` with
+  `story224_smoke=passed frames=180`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r169905919-15`, passed production input, guarded movement, physical hazard
+  damage and delayed Story114 handoff. Inputs were released, game log was
+  helper-only, editor delta after cursor `2` was empty and playback stopped
+  ready.
+- Visual/assets: three non-empty RGB `1278x718` captures show the lifted hatch,
+  active vent contact and crossed/waiting handoff. Existing imported hatch,
+  landing, vent, Cinderpaw, Spark Rat and Factory assets were sufficient; no
+  image generation.
+- Next: Story114 production movement/combat/live-death closure and Story115
+  reward-cache handoff. Story181 remains blocked only on external image2
+  connectivity.
+
+## Session Extract -- Player Abilities Story225 2026-07-22
+
+- Runtime/combat: no-input placement beyond x `10920` does not activate the
+  encounter. Real `move_right` activates entity `2142`; real left-facing
+  `Input.attack` routes `cat_claw_light` through the physical Hurtbox for exact
+  HP `12 -> 0` and metadata target `2142`, type `light`, applied damage `12`.
+- Readability/death: service-sluice duct/cache stay z `22`, Spark Rat is z `24`
+  and Cinderpaw z `26`. Six Spark Rat actions remain three-frame
+  `AnimatedSprite2D + SpriteFrames`; transient runtime death is visible and
+  processing with target/physics disabled before fade/despawn.
+- Reward boundary: Story115 appears at `(11360,410)` with `+20 Gears`,
+  visible/available/claimable but unclaimed, with empty reward/feedback.
+  Story116 remains unavailable, hidden and unopened.
+- TDD: canonical RED `report_2361` failed only on z `20 <= 22`; focused GREEN
+  `report_2362` passed `1/1`; five-suite related `report_2363` passed `7/7`.
+  Factory smoke exited `0` with `story225_smoke=passed frames=180`; no full
+  suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, clean accepted run
+  `r177921577-21`, real movement/attack, exact physical-hit metadata,
+  helper-only game log, editor delta after cursor `2` empty, all inputs
+  released, two non-empty RGB `1278x718` framebuffers and playback stopped
+  ready.
+- Assets: existing imported Factory, Cinderpaw, Spark Rat, service-sluice and
+  cache assets were sufficient; no image generation.
+- Next: Story115 fresh production reward input and Story116 exit-hatch handoff.
+  Story181 remains blocked only on external image2 connectivity.
+
+## Session Extract -- Player Abilities Story227 2026-07-22
+
+- Runtime/input: an `interact` armed outside Story116's radius stays stale after
+  entering it. One released/rearmed production edge opens the Hatch once;
+  duplicate fresh input leaves unlock VFX spawn count at `1`.
+- Visual/handoff: opened Visual local `(48,-136)`, rotation `6deg`, effective z
+  `23`; collision/monitoring disabled, world prompt hidden, Cinderpaw z `26`
+  unobscured. Story117 is visible/available but inactive/non-contact, including
+  stationary frames and no-input x `12024`.
+- TDD: canonical RED `report_2368` recorded one test with six expected
+  assertions; focused GREEN `report_2369` passed `1/1`; final six-suite related
+  `report_2371` passed `9/9`. Factory smoke exited `0` with
+  `story227_smoke=passed frames=180`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r182022878-24`, used real `interact`, confirmed exact pose/z, hidden prompt,
+  waiting Story117 and no-input guard, helper-only game log, empty editor delta
+  after cursor `2`, all driven inputs false, a non-empty RGB `1278x718`
+  framebuffer and clean stop/readiness state.
+- Assets: existing imported Hatch, unlock VFX, Cinderpaw, Factory, tailrace duct
+  and four-frame steam art were sufficient; no image generation or animation
+  resource change.
+- Next: Story117 real positive-x production activation, steam
+  grace/warning/active/safe timing, live hazard damage and tailrace crossing.
+  Story181 remains blocked only on external image2 connectivity.
+
+## Session Extract -- Player Abilities Story226 2026-07-22
+
+- Runtime/input: held-before-available `interact` remains stale and no-input
+  cache placement does not claim. One released/rearmed production edge grants
+  Story115's exact cache id/source, `20` gears and
+  `Service Sluice Cache Claimed +20 Gears` ledger/feedback.
+- Handoff: Story116 becomes visible, available, monitoring, monitorable and
+  blocking at `(11680,392)` with `Open Service Exit`. The same edge plus four
+  held frames in range leaves it unopened with zero unlock VFX; Story117 stays
+  unavailable, inactive and hidden.
+- TDD: canonical RED `report_2364` failed only on the missing cache-router
+  candidate; initial/final focused `report_2365/2367` passed `1/1`; six-suite
+  related `report_2366` passed `9/9`. Factory smoke exited `0` with
+  `story226_smoke=passed frames=180`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r179796549-23`, used real `interact`, recorded exact reward and held-input
+  protection, helper-only game log, empty editor delta after cursor `2`, all
+  driven inputs false, non-empty RGB `1278x718` cache/Hatch framebuffers and a
+  clean stop/readiness state.
+- Runtime hygiene: a retained Story213 QA-PNG import error was resolved by
+  lossless re-encoding; Godot CLI import/MCP scan succeeded and the evidence
+  at `reports/visual/cinderpaw-mcp-story213-cooling-duct-20260722.png` now has
+  SHA `29100d2cf2141f213aab1df0073cbfcb2c228214016f9aa6a9ca9bfb35d9770b`.
+- Assets: existing imported cache, Hatch, Cinderpaw and Factory art were
+  sufficient; no image generation or animation-resource change.
+- Next: Story116 fresh production Hatch-open input, explicit door retraction
+  `(48,-136)` / `6deg`, visual z below Cinderpaw, and Story117 tailrace handoff.
+  Story181 remains blocked only on external image2 connectivity.
+
+## Session Extract -- Player Abilities Story228 2026-07-22
+
+- Runtime/traverse: no-input x `12024` stays idle. Real `move_right` advances x
+  `12019.900 -> 12020.123`, activates Story117, then runs
+  `grace -> warning -> active -> safe`. Active physical vent overlap applies
+  exact HP `100 -> 92`, damage `8`, type `steam` and the Story117 source id.
+- Handoff: no-input x `12484` does not cross. Real movement advances x
+  `12479.900 -> 12480.123`, persists Story117 crossed and exposes Story118 as
+  available but inactive/hidden/untargeted/non-processing. No-input x `12624`
+  plus three stationary frames does not activate the Coil Rat.
+- TDD: canonical RED `report_2372` recorded four expected failures; focused
+  GREEN `report_2373` passed `1/1`; corrected Story118 death contract
+  `report_2376` passed `2/2`; final five-suite related `report_2377` passed
+  `7/7`. The `180`-frame smoke exited `0`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r184730101-26`, passed real movement, four-frame steam phases, physical
+  damage and stationary handoff guards. Current game log was helper-only,
+  editor delta after cursor `2` was empty, inputs were released, three non-empty
+  RGB `1278x718` framebuffers were captured and playback stopped ready.
+- Assets: tiles `09/10` now use the existing imported image-generated tailrace
+  background. Existing duct, vent, Cinderpaw and Coil Rat assets were
+  sufficient; no image generation or manifest change.
+- Next: Story118 production movement/combat/live-death closure, then Story119
+  relay handoff. Story181 remains blocked only on external image2 connectivity.
+
+## Session Extract -- Player Abilities Story229 2026-07-22
+
+- Runtime/combat: real `move_right` advanced x `12608.0 -> 12699.662` and
+  activated Story118 entity `2143`. A nonlethal setup left HP `12`; real
+  `Input.attack` routed `cat_claw_light` through the shared hit path for exact
+  damage `12`, attack type `light` and HP `0`.
+- Death/handoff: the Coil Rat remained visible/processing in three-frame
+  `death` with targeting, physics, hurtbox and collision disabled. Story119
+  became available/visible/monitoring but unactivated with
+  `Repair Tailrace Relay` and no savepoint payload.
+- Tests: initial Story229 characterization `report_2378` passed `1/1`; the old
+  smoke exposed one stale immediate-hide assertion; final five-suite related
+  `report_2379` passed `7/7`. Updated smoke printed
+  `story118_production_smoke=passed frames=180`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r187717447-28`, used real movement/attack, helper-only game log, empty editor
+  delta after cursor `2`, released inputs, two non-empty RGB `1278x718`
+  screenshots and a clean stop/readiness state.
+- Assets: existing imported Factory, Cinderpaw, six-state three-frame Coil Rat
+  and Relay art were sufficient; no image generation or manifest change.
+- Next: Story119 real contact activation and death/respawn closure, then
+  Story120 relay-runoff production traversal. Story181 remains blocked only on
+  external image2 connectivity.

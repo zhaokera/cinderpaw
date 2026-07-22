@@ -214,9 +214,12 @@ func activate_current_attack_hitbox(
 	var metadata: Dictionary = _build_attack_hitbox_metadata(weapon, attack_type, combo_index)
 	for key: Variant in extra_metadata.keys():
 		metadata[key] = extra_metadata[key]
-	var hitbox_offset: Vector2 = weapon.hitbox_offset + Vector2(
-		float(extra_metadata.get("hitbox_offset_x", 0.0)),
-		float(extra_metadata.get("hitbox_offset_y", 0.0))
+	var facing: float = signf(float(extra_metadata.get("facing", 1.0)))
+	if is_zero_approx(facing):
+		facing = 1.0
+	var hitbox_offset := Vector2(
+		weapon.hitbox_offset.x * facing + float(extra_metadata.get("hitbox_offset_x", 0.0)),
+		weapon.hitbox_offset.y + float(extra_metadata.get("hitbox_offset_y", 0.0))
 	)
 	var skill_range_tiles: float = maxf(0.0, float(extra_metadata.get("skill_range_tiles", 0.0)))
 	var skill_range_px: float = skill_range_tiles * COMBAT_TILE_SIZE_PX
@@ -224,9 +227,6 @@ func activate_current_attack_hitbox(
 		0.1,
 		float(extra_metadata.get("hitbox_size_multiplier", 1.0))
 	)
-	var facing: float = signf(float(extra_metadata.get("facing", 1.0)))
-	if is_zero_approx(facing):
-		facing = 1.0
 	var hitbox_size: Vector2 = weapon.hitbox_size * hitbox_size_multiplier + Vector2(
 		skill_range_px,
 		0.0

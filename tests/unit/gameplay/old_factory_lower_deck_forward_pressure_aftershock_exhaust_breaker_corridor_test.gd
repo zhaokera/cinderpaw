@@ -11,6 +11,9 @@ const BREAKER_ENTITY_ID: int = 2133
 const BREAKER_HAZARD_NODE_NAME: String = (
 	"FactoryLowerDeckForwardPressureAftershockExhaustBreakerVent"
 )
+const BREAKER_GUARD_NODE_NAME: String = (
+	"FactoryLowerDeckForwardPressureAftershockExhaustBreakerCoilRat"
+)
 const BREAKER_NODE_NAME: String = (
 	"FactoryLowerDeckForwardPressureAftershockExhaustBreaker"
 )
@@ -146,7 +149,8 @@ func test_breaker_corridor_requires_flank_clear_and_extends_playable_route(
 	)
 	_assert_breaker_frame_contract(active)
 	assert_bool(bool(active.get("hazard_visible", false))).is_true()
-	assert_bool(bool(active.get("hazard_contact_active", false))).is_true()
+	assert_str(String(active.get("hazard_phase", ""))).is_equal("warning")
+	assert_bool(bool(active.get("hazard_contact_active", true))).is_false()
 	assert_str(String(active.get("hazard_id", ""))).is_equal(BREAKER_HAZARD_ID)
 	assert_int(int(active.get("hazard_damage", 0))).is_equal(8)
 	assert_float(float(active.get("hazard_cooldown_sec", 0.0))).is_equal(1.0)
@@ -181,11 +185,34 @@ func test_breaker_cut_persists_without_replaying_aftershock_route(
 	var breaker_vent: Area2D = destination.get_node_or_null(
 		BREAKER_HAZARD_NODE_NAME
 	) as Area2D
+	var breaker_guard := destination.get_node_or_null(
+		BREAKER_GUARD_NODE_NAME
+	) as CharacterBody2D
 	assert_that(breaker_vent).is_not_null()
-	if breaker_vent == null:
+	assert_that(breaker_guard).is_not_null()
+	if breaker_vent == null or breaker_guard == null:
+		return
+	var breaker_collision := breaker_guard.call(
+		"get_collision_component"
+	) as CollisionComponent
+	assert_that(breaker_collision).is_not_null()
+	if breaker_collision == null:
 		return
 
 	var hp_before: int = int(player.call("get_current_hp"))
+	assert_bool(bool(destination.call(
+		"apply_factory_steam_vent_contact",
+		breaker_vent,
+		player
+	))).is_false()
+	assert_int(int(player.call("get_current_hp"))).is_equal(hp_before)
+	for _frame: int in range(20):
+		await get_tree().process_frame
+	var hazard_active: Dictionary = destination.call(
+		"get_factory_lower_deck_forward_pressure_aftershock_exhaust_breaker_diagnostics"
+	)
+	assert_str(String(hazard_active.get("hazard_phase", ""))).is_equal("active")
+	assert_bool(bool(hazard_active.get("hazard_contact_active", false))).is_true()
 	assert_bool(bool(destination.call(
 		"apply_factory_steam_vent_contact",
 		breaker_vent,
@@ -203,7 +230,15 @@ func test_breaker_cut_persists_without_replaying_aftershock_route(
 	)
 	assert_bool(bool(secured.get("active", true))).is_false()
 	assert_bool(bool(secured.get("secured", false))).is_true()
-	assert_bool(bool(secured.get("coil_visible", true))).is_false()
+	assert_bool(bool(secured.get("coil_visible", false))).is_true()
+	assert_bool(bool(secured.get("coil_process_enabled", false))).is_true()
+	assert_bool(bool(secured.get("coil_physics_enabled", true))).is_false()
+	assert_str(String((breaker_guard.get_node("Sprite") as AnimatedSprite2D).animation)).is_equal(
+		"death"
+	)
+	assert_str(String(breaker_collision.get_hurtbox_state())).is_equal(
+		String(CollisionComponent.HURTBOX_STATE_GONE)
+	)
 	assert_bool(bool(secured.get("hazard_contact_active", true))).is_false()
 	assert_bool(bool(secured.get("breaker_visible", false))).is_true()
 	assert_str(String(secured.get("breaker_id", ""))).is_equal(BREAKER_ID)

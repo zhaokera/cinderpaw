@@ -16,6 +16,9 @@ const UNLOCK_VFX_ROLE: String = "deep_route_unlock"
 @export var locked_prompt_text: String = "Clear guard"
 @export var available_prompt_text: String = "Open route"
 @export var activated_prompt_text: String = "Route clear"
+@export var hide_prompt_when_activated: bool = false
+@export var activated_visual_offset_px: Vector2 = Vector2.ZERO
+@export var activated_visual_rotation_deg: float = 0.0
 @export var unlock_vfx_texture: Texture2D
 @export var unlock_vfx_duration_sec: float = 0.6
 
@@ -30,10 +33,15 @@ var _unlock_vfx_nodes: Array[Sprite2D] = []
 var _unlock_vfx_played: bool = false
 var _unlock_vfx_spawn_count: int = 0
 var _last_unlock_vfx_spawn: Dictionary = {}
+var _visual_authored_position: Vector2 = Vector2.ZERO
+var _visual_authored_rotation: float = 0.0
 
 
 func _ready() -> void:
 	add_to_group("factory_deep_route_endpoint")
+	if _visual != null:
+		_visual_authored_position = _visual.position
+		_visual_authored_rotation = _visual.rotation
 	_ensure_unlock_vfx_texture()
 	_sync_state()
 
@@ -146,6 +154,14 @@ func advance_unlock_vfx_time(delta_sec: float) -> void:
 
 func _sync_state() -> void:
 	if _visual != null:
+		_visual.position = (
+			_visual_authored_position
+			+ (activated_visual_offset_px if _activated else Vector2.ZERO)
+		)
+		_visual.rotation = (
+			_visual_authored_rotation
+			+ (deg_to_rad(activated_visual_rotation_deg) if _activated else 0.0)
+		)
 		if _activated:
 			_visual.modulate = Color(0.85, 1.0, 0.72, 1.0)
 		elif _available:
@@ -154,7 +170,7 @@ func _sync_state() -> void:
 			_visual.modulate = Color(0.56, 0.62, 0.72, 0.72)
 	if _prompt_label != null:
 		_prompt_label.text = _prompt_text()
-		_prompt_label.visible = true
+		_prompt_label.visible = not (_activated and hide_prompt_when_activated)
 	if _interaction_area != null:
 		_interaction_area.monitoring = is_available()
 		_interaction_area.monitorable = is_available()

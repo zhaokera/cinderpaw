@@ -30,8 +30,12 @@
    and commits `main/scrap_roost` beside the existing savepoint
    (`tests/unit/gameplay/scrap_roost_rat_king_approach_test.gd`;
    `production/qa/evidence/scrap-roost-rat-king-approach-2026-07-19.md`)
-8. Old Factory service sluice exit hatch opens after the service sluice cache
-   claim and persists opened state (`tests/smoke/old_factory_service_sluice_exit_hatch_smoke.gd`)
+8. Old Factory service sluice tailrace requires real positive-x movement,
+   cycles its four-frame steam through physical active-only damage, crosses
+   once, then uses production movement and `Input.attack` to clear the
+   frame-animated Coil Rat while leaving the relay visible and unactivated
+   (`tests/smoke/old_factory_service_sluice_tailrace_production_hazard_traverse_ambush_handoff_smoke.gd`;
+   `tests/smoke/old_factory_service_sluice_tailrace_ambush_smoke.gd`)
 9. Old Factory service sluice tailrace relay activates after the tailrace
    ambush, records the savepoint, and respawns at the relay
    (`tests/smoke/old_factory_service_sluice_tailrace_relay_smoke.gd`)
