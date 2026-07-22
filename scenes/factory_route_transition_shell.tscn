@@ -2404,12 +2404,12 @@ shape = SubResource("RectangleShape2D_steam_vent")
 
 [node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerSparkRat" parent="." instance=ExtResource("13_spark_rat")]
 visible = false
-z_index = 20
+z_index = 24
 position = Vector2(14760, 482)
 
 [node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerCoilRat" parent="." instance=ExtResource("27_coil_rat")]
 visible = false
-z_index = 20
+z_index = 24
 position = Vector2(15280, 482)
 
 [node name="FactoryLowerDeckForwardPressureAftershockCondenserOverflowPumpRunoffOutletServiceSluiceTailraceRelayRunoffPincerRewardCache" type="Node2D" parent="."]

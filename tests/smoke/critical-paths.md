@@ -46,9 +46,10 @@
    damage, guards stationary crossing, and leaves Story121 inactive for 180
    frames
    (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_smoke.gd`)
-11. Old Factory service sluice tailrace relay runoff pincer activates after
-    Story120, reveals frame-animated Spark/Coil Rats, requires both defeats,
-    and persists cleared state
+11. Old Factory service sluice tailrace relay runoff pincer requires fresh real
+    movement, routes two real light attacks through the Spark/Coil Hurtboxes,
+    preserves both three-frame live deaths, and leaves Story122 unclaimed for
+    180 frames
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_smoke.gd`)
 12. Old Factory service sluice tailrace relay runoff pincer reward cache appears
     only after the pincer is cleared, claims once for `+20 Gears`, and persists

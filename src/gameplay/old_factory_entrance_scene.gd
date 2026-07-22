@@ -17508,19 +17508,24 @@ func _stage_lower_deck_forward_pressure_coil_pincer_flanks(
 
 
 func _sync_lower_deck_forward_pressure_coil_pincer_enemy_state(
-		enemy: Node2D,
+		enemy: Variant,
 		enemy_active: bool
 ) -> void:
-	if enemy == null:
+	var enemy_node: Node2D = _get_valid_node2d(enemy)
+	if enemy_node == null:
 		return
-	enemy.visible = enemy_active
-	enemy.set_physics_process(enemy_active)
-	enemy.set_process(enemy_active)
-	enemy.collision_layer = FACTORY_RAT_MINION_COLLISION_LAYER if enemy_active else 0
-	enemy.collision_mask = FACTORY_RAT_MINION_COLLISION_MASK if enemy_active else 0
-	_set_factory_guard_hurtbox_active(enemy, enemy_active)
-	if enemy.has_method("set_attack_target"):
-		enemy.call("set_attack_target", _player if enemy_active else null)
+	enemy_node.visible = enemy_active
+	enemy_node.set_physics_process(enemy_active)
+	enemy_node.set_process(enemy_active)
+	enemy_node.collision_layer = (
+		FACTORY_RAT_MINION_COLLISION_LAYER if enemy_active else 0
+	)
+	enemy_node.collision_mask = (
+		FACTORY_RAT_MINION_COLLISION_MASK if enemy_active else 0
+	)
+	_set_factory_guard_hurtbox_active(enemy_node, enemy_active)
+	if enemy_node.has_method("set_attack_target"):
+		enemy_node.call("set_attack_target", _player if enemy_active else null)
 
 
 func _prepare_lower_deck_forward_pressure_coil_pincer_enemy_death_presentation(

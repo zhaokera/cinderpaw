@@ -121,3 +121,9 @@ Godot frame-animation rule:
 - The Story121 regression now follows the established live death contract:
   the most recently defeated enemy remains visible/processing during its
   three-frame death hold while targeting, collision and physics are disabled.
+- Story232 production closure: real movement activates the pincer and real
+  shared light attacks defeat both enemies. The first death may finish and free
+  before the second lethal hit; the shared state synchronizer now rejects that
+  invalid Object safely. `reports/report_2395/results.xml` passed the final
+  related set `7/7`, and MCP run `r194847761-35` completed without current-run
+  errors before revealing Story122 unclaimed.

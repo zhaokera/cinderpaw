@@ -8549,3 +8549,29 @@
 - Next: Story121 real positive-x production activation, shared physical attacks
   and live Spark/Coil death closure into Story122's cache handoff. Story181
   remains blocked only on external image2 connectivity.
+
+## Session Extract -- Player Abilities Story232 2026-07-22
+
+- Runtime/combat: real `move_right` activates Story121. Four real
+  `Input.attack` light strikes route through `cat_claw_light` for exact Spark
+  Rat `24 -> 12 -> 0` and Coil Rat `24 -> 12 -> 0`, with targets `2144/2145`,
+  damage `12`, applied true and right/left facing metadata.
+- Death/handoff: Spark Rat is allowed to finish and free before Coil Rat's
+  lethal hit. The shared sync helper now validates stale Object references.
+  Coil Rat enters live `death`; cache z `22` < enemies `24` < Cinderpaw `26`.
+  Story122 becomes visible/available/claimable with `+20 Gears` but held
+  pre-clear `interact` leaves it unclaimed with empty reward/feedback.
+- TDD: z-order RED `report_2390`; initial GREEN `report_2391`; MCP runtime
+  regression RED `report_2393`; fixed GREEN `report_2394`; final five-suite
+  related `report_2395` passed `7/7`. Updated smoke printed
+  `story121_production_smoke=passed frames=180`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r194847761-35`, used real movement and attacks after the first enemy freed,
+  produced helper-only game logs, empty editor delta after cursor `2`, released
+  inputs, three non-empty RGB `1278x718` screenshots and a clean stop.
+- Assets: existing imported image-generated Factory, Cinderpaw, Spark Rat,
+  Coil Rat and cache assets were sufficient; no image generation or manifest
+  change.
+- Next: Story122 fresh production reward input, exact once-only `20` gears
+  claim and Story123 exit-hatch waiting handoff. Story181 remains blocked only
+  on external image2 connectivity.

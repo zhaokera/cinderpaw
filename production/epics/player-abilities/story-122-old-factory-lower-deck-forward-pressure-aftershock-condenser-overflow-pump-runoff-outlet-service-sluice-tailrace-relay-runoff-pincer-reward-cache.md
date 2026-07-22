@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + UI/Visual
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -18,7 +18,7 @@
 `TR-respawn-004`
 
 **ADR Governing Implementation**: ADR-0004 Collision detection; ADR-0005
-Asset pipeline; ADR-0007 Scene management; ADR-0018 Player abilities;
+Combat state machine; ADR-0007 Scene management; ADR-0018 Player abilities;
 ADR-0021 Save system.
 
 Story121 clears the post-runoff Spark Rat + Coil Rat pincer. Story122 adds a
@@ -102,3 +102,8 @@ referenced by the `factory_combat_cache.gd` node in
   `960x539` game screenshot.
 - Full evidence is recorded in
   `production/qa/evidence/old-factory-service-sluice-tailrace-relay-runoff-pincer-reward-cache-2026-07-10.md`.
+- Story232 incoming production handoff: real shared attacks clear Story121 and
+  reveal this cache as visible, available, in range and claimable with
+  `+20 Gears`. Held pre-clear `interact` leaves claimed false and reward /
+  feedback payloads empty in MCP run `r194847761-35`. Fresh production claim
+  routing remains the next bounded Story.
