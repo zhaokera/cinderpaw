@@ -36,8 +36,10 @@
    frame-animated Coil Rat while leaving the relay visible and unactivated
    (`tests/smoke/old_factory_service_sluice_tailrace_production_hazard_traverse_ambush_handoff_smoke.gd`;
    `tests/smoke/old_factory_service_sluice_tailrace_ambush_smoke.gd`)
-9. Old Factory service sluice tailrace relay activates after the tailrace
-   ambush, records the savepoint, and respawns at the relay
+9. Old Factory service sluice tailrace relay requires real `move_right`
+   contact after the tailrace ambush, records one savepoint/VFX, removes its
+   prompt, enters real player death and revives at 50% HP while the revealed
+   runoff stays idle without fresh positive-x input
    (`tests/smoke/old_factory_service_sluice_tailrace_relay_smoke.gd`)
 10. Old Factory service sluice tailrace relay runoff activates after the relay,
    uses active-only steam contact, crosses the post-relay pocket, and persists

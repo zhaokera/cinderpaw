@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Visual/Feel
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -108,3 +108,9 @@ environment traversal hazard, not a new player-visible character.
   `640x359` game screenshot response.
 - Full evidence is recorded in
   `production/qa/evidence/old-factory-service-sluice-tailrace-relay-runoff-2026-07-10.md`.
+- Story230 incoming guard: `reports/report_2382/report_1/results.xml` passed its
+  focused case and `reports/report_2383/report_1/results.xml` passed the final
+  bounded related set `8/8`. The upgraded Story119 smoke and Godot AI MCP
+  3.0.4 run `r190526212-29` confirmed the runoff becomes visible/available but
+  stays idle after relay activation, respawn and a no-input placement beyond
+  activation x.

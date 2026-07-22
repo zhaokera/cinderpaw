@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-07-22" name="report_1" tests="8" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_service_sluice_tailrace_relay_production_contact_respawn_runoff_handoff_test" package="tests/integration/gameplay" timestamp="2026-07-22T11:10:06" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.640">
+		<testcase name="test_real_contact_secures_relay_respawns_and_leaves_runoff_waiting" classname="old_factory_service_sluice_tailrace_relay_production_contact_respawn_runoff_handoff_test" time="0.636">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="old_factory_service_sluice_tailrace_production_combat_relay_handoff_test" package="tests/integration/gameplay" timestamp="2026-07-22T11:10:07" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.500">
+		<testcase name="test_real_move_and_attack_clear_coil_rat_and_reveal_unactivated_tailrace_relay" classname="old_factory_service_sluice_tailrace_production_combat_relay_handoff_test" time="0.493">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_test" package="tests/unit/gameplay" timestamp="2026-07-22T11:10:07" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.229">
+		<testcase name="test_tailrace_relay_requires_ambush_clear_and_records_respawn_anchor" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_test" time="0.115">
+		</testcase>
+		<testcase name="test_tailrace_relay_restore_backfills_ambush_and_respawns_to_relay" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_test" time="0.100">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_test" package="tests/unit/gameplay" timestamp="2026-07-22T11:10:08" hostname="localhost" tests="2" failures="0" errors="0" skipped="0" flaky="0" time="0.219">
+		<testcase name="test_tailrace_relay_runoff_requires_relay_and_uses_active_only_contact" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_test" time="0.107">
+		</testcase>
+		<testcase name="test_tailrace_relay_runoff_restore_backfills_relay_chain_without_replay" classname="old_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_test" time="0.101">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="old_factory_forward_pressure_exit_relay_production_contact_handoff_test" package="tests/unit/gameplay" timestamp="2026-07-22T11:10:08" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.511">
+		<testcase name="test_real_contact_secures_exit_relay_without_chaining_gate_or_lift" classname="old_factory_forward_pressure_exit_relay_production_contact_handoff_test" time="0.507">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="old_factory_aftershock_condenser_savepoint_production_contact_respawn_handoff_test" package="tests/unit/gameplay" timestamp="2026-07-22T11:10:08" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.630">
+		<testcase name="test_real_contact_activates_once_and_lethal_death_respawns_before_outlet" classname="old_factory_aftershock_condenser_savepoint_production_contact_respawn_handoff_test" time="0.625">
+		</testcase>
+	</testsuite>
+</testsuites>

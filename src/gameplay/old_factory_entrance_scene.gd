@@ -1446,6 +1446,8 @@ var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outle
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_coil_rat_defeated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated: bool = false
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_previous_player_x: float = 0.0
+var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_player_x_initialized: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_activated: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_crossed: bool = false
 var _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_elapsed_sec: float = 0.0
@@ -1979,6 +1981,9 @@ func _process(_delta: float) -> void:
 	var overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_was_available: bool = (
 		_is_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_available()
 	)
+	var overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_was_available: bool = (
+		_is_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_available()
+	)
 	var interact_pressed: bool = Input.is_action_pressed(&"interact")
 	if interact_pressed and not _interact_input_was_pressed:
 		handle_factory_interact_input()
@@ -2087,7 +2092,9 @@ func _process(_delta: float) -> void:
 	_auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush(
 		overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_was_available
 	)
-	_auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff()
+	_auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff(
+		overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_was_available
+	)
 	advance_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_time(
 		_delta
 	)
@@ -2130,6 +2137,7 @@ func _process(_delta: float) -> void:
 	_track_overflow_pump_runoff_outlet_service_sluice_skirmish_player_x()
 	_track_overflow_pump_runoff_outlet_service_sluice_tailrace_player_x()
 	_track_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_player_x()
+	_track_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_player_x()
 
 
 func calculate_damage(
@@ -6757,6 +6765,8 @@ func set_local_state(state: Dictionary) -> void:
 			false
 		)
 	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_previous_player_x = 0.0
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_player_x_initialized = false
 	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_crossed = bool(
 		state.get(
 			"factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_crossed",
@@ -10306,6 +10316,11 @@ func get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_
 		if relay != null
 		else null
 	)
+	var prompt_label := (
+		relay.get_node_or_null("PromptLabel") as Label
+		if relay != null
+		else null
+	)
 	var route: Dictionary = get_factory_route_objective_diagnostics()
 	var activation_vfx_snapshot: Dictionary = (
 		_get_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activation_vfx_snapshot()
@@ -10346,6 +10361,7 @@ func get_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_
 		"interaction_monitoring": interaction_area.monitoring if interaction_area != null else false,
 		"interaction_monitorable": interaction_area.monitorable if interaction_area != null else false,
 		"collision_disabled": collision_shape.disabled if collision_shape != null else true,
+		"prompt_visible": prompt_label.visible if prompt_label != null else false,
 		"position": (
 			(relay as Node2D).global_position
 			if relay != null and relay is Node2D
@@ -16236,6 +16252,9 @@ func _on_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated(
 	)
 	_return_checkpoint_activated = true
 	_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_state(true)
+	call_deferred(
+		"_sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_state"
+	)
 	_update_route_label("Tailrace Relay Secured")
 
 
@@ -18652,6 +18671,9 @@ func _sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_state(
 				collision_shape.set_deferred("disabled", should_disable)
 			else:
 				collision_shape.disabled = should_disable
+	var prompt_label := relay.get_node_or_null("PromptLabel") as Label
+	if prompt_label != null:
+		prompt_label.visible = available
 
 
 func _sync_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_state(
@@ -28061,19 +28083,42 @@ func _track_overflow_pump_runoff_outlet_service_sluice_tailrace_ambush_player_x(
 
 
 func _auto_activate_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff(
+	was_available: bool
 ) -> void:
 	if (
-		_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_activated
+		not was_available
+		or not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_player_x_initialized
+		or _player == null
+		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_activated
 		or _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_crossed
 	):
 		return
 	if (
 		not _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_activated
+		or not Input.is_action_pressed(&"move_right")
+	):
+		return
+	var current_player_x: float = (_player as Node2D).global_position.x
+	if (
+		current_player_x
+		<= _lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_previous_player_x
+		or current_player_x
+		< FACTORY_LOWER_DECK_FORWARD_AFTERSHOCK_CONDENSER_OVERFLOW_PUMP_RUNOFF_OUTLET_SERVICE_SLUICE_TAILRACE_RELAY_RUNOFF_ACTIVATION_X
 	):
 		return
 	try_activate_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff(
 		_player
 	)
+
+
+func _track_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_player_x(
+) -> void:
+	if _player == null or not _player is Node2D:
+		return
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_previous_player_x = (
+		(_player as Node2D).global_position.x
+	)
+	_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_player_x_initialized = true
 
 
 func _auto_complete_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff(

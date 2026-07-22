@@ -106,10 +106,16 @@ image-generated/imported assets:
   its five-suite related set `7/7`; the `180`-frame production smoke and Godot
   AI MCP 3.0.4 run `r187717447-28` confirmed Story118 reveals this relay as
   visible, available, monitoring and unactivated with `Repair Tailrace Relay`.
+- Story230 production closure: canonical RED `report_2381` exposed the stale
+  prompt, missing immediate Story120 reveal and no-input runoff activation;
+  focused GREEN `report_2382` passed `1/1` and six-suite related GREEN
+  `report_2383` passed `8/8`. The updated `180`-frame smoke and Godot AI MCP
+  3.0.4 run `r190526212-29` verified real contact, one-shot checkpoint/VFX,
+  real death, 50% HP relay respawn and the idle Story120 handoff.
 
 ## Verification Summary
 
-The Story119 relay implementation remains complete. Story229 now verifies its
-production incoming boundary after a real Story118 combat kill. A later bounded
-production Story will cover real contact activation and the death/respawn loop
-without reopening Story118.
+The Story119 relay implementation remains complete. Story229 verifies its
+production incoming boundary after a real Story118 combat kill; Story230 now
+closes real contact activation, death/respawn and the guarded Story120 outgoing
+boundary without reopening Story118.

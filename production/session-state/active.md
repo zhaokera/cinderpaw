@@ -8497,3 +8497,29 @@
 - Next: Story119 real contact activation and death/respawn closure, then
   Story120 relay-runoff production traversal. Story181 remains blocked only on
   external image2 connectivity.
+
+## Session Extract -- Player Abilities Story230 2026-07-22
+
+- Runtime/contact: real `move_right` advanced Cinderpaw `191.652px` from
+  outside the Tailrace Relay overlap and activated Story119 through
+  `body_entered`. Contact/collision disabled, the prompt hid, one unlock VFX
+  spawned and the exact `area_03_factory` relay checkpoint was recorded.
+- Respawn/handoff: real lethal player damage entered `death` / `dying`; the
+  relay was selected for same-scene return at `50/100` HP with
+  `Returned to Tailrace Relay`. Story120 became visible/available but remained
+  idle, inactive, uncrossed and non-contacting after relay activation,
+  no-input placement beyond activation x and respawn.
+- TDD: canonical RED `report_2381` recorded three expected failures; focused
+  GREEN `report_2382` passed `1/1`; final six-suite related `report_2383`
+  passed `8/8`. Updated smoke printed
+  `story119_production_smoke=passed frames=180`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r190526212-29`, used real movement and lethal damage, helper-only game log,
+  empty editor delta after cursor `2`, released inputs, two non-empty RGB
+  `1278x718` screenshots and a clean stop/readiness state.
+- Assets: existing imported image-generated Factory, Cinderpaw, Relay, runoff
+  and VFX assets were sufficient; no image generation, animation-resource or
+  manifest change.
+- Next: Story120 real positive-x production activation, physical steam timing
+  and crossing into Story121's pincer handoff. Story181 remains blocked only on
+  external image2 connectivity.
