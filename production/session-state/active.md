@@ -8575,3 +8575,26 @@
 - Next: Story122 fresh production reward input, exact once-only `20` gears
   claim and Story123 exit-hatch waiting handoff. Story181 remains blocked only
   on external image2 connectivity.
+
+## Session Extract -- Player Abilities Story233 2026-07-22
+
+- Runtime/input: held pre-availability `interact` and released no-input
+  placement leave Story122 unclaimed. One fresh production edge routes through
+  the nearest-cache router and records the exact full id/source, `20` gears and
+  `Tailrace Runoff Pincer Cache Claimed +20 Gears`.
+- Handoff: Story123 becomes visible, available, monitoring, monitorable and
+  blocking at `(16080,392)`. Keeping the claim edge held in range leaves it
+  unopened with zero VFX; Story124 stays hidden, unavailable, inactive and
+  non-contacting.
+- TDD: canonical RED `report_2396`; focused GREEN `report_2397`; final
+  five-suite related `report_2398` passed `7/7`. Updated smoke printed
+  `story233_production_smoke=passed frames=180`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r196920539-37`, used real `interact`, produced helper-only game logs, empty
+  editor delta after cursor `2`, released inputs, two non-empty RGB `1278x718`
+  screenshots and a clean stop.
+- Assets: existing imported image-generated Factory, Cinderpaw, cache and
+  hatch assets were sufficient; no image generation or manifest change.
+- Next: Story234 fresh production Story123 hatch-open input and Story124
+  spillway waiting handoff. Story181 remains blocked only on external image2
+  connectivity.

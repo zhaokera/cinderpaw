@@ -51,9 +51,10 @@
     preserves both three-frame live deaths, and leaves Story122 unclaimed for
     180 frames
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_smoke.gd`)
-12. Old Factory service sluice tailrace relay runoff pincer reward cache appears
-    only after the pincer is cleared, claims once for `+20 Gears`, and persists
-    claimed state
+12. Old Factory service sluice tailrace relay runoff pincer reward cache rejects
+    stale held input, claims once for `+20 Gears` through a fresh production
+    interact edge, keeps the unlocked exit hatch closed while that edge remains
+    held, and preserves the Story124 lock for 180 frames
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_reward_cache_smoke.gd`)
 13. Old Factory service sluice tailrace relay runoff pincer exit hatch appears
     after the pincer reward cache is claimed, opens once, clears collision, and

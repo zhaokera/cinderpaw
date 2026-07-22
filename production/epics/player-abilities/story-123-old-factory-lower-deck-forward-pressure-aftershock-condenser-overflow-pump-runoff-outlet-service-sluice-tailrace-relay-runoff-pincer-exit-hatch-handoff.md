@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + UI/Visual
 > **Estimate**: S
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-10
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -18,7 +18,7 @@
 `TR-respawn-004`
 
 **ADR Governing Implementation**: ADR-0004 Collision detection; ADR-0005
-Asset pipeline; ADR-0007 Scene management; ADR-0018 Player abilities;
+Combat state machine; ADR-0007 Scene management; ADR-0018 Player abilities;
 ADR-0021 Save system.
 
 Story122 claims the post-pincer reward cache. Story123 converts that payoff
@@ -103,3 +103,7 @@ image-generated/imported assets already present in the Godot import pipeline:
   screenshot.
 - Full evidence is recorded in
   `production/qa/evidence/old-factory-service-sluice-tailrace-relay-runoff-pincer-exit-hatch-2026-07-10.md`.
+- Story233 incoming production handoff: a fresh cache-claim edge makes this
+  hatch visible, available, monitoring, monitorable and collision-blocking at
+  `(16080,392)`, but held input leaves it unopened with zero unlock VFX in MCP
+  run `r196920539-37`. Fresh hatch-open input remains Story234.

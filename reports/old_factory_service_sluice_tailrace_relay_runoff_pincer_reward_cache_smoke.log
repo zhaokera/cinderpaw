@@ -8,8 +8,4 @@ DataManager: domain 'tuning_knobs' loaded
 DataManager: domain 'abilities' loaded
 DataManager: domain 'skill_tree' loaded
 [godot_ai game_helper] registered mcp capture (debugger active=false, logger=true)
-service_sluice_tailrace_relay_runoff_pincer_reward_cache_smoke=passed
-WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
-   at: cleanup (core/object/object.cpp:2535)
-ERROR: 2 resources still in use at exit (run with --verbose for details).
-   at: clear (core/io/resource.cpp:822)
+story233_production_smoke=passed frames=180

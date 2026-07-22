@@ -107,3 +107,6 @@ referenced by the `factory_combat_cache.gd` node in
   `+20 Gears`. Held pre-clear `interact` leaves claimed false and reward /
   feedback payloads empty in MCP run `r194847761-35`. Fresh production claim
   routing remains the next bounded Story.
+- Story233 production closure: stale held and no-input placement remain
+  unclaimed; one fresh production `interact` claims the exact `20` gears once
+  in MCP run `r196920539-37`, then exposes Story123 without opening it.

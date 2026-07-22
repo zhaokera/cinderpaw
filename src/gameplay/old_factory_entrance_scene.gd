@@ -1653,6 +1653,14 @@ func _try_claim_nearest_factory_progression_reward_cache(provider: Node) -> bool
 				&"try_claim_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_reward_cache"
 			),
 		},
+		{
+			"cache": (
+				_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_reward_cache
+			),
+			"claim_method": (
+				&"try_claim_factory_lower_deck_forward_pressure_aftershock_condenser_overflow_pump_runoff_outlet_service_sluice_tailrace_relay_runoff_pincer_reward_cache"
+			),
+		},
 	]
 	var nearest_distance: float = INF
 	var nearest_claim_method: StringName = &""

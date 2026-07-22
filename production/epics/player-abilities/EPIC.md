@@ -270,6 +270,7 @@ recording the reward in progression state.
 | 230 | Old Factory Service Sluice Tailrace Relay Production Contact Respawn Runoff Handoff | Integration + Production Movement + Contact Activation + Death/Respawn + Route Handoff | Complete | ADR-0004/0007/0018/0021 |
 | 231 | Old Factory Service Sluice Tailrace Relay Runoff Production Hazard Traverse Pincer Handoff | Integration + Production Movement + Physical Hazard + Route Handoff | Complete | ADR-0004/0007 |
 | 232 | Old Factory Service Sluice Tailrace Relay Runoff Pincer Production Combat Reward Cache Handoff | Integration + Production Movement + Production Combat + Live Death + Reward Handoff | Complete | ADR-0004/0005/0007 |
+| 233 | Old Factory Service Sluice Tailrace Relay Runoff Pincer Reward Cache Production Input Exit Hatch Handoff | Integration + Production Input + Reward + Route Handoff | Complete | ADR-0004/0007 |
 
 ## Definition of Done
 
@@ -291,12 +292,10 @@ This epic is complete when:
 
 ## Next Step
 
-Story232 now activates Story121 through fresh real movement, clears both
-frame-animated enemies through four shared physical light attacks, survives
-first-enemy despawn before the second lethal hit, and leaves Story122 visible,
-claimable and unclaimed behind held-input protection. The next Old Factory
-priority is Story122 fresh production claim routing and Story123 exit-hatch
-handoff.
+Story233 now claims Story122 through one fresh production input edge, preserves
+stale/no-input protection, and leaves Story123 visible, blocking and unopened
+while the claim edge remains held. The next Old Factory priority is Story234:
+fresh Story123 hatch-open input and Story124 spillway waiting handoff.
 Rat King Phase III's documented three-hit berserk combo remains the next
 independent Boss-depth slice, while Story181 remains blocked only on external
 image2 connectivity.
