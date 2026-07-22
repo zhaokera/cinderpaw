@@ -8625,3 +8625,30 @@
 - Next: Story235 real Story124 positive-x movement, physical steam timing/damage
   and crossing into the Sluice Leech handoff. Story181 remains blocked only on
   external image2 connectivity.
+
+## Session Extract -- Player Abilities Story235 2026-07-22
+
+- Runtime/traverse: no-input x `16564` keeps Story124 idle. Real continuous
+  `move_right` and positive displacement activate it, then production timing
+  runs `grace -> warning -> active -> safe`. Active uses collision layer `16`,
+  mask `12`; a real vent overlap applies HP `100 -> 92`, damage `8`, type
+  `steam`, the full Story124 source and Cinderpaw `hurt`.
+- Handoff: no-input x `17044` cannot cross. Real positive-x movement persists
+  Story124 crossed and leaves Story126 available but inactive, hidden,
+  untargeted, non-processing and non-physical. No-input x `17364` and held
+  `move_right` without displacement remain waiting.
+- TDD: canonical RED `report_2405` recorded two expected guard failures;
+  focused GREEN `report_2406` passed `1/1`; stale Story126 immediate-hide
+  assertions were isolated in `report_2408` and corrected in `report_2409`;
+  final five-suite related `report_2410` passed `7/7`. Updated smoke printed
+  `story124_production_smoke=passed frames=180`; no full suite.
+- MCP: Godot 4.7 / MCP 3.0.4 session `cinderpaw@198e`, accepted run
+  `r200395661-39`, used real movement and physical overlap, produced helper-only
+  current-run logs, empty editor delta after cursor `2`, released inputs, five
+  non-empty RGB `1278x718` screenshots and a clean stop/readiness state.
+- Assets: existing imported image-generated spillway, four-frame steam,
+  Cinderpaw and Sluice Leech assets were sufficient. Reuse was recorded in the
+  manifest; no image generation/import was required.
+- Next: Story236 real Story126 positive-x production activation, shared physical
+  combat/live-death closure and Story127 Sluice Matriarch route waiting handoff.
+  Story181 remains blocked only on external image2 connectivity.

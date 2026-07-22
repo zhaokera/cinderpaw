@@ -6,7 +6,7 @@
 > **Type**: Integration + Gameplay Runtime + Frame Animation Contract
 > **Estimate**: M
 > **Manifest Version**: 2026-06-21
-> **Last Updated**: 2026-07-11
+> **Last Updated**: 2026-07-22
 
 ## Context
 
@@ -53,9 +53,11 @@ Relay savepoint and existing route history.
   `src/gameplay/factory_sluice_leech.gd` provide the presentation and runtime
   enemy surfaces without adding a new Autoload or bypassing shared combat
   components.
-- [x] Defeating entity `2146` hides/disables the enemy, persists activated,
-  defeated, and cleared state, and advances route feedback to
-  `Tailrace Sluice Leech Cleared`.
+- [x] Defeating entity `2146` persists activated, defeated and cleared state,
+  disables targeting/physics/collision, and preserves the visible three-frame
+  live death presentation until its authored hold/fade completes. The current
+  route objective advances to `Enter Sluice Matriarch Lair`; restored cleared
+  state remains hidden and disabled.
 - [x] Restoring only the Story126 cleared key backfills Story124 crossed state,
   prevents pincer/cache/hatch/spillway replay, and preserves the Story119
   Tailrace Relay savepoint payload.
@@ -132,6 +134,10 @@ Godot import, and MCP runtime evidence complete.
   failures, or warnings.
 - Related GREEN: `reports/report_1390/` passed Story126 plus Story124, Story125,
   and Story121 suites `7/7`.
+- Story235 adjacency correction: `reports/report_2408/results.xml` reproduced
+  two obsolete immediate-hide assertions after shared live-death behavior was
+  introduced; `reports/report_2409/results.xml` passed Story126 `2/2`, and
+  final related `reports/report_2410/results.xml` passed `7/7` under Godot 4.7.
 - Headless smoke:
   `reports/old_factory_tailrace_exit_spillway_sluice_leech_skirmish_smoke.log`
   exited `0` and printed

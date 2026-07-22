@@ -107,5 +107,9 @@ image-generated/imported assets already present in the Godot import pipeline:
 - Story234 incoming production handoff opens Story123 through one fresh input
   edge and leaves this spillway visible/available but inactive, idle,
   non-contacting and uncrossed. Held input and no-input placement beyond both
-  thresholds remain waiting in MCP run `r198694429-38`; real movement/hazard
-  closure remains Story235.
+  thresholds remain waiting in MCP run `r198694429-38`.
+- Story235 production closure requires frame-start state, held `move_right` and
+  real positive-x displacement at both thresholds; runs the four-phase steam,
+  applies exact physical HP `100 -> 92`, persists crossed state and leaves
+  Story126 waiting. Final related `reports/report_2410/results.xml` passed
+  `7/7`; MCP run `r200395661-39` completed with clean accepted-run logs.

@@ -62,8 +62,9 @@
     but waiting through 180 held/stationary/no-input-threshold frames
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_hatch_smoke.gd`)
 14. Old Factory service sluice tailrace relay runoff pincer exit spillway
-    activates after the exit hatch opens, uses active-only steam contact,
-    crosses the short spillway pocket, and persists crossed state
+    requires real positive-x production movement, runs four-frame steam phases,
+    applies exact physical `8` damage only while active, guards stationary
+    crossing, persists crossed state, and leaves Story126 waiting for 180 frames
     (`tests/smoke/old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_smoke.gd`)
 15. Old Factory tailrace exit Sluice Leech appears only after the spillway is
     crossed, telegraphs for 18 frames, lunges through the shared hitbox path,

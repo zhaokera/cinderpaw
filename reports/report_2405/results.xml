@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-07-22" name="report_2405" tests="1" failures="2" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_production_hazard_traverse_sluice_leech_handoff_test" package="tests/integration/gameplay" timestamp="2026-07-22T13:44:25" hostname="localhost" tests="1" failures="2" errors="0" skipped="0" flaky="0" time="0.416">
+		<testcase name="test_real_move_runs_spillway_damage_crossing_and_leech_handoff" classname="old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_production_hazard_traverse_sluice_leech_handoff_test" time="0.411">
+			<failure message="FAILED: res://tests/integration/gameplay/old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_production_hazard_traverse_sluice_leech_handoff_test.gd:151" type="FAILURE">
+<![CDATA[
+No-input placement beyond Story124 exit x must not complete the traversal
+]]>
+			</failure>
+			<failure message="FAILED: res://tests/integration/gameplay/old_factory_service_sluice_tailrace_relay_runoff_pincer_exit_spillway_production_hazard_traverse_sluice_leech_handoff_test.gd:203" type="FAILURE">
+<![CDATA[
+No-input placement beyond Story126 activation x must leave the leech waiting
+]]>
+			</failure>
+		</testcase>
+	</testsuite>
+</testsuites>

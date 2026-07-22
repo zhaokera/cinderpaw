@@ -246,9 +246,12 @@ func test_spillway_crossed_gates_sluice_leech_skirmish_and_restores_clear() -> v
 	var cleared: Dictionary = ready_scene.call(DIAGNOSTICS_METHOD)
 	assert_bool(bool(cleared.get("active", true))).is_false()
 	assert_bool(bool(cleared.get("cleared", false))).is_true()
-	assert_bool(bool(cleared.get("enemy_visible", true))).is_false()
-	assert_bool(bool(cleared.get("enemy_process_enabled", true))).is_false()
+	assert_bool(bool(cleared.get("enemy_visible", false))).override_failure_message(
+		"Story126 must preserve the authored Sluice Leech death presentation"
+	).is_true()
+	assert_bool(bool(cleared.get("enemy_process_enabled", false))).is_true()
 	assert_bool(bool(cleared.get("enemy_physics_enabled", true))).is_false()
+	assert_bool(bool(cleared.get("enemy_has_target", true))).is_false()
 	assert_str(String(cleared.get("route_label_text", ""))).is_equal(
 		"Enter Sluice Matriarch Lair"
 	)
